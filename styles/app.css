@@ -1,0 +1,194 @@
+html {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+    touch-action: none;
+}
+
+body {
+    background-color: #161718;
+    --main-ui-color: white;
+    --main-ui-bg1: #125185B0;
+    --main-ui-bg-btn: #164c79;
+    --main-ui-bg-btn-active: #2b72ac;
+}
+
+#render-canvas {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    outline: none;
+    border: none;
+    z-index: 0;
+}
+
+#debug-container {
+	position: fixed;
+	top: 110px;
+	right: 10px;
+	width: 400px;
+	padding: 10px;
+	font-size: 16px;
+	color: #00FF00;
+	text-align: right;
+	font-family: monospace;
+	z-index: 1;
+	background-color: rgba(0, 0, 0, 50%);
+	pointer-events: none;
+}
+
+button {
+    background-color: var(--main-ui-bg-btn);
+    outline: 1px solid var(--main-ui-color);
+    margin: 1px;
+    border: 1px solid black;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: min(18px, 3.5vw);
+    height: min(30px, 6vw);
+    color: var(--main-ui-color);
+    padding: 5px;
+    cursor: pointer;
+    vertical-align: top;
+}
+
+button.active {
+    background-color: var(--main-ui-bg-btn-active);
+    outline: 2px solid var(--main-ui-color);
+}
+
+button.disabled {
+    pointer-events: none;
+    opacity: 30%;
+}
+
+button.s-square {
+    width: min(30px, 6vw);
+    font-size: 18px;
+    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 0;
+}
+
+button.m-rect {
+    width: min(65px, 14vw);
+    font-size: min(18px, 3.5vw);
+    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 0;
+}
+
+button.l-rect {
+    width: min(135px, 28vw);
+    font-size: min(18px, 3.5vw);
+    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 0;
+}
+
+.popup {
+    position: fixed;
+    z-index: 3;
+    
+    font-family: Xolonium;
+    padding: 20px;
+    color: var(--main-ui-color);
+    background-color: var(--main-ui-bg1);
+    outline: 2px solid var(--main-ui-color);
+    border: 1px solid black;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 0px;
+    height: fit-content;
+}
+
+#click-anywhere-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0f0f0fe0;
+    z-index: 10;
+    color: white;
+}
+
+#click-anywhere-screen .container {
+    position: fixed;
+    width: min(100svh, 100vw);
+    height: min(100svh, 100vw);
+    top: calc((100svh - min(100svh, 100vw)) * 0.5);
+    left: calc((100vw - min(100svh, 100vw)) * 0.5);
+    z-index: 2;
+}
+
+#click-anywhere-screen .splash-title {
+    position: absolute;
+    width: min(50%, 628px);
+    top: 5%;
+    left: calc((100% - min(50%, 628px)) * 0.5);
+    z-index: 2;
+}
+
+#click-anywhere-screen .message-description {
+    position: absolute;
+    top: 28%;
+    left: 0;
+    width: 100%;
+    z-index: 2;
+    text-align: center;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-size: min(3svh, 3vw);
+    color: white;
+    font-weight: 100;
+}
+
+#click-anywhere-screen .white-track {
+    position: absolute;
+    top: 35%;
+    left: 10%;
+    width: 80%;
+    z-index: 2;
+}
+
+#click-anywhere-screen .message-description-2 {
+    position: absolute;
+    top: 75%;
+    left: 0;
+    width: 100%;
+    z-index: 2;
+    text-align: center;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-size: min(3svh, 3vw);
+    color: white;
+    font-weight: 100;
+}
+
+#click-anywhere-screen .message-bottom {
+    position: absolute;
+    bottom: 12%;
+    left: 0;
+    width: 100%;
+    z-index: 2;
+    text-align: center;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-size: min(5svh, 5vw);
+    color: white;
+    font-weight: 100;
+}
+
+#click-anywhere-screen .message-loading {
+    position: absolute;
+    bottom: 5%;
+    left: 20%;
+    width: 100%;
+    z-index: 2;
+    text-align: left;
+    font-family: monospace;
+    font-size: min(2svh, 2vw);
+    color: white;
+    font-weight: 100;
+}

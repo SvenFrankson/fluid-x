@@ -1,0 +1,58 @@
+#tile-menu h1 {
+    margin: 0;
+    margin-bottom: 20px;
+}
+
+#tile-menu .tile-option.disabled button {
+    border: 1px solid gray;
+    color: gray;
+    pointer-events: none;
+}
+
+#tile-menu .tile-option {
+    display: block;
+    margin-bottom: 10px;
+    width: fit-content;
+    font-size: 20px;
+    white-space: nowrap;
+}
+
+#tile-menu .tile-option .icon {
+    display: inline-block;
+    vertical-align: top;
+    fill: none;
+    stroke: var(--main-ui-color);
+    stroke-width: 5;
+    width: 34px;
+    height: 34px;
+}
+
+#tile-menu .tile-option.disabled .icon {
+    stroke: gray;
+}
+
+#tile-menu .tile-option .value {
+    display: inline-block;
+    vertical-align: top;
+    color: var(--main-ui-color);
+    font-size: 28px;
+    width: 70px;
+}
+
+#tile-menu .tile-option.disabled .value {
+    color: gray;
+}
+
+#tile-menu .tile-option button {
+    display: inline-block;
+    vertical-align: top;
+    font-size: min(18px, 3.5vw);
+    width: 200px;
+}
+
+#tile-menu-close {
+    position: absolute;
+    display: block;
+    top: 10px;
+    right: 10px;
+}

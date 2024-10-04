@@ -1,0 +1,108 @@
+#terrain-editor {
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    
+    font-family: Xolonium;
+    padding: 15px;
+    color: var(--main-ui-color);
+    background-color: var(--main-ui-bg1);
+
+    height: fit-content;
+}
+
+body:not(.vertical) #terrain-editor {
+    top: 0;
+    outline: 2px solid var(--main-ui-color);
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    border-bottom-right-radius: 20px;
+    width: fit-content;
+}
+
+body.vertical #terrain-editor {
+    bottom: 0;
+    outline: 2px solid var(--main-ui-color);
+    border-top: 1px solid black;
+    column-count: 2;
+    column-gap: 0px;
+    width: 100%;
+}
+
+#terrain-editor button.block {
+    background-color: var(--main-ui-bg-btn);
+}
+
+#terrain-editor h1 {
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+body.vertical #terrain-editor h1 {
+    margin: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+#terrain-editor .line {
+    margin-bottom: 4px;
+}
+
+#terrain-editor .label {
+    display: inline-block;
+    width: 100px;
+    vertical-align: text-top;
+}
+
+body.vertical #terrain-editor .label {
+    font-size: 10px;
+    width: 50px;
+}
+
+#terrain-editor .value {
+    display: inline-block;
+    width: min(66px, 13.2vw);
+    font-size: min(24px, 4.5vw);
+    text-align: center;
+    vertical-align: text-top;
+}
+
+#terrain-editor #game-file-selector {
+    left: 400px;
+}
+
+#terrain-editor .mode {
+    background-size: contain;
+}
+
+#terrain-editor button.fatten.mode {
+    background-image: url("../datas/icons/fatten.svg");
+}
+
+#terrain-editor button.shrink.mode {
+    background-image: url("../datas/icons/shrink.svg");
+}
+
+#terrain-editor button.smooth.mode {
+    background-image: url("../datas/icons/smooth.svg");
+}
+
+#terrain-editor .shape {
+    background-size: contain;
+}
+
+#terrain-editor button.disc.shape {
+    background-image: url("../datas/icons/disc.svg");
+}
+
+#terrain-editor button.square.shape {
+    background-image: url("../datas/icons/square.svg");
+}
+
+#terrain-editor button.sphere.shape {
+    background-image: url("../datas/icons/sphere.svg");
+}
+
+#terrain-editor button.cube.shape {
+    background-image: url("../datas/icons/cube.svg");
+}

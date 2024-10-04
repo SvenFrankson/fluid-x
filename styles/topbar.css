@@ -1,0 +1,42 @@
+#topbar {
+    position: fixed;
+    z-index: 3;
+    top: 0;
+    right: 0;
+    
+    font-family: Xolonium;
+    padding: 10px;
+    color: var(--main-ui-color);
+    background-color: var(--main-ui-bg1);
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    outline: 2px solid var(--main-ui-color);
+    border-bottom-left-radius: 20px;
+    height: fit-content;
+
+    width: 300px;
+}
+
+#topbar-gold {
+    display: inline-block;
+    width: 140px;
+}
+
+#topbar-life {
+    display: inline-block;
+    width: 140px;
+}
+
+#topbar .icon {
+    display: inline-block;
+    fill: none;
+    stroke: var(--main-ui-color);
+    stroke-width: 5;
+    width: 30px;
+    height: 30px;
+}
+
+#topbar .value {
+    font-size: 26px;
+    vertical-align: top;
+}

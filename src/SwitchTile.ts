@@ -1,22 +1,24 @@
 /// <reference path="./Tile.ts"/>
 
-class SwitchBox extends Tile {
+class SwitchTile extends Tile {
 
+    public tileTop: BABYLON.Mesh;
     public tileFrame: BABYLON.Mesh;
 
     constructor(game: Game, props: TileProps) {
         super(game, props);
 
+        this.material = this.game.whiteMaterial;
+
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
 
-        this.tileTop.position.y = 0;
+        this.tileFrame.material = this.game.blackMaterial;
 
-        let frameMaterial = new BABYLON.StandardMaterial("frame-material");
-        frameMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        frameMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //frameMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.tileFrame.material = frameMaterial;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        
+        this.tileTop.material = this.game.colorMaterials[this.color];
     }
 
     public async instantiate(): Promise<void> {

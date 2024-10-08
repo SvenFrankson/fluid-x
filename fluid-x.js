@@ -15,22 +15,7 @@ class Ball extends BABYLON.Mesh {
         boxMaterial.specularColor.copyFromFloats(0, 0, 0);
         //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         this.material = boxMaterial;
-        let ballTopMaterial = new BABYLON.StandardMaterial("Balltop-material");
-        ballTopMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //BallTopMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        if (this.color === TileColor.North) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
-        }
-        if (this.color === TileColor.South) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
-        }
-        if (this.color === TileColor.East) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
-        }
-        if (this.color === TileColor.West) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
-        }
-        this.ballTop.material = ballTopMaterial;
+        this.ballTop.material = this.game.colorMaterials[this.color];
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA") {
                 this.leftDown = true;
@@ -47,6 +32,12 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = false;
             }
         });
+    }
+    setColor(color) {
+        this.color = color;
+        if (this.ballTop) {
+            this.ballTop.material = this.game.colorMaterials[this.color];
+        }
     }
     async instantiate() {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
@@ -108,7 +99,9 @@ class Ball extends BABYLON.Mesh {
                         this.vZ = -1;
                     }
                 }
-                if (tile instanceof SwitchBox) {
+                if (tile instanceof SwitchTile) {
+                    tile.bump();
+                    this.setColor(tile.color);
                 }
                 else {
                     if (tile.color === this.color) {
@@ -118,6 +111,71 @@ class Ball extends BABYLON.Mesh {
                 break;
             }
         }
+    }
+}
+class Tile extends BABYLON.Mesh {
+    constructor(game, props) {
+        super("tile");
+        this.game = game;
+        this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.color = props.color;
+        if (isFinite(props.i)) {
+            this.position.x = props.i * 1.1;
+        }
+        if (isFinite(props.j)) {
+            this.position.z = props.j * 1.1;
+        }
+        this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
+    }
+    get size() {
+        return this.scaling.x;
+    }
+    set size(s) {
+        this.scaling.copyFromFloats(s, s, s);
+    }
+    async instantiate() { }
+    async bump() {
+        await this.animateSize(1.1, 0.1);
+        await this.animateSize(1, 0.1);
+    }
+    dispose() {
+        let index = this.game.tiles.indexOf(this);
+        if (index != -1) {
+            this.game.tiles.splice(index, 1);
+        }
+        super.dispose();
+    }
+    collide(ball) {
+        if (ball.position.x + ball.radius < this.position.x - 0.5) {
+            return false;
+        }
+        if (ball.position.x - ball.radius > this.position.x + 0.5) {
+            return false;
+        }
+        if (ball.position.z + ball.radius < this.position.z - 0.5) {
+            return false;
+        }
+        if (ball.position.z - ball.radius > this.position.z + 0.5) {
+            return false;
+        }
+        return true;
+    }
+}
+/// <reference path="./Tile.ts"/>
+class BlockTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.color = props.color;
+        this.material = this.game.whiteMaterial;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.material = this.game.colorMaterials[this.color];
+    }
+    async instantiate() {
+        let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
+        tileData.applyToMesh(this);
+        this.tileTop.position.y = 0.3;
+        BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
     }
 }
 /// <reference path="../lib/nabu/nabu.d.ts"/>
@@ -207,21 +265,13 @@ function StopPointerProgatationAndMonkeys(ev) {
     console.log("StopPointerProgatationAndMonkeys");
     ev.stopPropagation();
 }
-var CameraMode;
-(function (CameraMode) {
-    CameraMode[CameraMode["Dev"] = 0] = "Dev";
-    CameraMode[CameraMode["None"] = 1] = "None";
-    CameraMode[CameraMode["Ball"] = 2] = "Ball";
-    CameraMode[CameraMode["Landscape"] = 3] = "Landscape";
-    CameraMode[CameraMode["Selected"] = 4] = "Selected";
-    CameraMode[CameraMode["Focusing"] = 5] = "Focusing";
-    CameraMode[CameraMode["FocusingSelected"] = 6] = "FocusingSelected";
-    CameraMode[CameraMode["Transition"] = 7] = "Transition";
-    CameraMode[CameraMode["Movie"] = 8] = "Movie";
-    CameraMode[CameraMode["MovieIdle"] = 9] = "MovieIdle";
-    CameraMode[CameraMode["FirstPersonBall"] = 10] = "FirstPersonBall";
-    CameraMode[CameraMode["SideViewBall"] = 11] = "SideViewBall";
-})(CameraMode || (CameraMode = {}));
+var TileColor;
+(function (TileColor) {
+    TileColor[TileColor["North"] = 0] = "North";
+    TileColor[TileColor["East"] = 1] = "East";
+    TileColor[TileColor["South"] = 2] = "South";
+    TileColor[TileColor["West"] = 3] = "West";
+})(TileColor || (TileColor = {}));
 class Game {
     constructor(canvasElement) {
         this.DEBUG_MODE = true;
@@ -289,10 +339,33 @@ class Game {
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
         this.camera.rotation.x = Math.atan(15 / 3);
+        let northMaterial = new BABYLON.StandardMaterial("north-material");
+        northMaterial.specularColor.copyFromFloats(0, 0, 0);
+        northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
+        let eastMaterial = new BABYLON.StandardMaterial("east-material");
+        eastMaterial.specularColor.copyFromFloats(0, 0, 0);
+        eastMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
+        let southMaterial = new BABYLON.StandardMaterial("south-material");
+        southMaterial.specularColor.copyFromFloats(0, 0, 0);
+        southMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
+        let westMaterial = new BABYLON.StandardMaterial("west-material");
+        westMaterial.specularColor.copyFromFloats(0, 0, 0);
+        westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+        this.colorMaterials = [];
+        this.colorMaterials[TileColor.North] = northMaterial;
+        this.colorMaterials[TileColor.South] = southMaterial;
+        this.colorMaterials[TileColor.East] = eastMaterial;
+        this.colorMaterials[TileColor.West] = westMaterial;
+        this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
+        this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
+        this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.blackMaterial = new BABYLON.StandardMaterial("black-material");
+        this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
+        this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.terrain = new Terrain(this);
         await this.terrain.instantiate();
         for (let i = 0; i <= 10; i++) {
-            let tile = new Tile(this, {
+            let tile = new BlockTile(this, {
                 color: Math.floor(Math.random() * 4),
                 i: i,
                 j: 10
@@ -301,7 +374,7 @@ class Game {
             await tile.instantiate();
         }
         for (let i = 0; i <= 5; i++) {
-            let tile = new SwitchBox(this, {
+            let tile = new SwitchTile(this, {
                 color: Math.floor(Math.random() * 4),
                 i: Math.round(Math.random() * 10),
                 j: Math.round(Math.random() * 10)
@@ -309,49 +382,49 @@ class Game {
             this.tiles.push(tile);
             await tile.instantiate();
         }
-        let tile = new Tile(this, {
+        let tile = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
             j: 0
         });
         this.tiles.push(tile);
         await tile.instantiate();
-        let tileA = new Tile(this, {
+        let tileA = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 9
         });
         this.tiles.push(tileA);
         await tileA.instantiate();
-        let tileB = new Tile(this, {
+        let tileB = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 9
         });
         this.tiles.push(tileB);
         await tileB.instantiate();
-        let tileC = new Tile(this, {
+        let tileC = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 8
         });
         this.tiles.push(tileC);
         await tileC.instantiate();
-        let tileD = new Tile(this, {
+        let tileD = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 8
         });
         this.tiles.push(tileD);
         await tileD.instantiate();
-        let tileE = new Tile(this, {
+        let tileE = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 7
         });
         this.tiles.push(tileE);
         await tileE.instantiate();
-        let tileF = new Tile(this, {
+        let tileF = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 7
@@ -389,7 +462,7 @@ class Game {
         targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
         targetCameraPos.y += 15;
         targetCameraPos.z -= 3;
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.03, this.camera.position);
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
         if (this.ball) {
             this.ball.update();
         }
@@ -441,89 +514,17 @@ let createAndInit = async () => {
 requestAnimationFrame(() => {
     createAndInit();
 });
-var TileColor;
-(function (TileColor) {
-    TileColor[TileColor["North"] = 0] = "North";
-    TileColor[TileColor["East"] = 1] = "East";
-    TileColor[TileColor["South"] = 2] = "South";
-    TileColor[TileColor["West"] = 3] = "West";
-})(TileColor || (TileColor = {}));
-class Tile extends BABYLON.Mesh {
-    constructor(game, props) {
-        super("tile");
-        this.game = game;
-        this.color = props.color;
-        if (isFinite(props.i)) {
-            this.position.x = props.i * 1.1;
-        }
-        if (isFinite(props.j)) {
-            this.position.z = props.j * 1.1;
-        }
-        this.tileTop = new BABYLON.Mesh("tile-top");
-        this.tileTop.parent = this;
-        this.tileTop.position.y = 0.3;
-        let boxMaterial = new BABYLON.StandardMaterial("box-material");
-        boxMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
-        boxMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.material = boxMaterial;
-        let tileTopMaterial = new BABYLON.StandardMaterial("tiletop-material");
-        tileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //tileTopMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        if (this.color === TileColor.North) {
-            tileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
-        }
-        if (this.color === TileColor.South) {
-            tileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
-        }
-        if (this.color === TileColor.East) {
-            tileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
-        }
-        if (this.color === TileColor.West) {
-            tileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
-        }
-        this.tileTop.material = tileTopMaterial;
-    }
-    async instantiate() {
-        let tileData = this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
-        (await tileData).applyToMesh(this);
-        BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
-    }
-    dispose() {
-        let index = this.game.tiles.indexOf(this);
-        if (index != -1) {
-            this.game.tiles.splice(index, 1);
-        }
-        super.dispose();
-    }
-    collide(ball) {
-        if (ball.position.x + ball.radius < this.position.x - 0.5) {
-            return false;
-        }
-        if (ball.position.x - ball.radius > this.position.x + 0.5) {
-            return false;
-        }
-        if (ball.position.z + ball.radius < this.position.z - 0.5) {
-            return false;
-        }
-        if (ball.position.z - ball.radius > this.position.z + 0.5) {
-            return false;
-        }
-        return true;
-    }
-}
 /// <reference path="./Tile.ts"/>
-class SwitchBox extends Tile {
+class SwitchTile extends Tile {
     constructor(game, props) {
         super(game, props);
+        this.material = this.game.whiteMaterial;
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
-        this.tileTop.position.y = 0;
-        let frameMaterial = new BABYLON.StandardMaterial("frame-material");
-        frameMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        frameMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //frameMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.tileFrame.material = frameMaterial;
+        this.tileFrame.material = this.game.blackMaterial;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.material = this.game.colorMaterials[this.color];
     }
     async instantiate() {
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");

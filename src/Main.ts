@@ -99,35 +99,11 @@ function StopPointerProgatationAndMonkeys(ev: PointerEvent) {
     ev.stopPropagation();
 }
 
-enum CameraMode {
-    Dev,
-    None,
-    Ball,
-    Landscape,
-    Selected,
-    Focusing,
-    FocusingSelected,
-    Transition,
-    Movie,
-    MovieIdle,
-    FirstPersonBall,
-    SideViewBall
-}
-
-interface ICompletedChallengesSave {
-    version?: number;
-    tutorial: number[];
-    parkour: number[];
-    puzzle: number[];
-}
-
-interface ICameraLimits {
-    alpha?: number;
-    alphaRange?: number;
-    beta?: number;
-    betaRange?: number;
-    lockRotation?: boolean;
-    lockPanning?: boolean;
+enum TileColor {
+    North,
+    East,
+    South,
+    West
 }
 
 class Game {
@@ -154,6 +130,9 @@ class Game {
 
     public vertexDataLoader: Mummu.VertexDataLoader;
 
+    public colorMaterials: BABYLON.Material[];
+    public whiteMaterial: BABYLON.StandardMaterial;
+    public blackMaterial: BABYLON.StandardMaterial;
     public terrain: Terrain;
     public tiles: Tile[] = [];
     public ball: Ball;
@@ -199,11 +178,41 @@ class Game {
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
         this.camera.rotation.x = Math.atan(15 / 3);
 
+        let northMaterial = new BABYLON.StandardMaterial("north-material");
+        northMaterial.specularColor.copyFromFloats(0, 0, 0);
+        northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
+            
+        let eastMaterial = new BABYLON.StandardMaterial("east-material");
+        eastMaterial.specularColor.copyFromFloats(0, 0, 0);
+        eastMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
+
+        let southMaterial = new BABYLON.StandardMaterial("south-material");
+        southMaterial.specularColor.copyFromFloats(0, 0, 0);
+        southMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
+            
+        let westMaterial = new BABYLON.StandardMaterial("west-material");
+        westMaterial.specularColor.copyFromFloats(0, 0, 0);
+        westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+
+        this.colorMaterials = [];
+        this.colorMaterials[TileColor.North] = northMaterial;
+        this.colorMaterials[TileColor.South] = southMaterial;
+        this.colorMaterials[TileColor.East] = eastMaterial;
+        this.colorMaterials[TileColor.West] = westMaterial;
+
+        this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
+        this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
+        this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.blackMaterial = new BABYLON.StandardMaterial("black-material");
+        this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
+        this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+
         this.terrain = new Terrain(this);
         await this.terrain.instantiate();
 
         for (let i = 0; i <= 10; i++) {
-            let tile = new Tile(this, {
+            let tile = new BlockTile(this, {
                 color: Math.floor(Math.random() * 4),
                 i: i,
                 j: 10
@@ -213,7 +222,7 @@ class Game {
         }
 
         for (let i = 0; i <= 5; i++) {
-            let tile = new SwitchBox(this, {
+            let tile = new SwitchTile(this, {
                 color: Math.floor(Math.random() * 4),
                 i: Math.round(Math.random() * 10),
                 j: Math.round(Math.random() * 10)
@@ -222,7 +231,7 @@ class Game {
             await tile.instantiate();
         }
 
-        let tile = new Tile(this, {
+        let tile = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
             j: 0
@@ -230,7 +239,7 @@ class Game {
         this.tiles.push(tile);
         await tile.instantiate();
 
-        let tileA = new Tile(this, {
+        let tileA = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 9
@@ -238,7 +247,7 @@ class Game {
         this.tiles.push(tileA);
         await tileA.instantiate();
 
-        let tileB = new Tile(this, {
+        let tileB = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 9
@@ -246,7 +255,7 @@ class Game {
         this.tiles.push(tileB);
         await tileB.instantiate();
 
-        let tileC = new Tile(this, {
+        let tileC = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 8
@@ -254,7 +263,7 @@ class Game {
         this.tiles.push(tileC);
         await tileC.instantiate();
 
-        let tileD = new Tile(this, {
+        let tileD = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 8
@@ -262,7 +271,7 @@ class Game {
         this.tiles.push(tileD);
         await tileD.instantiate();
 
-        let tileE = new Tile(this, {
+        let tileE = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 7
@@ -270,7 +279,7 @@ class Game {
         this.tiles.push(tileE);
         await tileE.instantiate();
 
-        let tileF = new Tile(this, {
+        let tileF = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 7
@@ -335,7 +344,7 @@ class Game {
         targetCameraPos.y += 15;
         targetCameraPos.z -= 3;
 
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.03, this.camera.position);
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
         
         if (this.ball) {
             this.ball.update();

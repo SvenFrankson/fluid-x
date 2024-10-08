@@ -13,6 +13,13 @@ class Ball extends BABYLON.Mesh {
     public leftDown: boolean = false;
     public rightDown: boolean = false;
 
+    public setColor(color: TileColor) {
+        this.color = color;
+        if (this.ballTop) {
+            this.ballTop.material = this.game.colorMaterials[this.color];
+        }
+    }
+
     constructor(public game: Game, props: BallProps) {
         super("ball");
         this.color = props.color;
@@ -26,22 +33,7 @@ class Ball extends BABYLON.Mesh {
         //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         this.material = boxMaterial;
 
-        let ballTopMaterial = new BABYLON.StandardMaterial("Balltop-material");
-        ballTopMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //BallTopMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        if (this.color === TileColor.North) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
-        }
-        if (this.color === TileColor.South) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
-        }
-        if (this.color === TileColor.East) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
-        }
-        if (this.color === TileColor.West) {
-            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
-        }
-        this.ballTop.material = ballTopMaterial;
+        this.ballTop.material = this.game.colorMaterials[this.color];
 
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA") {
@@ -128,8 +120,9 @@ class Ball extends BABYLON.Mesh {
                         this.vZ = -1;
                     }
                 }
-                if (tile instanceof SwitchBox) {
-
+                if (tile instanceof SwitchTile) {
+                    tile.bump();
+                    this.setColor(tile.color);
                 }
                 else {
                     if (tile.color === this.color) {

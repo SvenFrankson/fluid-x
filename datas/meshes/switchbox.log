@@ -12,16 +12,16 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		Texture directory   :  C:\Users\svent\Documents\sven-frankson\fluid-x\datas\meshes\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  0-ball-box
+	processing begun of mesh:  1-switchbox-frame
 		WARNING: No materials have been assigned: 
-		num positions      :  128
-		num normals        :  128
+		num positions      :  170
+		num normals        :  170
 		num tangents       :  0
-		num uvs            :  256
+		num uvs            :  340
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  192
-	processing begun of mesh:  1-ball-top
+		num triangles      :  224
+	processing begun of mesh:  2-switchbox-top
 		WARNING: No materials have been assigned: 
 		num positions      :  33
 		num normals        :  33
@@ -30,9 +30,19 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  32
+	processing begun of mesh:  0-switchbox-box
+		processing begun of material:  Material
+		num positions      :  28
+		num normals        :  28
+		num tangents       :  0
+		num uvs            :  56
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  26
 ========= Writing of JSON file started =========
-	writing mesh:  0-ball-box
-	writing mesh:  1-ball-top
+	writing mesh:  1-switchbox-frame
+	writing mesh:  2-switchbox-top
+	writing mesh:  0-switchbox-box
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0169 secs
+elapsed time:  0 min, 0.02 secs

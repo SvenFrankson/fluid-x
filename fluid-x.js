@@ -15,22 +15,22 @@ class Ball extends BABYLON.Mesh {
         boxMaterial.specularColor.copyFromFloats(0, 0, 0);
         //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         this.material = boxMaterial;
-        let BallTopMaterial = new BABYLON.StandardMaterial("Balltop-material");
-        BallTopMaterial.specularColor.copyFromFloats(0, 0, 0);
+        let ballTopMaterial = new BABYLON.StandardMaterial("Balltop-material");
+        ballTopMaterial.specularColor.copyFromFloats(0, 0, 0);
         //BallTopMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         if (this.color === TileColor.North) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
         }
         if (this.color === TileColor.South) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
         }
         if (this.color === TileColor.East) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
         }
         if (this.color === TileColor.West) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
         }
-        this.ballTop.material = BallTopMaterial;
+        this.ballTop.material = ballTopMaterial;
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA") {
                 this.leftDown = true;
@@ -74,7 +74,7 @@ class Ball extends BABYLON.Mesh {
             }
         }
         let speed = new BABYLON.Vector3(vX, 0, this.vZ);
-        speed.normalize().scaleInPlace(2);
+        speed.normalize().scaleInPlace(1.5);
         this.position.addInPlace(speed.scale(1 / 60));
         if (this.position.z + this.radius > this.game.terrain.zMax) {
             this.vZ = -1;
@@ -106,6 +106,13 @@ class Ball extends BABYLON.Mesh {
                     }
                     else {
                         this.vZ = -1;
+                    }
+                }
+                if (tile instanceof SwitchBox) {
+                }
+                else {
+                    if (tile.color === this.color) {
+                        tile.dispose();
                     }
                 }
                 break;
@@ -280,11 +287,8 @@ class Game {
         }
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
-        this.arcCamera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, 0.1, 20, new BABYLON.Vector3(5, 0, 5));
-        this.arcCamera.wheelPrecision *= 10;
-        this.arcCamera.lowerRadiusLimit = 1;
-        this.arcCamera.upperRadiusLimit = 200;
-        this.arcCamera.upperBetaLimit = Math.PI * 0.5;
+        this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
+        this.camera.rotation.x = Math.atan(15 / 3);
         this.terrain = new Terrain(this);
         await this.terrain.instantiate();
         for (let i = 0; i <= 10; i++) {
@@ -296,6 +300,15 @@ class Game {
             this.tiles.push(tile);
             await tile.instantiate();
         }
+        for (let i = 0; i <= 5; i++) {
+            let tile = new SwitchBox(this, {
+                color: Math.floor(Math.random() * 4),
+                i: Math.round(Math.random() * 10),
+                j: Math.round(Math.random() * 10)
+            });
+            this.tiles.push(tile);
+            await tile.instantiate();
+        }
         let tile = new Tile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
@@ -303,6 +316,48 @@ class Game {
         });
         this.tiles.push(tile);
         await tile.instantiate();
+        let tileA = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 4,
+            j: 9
+        });
+        this.tiles.push(tileA);
+        await tileA.instantiate();
+        let tileB = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 6,
+            j: 9
+        });
+        this.tiles.push(tileB);
+        await tileB.instantiate();
+        let tileC = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 4,
+            j: 8
+        });
+        this.tiles.push(tileC);
+        await tileC.instantiate();
+        let tileD = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 6,
+            j: 8
+        });
+        this.tiles.push(tileD);
+        await tileD.instantiate();
+        let tileE = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 4,
+            j: 7
+        });
+        this.tiles.push(tileE);
+        await tileE.instantiate();
+        let tileF = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 6,
+            j: 7
+        });
+        this.tiles.push(tileF);
+        await tileF.instantiate();
         this.ball = new Ball(this, { color: TileColor.North });
         await this.ball.instantiate();
         this.ball.position.x = 5;
@@ -329,20 +384,15 @@ class Game {
     }
     update() {
         let rawDT = this.scene.deltaTime / 1000;
+        let targetCameraPos = this.ball.position.clone();
+        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 4.5, this.terrain.xMax - 4.5);
+        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
+        targetCameraPos.y += 15;
+        targetCameraPos.z -= 3;
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.03, this.camera.position);
         if (this.ball) {
             this.ball.update();
         }
-    }
-    getCameraMinFOV() {
-        let ratio = this.engine.getRenderWidth() / this.engine.getRenderHeight();
-        let fov = this.arcCamera.fov;
-        if (ratio > 1) {
-            return fov;
-        }
-        return fov * ratio;
-    }
-    getCameraHorizontalFOV() {
-        return 2 * Math.atan(this.screenRatio * Math.tan(this.arcCamera.fov / 2));
     }
     get curtainOpacity() {
         return this._curtainOpacity;
@@ -391,44 +441,6 @@ let createAndInit = async () => {
 requestAnimationFrame(() => {
     createAndInit();
 });
-class Terrain {
-    constructor(game) {
-        this.game = game;
-        this.w = 10;
-        this.h = 10;
-    }
-    get xMin() {
-        return -0.55;
-    }
-    get xMax() {
-        return this.w * 1.1 + 0.55;
-    }
-    get zMin() {
-        return -0.55;
-    }
-    get zMax() {
-        return this.h * 1.1 + 0.55;
-    }
-    async instantiate() {
-        this.border = new BABYLON.Mesh("border");
-        let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
-        top.position.x = 0.5 * (this.xMin + this.xMax);
-        top.position.y = 0.1;
-        top.position.z = this.zMax + 0.25;
-        let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
-        right.position.x = this.xMax + 0.25;
-        right.position.y = 0.1;
-        right.position.z = 0.5 * (this.zMin + this.zMax);
-        let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
-        bottom.position.x = 0.5 * (this.xMin + this.xMax);
-        bottom.position.y = 0.1;
-        bottom.position.z = this.zMin - 0.25;
-        let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
-        left.position.x = this.xMin - 0.25;
-        left.position.y = 0.1;
-        left.position.z = 0.5 * (this.zMin + this.zMax);
-    }
-}
 var TileColor;
 (function (TileColor) {
     TileColor[TileColor["North"] = 0] = "North";
@@ -477,6 +489,13 @@ class Tile extends BABYLON.Mesh {
         (await tileData).applyToMesh(this);
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
     }
+    dispose() {
+        let index = this.game.tiles.indexOf(this);
+        if (index != -1) {
+            this.game.tiles.splice(index, 1);
+        }
+        super.dispose();
+    }
     collide(ball) {
         if (ball.position.x + ball.radius < this.position.x - 0.5) {
             return false;
@@ -491,5 +510,63 @@ class Tile extends BABYLON.Mesh {
             return false;
         }
         return true;
+    }
+}
+/// <reference path="./Tile.ts"/>
+class SwitchBox extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.tileFrame = new BABYLON.Mesh("tile-frame");
+        this.tileFrame.parent = this;
+        this.tileTop.position.y = 0;
+        let frameMaterial = new BABYLON.StandardMaterial("frame-material");
+        frameMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        frameMaterial.specularColor.copyFromFloats(0, 0, 0);
+        //frameMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.tileFrame.material = frameMaterial;
+    }
+    async instantiate() {
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
+        tileData[0].applyToMesh(this);
+        tileData[1].applyToMesh(this.tileFrame);
+        tileData[2].applyToMesh(this.tileTop);
+    }
+}
+class Terrain {
+    constructor(game) {
+        this.game = game;
+        this.w = 10;
+        this.h = 10;
+    }
+    get xMin() {
+        return -0.55;
+    }
+    get xMax() {
+        return this.w * 1.1 + 0.55;
+    }
+    get zMin() {
+        return -0.55;
+    }
+    get zMax() {
+        return this.h * 1.1 + 0.55;
+    }
+    async instantiate() {
+        this.border = new BABYLON.Mesh("border");
+        let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
+        top.position.x = 0.5 * (this.xMin + this.xMax);
+        top.position.y = 0.1;
+        top.position.z = this.zMax + 0.25;
+        let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
+        right.position.x = this.xMax + 0.25;
+        right.position.y = 0.1;
+        right.position.z = 0.5 * (this.zMin + this.zMax);
+        let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
+        bottom.position.x = 0.5 * (this.xMin + this.xMax);
+        bottom.position.y = 0.1;
+        bottom.position.z = this.zMin - 0.25;
+        let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
+        left.position.x = this.xMin - 0.25;
+        left.position.y = 0.1;
+        left.position.z = 0.5 * (this.zMin + this.zMax);
     }
 }

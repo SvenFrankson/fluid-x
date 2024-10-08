@@ -26,22 +26,22 @@ class Ball extends BABYLON.Mesh {
         //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         this.material = boxMaterial;
 
-        let BallTopMaterial = new BABYLON.StandardMaterial("Balltop-material");
-        BallTopMaterial.specularColor.copyFromFloats(0, 0, 0);
+        let ballTopMaterial = new BABYLON.StandardMaterial("Balltop-material");
+        ballTopMaterial.specularColor.copyFromFloats(0, 0, 0);
         //BallTopMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         if (this.color === TileColor.North) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
         }
         if (this.color === TileColor.South) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
         }
         if (this.color === TileColor.East) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
         }
         if (this.color === TileColor.West) {
-            BallTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+            ballTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
         }
-        this.ballTop.material = BallTopMaterial;
+        this.ballTop.material = ballTopMaterial;
 
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA") {
@@ -91,7 +91,7 @@ class Ball extends BABYLON.Mesh {
         }
 
         let speed = new BABYLON.Vector3(vX, 0, this.vZ);
-        speed.normalize().scaleInPlace(2);
+        speed.normalize().scaleInPlace(1.5);
 
         this.position.addInPlace(speed.scale(1/60));
         if (this.position.z + this.radius > this.game.terrain.zMax) {
@@ -126,6 +126,14 @@ class Ball extends BABYLON.Mesh {
                     }
                     else {
                         this.vZ = -1;
+                    }
+                }
+                if (tile instanceof SwitchBox) {
+
+                }
+                else {
+                    if (tile.color === this.color) {
+                        tile.dispose();
                     }
                 }
                 break;

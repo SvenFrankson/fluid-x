@@ -145,7 +145,7 @@ class Game {
     }
     public screenRatio: number = 1;
 
-    public arcCamera: BABYLON.ArcRotateCamera;
+    public camera: BABYLON.FreeCamera;
 
     public cameraOrtho: boolean = false;
 
@@ -196,11 +196,8 @@ class Game {
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
 
-        this.arcCamera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, 0.1, 20, new BABYLON.Vector3(5, 0, 5));
-        this.arcCamera.wheelPrecision *= 10;
-        this.arcCamera.lowerRadiusLimit = 1;
-        this.arcCamera.upperRadiusLimit = 200;
-        this.arcCamera.upperBetaLimit = Math.PI * 0.5;
+        this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
+        this.camera.rotation.x = Math.atan(15 / 3);
 
         this.terrain = new Terrain(this);
         await this.terrain.instantiate();
@@ -215,6 +212,16 @@ class Game {
             await tile.instantiate();
         }
 
+        for (let i = 0; i <= 5; i++) {
+            let tile = new SwitchBox(this, {
+                color: Math.floor(Math.random() * 4),
+                i: Math.round(Math.random() * 10),
+                j: Math.round(Math.random() * 10)
+            });
+            this.tiles.push(tile);
+            await tile.instantiate();
+        }
+
         let tile = new Tile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
@@ -222,6 +229,54 @@ class Game {
         });
         this.tiles.push(tile);
         await tile.instantiate();
+
+        let tileA = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 4,
+            j: 9
+        });
+        this.tiles.push(tileA);
+        await tileA.instantiate();
+
+        let tileB = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 6,
+            j: 9
+        });
+        this.tiles.push(tileB);
+        await tileB.instantiate();
+
+        let tileC = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 4,
+            j: 8
+        });
+        this.tiles.push(tileC);
+        await tileC.instantiate();
+
+        let tileD = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 6,
+            j: 8
+        });
+        this.tiles.push(tileD);
+        await tileD.instantiate();
+
+        let tileE = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 4,
+            j: 7
+        });
+        this.tiles.push(tileE);
+        await tileE.instantiate();
+
+        let tileF = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 6,
+            j: 7
+        });
+        this.tiles.push(tileF);
+        await tileF.instantiate();
 
         this.ball = new Ball(this, { color: TileColor.North });
         await this.ball.instantiate();
@@ -273,6 +328,15 @@ class Game {
     public updateConfigTimeout: number = - 1;
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
+        let targetCameraPos = this.ball.position.clone();
+        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 4.5, this.terrain.xMax - 4.5);
+        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
+        
+        targetCameraPos.y += 15;
+        targetCameraPos.z -= 3;
+
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.03, this.camera.position);
+        
         if (this.ball) {
             this.ball.update();
         }
@@ -282,19 +346,6 @@ class Game {
     public machineEditorContainerHeight: number = - 1;
     public machineEditorContainerWidth: number = - 1;
     public canvasLeft: number = 0;
-
-    public getCameraMinFOV(): number {
-        let ratio = this.engine.getRenderWidth() / this.engine.getRenderHeight();
-        let fov = this.arcCamera.fov;
-        if (ratio > 1) {
-            return fov;
-        }
-        return fov * ratio;
-    }
-
-    public getCameraHorizontalFOV(): number {
-        return 2 * Math.atan(this.screenRatio * Math.tan(this.arcCamera.fov / 2));
-    }
 
     private _pointerDownX: number = 0;
     private _pointerDownY: number = 0;

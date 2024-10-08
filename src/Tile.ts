@@ -61,6 +61,14 @@ class Tile extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
     }
 
+    public dispose(): void {
+        let index = this.game.tiles.indexOf(this);
+        if (index != -1) {
+            this.game.tiles.splice(index, 1);
+        }
+        super.dispose();
+    }
+
     public collide(ball: Ball): boolean {
         if (ball.position.x + ball.radius < this.position.x - 0.5) {
             return false;

@@ -3,12 +3,13 @@
 class SwitchTile extends Tile {
 
     public tileTop: BABYLON.Mesh;
+    public tileBottom: BABYLON.Mesh;
     public tileFrame: BABYLON.Mesh;
 
     constructor(game: Game, props: TileProps) {
         super(game, props);
 
-        this.material = this.game.whiteMaterial;
+        this.material = this.game.brownMaterial;
 
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
@@ -19,6 +20,11 @@ class SwitchTile extends Tile {
         this.tileTop.parent = this;
         
         this.tileTop.material = this.game.colorMaterials[this.color];
+
+        this.tileBottom = new BABYLON.Mesh("tile-bottom");
+        this.tileBottom.parent = this;
+        
+        this.tileBottom.material = this.game.salmonMaterial;
     }
 
     public async instantiate(): Promise<void> {
@@ -26,5 +32,6 @@ class SwitchTile extends Tile {
         tileData[0].applyToMesh(this);
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);
+        tileData[3].applyToMesh(this.tileBottom);
     }
 }

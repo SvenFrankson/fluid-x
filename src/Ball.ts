@@ -83,7 +83,7 @@ class Ball extends BABYLON.Mesh {
         }
 
         let speed = new BABYLON.Vector3(vX, 0, this.vZ);
-        speed.normalize().scaleInPlace(1.5);
+        speed.normalize().scaleInPlace(1);
 
         this.position.addInPlace(speed.scale(1/60));
         if (this.position.z + this.radius > this.game.terrain.zMax) {

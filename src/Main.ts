@@ -132,7 +132,10 @@ class Game {
 
     public colorMaterials: BABYLON.Material[];
     public whiteMaterial: BABYLON.StandardMaterial;
+    public salmonMaterial: BABYLON.StandardMaterial;
+    public brownMaterial: BABYLON.StandardMaterial;
     public blackMaterial: BABYLON.StandardMaterial;
+    public floorMaterial: BABYLON.StandardMaterial;
     public terrain: Terrain;
     public tiles: Tile[] = [];
     public ball: Ball;
@@ -193,6 +196,10 @@ class Game {
         let westMaterial = new BABYLON.StandardMaterial("west-material");
         westMaterial.specularColor.copyFromFloats(0, 0, 0);
         westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+            
+        this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
+        this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
 
         this.colorMaterials = [];
         this.colorMaterials[TileColor.North] = northMaterial;
@@ -203,6 +210,14 @@ class Game {
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
+        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
+        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");

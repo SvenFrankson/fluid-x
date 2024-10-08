@@ -8,7 +8,7 @@ class BlockTile extends Tile {
         super(game, props);
         this.color = props.color;
 
-        this.material = this.game.whiteMaterial;
+        this.material = this.game.brownMaterial;
 
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;

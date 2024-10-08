@@ -32,17 +32,28 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num triangles      :  32
 	processing begun of mesh:  0-switchbox-box
 		processing begun of material:  Material
-		num positions      :  28
-		num normals        :  28
+		num positions      :  24
+		num normals        :  24
 		num tangents       :  0
-		num uvs            :  56
+		num uvs            :  48
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  26
+		num triangles      :  24
+	processing begun of mesh:  3-switchtile-bottom
+		processing begun of material:  Material
+		registered as also a user of material:  Material
+		num positions      :  4
+		num normals        :  4
+		num tangents       :  0
+		num uvs            :  8
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  2
 ========= Writing of JSON file started =========
 	writing mesh:  1-switchbox-frame
 	writing mesh:  2-switchbox-top
 	writing mesh:  0-switchbox-box
+	writing mesh:  3-switchtile-bottom
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.02 secs
+elapsed time:  0 min, 0.0932 secs

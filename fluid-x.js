@@ -65,7 +65,7 @@ class Ball extends BABYLON.Mesh {
             }
         }
         let speed = new BABYLON.Vector3(vX, 0, this.vZ);
-        speed.normalize().scaleInPlace(1.5);
+        speed.normalize().scaleInPlace(1);
         this.position.addInPlace(speed.scale(1 / 60));
         if (this.position.z + this.radius > this.game.terrain.zMax) {
             this.vZ = -1;
@@ -172,7 +172,7 @@ class BlockTile extends Tile {
     constructor(game, props) {
         super(game, props);
         this.color = props.color;
-        this.material = this.game.whiteMaterial;
+        this.material = this.game.brownMaterial;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.material = this.game.colorMaterials[this.color];
@@ -357,6 +357,9 @@ class Game {
         let westMaterial = new BABYLON.StandardMaterial("west-material");
         westMaterial.specularColor.copyFromFloats(0, 0, 0);
         westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+        this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
+        this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
         this.colorMaterials = [];
         this.colorMaterials[TileColor.North] = northMaterial;
         this.colorMaterials[TileColor.South] = southMaterial;
@@ -365,6 +368,12 @@ class Game {
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
+        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
+        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -524,19 +533,23 @@ requestAnimationFrame(() => {
 class SwitchTile extends Tile {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.whiteMaterial;
+        this.material = this.game.brownMaterial;
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
         this.tileFrame.material = this.game.blackMaterial;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.material = this.game.colorMaterials[this.color];
+        this.tileBottom = new BABYLON.Mesh("tile-bottom");
+        this.tileBottom.parent = this;
+        this.tileBottom.material = this.game.salmonMaterial;
     }
     async instantiate() {
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
         tileData[0].applyToMesh(this);
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);
+        tileData[3].applyToMesh(this.tileBottom);
     }
 }
 class Terrain {
@@ -559,21 +572,30 @@ class Terrain {
     }
     async instantiate() {
         this.border = new BABYLON.Mesh("border");
+        let floor = Mummu.CreateQuad("floor", { width: this.xMax - this.xMin, height: this.zMax - this.xMin, uvInWorldSpace: true, uvSize: 1.1 });
+        floor.position.x = 0.5 * (this.xMin + this.xMax);
+        floor.position.z = 0.5 * (this.zMin + this.zMax);
+        floor.rotation.x = Math.PI * 0.5;
+        floor.material = this.game.floorMaterial;
         let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
         top.position.x = 0.5 * (this.xMin + this.xMax);
         top.position.y = 0.1;
         top.position.z = this.zMax + 0.25;
+        top.material = this.game.blackMaterial;
         let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
         right.position.x = this.xMax + 0.25;
         right.position.y = 0.1;
         right.position.z = 0.5 * (this.zMin + this.zMax);
+        right.material = this.game.blackMaterial;
         let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
         bottom.position.x = 0.5 * (this.xMin + this.xMax);
         bottom.position.y = 0.1;
         bottom.position.z = this.zMin - 0.25;
+        bottom.material = this.game.blackMaterial;
         let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
         left.position.x = this.xMin - 0.25;
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
+        left.material = this.game.blackMaterial;
     }
 }

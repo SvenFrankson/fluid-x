@@ -158,7 +158,13 @@ class Tile extends BABYLON.Mesh {
         if (ball.position.z - ball.radius > this.position.z + 0.5) {
             return false;
         }
-        return true;
+        let dx = ball.position.x - Nabu.MinMax(ball.position.x, this.position.x - 0.5, this.position.x + 0.5);
+        let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - 0.5, this.position.z + 0.5);
+        let dd = dx * dx + dz * dz;
+        if (dd < ball.radius * ball.radius) {
+            return true;
+        }
+        return false;
     }
 }
 /// <reference path="./Tile.ts"/>

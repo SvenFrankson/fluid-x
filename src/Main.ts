@@ -1,3 +1,5 @@
+/// <reference path="../lib/nabu/nabu.d.ts"/>
+/// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
 var MRS_VERSION: number = 3;
@@ -150,6 +152,12 @@ class Game {
     public light: BABYLON.HemisphericLight;
     public shadowGenerator: BABYLON.ShadowGenerator;
 
+    public vertexDataLoader: Mummu.VertexDataLoader;
+
+    public terrain: Terrain;
+    public tiles: Tile[] = [];
+    public ball: Ball;
+
     constructor(canvasElement: string) {
         Game.Instance = this;
         
@@ -174,6 +182,8 @@ class Game {
     public async createScene(): Promise<void> {
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#A1CFDBFF");
+
+        this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
         
         this.screenRatio = window.innerWidth / window.innerHeight;
         if (this.screenRatio < 1) {
@@ -184,15 +194,40 @@ class Game {
         }
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
+        this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
 
-        this.arcCamera = new BABYLON.ArcRotateCamera("camera", - 2, 0.8, 10, new BABYLON.Vector3(0, 0, 0));
+        this.arcCamera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, 0.1, 20, new BABYLON.Vector3(5, 0, 5));
+        this.arcCamera.wheelPrecision *= 10;
         this.arcCamera.lowerRadiusLimit = 1;
         this.arcCamera.upperRadiusLimit = 200;
         this.arcCamera.upperBetaLimit = Math.PI * 0.5;
 
-        this.arcCamera.attachControl();
+        this.terrain = new Terrain(this);
+        await this.terrain.instantiate();
 
-        let ground = BABYLON.MeshBuilder.CreateGround("ground");
+        for (let i = 0; i <= 10; i++) {
+            let tile = new Tile(this, {
+                color: Math.floor(Math.random() * 4),
+                i: i,
+                j: 10
+            });
+            this.tiles.push(tile);
+            await tile.instantiate();
+        }
+
+        let tile = new Tile(this, {
+            color: Math.floor(Math.random() * 4),
+            i: 0,
+            j: 0
+        });
+        this.tiles.push(tile);
+        await tile.instantiate();
+
+        this.ball = new Ball(this, { color: TileColor.North });
+        await this.ball.instantiate();
+
+        this.ball.position.x = 5;
+        this.ball.position.z = 5;
 
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
@@ -238,6 +273,9 @@ class Game {
     public updateConfigTimeout: number = - 1;
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
+        if (this.ball) {
+            this.ball.update();
+        }
     }
 
     public machineEditorContainerIsDisplayed: boolean = false;

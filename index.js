@@ -141,6 +141,10 @@ async function doLoad() {
     setProgressIndex(pIndex++);
     await loadScript("./lib/babylonjs.loaders.js");
     setProgressIndex(pIndex++);
+    await loadScript("./lib/nabu/nabu.js");
+    setProgressIndex(pIndex++);
+    await loadScript("./lib/mummu/mummu.js");
+    setProgressIndex(pIndex++);
     await loadScript("./fluid-x.js");
     setProgressIndex(pIndex++);
 }

@@ -236,16 +236,6 @@ class Game {
             await tile.instantiate();
         }
 
-        for (let i = 0; i <= 5; i++) {
-            let tile = new SwitchTile(this, {
-                color: Math.floor(Math.random() * 4),
-                i: Math.round(Math.random() * 10),
-                j: Math.round(Math.random() * 10)
-            });
-            this.tiles.push(tile);
-            await tile.instantiate();
-        }
-
         let tile = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
@@ -301,6 +291,16 @@ class Game {
         });
         this.tiles.push(tileF);
         await tileF.instantiate();
+
+        let border = new Border(this);
+        border.position.copyFromFloats(3.5 * 1.1, 0, 5 * 1.1);
+        await border.instantiate();
+
+        let ramp = new Ramp(this, {
+            i: 12,
+            j: 5
+        });
+        await ramp.instantiate();
 
         this.ball = new Ball(this, { color: TileColor.North });
         await this.ball.instantiate();

@@ -79,10 +79,34 @@ class Ball extends BABYLON.Mesh {
         else if (this.position.x - this.radius < this.game.terrain.xMin) {
             this.bounceVX = 1;
         }
+        let impact = BABYLON.Vector3.Zero();
+        for (let i = 0; i < this.game.terrain.borders.length; i++) {
+            let border = this.game.terrain.borders[i];
+            if (border.collide(this, impact)) {
+                let dir = this.position.subtract(impact);
+                if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                    if (dir.x > 0) {
+                        this.bounceVX = 1;
+                    }
+                    else {
+                        this.bounceVX = -1;
+                    }
+                }
+                else {
+                    if (dir.z > 0) {
+                        this.vZ = 1;
+                    }
+                    else {
+                        this.vZ = -1;
+                    }
+                }
+                break;
+            }
+        }
         for (let i = 0; i < this.game.tiles.length; i++) {
             let tile = this.game.tiles[i];
-            if (tile.collide(this)) {
-                let dir = this.position.subtract(tile.position);
+            if (tile.collide(this, impact)) {
+                let dir = this.position.subtract(impact);
                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
                     if (dir.x > 0) {
                         this.bounceVX = 1;
@@ -145,7 +169,7 @@ class Tile extends BABYLON.Mesh {
         }
         super.dispose();
     }
-    collide(ball) {
+    collide(ball, impact) {
         if (ball.position.x + ball.radius < this.position.x - 0.5) {
             return false;
         }
@@ -162,6 +186,9 @@ class Tile extends BABYLON.Mesh {
         let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - 0.5, this.position.z + 0.5);
         let dd = dx * dx + dz * dz;
         if (dd < ball.radius * ball.radius) {
+            impact.x = Nabu.MinMax(ball.position.x, this.position.x - 0.5, this.position.x + 0.5);
+            impact.y = ball.position.y;
+            impact.z = Nabu.MinMax(ball.position.z, this.position.z - 0.5, this.position.z + 0.5);
             return true;
         }
         return false;
@@ -182,6 +209,133 @@ class BlockTile extends Tile {
         tileData.applyToMesh(this);
         this.tileTop.position.y = 0.3;
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
+    }
+}
+class Border extends BABYLON.Mesh {
+    constructor(game) {
+        super("tile");
+        this.game = game;
+        this.w = 0.1;
+        this.d = 1;
+        this.material = this.game.blackMaterial;
+    }
+    get vertical() {
+        return this.rotation.y === 0;
+    }
+    set vertical(v) {
+        this.rotation.y = v ? 0 : Math.PI * 0.5;
+        this.w = v ? 0.1 : 1;
+        this.d = v ? 1 : 0.1;
+    }
+    async instantiate() {
+        let index = this.game.terrain.borders.indexOf(this);
+        if (index === -1) {
+            this.game.terrain.borders.push(this);
+        }
+        BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.6, depth: 1 }).applyToMesh(this);
+    }
+    dispose() {
+        let index = this.game.terrain.borders.indexOf(this);
+        if (index != -1) {
+            this.game.terrain.borders.splice(index, 1);
+        }
+        super.dispose();
+    }
+    collide(ball, impact) {
+        if (ball.position.x + ball.radius < this.position.x - 0.5 * this.w) {
+            return false;
+        }
+        if (ball.position.x - ball.radius > this.position.x + 0.5 * this.w) {
+            return false;
+        }
+        if (ball.position.z + ball.radius < this.position.z - 0.5 * this.d) {
+            return false;
+        }
+        if (ball.position.z - ball.radius > this.position.z + 0.5 * this.d) {
+            return false;
+        }
+        let dx = ball.position.x - Nabu.MinMax(ball.position.x, this.position.x - this.w, this.position.x + this.w);
+        let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - this.d, this.position.z + this.d);
+        let dd = dx * dx + dz * dz;
+        if (dd < ball.radius * ball.radius) {
+            impact.x = Nabu.MinMax(ball.position.x, this.position.x - this.w, this.position.x + this.w);
+            impact.y = ball.position.y;
+            impact.z = Nabu.MinMax(ball.position.z, this.position.z - this.d, this.position.z + this.d);
+            return true;
+        }
+        return false;
+    }
+}
+class Build extends BABYLON.Mesh {
+    constructor(game, props) {
+        super("tile");
+        this.game = game;
+        this.borders = [];
+        if (isFinite(props.i)) {
+            this.position.x = props.i * 1.1;
+        }
+        if (isFinite(props.j)) {
+            this.position.z = props.j * 1.1;
+        }
+    }
+    async instantiate() { }
+    async bump() {
+    }
+    dispose() {
+        let index = this.game.terrain.build.indexOf(this);
+        if (index != -1) {
+            this.game.terrain.build.splice(index, 1);
+        }
+        super.dispose();
+    }
+}
+class Ramp extends Build {
+    constructor(game, props) {
+        super(game, props);
+        let border = new Border(this.game);
+        border.position.copyFrom(this.position);
+        border.position.x -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.position.copyFrom(this.position);
+        border.position.x -= 0.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.position.copyFrom(this.position);
+        border.position.x -= 0.5 * 1.1;
+        border.position.z += 2 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        border.position.z += 2 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z += 2.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z += 2.5 * 1.1;
+        this.borders.push(border);
+    }
+    async instantiate() {
+        for (let i = 0; i < this.borders.length; i++) {
+            await this.borders[i].instantiate();
+        }
     }
 }
 /// <reference path="../lib/nabu/nabu.d.ts"/>
@@ -388,15 +542,6 @@ class Game {
             this.tiles.push(tile);
             await tile.instantiate();
         }
-        for (let i = 0; i <= 5; i++) {
-            let tile = new SwitchTile(this, {
-                color: Math.floor(Math.random() * 4),
-                i: Math.round(Math.random() * 10),
-                j: Math.round(Math.random() * 10)
-            });
-            this.tiles.push(tile);
-            await tile.instantiate();
-        }
         let tile = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
@@ -446,6 +591,14 @@ class Game {
         });
         this.tiles.push(tileF);
         await tileF.instantiate();
+        let border = new Border(this);
+        border.position.copyFromFloats(3.5 * 1.1, 0, 5 * 1.1);
+        await border.instantiate();
+        let ramp = new Ramp(this, {
+            i: 12,
+            j: 5
+        });
+        await ramp.instantiate();
         this.ball = new Ball(this, { color: TileColor.North });
         await this.ball.instantiate();
         this.ball.position.x = 5;
@@ -555,7 +708,9 @@ class SwitchTile extends Tile {
 class Terrain {
     constructor(game) {
         this.game = game;
-        this.w = 10;
+        this.borders = [];
+        this.build = [];
+        this.w = 20;
         this.h = 10;
     }
     get xMin() {

@@ -44,7 +44,7 @@ abstract class Tile extends BABYLON.Mesh {
         super.dispose();
     }
 
-    public collide(ball: Ball): boolean {
+    public collide(ball: Ball, impact: BABYLON.Vector3): boolean {
         if (ball.position.x + ball.radius < this.position.x - 0.5) {
             return false;
         }
@@ -63,6 +63,9 @@ abstract class Tile extends BABYLON.Mesh {
 
         let dd = dx * dx + dz * dz;
         if (dd < ball.radius * ball.radius) {
+            impact.x = Nabu.MinMax(ball.position.x, this.position.x - 0.5, this.position.x + 0.5);
+            impact.y = ball.position.y;
+            impact.z = Nabu.MinMax(ball.position.z, this.position.z - 0.5, this.position.z + 0.5);
             return true;
         }
 

@@ -1,8 +1,10 @@
 class Terrain {
 
     public border: BABYLON.Mesh;
+    public borders: Border[] = [];
+    public build: Build[] = [];
 
-    public w: number = 10;
+    public w: number = 20;
     public h: number = 10;
 
     public get xMin(): number {

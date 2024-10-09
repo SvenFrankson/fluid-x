@@ -100,10 +100,35 @@ class Ball extends BABYLON.Mesh {
             this.bounceVX = 1;
         }
 
+        let impact = BABYLON.Vector3.Zero();
+        for (let i = 0; i < this.game.terrain.borders.length; i++) {
+            let border = this.game.terrain.borders[i];
+            if (border.collide(this, impact)) {
+                let dir = this.position.subtract(impact);
+                if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                    if (dir.x > 0) {
+                        this.bounceVX = 1;
+                    }
+                    else {
+                        this.bounceVX = -1;
+                    }
+                }
+                else {
+                    if (dir.z > 0) {
+                        this.vZ = 1;
+                    }
+                    else {
+                        this.vZ = -1;
+                    }
+                }
+                break;
+            }
+        }
+
         for (let i = 0; i < this.game.tiles.length; i++) {
             let tile = this.game.tiles[i];
-            if (tile.collide(this)) {
-                let dir = this.position.subtract(tile.position);
+            if (tile.collide(this, impact)) {
+                let dir = this.position.subtract(impact);
                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
                     if (dir.x > 0) {
                         this.bounceVX = 1;

@@ -45,6 +45,9 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public collide(ball: Ball, impact: BABYLON.Vector3): boolean {
+        if (Math.abs(ball.position.y - this.position.y) > 0.5) {
+            return false;
+        }
         if (ball.position.x + ball.radius < this.position.x - 0.5) {
             return false;
         }

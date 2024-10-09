@@ -298,9 +298,47 @@ class Game {
 
         let ramp = new Ramp(this, {
             i: 8,
-            j: 5
+            j: 3
         });
         await ramp.instantiate();
+
+        let box = new Box(this, {
+            i: 8,
+            j: 6,
+            borderLeft: true,
+            borderTop: true
+        });
+        await box.instantiate();
+
+        let box2 = new Box(this, {
+            i: 10,
+            j: 6,
+            borderBottom: true,
+            borderTop: true
+        });
+        await box2.instantiate();
+
+        let bridge = new Bridge(this, {
+            i: 12,
+            j: 6,
+            borderBottom: true,
+            borderTop: true
+        });
+        await bridge.instantiate();
+
+        let box3 = new Box(this, {
+            i: 16,
+            j: 6,
+            borderRight: true,
+            borderTop: true
+        });
+        await box3.instantiate();
+
+        let ramp2 = new Ramp(this, {
+            i: 16,
+            j: 3
+        });
+        await ramp2.instantiate();
 
         this.ball = new Ball(this, { color: TileColor.North });
         await this.ball.instantiate();

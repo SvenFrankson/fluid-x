@@ -13,7 +13,7 @@ class Border extends BABYLON.Mesh {
     public w: number = 0.1;
     public d: number = 1;
 
-    constructor(public game: Game) {
+    constructor(public game: Game, public ghost = true) {
         super("tile");
 
         this.material = this.game.blackMaterial;
@@ -24,7 +24,11 @@ class Border extends BABYLON.Mesh {
         if (index === -1) {
             this.game.terrain.borders.push(this);
         }
-        BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.6, depth: 1 }).applyToMesh(this);
+        if (!this.ghost) {
+            let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
+            Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
+            data.applyToMesh(this);
+        }
     }
 
 
@@ -37,6 +41,9 @@ class Border extends BABYLON.Mesh {
     }
 
     public collide(ball: Ball, impact: BABYLON.Vector3): boolean {
+        if (Math.abs(ball.position.y - this.position.y) > 0.6) {
+            return false;
+        }
         if (ball.position.x + ball.radius < this.position.x - 0.5 * this.w) {
             return false;
         }

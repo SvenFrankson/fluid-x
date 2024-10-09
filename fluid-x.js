@@ -177,6 +177,9 @@ class Tile extends BABYLON.Mesh {
         super.dispose();
     }
     collide(ball, impact) {
+        if (Math.abs(ball.position.y - this.position.y) > 0.5) {
+            return false;
+        }
         if (ball.position.x + ball.radius < this.position.x - 0.5) {
             return false;
         }
@@ -219,9 +222,10 @@ class BlockTile extends Tile {
     }
 }
 class Border extends BABYLON.Mesh {
-    constructor(game) {
+    constructor(game, ghost = true) {
         super("tile");
         this.game = game;
+        this.ghost = ghost;
         this.w = 0.1;
         this.d = 1;
         this.material = this.game.blackMaterial;
@@ -239,7 +243,11 @@ class Border extends BABYLON.Mesh {
         if (index === -1) {
             this.game.terrain.borders.push(this);
         }
-        BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.6, depth: 1 }).applyToMesh(this);
+        if (!this.ghost) {
+            let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
+            Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
+            data.applyToMesh(this);
+        }
     }
     dispose() {
         let index = this.game.terrain.borders.indexOf(this);
@@ -249,6 +257,9 @@ class Border extends BABYLON.Mesh {
         super.dispose();
     }
     collide(ball, impact) {
+        if (Math.abs(ball.position.y - this.position.y) > 0.6) {
+            return false;
+        }
         if (ball.position.x + ball.radius < this.position.x - 0.5 * this.w) {
             return false;
         }
@@ -299,40 +310,46 @@ class Build extends BABYLON.Mesh {
 class Ramp extends Build {
     constructor(game, props) {
         super(game, props);
-        let border = new Border(this.game);
+        let border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x -= 0.5 * 1.1;
+        border.position.y += 0.5;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x += 1.5 * 1.1;
+        border.position.y += 0.5;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x -= 0.5 * 1.1;
+        border.position.y += 0.5;
         border.position.z += 1.1;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x += 1.5 * 1.1;
+        border.position.y += 0.5;
         border.position.z += 1.1;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x -= 0.5 * 1.1;
+        border.position.y += 0.5;
         border.position.z += 2 * 1.1;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x += 1.5 * 1.1;
+        border.position.y += 0.5;
         border.position.z += 2 * 1.1;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.vertical = false;
         border.position.copyFrom(this.position);
         border.position.z += 2.5 * 1.1;
         this.borders.push(border);
-        border = new Border(this.game);
+        border = new Border(this.game, true);
         border.vertical = false;
         border.position.copyFrom(this.position);
         border.position.x += 1 * 1.1;
@@ -347,6 +364,231 @@ class Ramp extends Build {
         }
         let rampData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 0);
         rampData.applyToMesh(this);
+    }
+}
+class Box extends Build {
+    constructor(game, props) {
+        super(game, props);
+        let border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x -= 0.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
+        if (props.borderLeft) {
+            border = new Border(this.game, false);
+            border.position.copyFrom(this.position);
+            border.position.x -= 0.5 * 1.1;
+            border.position.y += 1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.position.copyFrom(this.position);
+            border.position.x -= 0.5 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.1;
+            this.borders.push(border);
+        }
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
+        if (props.borderRight) {
+            border = new Border(this.game, false);
+            border.position.copyFrom(this.position);
+            border.position.x += 1.5 * 1.1;
+            border.position.y += 1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.position.copyFrom(this.position);
+            border.position.x += 1.5 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.1;
+            this.borders.push(border);
+        }
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        if (props.borderBottom) {
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.y += 1;
+            border.position.z -= 0.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 1 * 1.1;
+            border.position.y += 1;
+            border.position.z -= 0.5 * 1.1;
+            this.borders.push(border);
+        }
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        if (props.borderTop) {
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.z += 1.5 * 1.1;
+            border.position.y += 1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 1 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.5 * 1.1;
+            this.borders.push(border);
+        }
+        this.scaling.copyFromFloats(1.1, 1, 1.1);
+        this.material = this.game.salmonMaterial;
+    }
+    async instantiate() {
+        for (let i = 0; i < this.borders.length; i++) {
+            await this.borders[i].instantiate();
+        }
+        let data = BABYLON.CreateBoxVertexData({ width: 2, height: 1, depth: 2 });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0.5, 0.5, 0.5));
+        data.applyToMesh(this);
+        //let rampData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 0);
+        //rampData.applyToMesh(this);
+    }
+}
+class Bridge extends Build {
+    constructor(game, props) {
+        super(game, props);
+        let border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 0.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 2.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 2.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 3 * 1.1;
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 3 * 1.1;
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        if (props.borderTop) {
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.y += 1;
+            border.position.z += 1.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 1 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 2 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 3 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.5 * 1.1;
+            this.borders.push(border);
+        }
+        if (props.borderBottom) {
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.y += 1;
+            border.position.z -= 0.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 1 * 1.1;
+            border.position.y += 1;
+            border.position.z -= 0.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 2 * 1.1;
+            border.position.y += 1;
+            border.position.z -= 0.5 * 1.1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.vertical = false;
+            border.position.copyFrom(this.position);
+            border.position.x += 3 * 1.1;
+            border.position.y += 1;
+            border.position.z -= 0.5 * 1.1;
+            this.borders.push(border);
+        }
+        this.scaling.copyFromFloats(1.1, 1, 1.1);
+        this.material = this.game.salmonMaterial;
+    }
+    async instantiate() {
+        for (let i = 0; i < this.borders.length; i++) {
+            await this.borders[i].instantiate();
+        }
+        let bridgeData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 1);
+        bridgeData.applyToMesh(this);
     }
 }
 /// <reference path="../lib/nabu/nabu.d.ts"/>
@@ -607,9 +849,42 @@ class Game {
         await border.instantiate();
         let ramp = new Ramp(this, {
             i: 8,
-            j: 5
+            j: 3
         });
         await ramp.instantiate();
+        let box = new Box(this, {
+            i: 8,
+            j: 6,
+            borderLeft: true,
+            borderTop: true
+        });
+        await box.instantiate();
+        let box2 = new Box(this, {
+            i: 10,
+            j: 6,
+            borderBottom: true,
+            borderTop: true
+        });
+        await box2.instantiate();
+        let bridge = new Bridge(this, {
+            i: 12,
+            j: 6,
+            borderBottom: true,
+            borderTop: true
+        });
+        await bridge.instantiate();
+        let box3 = new Box(this, {
+            i: 16,
+            j: 6,
+            borderRight: true,
+            borderTop: true
+        });
+        await box3.instantiate();
+        let ramp2 = new Ramp(this, {
+            i: 16,
+            j: 3
+        });
+        await ramp2.instantiate();
         this.ball = new Ball(this, { color: TileColor.North });
         await this.ball.instantiate();
         this.ball.position.x = 5;

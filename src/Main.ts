@@ -297,7 +297,7 @@ class Game {
         await border.instantiate();
 
         let ramp = new Ramp(this, {
-            i: 12,
+            i: 8,
             j: 5
         });
         await ramp.instantiate();

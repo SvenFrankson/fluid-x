@@ -135,6 +135,13 @@ class Ball extends BABYLON.Mesh {
                 break;
             }
         }
+        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0));
+        let hit = this.game.scene.pickWithRay(ray, (mesh) => {
+            return mesh instanceof Build || mesh.name === "floor";
+        });
+        if (hit.hit) {
+            this.position.y = hit.pickedPoint.y;
+        }
     }
 }
 class Tile extends BABYLON.Mesh {
@@ -331,11 +338,15 @@ class Ramp extends Build {
         border.position.x += 1 * 1.1;
         border.position.z += 2.5 * 1.1;
         this.borders.push(border);
+        this.scaling.copyFromFloats(1.1, 1, 1.1);
+        this.material = this.game.salmonMaterial;
     }
     async instantiate() {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
+        let rampData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 0);
+        rampData.applyToMesh(this);
     }
 }
 /// <reference path="../lib/nabu/nabu.d.ts"/>
@@ -595,7 +606,7 @@ class Game {
         border.position.copyFromFloats(3.5 * 1.1, 0, 5 * 1.1);
         await border.instantiate();
         let ramp = new Ramp(this, {
-            i: 12,
+            i: 8,
             j: 5
         });
         await ramp.instantiate();

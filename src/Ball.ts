@@ -157,5 +157,16 @@ class Ball extends BABYLON.Mesh {
                 break;
             }
         }
+
+        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0));
+        let hit = this.game.scene.pickWithRay(
+            ray,
+            (mesh) => {
+                return mesh instanceof Build || mesh.name === "floor";
+            }
+        )
+        if (hit.hit) {
+            this.position.y = hit.pickedPoint.y;
+        }
     }
 }

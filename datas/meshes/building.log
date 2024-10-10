@@ -23,13 +23,13 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num triangles      :  24
 	processing begun of mesh:  100-bridge
 		WARNING: No materials have been assigned: 
-		num positions      :  70
-		num normals        :  70
+		num positions      :  78
+		num normals        :  78
 		num tangents       :  0
-		num uvs            :  140
+		num uvs            :  156
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  60
+		num triangles      :  68
 	processing begun of mesh:  001-ramp-floor
 		WARNING: No materials have been assigned: 
 		num positions      :  4
@@ -75,6 +75,15 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  2
+	processing begun of mesh:  102-bridge-border
+		WARNING: No materials have been assigned: 
+		num positions      :  90
+		num normals        :  90
+		num tangents       :  0
+		num uvs            :  180
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  84
 ========= Writing of JSON file started =========
 	writing mesh:  002-ramp-border
 	writing mesh:  100-bridge
@@ -83,6 +92,7 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	writing mesh:  101-bridge-floor
 	writing mesh:  200-box
 	writing mesh:  201-box-floor
+	writing mesh:  102-bridge-border
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0195 secs
+elapsed time:  0 min, 0.0235 secs

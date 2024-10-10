@@ -270,8 +270,8 @@ class Box extends Build {
         }
         
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
-        data[5].applyToMesh(this);
-        data[6].applyToMesh(this.floor);
+        data[6].applyToMesh(this);
+        data[7].applyToMesh(this.floor);
 
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
@@ -290,6 +290,8 @@ class Box extends Build {
 }
 
 class Bridge extends Build {
+
+    public builtInBorder: BABYLON.Mesh;
     
     constructor(game: Game, props: BoxProps) {
         super(game, props);
@@ -410,6 +412,11 @@ class Bridge extends Build {
         
         this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
+
+        this.builtInBorder = new BABYLON.Mesh("ramp-border");
+        this.builtInBorder.parent = this;
+    
+        this.builtInBorder.material = this.game.blackMaterial;
     }
 
     public async instantiate(): Promise<void> {
@@ -420,6 +427,7 @@ class Bridge extends Build {
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         data[3].applyToMesh(this);
         data[4].applyToMesh(this.floor);
+        data[5].applyToMesh(this.builtInBorder);
 
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({

@@ -2,9 +2,12 @@ interface TileProps {
     color: TileColor;
     i?: number;
     j?: number;
+    h?: number;
 }
 
 abstract class Tile extends BABYLON.Mesh {
+
+    public shadow: BABYLON.Mesh;
 
     public animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
     public color: TileColor;
@@ -25,11 +28,36 @@ abstract class Tile extends BABYLON.Mesh {
         if (isFinite(props.j)) {
             this.position.z = props.j * 1.1;
         }
+        if (isFinite(props.h)) {
+            this.position.y = props.h;
+        }
+
+        this.shadow = new BABYLON.Mesh("shadow");
+        this.shadow.position.x = -0.015;
+        this.shadow.position.y = 0.01;
+        this.shadow.position.z = -0.015;
+        this.shadow.parent = this;
+
+        this.shadow.material = this.game.shadowMaterial;
 
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }
 
-    public async instantiate(): Promise<void> { }
+    public async instantiate(): Promise<void> {
+        let index = this.game.terrain.tiles.indexOf(this);
+        if (index === -1) {
+            this.game.terrain.tiles.push(this);
+        }
+
+        let m = 0.05;
+        let shadowData = Mummu.Create9SliceVertexData({
+            width: 1 + 2 * m,
+            height: 1 + 2 * m,
+            margin: m
+        });
+        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+        shadowData.applyToMesh(this.shadow);
+    }
 
     public async bump(): Promise<void> {
         await this.animateSize(1.1, 0.1);
@@ -37,9 +65,9 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public dispose(): void {
-        let index = this.game.tiles.indexOf(this);
+        let index = this.game.terrain.tiles.indexOf(this);
         if (index != -1) {
-            this.game.tiles.splice(index, 1);
+            this.game.terrain.tiles.splice(index, 1);
         }
         super.dispose();
     }

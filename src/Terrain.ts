@@ -1,6 +1,7 @@
 class Terrain {
 
     public border: BABYLON.Mesh;
+    public tiles: Tile[] = [];
     public borders: Border[] = [];
     public build: Build[] = [];
 

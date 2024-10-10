@@ -12,27 +12,77 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		Texture directory   :  C:\Users\svent\Documents\sven-frankson\fluid-x\datas\meshes\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  0-ramp
+	processing begun of mesh:  002-ramp-border
 		WARNING: No materials have been assigned: 
-		num positions      :  77
-		num normals        :  77
+		num positions      :  62
+		num normals        :  62
 		num tangents       :  0
-		num uvs            :  154
+		num uvs            :  124
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  30
-	processing begun of mesh:  1-bridge
+		num triangles      :  24
+	processing begun of mesh:  100-bridge
 		WARNING: No materials have been assigned: 
-		num positions      :  76
-		num normals        :  76
+		num positions      :  70
+		num normals        :  70
 		num tangents       :  0
-		num uvs            :  152
+		num uvs            :  140
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  64
+		num triangles      :  60
+	processing begun of mesh:  001-ramp-floor
+		WARNING: No materials have been assigned: 
+		num positions      :  4
+		num normals        :  4
+		num tangents       :  0
+		num uvs            :  8
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  2
+	processing begun of mesh:  000-ramp
+		WARNING: No materials have been assigned: 
+		num positions      :  11
+		num normals        :  11
+		num tangents       :  0
+		num uvs            :  22
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  4
+	processing begun of mesh:  101-bridge-floor
+		WARNING: No materials have been assigned: 
+		num positions      :  4
+		num normals        :  4
+		num tangents       :  0
+		num uvs            :  8
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  2
+	processing begun of mesh:  200-box
+		WARNING: No materials have been assigned: 
+		num positions      :  16
+		num normals        :  16
+		num tangents       :  0
+		num uvs            :  32
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  8
+	processing begun of mesh:  201-box-floor
+		WARNING: No materials have been assigned: 
+		num positions      :  4
+		num normals        :  4
+		num tangents       :  0
+		num uvs            :  8
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  2
 ========= Writing of JSON file started =========
-	writing mesh:  0-ramp
-	writing mesh:  1-bridge
+	writing mesh:  002-ramp-border
+	writing mesh:  100-bridge
+	writing mesh:  001-ramp-floor
+	writing mesh:  000-ramp
+	writing mesh:  101-bridge-floor
+	writing mesh:  200-box
+	writing mesh:  201-box-floor
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0112 secs
+elapsed time:  0 min, 0.0195 secs

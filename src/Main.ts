@@ -136,8 +136,9 @@ class Game {
     public brownMaterial: BABYLON.StandardMaterial;
     public blackMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
+    public darkFloorMaterial: BABYLON.StandardMaterial;
+    public shadowMaterial: BABYLON.StandardMaterial;
     public terrain: Terrain;
-    public tiles: Tile[] = [];
     public ball: Ball;
 
     constructor(canvasElement: string) {
@@ -179,7 +180,7 @@ class Game {
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
 
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
-        this.camera.rotation.x = Math.atan(15 / 3);
+        this.camera.rotation.x = Math.atan(15 / 5);
 
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -199,7 +200,21 @@ class Game {
             
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial.diffuseColor.copyFromFloats(0.8, 0.8, 0.8);
         this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+            
+        this.darkFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
+        this.darkFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.darkFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.darkFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+            
+        this.shadowMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.shadowMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.shadowMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.shadowMaterial.diffuseTexture.hasAlpha = true;
+        this.shadowMaterial.useAlphaFromDiffuseTexture = true;
+        this.shadowMaterial.alpha = 0.4;
+        this.shadowMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.colorMaterials = [];
         this.colorMaterials[TileColor.North] = northMaterial;
@@ -232,7 +247,6 @@ class Game {
                 i: i,
                 j: 10
             });
-            this.tiles.push(tile);
             await tile.instantiate();
         }
 
@@ -241,7 +255,6 @@ class Game {
             i: 0,
             j: 0
         });
-        this.tiles.push(tile);
         await tile.instantiate();
 
         let tileA = new BlockTile(this, {
@@ -249,7 +262,6 @@ class Game {
             i: 4,
             j: 9
         });
-        this.tiles.push(tileA);
         await tileA.instantiate();
 
         let tileB = new BlockTile(this, {
@@ -257,7 +269,6 @@ class Game {
             i: 6,
             j: 9
         });
-        this.tiles.push(tileB);
         await tileB.instantiate();
 
         let tileC = new BlockTile(this, {
@@ -265,7 +276,6 @@ class Game {
             i: 4,
             j: 8
         });
-        this.tiles.push(tileC);
         await tileC.instantiate();
 
         let tileD = new BlockTile(this, {
@@ -273,7 +283,6 @@ class Game {
             i: 6,
             j: 8
         });
-        this.tiles.push(tileD);
         await tileD.instantiate();
 
         let tileE = new BlockTile(this, {
@@ -281,7 +290,6 @@ class Game {
             i: 4,
             j: 7
         });
-        this.tiles.push(tileE);
         await tileE.instantiate();
 
         let tileF = new BlockTile(this, {
@@ -289,12 +297,45 @@ class Game {
             i: 6,
             j: 7
         });
-        this.tiles.push(tileF);
         await tileF.instantiate();
 
-        let border = new Border(this);
-        border.position.copyFromFloats(3.5 * 1.1, 0, 5 * 1.1);
-        await border.instantiate();
+        let switchNorth = new SwitchTile(this, {
+            color: TileColor.North,
+            i: 8,
+            j: 7,
+            h: 1
+        });
+        await switchNorth.instantiate();
+
+        let switchEast = new SwitchTile(this, {
+            color: TileColor.East,
+            i: 12,
+            j: 7,
+            h: 1
+        });
+        await switchEast.instantiate();
+
+        let switchSouth = new SwitchTile(this, {
+            color: TileColor.South,
+            i: 8,
+            j: 0,
+            h: 0
+        });
+        await switchSouth.instantiate();
+
+        let switchWest = new SwitchTile(this, {
+            color: TileColor.West,
+            i: 1,
+            j: 5,
+            h: 0
+        });
+        await switchWest.instantiate();
+
+        let ramp0 = new Ramp(this, {
+            i: 3,
+            j: 3
+        });
+        await ramp0.instantiate();
 
         let ramp = new Ramp(this, {
             i: 8,
@@ -395,9 +436,9 @@ class Game {
         targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
         
         targetCameraPos.y += 15;
-        targetCameraPos.z -= 3;
+        targetCameraPos.z -= 5;
 
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.005, this.camera.position);
         
         if (this.ball) {
             this.ball.update();

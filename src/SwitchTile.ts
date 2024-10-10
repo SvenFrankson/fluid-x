@@ -28,6 +28,7 @@ class SwitchTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
         tileData[0].applyToMesh(this);
         tileData[1].applyToMesh(this.tileFrame);

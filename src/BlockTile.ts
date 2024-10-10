@@ -17,6 +17,8 @@ class BlockTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        await super.instantiate();
+        
         let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
         tileData.applyToMesh(this);
 

@@ -22,6 +22,8 @@ class Ball extends BABYLON.Mesh {
 
     constructor(public game: Game, props: BallProps) {
         super("ball");
+        this.rotationQuaternion = BABYLON.Quaternion.Identity();
+
         this.color = props.color;
 
         this.ballTop = new BABYLON.Mesh("ball-top");
@@ -71,7 +73,7 @@ class Ball extends BABYLON.Mesh {
             else if (this.bounceVX > 0 && this.rightDown) {
                 vX = 1;
             }
-            this.bounceVX -= Math.sign(this.bounceVX) * 0.025;
+            this.bounceVX -= Math.sign(this.bounceVX) * 0.015;
         }
         else {
             if (this.leftDown) {
@@ -125,8 +127,8 @@ class Ball extends BABYLON.Mesh {
             }
         }
 
-        for (let i = 0; i < this.game.tiles.length; i++) {
-            let tile = this.game.tiles[i];
+        for (let i = 0; i < this.game.terrain.tiles.length; i++) {
+            let tile = this.game.terrain.tiles[i];
             if (tile.collide(this, impact)) {
                 let dir = this.position.subtract(impact);
                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
@@ -162,11 +164,13 @@ class Ball extends BABYLON.Mesh {
         let hit = this.game.scene.pickWithRay(
             ray,
             (mesh) => {
-                return mesh instanceof Build || mesh.name === "floor";
+                return mesh.name === "floor" || mesh.name === "building-floor";
             }
         )
         if (hit.hit) {
             this.position.y = hit.pickedPoint.y;
+            let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
+            BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
         }
     }
 }

@@ -7,6 +7,7 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.4;
         this.leftDown = false;
         this.rightDown = false;
+        this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
         this.ballTop = new BABYLON.Mesh("ball-top");
         this.ballTop.parent = this;
@@ -54,7 +55,7 @@ class Ball extends BABYLON.Mesh {
             else if (this.bounceVX > 0 && this.rightDown) {
                 vX = 1;
             }
-            this.bounceVX -= Math.sign(this.bounceVX) * 0.025;
+            this.bounceVX -= Math.sign(this.bounceVX) * 0.015;
         }
         else {
             if (this.leftDown) {
@@ -103,8 +104,8 @@ class Ball extends BABYLON.Mesh {
                 break;
             }
         }
-        for (let i = 0; i < this.game.tiles.length; i++) {
-            let tile = this.game.tiles[i];
+        for (let i = 0; i < this.game.terrain.tiles.length; i++) {
+            let tile = this.game.terrain.tiles[i];
             if (tile.collide(this, impact)) {
                 let dir = this.position.subtract(impact);
                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
@@ -137,10 +138,12 @@ class Ball extends BABYLON.Mesh {
         }
         let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0));
         let hit = this.game.scene.pickWithRay(ray, (mesh) => {
-            return mesh instanceof Build || mesh.name === "floor";
+            return mesh.name === "floor" || mesh.name === "building-floor";
         });
         if (hit.hit) {
             this.position.y = hit.pickedPoint.y;
+            let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
+            BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
         }
     }
 }
@@ -156,6 +159,15 @@ class Tile extends BABYLON.Mesh {
         if (isFinite(props.j)) {
             this.position.z = props.j * 1.1;
         }
+        if (isFinite(props.h)) {
+            this.position.y = props.h;
+        }
+        this.shadow = new BABYLON.Mesh("shadow");
+        this.shadow.position.x = -0.015;
+        this.shadow.position.y = 0.01;
+        this.shadow.position.z = -0.015;
+        this.shadow.parent = this;
+        this.shadow.material = this.game.shadowMaterial;
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }
     get size() {
@@ -164,15 +176,28 @@ class Tile extends BABYLON.Mesh {
     set size(s) {
         this.scaling.copyFromFloats(s, s, s);
     }
-    async instantiate() { }
+    async instantiate() {
+        let index = this.game.terrain.tiles.indexOf(this);
+        if (index === -1) {
+            this.game.terrain.tiles.push(this);
+        }
+        let m = 0.05;
+        let shadowData = Mummu.Create9SliceVertexData({
+            width: 1 + 2 * m,
+            height: 1 + 2 * m,
+            margin: m
+        });
+        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+        shadowData.applyToMesh(this.shadow);
+    }
     async bump() {
         await this.animateSize(1.1, 0.1);
         await this.animateSize(1, 0.1);
     }
     dispose() {
-        let index = this.game.tiles.indexOf(this);
+        let index = this.game.terrain.tiles.indexOf(this);
         if (index != -1) {
-            this.game.tiles.splice(index, 1);
+            this.game.terrain.tiles.splice(index, 1);
         }
         super.dispose();
     }
@@ -215,6 +240,7 @@ class BlockTile extends Tile {
         this.tileTop.material = this.game.colorMaterials[this.color];
     }
     async instantiate() {
+        await super.instantiate();
         let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
         tileData.applyToMesh(this);
         this.tileTop.position.y = 0.3;
@@ -285,16 +311,24 @@ class Border extends BABYLON.Mesh {
     }
 }
 class Build extends BABYLON.Mesh {
-    constructor(game, props) {
+    constructor(game, boxProps) {
         super("tile");
         this.game = game;
+        this.boxProps = boxProps;
         this.borders = [];
-        if (isFinite(props.i)) {
-            this.position.x = props.i * 1.1;
+        if (isFinite(boxProps.i)) {
+            this.position.x = boxProps.i * 1.1;
         }
-        if (isFinite(props.j)) {
-            this.position.z = props.j * 1.1;
+        if (isFinite(boxProps.j)) {
+            this.position.z = boxProps.j * 1.1;
         }
+        this.floor = new BABYLON.Mesh("building-floor");
+        this.floor.parent = this;
+        this.floor.material = this.game.darkFloorMaterial;
+        this.shadow = new BABYLON.Mesh("shadow");
+        this.shadow.position.y = 0.01;
+        this.shadow.parent = this;
+        this.shadow.material = this.game.shadowMaterial;
     }
     async instantiate() { }
     async bump() {
@@ -357,18 +391,34 @@ class Ramp extends Build {
         this.borders.push(border);
         this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
+        this.builtInBorder = new BABYLON.Mesh("ramp-border");
+        this.builtInBorder.parent = this;
+        this.builtInBorder.material = this.game.blackMaterial;
     }
     async instantiate() {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
-        let rampData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 0);
-        rampData.applyToMesh(this);
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
+        data[0].applyToMesh(this);
+        data[1].applyToMesh(this.floor);
+        data[2].applyToMesh(this.builtInBorder);
+        let m = 0.2;
+        let shadowData = Mummu.Create9SliceVertexData({
+            width: 2 + 2 * m,
+            height: 3 + m,
+            margin: m,
+            cutTop: true
+        });
+        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 1 + 0.5 * m));
+        shadowData.applyToMesh(this.shadow);
     }
 }
 class Box extends Build {
-    constructor(game, props) {
-        super(game, props);
+    constructor(game, boxProps) {
+        super(game, boxProps);
+        this.boxProps = boxProps;
         let border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x -= 0.5 * 1.1;
@@ -378,7 +428,7 @@ class Box extends Build {
         border.position.x -= 0.5 * 1.1;
         border.position.z += 1.1;
         this.borders.push(border);
-        if (props.borderLeft) {
+        if (boxProps.borderLeft) {
             border = new Border(this.game, false);
             border.position.copyFrom(this.position);
             border.position.x -= 0.5 * 1.1;
@@ -400,7 +450,7 @@ class Box extends Build {
         border.position.x += 1.5 * 1.1;
         border.position.z += 1.1;
         this.borders.push(border);
-        if (props.borderRight) {
+        if (boxProps.borderRight) {
             border = new Border(this.game, false);
             border.position.copyFrom(this.position);
             border.position.x += 1.5 * 1.1;
@@ -424,7 +474,7 @@ class Box extends Build {
         border.position.x += 1 * 1.1;
         border.position.z -= 0.5 * 1.1;
         this.borders.push(border);
-        if (props.borderBottom) {
+        if (boxProps.borderBottom) {
             border = new Border(this.game, false);
             border.vertical = false;
             border.position.copyFrom(this.position);
@@ -450,7 +500,7 @@ class Box extends Build {
         border.position.x += 1 * 1.1;
         border.position.z += 1.5 * 1.1;
         this.borders.push(border);
-        if (props.borderTop) {
+        if (boxProps.borderTop) {
             border = new Border(this.game, false);
             border.vertical = false;
             border.position.copyFrom(this.position);
@@ -472,11 +522,22 @@ class Box extends Build {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
-        let data = BABYLON.CreateBoxVertexData({ width: 2, height: 1, depth: 2 });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0.5, 0.5, 0.5));
-        data.applyToMesh(this);
-        //let rampData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 0);
-        //rampData.applyToMesh(this);
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
+        data[5].applyToMesh(this);
+        data[6].applyToMesh(this.floor);
+        let m = 0.2;
+        let shadowData = Mummu.Create9SliceVertexData({
+            width: 2 + 2 * m,
+            height: 2 + 2 * m,
+            margin: m,
+            cutTop: this.boxProps.borderTop ? false : true,
+            cutRight: this.boxProps.borderRight ? false : true,
+            cutBottom: this.boxProps.borderBottom ? false : true,
+            cutLeft: this.boxProps.borderLeft ? false : true,
+        });
+        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 0.5));
+        shadowData.applyToMesh(this.shadow);
     }
 }
 class Bridge extends Build {
@@ -587,8 +648,20 @@ class Bridge extends Build {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
-        let bridgeData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/building.babylon", 1);
-        bridgeData.applyToMesh(this);
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
+        data[3].applyToMesh(this);
+        data[4].applyToMesh(this.floor);
+        let m = 0.2;
+        let shadowData = Mummu.Create9SliceVertexData({
+            width: 4 + 2 * m,
+            height: 2 + 2 * m,
+            margin: m,
+            cutRight: true,
+            cutLeft: true,
+        });
+        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5, 0, 0.5));
+        shadowData.applyToMesh(this.shadow);
     }
 }
 /// <reference path="../lib/nabu/nabu.d.ts"/>
@@ -691,7 +764,6 @@ class Game {
         this.DEBUG_USE_LOCAL_STORAGE = true;
         this.screenRatio = 1;
         this.cameraOrtho = false;
-        this.tiles = [];
         this.onResize = () => {
             this.screenRatio = window.innerWidth / window.innerHeight;
             if (this.screenRatio < 1) {
@@ -751,7 +823,7 @@ class Game {
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
-        this.camera.rotation.x = Math.atan(15 / 3);
+        this.camera.rotation.x = Math.atan(15 / 5);
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
         northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
@@ -766,7 +838,19 @@ class Game {
         westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial.diffuseColor.copyFromFloats(0.8, 0.8, 0.8);
         this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+        this.darkFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
+        this.darkFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.darkFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.darkFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+        this.shadowMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.shadowMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.shadowMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.shadowMaterial.diffuseTexture.hasAlpha = true;
+        this.shadowMaterial.useAlphaFromDiffuseTexture = true;
+        this.shadowMaterial.alpha = 0.4;
+        this.shadowMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.colorMaterials = [];
         this.colorMaterials[TileColor.North] = northMaterial;
         this.colorMaterials[TileColor.South] = southMaterial;
@@ -792,7 +876,6 @@ class Game {
                 i: i,
                 j: 10
             });
-            this.tiles.push(tile);
             await tile.instantiate();
         }
         let tile = new BlockTile(this, {
@@ -800,53 +883,76 @@ class Game {
             i: 0,
             j: 0
         });
-        this.tiles.push(tile);
         await tile.instantiate();
         let tileA = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 9
         });
-        this.tiles.push(tileA);
         await tileA.instantiate();
         let tileB = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 9
         });
-        this.tiles.push(tileB);
         await tileB.instantiate();
         let tileC = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 8
         });
-        this.tiles.push(tileC);
         await tileC.instantiate();
         let tileD = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 8
         });
-        this.tiles.push(tileD);
         await tileD.instantiate();
         let tileE = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 4,
             j: 7
         });
-        this.tiles.push(tileE);
         await tileE.instantiate();
         let tileF = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 6,
             j: 7
         });
-        this.tiles.push(tileF);
         await tileF.instantiate();
-        let border = new Border(this);
-        border.position.copyFromFloats(3.5 * 1.1, 0, 5 * 1.1);
-        await border.instantiate();
+        let switchNorth = new SwitchTile(this, {
+            color: TileColor.North,
+            i: 8,
+            j: 7,
+            h: 1
+        });
+        await switchNorth.instantiate();
+        let switchEast = new SwitchTile(this, {
+            color: TileColor.East,
+            i: 12,
+            j: 7,
+            h: 1
+        });
+        await switchEast.instantiate();
+        let switchSouth = new SwitchTile(this, {
+            color: TileColor.South,
+            i: 8,
+            j: 0,
+            h: 0
+        });
+        await switchSouth.instantiate();
+        let switchWest = new SwitchTile(this, {
+            color: TileColor.West,
+            i: 1,
+            j: 5,
+            h: 0
+        });
+        await switchWest.instantiate();
+        let ramp0 = new Ramp(this, {
+            i: 3,
+            j: 3
+        });
+        await ramp0.instantiate();
         let ramp = new Ramp(this, {
             i: 8,
             j: 3
@@ -915,8 +1021,8 @@ class Game {
         targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 4.5, this.terrain.xMax - 4.5);
         targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
         targetCameraPos.y += 15;
-        targetCameraPos.z -= 3;
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
+        targetCameraPos.z -= 5;
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.005, this.camera.position);
         if (this.ball) {
             this.ball.update();
         }
@@ -984,6 +1090,7 @@ class SwitchTile extends Tile {
         this.tileBottom.material = this.game.salmonMaterial;
     }
     async instantiate() {
+        await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
         tileData[0].applyToMesh(this);
         tileData[1].applyToMesh(this.tileFrame);
@@ -994,6 +1101,7 @@ class SwitchTile extends Tile {
 class Terrain {
     constructor(game) {
         this.game = game;
+        this.tiles = [];
         this.borders = [];
         this.build = [];
         this.w = 20;

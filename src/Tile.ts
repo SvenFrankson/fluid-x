@@ -38,7 +38,7 @@ abstract class Tile extends BABYLON.Mesh {
         this.shadow.position.z = -0.015;
         this.shadow.parent = this;
 
-        this.shadow.material = this.game.shadowMaterial;
+        this.shadow.material = this.game.shadow9Material;
 
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }

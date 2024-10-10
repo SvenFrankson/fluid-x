@@ -6,9 +6,10 @@ class Ball extends BABYLON.Mesh {
 
     public color: TileColor;
     public ballTop: BABYLON.Mesh;
+    public shadow: BABYLON.Mesh;
     public bounceVX: number = 0;
     public vZ: number = 1;
-    public radius: number = 0.4;
+    public radius: number = 0.3;
 
     public leftDown: boolean = false;
     public rightDown: boolean = false;
@@ -37,6 +38,14 @@ class Ball extends BABYLON.Mesh {
 
         this.ballTop.material = this.game.colorMaterials[this.color];
 
+        this.shadow = new BABYLON.Mesh("shadow");
+        this.shadow.position.x = -0.015;
+        this.shadow.position.y = 0.1;
+        this.shadow.position.z = -0.015;
+        this.shadow.parent = this;
+
+        this.shadow.material = this.game.shadowDiscMaterial;
+
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA") {
                 this.leftDown = true;
@@ -61,19 +70,15 @@ class Ball extends BABYLON.Mesh {
         ballDatas[0].applyToMesh(this);
 
         ballDatas[1].applyToMesh(this.ballTop);
+
+        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
 
     public update(): void {
         let vX = 0;
         if (Math.abs(this.bounceVX) > 0.01) {
-            vX = this.bounceVX;
-            if (this.bounceVX < 0 && this.leftDown) {
-                vX = -1;
-            }
-            else if (this.bounceVX > 0 && this.rightDown) {
-                vX = 1;
-            }
-            this.bounceVX -= Math.sign(this.bounceVX) * 0.015;
+            vX = Math.sign(this.bounceVX);
+            this.bounceVX -= Math.sign(this.bounceVX) * 0.022;
         }
         else {
             if (this.leftDown) {
@@ -84,7 +89,7 @@ class Ball extends BABYLON.Mesh {
             }
         }
 
-        let speed = new BABYLON.Vector3(vX, 0, this.vZ);
+        let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
         speed.normalize().scaleInPlace(1);
 
         this.position.addInPlace(speed.scale(1/60));

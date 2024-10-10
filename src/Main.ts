@@ -137,7 +137,8 @@ class Game {
     public blackMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
     public darkFloorMaterial: BABYLON.StandardMaterial;
-    public shadowMaterial: BABYLON.StandardMaterial;
+    public shadow9Material: BABYLON.StandardMaterial;
+    public shadowDiscMaterial: BABYLON.StandardMaterial;
     public terrain: Terrain;
     public ball: Ball;
 
@@ -208,13 +209,21 @@ class Game {
         this.darkFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.darkFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
             
-        this.shadowMaterial = new BABYLON.StandardMaterial("shadow-material");
-        this.shadowMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.shadowMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
-        this.shadowMaterial.diffuseTexture.hasAlpha = true;
-        this.shadowMaterial.useAlphaFromDiffuseTexture = true;
-        this.shadowMaterial.alpha = 0.4;
-        this.shadowMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.shadow9Material = new BABYLON.StandardMaterial("shadow-material");
+        this.shadow9Material.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.shadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.shadow9Material.diffuseTexture.hasAlpha = true;
+        this.shadow9Material.useAlphaFromDiffuseTexture = true;
+        this.shadow9Material.alpha = 0.4;
+        this.shadow9Material.specularColor.copyFromFloats(0, 0, 0);
+            
+        this.shadowDiscMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.shadowDiscMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.shadowDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
+        this.shadowDiscMaterial.diffuseTexture.hasAlpha = true;
+        this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
+        this.shadowDiscMaterial.alpha = 0.4;
+        this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.colorMaterials = [];
         this.colorMaterials[TileColor.North] = northMaterial;
@@ -259,45 +268,24 @@ class Game {
 
         let tileA = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
-            i: 4,
+            i: 1,
             j: 9
         });
         await tileA.instantiate();
 
-        let tileB = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 6,
-            j: 9
-        });
-        await tileB.instantiate();
-
         let tileC = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
-            i: 4,
+            i: 1,
             j: 8
         });
         await tileC.instantiate();
 
-        let tileD = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 6,
-            j: 8
-        });
-        await tileD.instantiate();
-
         let tileE = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
-            i: 4,
+            i: 1,
             j: 7
         });
         await tileE.instantiate();
-
-        let tileF = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 6,
-            j: 7
-        });
-        await tileF.instantiate();
 
         let switchNorth = new SwitchTile(this, {
             color: TileColor.North,
@@ -332,7 +320,7 @@ class Game {
         await switchWest.instantiate();
 
         let ramp0 = new Ramp(this, {
-            i: 3,
+            i: 4,
             j: 3
         });
         await ramp0.instantiate();
@@ -347,9 +335,40 @@ class Game {
             i: 8,
             j: 6,
             borderLeft: true,
-            borderTop: true
         });
         await box.instantiate();
+
+        let boxA = new Box(this, {
+            i: 8,
+            j: 8,
+            borderRight: true,
+            borderTop: true
+        });
+        await boxA.instantiate();
+
+        let boxB = new Box(this, {
+            i: 6,
+            j: 8,
+            borderBottom: true,
+            borderTop: true
+        });
+        await boxB.instantiate();
+
+        let boxC = new Box(this, {
+            i: 4,
+            j: 8,
+            borderLeft: true,
+            borderTop: true
+        });
+        await boxC.instantiate();
+
+        let boxD = new Box(this, {
+            i: 4,
+            j: 6,
+            borderLeft: true,
+            borderRight: true
+        });
+        await boxD.instantiate();
 
         let box2 = new Box(this, {
             i: 10,

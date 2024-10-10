@@ -34,7 +34,7 @@ abstract class Build extends BABYLON.Mesh {
         this.shadow.position.y = 0.01;
         this.shadow.parent = this;
 
-        this.shadow.material = this.game.shadowMaterial;
+        this.shadow.material = this.game.shadow9Material;
     }
 
     public async instantiate(): Promise<void> { }

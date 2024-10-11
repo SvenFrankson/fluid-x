@@ -3,6 +3,7 @@ interface TileProps {
     i?: number;
     j?: number;
     h?: number;
+    noShadow?: boolean;
 }
 
 abstract class Tile extends BABYLON.Mesh {
@@ -19,7 +20,7 @@ abstract class Tile extends BABYLON.Mesh {
         this.scaling.copyFromFloats(s, s, s);
     }
 
-    constructor(public game: Game, props: TileProps) {
+    constructor(public game: Game, public props: TileProps) {
         super("tile");
         this.color = props.color;
         if (isFinite(props.i)) {
@@ -32,13 +33,15 @@ abstract class Tile extends BABYLON.Mesh {
             this.position.y = props.h;
         }
 
-        this.shadow = new BABYLON.Mesh("shadow");
-        this.shadow.position.x = -0.015;
-        this.shadow.position.y = 0.01;
-        this.shadow.position.z = -0.015;
-        this.shadow.parent = this;
-
-        this.shadow.material = this.game.shadow9Material;
+        if (props.noShadow != true) {
+            this.shadow = new BABYLON.Mesh("shadow");
+            this.shadow.position.x = -0.015;
+            this.shadow.position.y = 0.01;
+            this.shadow.position.z = -0.015;
+            this.shadow.parent = this;
+    
+            this.shadow.material = this.game.shadow9Material;
+        }
 
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }
@@ -49,19 +52,26 @@ abstract class Tile extends BABYLON.Mesh {
             this.game.terrain.tiles.push(this);
         }
 
-        let m = 0.05;
-        let shadowData = Mummu.Create9SliceVertexData({
-            width: 1 + 2 * m,
-            height: 1 + 2 * m,
-            margin: m
-        });
-        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        shadowData.applyToMesh(this.shadow);
+        if (this.props.noShadow != true) {
+            let m = 0.05;
+            let shadowData = Mummu.Create9SliceVertexData({
+                width: 1 + 2 * m,
+                height: 1 + 2 * m,
+                margin: m
+            });
+            Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+            shadowData.applyToMesh(this.shadow);
+        }
     }
 
     public async bump(): Promise<void> {
         await this.animateSize(1.1, 0.1);
         await this.animateSize(1, 0.1);
+    }
+
+    public async shrink(): Promise<void> {
+        await this.animateSize(1.1, 0.1);
+        await this.animateSize(0.01, 0.3);
     }
 
     public dispose(): void {

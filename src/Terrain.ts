@@ -1,6 +1,8 @@
 class Terrain {
 
     public border: BABYLON.Mesh;
+    public floor: BABYLON.Mesh;
+    public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
     public borders: Border[] = [];
     public build: Build[] = [];
@@ -25,17 +27,15 @@ class Terrain {
     }
 
     constructor(public game: Game) {
+        this.floor = new BABYLON.Mesh("floor");
+        this.floor.material = this.game.floorMaterial;
 
+        this.holeWall = new BABYLON.Mesh("hole-wall");
+        this.holeWall.material = this.game.grayMaterial;
     }
 
     public async instantiate(): Promise<void> {
         this.border = new BABYLON.Mesh("border");
-
-        let floor = Mummu.CreateQuad("floor", { width: this.xMax - this.xMin, height: this.zMax - this.xMin, uvInWorldSpace: true, uvSize: 1.1 })
-        floor.position.x = 0.5 * (this.xMin + this.xMax);
-        floor.position.z = 0.5 * (this.zMin + this.zMax);
-        floor.rotation.x = Math.PI * 0.5;
-        floor.material = this.game.floorMaterial;
 
         let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5});
         top.position.x = 0.5 * (this.xMin + this.xMax);
@@ -60,5 +60,99 @@ class Terrain {
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
+
+        this.rebuildFloor();
+    }
+
+    public rebuildFloor(): void {
+        let holes = [];
+        let floorDatas = [];
+        let holeDatas = [];
+        for (let i = 0; i <= this.w; i++) {
+            for (let j = 0; j <= this.h; j++) {
+                let holeTile = this.tiles.find(tile => {
+                    if (tile instanceof HoleTile) {
+                        if (tile.props.i === i) {
+                            if (tile.props.j === j) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                })
+                if (holeTile) {
+                    holes.push({ i: i, j: j });
+                    let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
+                    Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, -5, j * 1.1));
+                    Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.Black());
+                    floorDatas.push(tileData);
+                }
+                if (!holeTile) {
+                    let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
+                    Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, 0, j * 1.1));
+                    Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.White());
+                    floorDatas.push(tileData);
+                }
+            }
+        }
+
+        for (let n = 0; n < holes.length; n++) {
+            let hole = holes[n];
+            let i = hole.i;
+            let j = hole.j;
+            let left = holes.find(h => { return h.i === i - 1 && h.j === j; });
+            if (!left) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, - Math.PI * 0.5, 0));
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i - 0.5) * 1.1, -2.5, j * 1.1));
+                holeDatas.push(holeData);
+            }
+            let right = holes.find(h => { return h.i === i + 1 && h.j === j; });
+            if (!right) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI * 0.5, 0));
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i + 0.5) * 1.1, -2.5, j * 1.1));
+                holeDatas.push(holeData);
+            }
+            let up = holes.find(h => { return h.i === i && h.j === j + 1; });
+            if (!up) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j + 0.5) * 1.1));
+                holeDatas.push(holeData);
+            }
+            let down = holes.find(h => { return h.i === i && h.j === j - 1; });
+            if (!down) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI, 0));
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j - 0.5) * 1.1));
+                holeDatas.push(holeData);
+            }
+        }
+        Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
+        Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
     }
 }

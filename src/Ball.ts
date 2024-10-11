@@ -7,7 +7,7 @@ class Ball extends BABYLON.Mesh {
     public color: TileColor;
     public ballTop: BABYLON.Mesh;
     public shadow: BABYLON.Mesh;
-    public bounceVX: number = 0;
+    
     public vZ: number = 1;
     public radius: number = 0.3;
 
@@ -74,18 +74,42 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
 
+    public falling: boolean = false;
+    public inputX: number = 0;
+    public inputSpeed: number = 0.1;
+    public bounceXValue: number = 0;
+    public bounceXTimer: number = 0;
+    public bounceXDelay: number = 0.4;
+
     public update(): void {
-        let vX = 0;
-        if (Math.abs(this.bounceVX) > 0.01) {
-            vX = Math.sign(this.bounceVX);
-            this.bounceVX -= Math.sign(this.bounceVX) * 0.022;
+        if (this.falling) {
+            return;
         }
-        else {
-            if (this.leftDown) {
-                vX -= 1;
+
+        if (this.leftDown) {
+            this.inputX -= this.inputSpeed;
+        }
+        else if (this.inputX < 0) {
+            this.inputX = Math.min(this.inputX + this.inputSpeed, 0);
+        }
+
+        if (this.rightDown) {
+            this.inputX += this.inputSpeed;
+        }
+        else if (this.inputX > 0) {
+            this.inputX = Math.max(this.inputX - this.inputSpeed, 0);
+        }
+
+        this.inputX = Nabu.MinMax(this.inputX, -1, 1);
+
+        let vX = this.inputX;
+        if (this.bounceXTimer > 0) {
+            this.bounceXTimer -= 0.01;
+            if (this.bounceXValue < 0) {
+                vX = Math.min(vX, this.bounceXValue);
             }
-            if (this.rightDown) {
-                vX += 1;
+            else if (this.bounceXValue > 0) {
+                vX = Math.max(vX, this.bounceXValue);
             }
         }
 
@@ -101,10 +125,12 @@ class Ball extends BABYLON.Mesh {
         }
 
         if (this.position.x + this.radius > this.game.terrain.xMax) {
-            this.bounceVX = -1;
+            this.bounceXValue = -1;
+            this.bounceXTimer = this.bounceXDelay;
         }
         else if (this.position.x - this.radius < this.game.terrain.xMin) {
-            this.bounceVX = 1;
+            this.bounceXValue = 1;
+            this.bounceXTimer = this.bounceXDelay;
         }
 
         let impact = BABYLON.Vector3.Zero();
@@ -114,10 +140,12 @@ class Ball extends BABYLON.Mesh {
                 let dir = this.position.subtract(impact);
                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
                     if (dir.x > 0) {
-                        this.bounceVX = 1;
+                        this.bounceXValue = 1;
+                        this.bounceXTimer = this.bounceXDelay;
                     }
                     else {
-                        this.bounceVX = -1;
+                        this.bounceXValue = -1;
+                        this.bounceXTimer = this.bounceXDelay;
                     }
                 }
                 else {
@@ -134,38 +162,49 @@ class Ball extends BABYLON.Mesh {
 
         for (let i = 0; i < this.game.terrain.tiles.length; i++) {
             let tile = this.game.terrain.tiles[i];
-            if (tile.collide(this, impact)) {
-                let dir = this.position.subtract(impact);
-                if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                    if (dir.x > 0) {
-                        this.bounceVX = 1;
+            if (tile instanceof HoleTile) {
+                if (tile.fallsIn(this)) {
+                    this.falling = true;
+                }
+            }
+            else {
+                if (tile.collide(this, impact)) {
+                    let dir = this.position.subtract(impact);
+                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                        if (dir.x > 0) {
+                            this.bounceXValue = 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        else {
+                            this.bounceXValue = -1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
                     }
                     else {
-                        this.bounceVX = -1;
+                        if (dir.z > 0) {
+                            this.vZ = 1;
+                        }
+                        else {
+                            this.vZ = -1;
+                        }
                     }
-                }
-                else {
-                    if (dir.z > 0) {
-                        this.vZ = 1;
+                    if (tile instanceof SwitchTile) {
+                        tile.bump();
+                        this.setColor(tile.color);
                     }
-                    else {
-                        this.vZ = -1;
+                    else if (tile instanceof BlockTile) {
+                        if (tile.color === this.color) {
+                            tile.shrink().then(() => {
+                                tile.dispose();
+                            });
+                        }
                     }
+                    break;
                 }
-                if (tile instanceof SwitchTile) {
-                    tile.bump();
-                    this.setColor(tile.color);
-                }
-                else {
-                    if (tile.color === this.color) {
-                        tile.dispose();
-                    }
-                }
-                break;
             }
         }
 
-        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0));
+        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0), 1);
         let hit = this.game.scene.pickWithRay(
             ray,
             (mesh) => {

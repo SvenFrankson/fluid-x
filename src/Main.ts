@@ -134,6 +134,7 @@ class Game {
     public whiteMaterial: BABYLON.StandardMaterial;
     public salmonMaterial: BABYLON.StandardMaterial;
     public brownMaterial: BABYLON.StandardMaterial;
+    public grayMaterial: BABYLON.StandardMaterial;
     public blackMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
     public darkFloorMaterial: BABYLON.StandardMaterial;
@@ -243,6 +244,10 @@ class Game {
         this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
         this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
 
+        this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
+        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d7275");
+        this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
+
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -310,6 +315,30 @@ class Game {
             h: 0
         });
         await switchSouth.instantiate();
+
+        let holeA = new HoleTile(this, {
+            color: TileColor.South,
+            i: 7,
+            j: 0,
+            h: 0
+        });
+        await holeA.instantiate();
+
+        let holeB = new HoleTile(this, {
+            color: TileColor.South,
+            i: 9,
+            j: 0,
+            h: 0
+        });
+        await holeB.instantiate();
+
+        let holeC = new HoleTile(this, {
+            color: TileColor.South,
+            i: 9,
+            j: 1,
+            h: 0
+        });
+        await holeC.instantiate();
 
         let switchWest = new SwitchTile(this, {
             color: TileColor.West,
@@ -405,6 +434,8 @@ class Game {
 
         this.ball.position.x = 5;
         this.ball.position.z = 5;
+
+        this.terrain.rebuildFloor();
 
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);

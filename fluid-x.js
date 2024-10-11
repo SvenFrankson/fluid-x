@@ -2,11 +2,16 @@ class Ball extends BABYLON.Mesh {
     constructor(game, props) {
         super("ball");
         this.game = game;
-        this.bounceVX = 0;
         this.vZ = 1;
         this.radius = 0.3;
         this.leftDown = false;
         this.rightDown = false;
+        this.falling = false;
+        this.inputX = 0;
+        this.inputSpeed = 0.1;
+        this.bounceXValue = 0;
+        this.bounceXTimer = 0;
+        this.bounceXDelay = 0.4;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
         this.ballTop = new BABYLON.Mesh("ball-top");
@@ -53,17 +58,30 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
     update() {
-        let vX = 0;
-        if (Math.abs(this.bounceVX) > 0.01) {
-            vX = Math.sign(this.bounceVX);
-            this.bounceVX -= Math.sign(this.bounceVX) * 0.022;
+        if (this.falling) {
+            return;
         }
-        else {
-            if (this.leftDown) {
-                vX -= 1;
+        if (this.leftDown) {
+            this.inputX -= this.inputSpeed;
+        }
+        else if (this.inputX < 0) {
+            this.inputX = Math.min(this.inputX + this.inputSpeed, 0);
+        }
+        if (this.rightDown) {
+            this.inputX += this.inputSpeed;
+        }
+        else if (this.inputX > 0) {
+            this.inputX = Math.max(this.inputX - this.inputSpeed, 0);
+        }
+        this.inputX = Nabu.MinMax(this.inputX, -1, 1);
+        let vX = this.inputX;
+        if (this.bounceXTimer > 0) {
+            this.bounceXTimer -= 0.01;
+            if (this.bounceXValue < 0) {
+                vX = Math.min(vX, this.bounceXValue);
             }
-            if (this.rightDown) {
-                vX += 1;
+            else if (this.bounceXValue > 0) {
+                vX = Math.max(vX, this.bounceXValue);
             }
         }
         let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
@@ -76,10 +94,12 @@ class Ball extends BABYLON.Mesh {
             this.vZ = 1;
         }
         if (this.position.x + this.radius > this.game.terrain.xMax) {
-            this.bounceVX = -1;
+            this.bounceXValue = -1;
+            this.bounceXTimer = this.bounceXDelay;
         }
         else if (this.position.x - this.radius < this.game.terrain.xMin) {
-            this.bounceVX = 1;
+            this.bounceXValue = 1;
+            this.bounceXTimer = this.bounceXDelay;
         }
         let impact = BABYLON.Vector3.Zero();
         for (let i = 0; i < this.game.terrain.borders.length; i++) {
@@ -88,10 +108,12 @@ class Ball extends BABYLON.Mesh {
                 let dir = this.position.subtract(impact);
                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
                     if (dir.x > 0) {
-                        this.bounceVX = 1;
+                        this.bounceXValue = 1;
+                        this.bounceXTimer = this.bounceXDelay;
                     }
                     else {
-                        this.bounceVX = -1;
+                        this.bounceXValue = -1;
+                        this.bounceXTimer = this.bounceXDelay;
                     }
                 }
                 else {
@@ -107,37 +129,48 @@ class Ball extends BABYLON.Mesh {
         }
         for (let i = 0; i < this.game.terrain.tiles.length; i++) {
             let tile = this.game.terrain.tiles[i];
-            if (tile.collide(this, impact)) {
-                let dir = this.position.subtract(impact);
-                if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                    if (dir.x > 0) {
-                        this.bounceVX = 1;
+            if (tile instanceof HoleTile) {
+                if (tile.fallsIn(this)) {
+                    this.falling = true;
+                }
+            }
+            else {
+                if (tile.collide(this, impact)) {
+                    let dir = this.position.subtract(impact);
+                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                        if (dir.x > 0) {
+                            this.bounceXValue = 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        else {
+                            this.bounceXValue = -1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
                     }
                     else {
-                        this.bounceVX = -1;
+                        if (dir.z > 0) {
+                            this.vZ = 1;
+                        }
+                        else {
+                            this.vZ = -1;
+                        }
                     }
-                }
-                else {
-                    if (dir.z > 0) {
-                        this.vZ = 1;
+                    if (tile instanceof SwitchTile) {
+                        tile.bump();
+                        this.setColor(tile.color);
                     }
-                    else {
-                        this.vZ = -1;
+                    else if (tile instanceof BlockTile) {
+                        if (tile.color === this.color) {
+                            tile.shrink().then(() => {
+                                tile.dispose();
+                            });
+                        }
                     }
+                    break;
                 }
-                if (tile instanceof SwitchTile) {
-                    tile.bump();
-                    this.setColor(tile.color);
-                }
-                else {
-                    if (tile.color === this.color) {
-                        tile.dispose();
-                    }
-                }
-                break;
             }
         }
-        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0));
+        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0), 1);
         let hit = this.game.scene.pickWithRay(ray, (mesh) => {
             return mesh.name === "floor" || mesh.name === "building-floor";
         });
@@ -152,6 +185,7 @@ class Tile extends BABYLON.Mesh {
     constructor(game, props) {
         super("tile");
         this.game = game;
+        this.props = props;
         this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
         this.color = props.color;
         if (isFinite(props.i)) {
@@ -163,12 +197,14 @@ class Tile extends BABYLON.Mesh {
         if (isFinite(props.h)) {
             this.position.y = props.h;
         }
-        this.shadow = new BABYLON.Mesh("shadow");
-        this.shadow.position.x = -0.015;
-        this.shadow.position.y = 0.01;
-        this.shadow.position.z = -0.015;
-        this.shadow.parent = this;
-        this.shadow.material = this.game.shadow9Material;
+        if (props.noShadow != true) {
+            this.shadow = new BABYLON.Mesh("shadow");
+            this.shadow.position.x = -0.015;
+            this.shadow.position.y = 0.01;
+            this.shadow.position.z = -0.015;
+            this.shadow.parent = this;
+            this.shadow.material = this.game.shadow9Material;
+        }
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }
     get size() {
@@ -182,18 +218,24 @@ class Tile extends BABYLON.Mesh {
         if (index === -1) {
             this.game.terrain.tiles.push(this);
         }
-        let m = 0.05;
-        let shadowData = Mummu.Create9SliceVertexData({
-            width: 1 + 2 * m,
-            height: 1 + 2 * m,
-            margin: m
-        });
-        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        shadowData.applyToMesh(this.shadow);
+        if (this.props.noShadow != true) {
+            let m = 0.05;
+            let shadowData = Mummu.Create9SliceVertexData({
+                width: 1 + 2 * m,
+                height: 1 + 2 * m,
+                margin: m
+            });
+            Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+            shadowData.applyToMesh(this.shadow);
+        }
     }
     async bump() {
         await this.animateSize(1.1, 0.1);
         await this.animateSize(1, 0.1);
+    }
+    async shrink() {
+        await this.animateSize(1.1, 0.1);
+        await this.animateSize(0.01, 0.3);
     }
     dispose() {
         let index = this.game.terrain.tiles.indexOf(this);
@@ -669,6 +711,34 @@ class Bridge extends Build {
         shadowData.applyToMesh(this.shadow);
     }
 }
+/// <reference path="./Tile.ts"/>
+class HoleTile extends Tile {
+    constructor(game, props) {
+        props.noShadow = true;
+        super(game, props);
+        this.color = props.color;
+        this.scaling.copyFromFloats(1.1, 1, 1.1);
+        this.material = this.game.blackMaterial;
+        this.tileDark = new BABYLON.Mesh("tile-top");
+        this.tileDark.parent = this;
+        this.tileDark.material = this.game.grayMaterial;
+    }
+    fallsIn(ball) {
+        if (ball.position.x < this.position.x - 0.5) {
+            return false;
+        }
+        if (ball.position.x > this.position.x + 0.5) {
+            return false;
+        }
+        if (ball.position.z < this.position.z - 0.5) {
+            return false;
+        }
+        if (ball.position.z > this.position.z + 0.5) {
+            return false;
+        }
+        return true;
+    }
+}
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
@@ -877,6 +947,9 @@ class Game {
         this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
         this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
         this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
+        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d7275");
+        this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -935,6 +1008,27 @@ class Game {
             h: 0
         });
         await switchSouth.instantiate();
+        let holeA = new HoleTile(this, {
+            color: TileColor.South,
+            i: 7,
+            j: 0,
+            h: 0
+        });
+        await holeA.instantiate();
+        let holeB = new HoleTile(this, {
+            color: TileColor.South,
+            i: 9,
+            j: 0,
+            h: 0
+        });
+        await holeB.instantiate();
+        let holeC = new HoleTile(this, {
+            color: TileColor.South,
+            i: 9,
+            j: 1,
+            h: 0
+        });
+        await holeC.instantiate();
         let switchWest = new SwitchTile(this, {
             color: TileColor.West,
             i: 1,
@@ -1016,6 +1110,7 @@ class Game {
         await this.ball.instantiate();
         this.ball.position.x = 5;
         this.ball.position.z = 5;
+        this.terrain.rebuildFloor();
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
@@ -1127,6 +1222,10 @@ class Terrain {
         this.build = [];
         this.w = 20;
         this.h = 10;
+        this.floor = new BABYLON.Mesh("floor");
+        this.floor.material = this.game.floorMaterial;
+        this.holeWall = new BABYLON.Mesh("hole-wall");
+        this.holeWall.material = this.game.grayMaterial;
     }
     get xMin() {
         return -0.55;
@@ -1142,11 +1241,6 @@ class Terrain {
     }
     async instantiate() {
         this.border = new BABYLON.Mesh("border");
-        let floor = Mummu.CreateQuad("floor", { width: this.xMax - this.xMin, height: this.zMax - this.xMin, uvInWorldSpace: true, uvSize: 1.1 });
-        floor.position.x = 0.5 * (this.xMin + this.xMax);
-        floor.position.z = 0.5 * (this.zMin + this.zMax);
-        floor.rotation.x = Math.PI * 0.5;
-        floor.material = this.game.floorMaterial;
         let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
         top.position.x = 0.5 * (this.xMin + this.xMax);
         top.position.y = 0.1;
@@ -1167,5 +1261,96 @@ class Terrain {
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
+        this.rebuildFloor();
+    }
+    rebuildFloor() {
+        let holes = [];
+        let floorDatas = [];
+        let holeDatas = [];
+        for (let i = 0; i <= this.w; i++) {
+            for (let j = 0; j <= this.h; j++) {
+                let holeTile = this.tiles.find(tile => {
+                    if (tile instanceof HoleTile) {
+                        if (tile.props.i === i) {
+                            if (tile.props.j === j) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                });
+                if (holeTile) {
+                    holes.push({ i: i, j: j });
+                    let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
+                    Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, -5, j * 1.1));
+                    Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.Black());
+                    floorDatas.push(tileData);
+                }
+                if (!holeTile) {
+                    let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
+                    Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, 0, j * 1.1));
+                    Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.White());
+                    floorDatas.push(tileData);
+                }
+            }
+        }
+        for (let n = 0; n < holes.length; n++) {
+            let hole = holes[n];
+            let i = hole.i;
+            let j = hole.j;
+            let left = holes.find(h => { return h.i === i - 1 && h.j === j; });
+            if (!left) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, -Math.PI * 0.5, 0));
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i - 0.5) * 1.1, -2.5, j * 1.1));
+                holeDatas.push(holeData);
+            }
+            let right = holes.find(h => { return h.i === i + 1 && h.j === j; });
+            if (!right) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI * 0.5, 0));
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i + 0.5) * 1.1, -2.5, j * 1.1));
+                holeDatas.push(holeData);
+            }
+            let up = holes.find(h => { return h.i === i && h.j === j + 1; });
+            if (!up) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j + 0.5) * 1.1));
+                holeDatas.push(holeData);
+            }
+            let down = holes.find(h => { return h.i === i && h.j === j - 1; });
+            if (!down) {
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                holeData.colors = [
+                    0, 0, 0, 1,
+                    0, 0, 0, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+                ];
+                Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI, 0));
+                Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j - 0.5) * 1.1));
+                holeDatas.push(holeData);
+            }
+        }
+        Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
+        Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
     }
 }

@@ -1,12 +1,19 @@
+var BallState;
+(function (BallState) {
+    BallState[BallState["Pause"] = 0] = "Pause";
+    BallState[BallState["Move"] = 1] = "Move";
+    BallState[BallState["Fall"] = 2] = "Fall";
+})(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
     constructor(game, props) {
         super("ball");
         this.game = game;
+        this.ballState = BallState.Move;
+        this.fallTimer = 0;
         this.vZ = 1;
         this.radius = 0.3;
         this.leftDown = false;
         this.rightDown = false;
-        this.falling = false;
         this.inputX = 0;
         this.inputSpeed = 0.1;
         this.bounceXValue = 0;
@@ -58,9 +65,6 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
     update() {
-        if (this.falling) {
-            return;
-        }
         if (this.leftDown) {
             this.inputX -= this.inputSpeed;
         }
@@ -74,68 +78,41 @@ class Ball extends BABYLON.Mesh {
             this.inputX = Math.max(this.inputX - this.inputSpeed, 0);
         }
         this.inputX = Nabu.MinMax(this.inputX, -1, 1);
-        let vX = this.inputX;
-        if (this.bounceXTimer > 0) {
-            this.bounceXTimer -= 0.01;
-            if (this.bounceXValue < 0) {
-                vX = Math.min(vX, this.bounceXValue);
-            }
-            else if (this.bounceXValue > 0) {
-                vX = Math.max(vX, this.bounceXValue);
-            }
+        if (this.ballState === BallState.Pause) {
+            return;
         }
-        let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
-        speed.normalize().scaleInPlace(1);
-        this.position.addInPlace(speed.scale(1 / 60));
-        if (this.position.z + this.radius > this.game.terrain.zMax) {
-            this.vZ = -1;
-        }
-        else if (this.position.z - this.radius < this.game.terrain.zMin) {
-            this.vZ = 1;
-        }
-        if (this.position.x + this.radius > this.game.terrain.xMax) {
-            this.bounceXValue = -1;
-            this.bounceXTimer = this.bounceXDelay;
-        }
-        else if (this.position.x - this.radius < this.game.terrain.xMin) {
-            this.bounceXValue = 1;
-            this.bounceXTimer = this.bounceXDelay;
-        }
-        let impact = BABYLON.Vector3.Zero();
-        for (let i = 0; i < this.game.terrain.borders.length; i++) {
-            let border = this.game.terrain.borders[i];
-            if (border.collide(this, impact)) {
-                let dir = this.position.subtract(impact);
-                if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                    if (dir.x > 0) {
-                        this.bounceXValue = 1;
-                        this.bounceXTimer = this.bounceXDelay;
-                    }
-                    else {
-                        this.bounceXValue = -1;
-                        this.bounceXTimer = this.bounceXDelay;
-                    }
+        else if (this.ballState === BallState.Move) {
+            let vX = this.inputX;
+            if (this.bounceXTimer > 0) {
+                this.bounceXTimer -= 0.01;
+                if (this.bounceXValue < 0) {
+                    vX = Math.min(vX, this.bounceXValue);
                 }
-                else {
-                    if (dir.z > 0) {
-                        this.vZ = 1;
-                    }
-                    else {
-                        this.vZ = -1;
-                    }
-                }
-                break;
-            }
-        }
-        for (let i = 0; i < this.game.terrain.tiles.length; i++) {
-            let tile = this.game.terrain.tiles[i];
-            if (tile instanceof HoleTile) {
-                if (tile.fallsIn(this)) {
-                    this.falling = true;
+                else if (this.bounceXValue > 0) {
+                    vX = Math.max(vX, this.bounceXValue);
                 }
             }
-            else {
-                if (tile.collide(this, impact)) {
+            let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
+            speed.normalize().scaleInPlace(1);
+            this.position.addInPlace(speed.scale(1 / 60));
+            if (this.position.z + this.radius > this.game.terrain.zMax) {
+                this.vZ = -1;
+            }
+            else if (this.position.z - this.radius < this.game.terrain.zMin) {
+                this.vZ = 1;
+            }
+            if (this.position.x + this.radius > this.game.terrain.xMax) {
+                this.bounceXValue = -1;
+                this.bounceXTimer = this.bounceXDelay;
+            }
+            else if (this.position.x - this.radius < this.game.terrain.xMin) {
+                this.bounceXValue = 1;
+                this.bounceXTimer = this.bounceXDelay;
+            }
+            let impact = BABYLON.Vector3.Zero();
+            for (let i = 0; i < this.game.terrain.borders.length; i++) {
+                let border = this.game.terrain.borders[i];
+                if (border.collide(this, impact)) {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
                         if (dir.x > 0) {
@@ -155,29 +132,83 @@ class Ball extends BABYLON.Mesh {
                             this.vZ = -1;
                         }
                     }
-                    if (tile instanceof SwitchTile) {
-                        tile.bump();
-                        this.setColor(tile.color);
-                    }
-                    else if (tile instanceof BlockTile) {
-                        if (tile.color === this.color) {
-                            tile.shrink().then(() => {
-                                tile.dispose();
-                            });
-                        }
-                    }
                     break;
                 }
             }
+            for (let i = 0; i < this.game.terrain.tiles.length; i++) {
+                let tile = this.game.terrain.tiles[i];
+                if (tile instanceof HoleTile) {
+                    if (tile.fallsIn(this)) {
+                        this.ballState = BallState.Fall;
+                        this.hole = tile;
+                        return;
+                    }
+                }
+                else {
+                    if (tile.collide(this, impact)) {
+                        let dir = this.position.subtract(impact);
+                        if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                            if (dir.x > 0) {
+                                this.bounceXValue = 1;
+                                this.bounceXTimer = this.bounceXDelay;
+                            }
+                            else {
+                                this.bounceXValue = -1;
+                                this.bounceXTimer = this.bounceXDelay;
+                            }
+                        }
+                        else {
+                            if (dir.z > 0) {
+                                this.vZ = 1;
+                            }
+                            else {
+                                this.vZ = -1;
+                            }
+                        }
+                        if (tile instanceof SwitchTile) {
+                            tile.bump();
+                            this.setColor(tile.color);
+                        }
+                        else if (tile instanceof BlockTile) {
+                            if (tile.color === this.color) {
+                                tile.shrink().then(() => {
+                                    tile.dispose();
+                                });
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0), 1);
+            let hit = this.game.scene.pickWithRay(ray, (mesh) => {
+                return mesh.name === "floor" || mesh.name === "building-floor";
+            });
+            if (hit.hit) {
+                this.position.y = hit.pickedPoint.y;
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
+                BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
+            }
         }
-        let ray = new BABYLON.Ray(this.position.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0), 1);
-        let hit = this.game.scene.pickWithRay(ray, (mesh) => {
-            return mesh.name === "floor" || mesh.name === "building-floor";
-        });
-        if (hit.hit) {
-            this.position.y = hit.pickedPoint.y;
-            let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
-            BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
+        else if (this.ballState === BallState.Fall) {
+            let bottom = this.hole.position.clone();
+            bottom.y -= 5.5;
+            if (this.fallTimer === 0) {
+                let dHole = bottom.subtract(this.position);
+                this.fallOriginPos = this.position.clone();
+                this.fallRotAxis = BABYLON.Vector3.Cross(BABYLON.Axis.Y, dHole).normalize();
+            }
+            this.fallTimer += 0.01;
+            if (this.fallTimer > 1) {
+                this.ballState = BallState.Pause;
+                return;
+            }
+            let f = Math.pow(this.fallTimer, 0.9);
+            this.position.x = this.fallOriginPos.x * (1 - f) + bottom.x * f;
+            this.position.z = this.fallOriginPos.z * (1 - f) + bottom.z * f;
+            f = this.fallTimer * this.fallTimer;
+            this.position.y = this.fallOriginPos.y * (1 - f) + bottom.y * f;
+            this.rotate(this.fallRotAxis, 2 * Math.PI * 0.01, BABYLON.Space.WORLD);
         }
     }
 }

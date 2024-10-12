@@ -487,17 +487,20 @@ class Game {
     public updateConfigTimeout: number = - 1;
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
-        let targetCameraPos = this.ball.position.clone();
-        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
-        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
-        
-        targetCameraPos.y += 15;
-        targetCameraPos.z -= 5;
-
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
-        
-        if (this.ball) {
-            this.ball.update();
+        if (isFinite(rawDT)) {
+            rawDT = Math.min(rawDT, 1);
+            let targetCameraPos = this.ball.position.clone();
+            targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
+            targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
+            
+            targetCameraPos.y += 15;
+            targetCameraPos.z -= 5;
+    
+            BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
+            
+            if (this.ball) {
+                this.ball.update(rawDT);
+            }
         }
     }
 

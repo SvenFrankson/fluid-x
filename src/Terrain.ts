@@ -34,6 +34,131 @@ class Terrain {
         this.holeWall.material = this.game.grayMaterial;
     }
 
+    public async loadFromFile(path: string): Promise<void> {
+        let file = await fetch(path);
+        let content = await file.text();
+        console.log(content);
+        let lines = content.split("\r\n");
+        console.log(lines);
+        let ballLine = lines.splice(0, 1)[0].split(" ");
+        this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
+        this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.h = lines.length - 1;
+        this.w = lines[0].length - 1;
+        for (let j = 0; j < lines.length; j++) {
+            let line = lines[lines.length - 1 - j];
+            for (let i = 0; i < line.length; i++) {
+                let c = line[i];
+                if (c === "O") {
+                    let hole = new HoleTile(this.game, {
+                        color: TileColor.South,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "N") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "n") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "E") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.East,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "e") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.East,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "S") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.South,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "s") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.South,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "W") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.West,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "w") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.West,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "^") {
+                    let ramp = new Ramp(this.game, {
+                        i: i,
+                        j: j
+                    });
+                    await ramp.instantiate();
+                }
+                if (c === "/") {
+                    let ramp = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderLeft: true,
+                        borderTop: true
+                    });
+                    await ramp.instantiate();
+                }
+                if (c === "7") {
+                    let ramp = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderRight: true,
+                        borderTop: true
+                    });
+                    await ramp.instantiate();
+                }
+                if (c === "=") {
+                    let ramp = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderTop: true,
+                        borderBottom: true
+                    });
+                    await ramp.instantiate();
+                }
+            }
+        }
+    }
+
     public async instantiate(): Promise<void> {
         this.border = new BABYLON.Mesh("border");
 
@@ -60,6 +185,10 @@ class Terrain {
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
+
+        for (let i = 0; i < this.tiles.length; i++) {
+            await this.tiles[i].instantiate();
+        }
 
         this.rebuildFloor();
     }

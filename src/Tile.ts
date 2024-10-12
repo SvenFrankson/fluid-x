@@ -22,6 +22,7 @@ abstract class Tile extends BABYLON.Mesh {
 
     constructor(public game: Game, public props: TileProps) {
         super("tile");
+        this.game.terrain.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
             this.position.x = props.i * 1.1;
@@ -47,11 +48,6 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
-        let index = this.game.terrain.tiles.indexOf(this);
-        if (index === -1) {
-            this.game.terrain.tiles.push(this);
-        }
-
         if (this.props.noShadow != true) {
             let m = 0.05;
             let shadowData = Mummu.Create9SliceVertexData({

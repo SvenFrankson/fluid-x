@@ -142,6 +142,7 @@ class Game {
     public shadowDiscMaterial: BABYLON.StandardMaterial;
     public terrain: Terrain;
     public ball: Ball;
+    public xAxisInput: XAxisInput;
 
     constructor(canvasElement: string) {
         Game.Instance = this;
@@ -177,6 +178,8 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
+
+        this.xAxisInput = document.querySelector("x-axis-input");
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -252,9 +255,19 @@ class Game {
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
 
-        this.terrain = new Terrain(this);
-        await this.terrain.instantiate();
+        this.ball = new Ball(this, { color: TileColor.North });
 
+        this.ball.position.x = 0;
+        this.ball.position.z = 0;
+
+        this.terrain = new Terrain(this);
+        await this.terrain.loadFromFile("./datas/level/test.txt");
+        await this.terrain.instantiate();
+        await this.ball.instantiate();
+
+        this.ball.ballState = BallState.Move;
+
+        /*
         for (let i = 0; i <= 10; i++) {
             let tile = new BlockTile(this, {
                 color: Math.floor(Math.random() * 4),
@@ -428,14 +441,7 @@ class Game {
             j: 3
         });
         await ramp2.instantiate();
-
-        this.ball = new Ball(this, { color: TileColor.North });
-        await this.ball.instantiate();
-
-        this.ball.position.x = 5;
-        this.ball.position.z = 5;
-
-        this.terrain.rebuildFloor();
+        */
 
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
@@ -482,13 +488,13 @@ class Game {
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
         let targetCameraPos = this.ball.position.clone();
-        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 4.5, this.terrain.xMax - 4.5);
-        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
+        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
+        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
         
         targetCameraPos.y += 15;
         targetCameraPos.z -= 5;
 
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.005, this.camera.position);
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
         
         if (this.ball) {
             this.ball.update();

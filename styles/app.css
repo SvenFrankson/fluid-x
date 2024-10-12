@@ -24,85 +24,61 @@ body {
     z-index: 0;
 }
 
-#debug-container {
-	position: fixed;
-	top: 110px;
-	right: 10px;
-	width: 400px;
-	padding: 10px;
-	font-size: 16px;
-	color: #00FF00;
-	text-align: right;
-	font-family: monospace;
-	z-index: 1;
-	background-color: rgba(0, 0, 0, 50%);
-	pointer-events: none;
-}
-
-button {
-    background-color: var(--main-ui-bg-btn);
-    outline: 1px solid var(--main-ui-color);
-    margin: 1px;
-    border: 1px solid black;
-    border-radius: 5px;
-    font-weight: 700;
-    font-size: min(18px, 3.5vw);
-    height: min(30px, 6vw);
-    color: var(--main-ui-color);
-    padding: 5px;
-    cursor: pointer;
-    vertical-align: top;
-}
-
-button.active {
-    background-color: var(--main-ui-bg-btn-active);
-    outline: 2px solid var(--main-ui-color);
-}
-
-button.disabled {
-    pointer-events: none;
-    opacity: 30%;
-}
-
-button.s-square {
-    width: min(30px, 6vw);
-    font-size: 18px;
-    border-top-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    padding: 0;
-}
-
-button.m-rect {
-    width: min(65px, 14vw);
-    font-size: min(18px, 3.5vw);
-    border-top-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    padding: 0;
-}
-
-button.l-rect {
-    width: min(135px, 28vw);
-    font-size: min(18px, 3.5vw);
-    border-top-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    padding: 0;
-}
-
-.popup {
+x-axis-input {
     position: fixed;
-    z-index: 3;
-    
-    font-family: Xolonium;
-    padding: 20px;
-    color: var(--main-ui-color);
-    background-color: var(--main-ui-bg1);
-    outline: 2px solid var(--main-ui-color);
-    border: 1px solid black;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 20px;
-    border-bottom-left-radius: 0px;
-    height: fit-content;
+    bottom: 2vh;
+    width: 25vh;
+    left: calc((100vw - 25vh) * 0.5);
+}
+
+#input-left {
+    font-family: Julee;
+    position: fixed;
+    bottom: 2vh;
+    width: 10vh;
+    height: 10vh;
+    left: calc((50vw - 8vh - 5vh));
+    background-color: #5c8b93ff;
+    border: 4px solid #2b2821ff;
+    font-size: 8vh;
+    font-weight: 500;
+    color: #e3cfb4ff;
+    -webkit-text-stroke: 5px #e3cfb4ff;
+}
+
+#input-left span {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    font-size: 8vh;
+    font-weight: 500;
+    color: #2b2821ff;
+    -webkit-text-stroke: 0;
+}
+
+#input-right {
+    font-family: Julee;
+    position: fixed;
+    bottom: 2vh;
+    width: 10vh;
+    height: 10vh;
+    left: calc((50vw + 8vh - 5vh));
+    background-color: #5c8b93ff;
+    border: 4px solid #2b2821ff;
+    font-size: 8vh;
+    font-weight: 500;
+    color: #e3cfb4ff;
+    -webkit-text-stroke: 5px #e3cfb4ff;
+}
+
+#input-right span {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    font-size: 8vh;
+    font-weight: 500;
+    color: #2b2821ff;
+    -webkit-text-stroke: 0;
 }
 
 #click-anywhere-screen {

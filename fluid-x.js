@@ -8,7 +8,7 @@ class Ball extends BABYLON.Mesh {
     constructor(game, props) {
         super("ball");
         this.game = game;
-        this.ballState = BallState.Move;
+        this.ballState = BallState.Pause;
         this.fallTimer = 0;
         this.vZ = 1;
         this.radius = 0.3;
@@ -51,6 +51,24 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = false;
             }
         });
+        let inputLeft = document.querySelector("#input-left");
+        if (inputLeft) {
+            inputLeft.addEventListener("pointerdown", () => {
+                this.leftDown = true;
+            });
+            inputLeft.addEventListener("pointerup", () => {
+                this.leftDown = false;
+            });
+        }
+        let inputRight = document.querySelector("#input-right");
+        if (inputRight) {
+            inputRight.addEventListener("pointerdown", () => {
+                this.rightDown = true;
+            });
+            inputRight.addEventListener("pointerup", () => {
+                this.rightDown = false;
+            });
+        }
     }
     setColor(color) {
         this.color = color;
@@ -76,6 +94,9 @@ class Ball extends BABYLON.Mesh {
         }
         else if (this.inputX > 0) {
             this.inputX = Math.max(this.inputX - this.inputSpeed, 0);
+        }
+        if (this.game.xAxisInput && this.game.xAxisInput.pointerIsDown) {
+            this.inputX = this.game.xAxisInput.value;
         }
         this.inputX = Nabu.MinMax(this.inputX, -1, 1);
         if (this.ballState === BallState.Pause) {
@@ -218,6 +239,7 @@ class Tile extends BABYLON.Mesh {
         this.game = game;
         this.props = props;
         this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.game.terrain.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
             this.position.x = props.i * 1.1;
@@ -245,10 +267,6 @@ class Tile extends BABYLON.Mesh {
         this.scaling.copyFromFloats(s, s, s);
     }
     async instantiate() {
-        let index = this.game.terrain.tiles.indexOf(this);
-        if (index === -1) {
-            this.game.terrain.tiles.push(this);
-        }
         if (this.props.noShadow != true) {
             let m = 0.05;
             let shadowData = Mummu.Create9SliceVertexData({
@@ -926,6 +944,7 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
+        this.xAxisInput = document.querySelector("x-axis-input");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
@@ -984,8 +1003,15 @@ class Game {
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.ball = new Ball(this, { color: TileColor.North });
+        this.ball.position.x = 0;
+        this.ball.position.z = 0;
         this.terrain = new Terrain(this);
+        await this.terrain.loadFromFile("./datas/level/test.txt");
         await this.terrain.instantiate();
+        await this.ball.instantiate();
+        this.ball.ballState = BallState.Move;
+        /*
         for (let i = 0; i <= 10; i++) {
             let tile = new BlockTile(this, {
                 color: Math.floor(Math.random() * 4),
@@ -994,30 +1020,35 @@ class Game {
             });
             await tile.instantiate();
         }
+
         let tile = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 0,
             j: 0
         });
         await tile.instantiate();
+
         let tileA = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 1,
             j: 9
         });
         await tileA.instantiate();
+
         let tileC = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 1,
             j: 8
         });
         await tileC.instantiate();
+
         let tileE = new BlockTile(this, {
             color: Math.floor(Math.random() * 4),
             i: 1,
             j: 7
         });
         await tileE.instantiate();
+
         let switchNorth = new SwitchTile(this, {
             color: TileColor.North,
             i: 8,
@@ -1025,6 +1056,7 @@ class Game {
             h: 1
         });
         await switchNorth.instantiate();
+
         let switchEast = new SwitchTile(this, {
             color: TileColor.East,
             i: 12,
@@ -1032,6 +1064,7 @@ class Game {
             h: 1
         });
         await switchEast.instantiate();
+
         let switchSouth = new SwitchTile(this, {
             color: TileColor.South,
             i: 8,
@@ -1039,6 +1072,7 @@ class Game {
             h: 0
         });
         await switchSouth.instantiate();
+
         let holeA = new HoleTile(this, {
             color: TileColor.South,
             i: 7,
@@ -1046,6 +1080,7 @@ class Game {
             h: 0
         });
         await holeA.instantiate();
+
         let holeB = new HoleTile(this, {
             color: TileColor.South,
             i: 9,
@@ -1053,6 +1088,7 @@ class Game {
             h: 0
         });
         await holeB.instantiate();
+
         let holeC = new HoleTile(this, {
             color: TileColor.South,
             i: 9,
@@ -1060,6 +1096,7 @@ class Game {
             h: 0
         });
         await holeC.instantiate();
+
         let switchWest = new SwitchTile(this, {
             color: TileColor.West,
             i: 1,
@@ -1067,22 +1104,26 @@ class Game {
             h: 0
         });
         await switchWest.instantiate();
+
         let ramp0 = new Ramp(this, {
             i: 4,
             j: 3
         });
         await ramp0.instantiate();
+
         let ramp = new Ramp(this, {
             i: 8,
             j: 3
         });
         await ramp.instantiate();
+
         let box = new Box(this, {
             i: 8,
             j: 6,
             borderLeft: true,
         });
         await box.instantiate();
+
         let boxA = new Box(this, {
             i: 8,
             j: 8,
@@ -1090,6 +1131,7 @@ class Game {
             borderTop: true
         });
         await boxA.instantiate();
+
         let boxB = new Box(this, {
             i: 6,
             j: 8,
@@ -1097,6 +1139,7 @@ class Game {
             borderTop: true
         });
         await boxB.instantiate();
+
         let boxC = new Box(this, {
             i: 4,
             j: 8,
@@ -1104,6 +1147,7 @@ class Game {
             borderTop: true
         });
         await boxC.instantiate();
+
         let boxD = new Box(this, {
             i: 4,
             j: 6,
@@ -1111,6 +1155,7 @@ class Game {
             borderRight: true
         });
         await boxD.instantiate();
+
         let box2 = new Box(this, {
             i: 10,
             j: 6,
@@ -1118,6 +1163,7 @@ class Game {
             borderTop: true
         });
         await box2.instantiate();
+
         let bridge = new Bridge(this, {
             i: 12,
             j: 6,
@@ -1125,6 +1171,7 @@ class Game {
             borderTop: true
         });
         await bridge.instantiate();
+
         let box3 = new Box(this, {
             i: 16,
             j: 6,
@@ -1132,16 +1179,13 @@ class Game {
             borderTop: true
         });
         await box3.instantiate();
+
         let ramp2 = new Ramp(this, {
             i: 16,
             j: 3
         });
         await ramp2.instantiate();
-        this.ball = new Ball(this, { color: TileColor.North });
-        await this.ball.instantiate();
-        this.ball.position.x = 5;
-        this.ball.position.z = 5;
-        this.terrain.rebuildFloor();
+        */
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
@@ -1165,11 +1209,11 @@ class Game {
     update() {
         let rawDT = this.scene.deltaTime / 1000;
         let targetCameraPos = this.ball.position.clone();
-        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 4.5, this.terrain.xMax - 4.5);
-        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 4.5, this.terrain.zMax - 4.5);
+        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
+        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
         targetCameraPos.y += 15;
         targetCameraPos.z -= 5;
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.005, this.camera.position);
+        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
         if (this.ball) {
             this.ball.update();
         }
@@ -1270,6 +1314,130 @@ class Terrain {
     get zMax() {
         return this.h * 1.1 + 0.55;
     }
+    async loadFromFile(path) {
+        let file = await fetch(path);
+        let content = await file.text();
+        console.log(content);
+        let lines = content.split("\r\n");
+        console.log(lines);
+        let ballLine = lines.splice(0, 1)[0].split(" ");
+        this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
+        this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.h = lines.length - 1;
+        this.w = lines[0].length - 1;
+        for (let j = 0; j < lines.length; j++) {
+            let line = lines[lines.length - 1 - j];
+            for (let i = 0; i < line.length; i++) {
+                let c = line[i];
+                if (c === "O") {
+                    let hole = new HoleTile(this.game, {
+                        color: TileColor.South,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "N") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "n") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "E") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.East,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "e") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.East,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "S") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.South,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "s") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.South,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "W") {
+                    let block = new SwitchTile(this.game, {
+                        color: TileColor.West,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "w") {
+                    let block = new BlockTile(this.game, {
+                        color: TileColor.West,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "^") {
+                    let ramp = new Ramp(this.game, {
+                        i: i,
+                        j: j
+                    });
+                    await ramp.instantiate();
+                }
+                if (c === "/") {
+                    let ramp = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderLeft: true,
+                        borderTop: true
+                    });
+                    await ramp.instantiate();
+                }
+                if (c === "7") {
+                    let ramp = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderRight: true,
+                        borderTop: true
+                    });
+                    await ramp.instantiate();
+                }
+                if (c === "=") {
+                    let ramp = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderTop: true,
+                        borderBottom: true
+                    });
+                    await ramp.instantiate();
+                }
+            }
+        }
+    }
     async instantiate() {
         this.border = new BABYLON.Mesh("border");
         let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
@@ -1292,6 +1460,9 @@ class Terrain {
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
+        for (let i = 0; i < this.tiles.length; i++) {
+            await this.tiles[i].instantiate();
+        }
         this.rebuildFloor();
     }
     rebuildFloor() {
@@ -1385,3 +1556,54 @@ class Terrain {
         Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
     }
 }
+class XAxisInput extends HTMLElement {
+    constructor() {
+        super(...arguments);
+        this.value = 0;
+        this.pointerIsDown = false;
+        this.pointerDown = (ev) => {
+            this.pointerIsDown = true;
+            let rect = this.getBoundingClientRect();
+            let dx = (ev.clientX - rect.left) / rect.width;
+            let f = (dx - 0.1) / 0.8;
+            let x = -1 * (1 - f) + 1 * f;
+            this.setValue(x);
+        };
+        this.pointerMove = (ev) => {
+            if (this.pointerIsDown) {
+                let rect = this.getBoundingClientRect();
+                let dx = (ev.clientX - rect.left) / rect.width;
+                let f = (dx - 0.1) / 0.8;
+                let x = -1 * (1 - f) + 1 * f;
+                this.setValue(x);
+            }
+        };
+        this.pointerUp = (ev) => {
+            this.pointerIsDown = false;
+            this.setValue(0);
+        };
+    }
+    connectedCallback() {
+        this.background = document.createElement("img");
+        this.background.src = "./datas/textures/input-bar.svg";
+        this.background.style.width = "100%";
+        this.background.style.pointerEvents = "none";
+        this.appendChild(this.background);
+        this.cursor = document.createElement("img");
+        this.cursor.src = "./datas/textures/input-cursor.svg";
+        this.cursor.style.position = "absolute";
+        this.cursor.style.height = "100%";
+        this.cursor.style.left = "50%";
+        this.cursor.style.transform = "translate(-50%, 0)";
+        this.cursor.style.pointerEvents = "none";
+        this.appendChild(this.cursor);
+        this.addEventListener("pointerdown", this.pointerDown);
+        document.addEventListener("pointermove", this.pointerMove);
+        document.addEventListener("pointerup", this.pointerUp);
+    }
+    setValue(v) {
+        this.value = Nabu.MinMax(v, -1, 1);
+        this.cursor.style.left = (10 + (this.value + 1) * 40).toFixed(1) + "%";
+    }
+}
+customElements.define("x-axis-input", XAxisInput);

@@ -10,7 +10,7 @@ enum BallState {
 
 class Ball extends BABYLON.Mesh {
 
-    public ballState: BallState = BallState.Move;
+    public ballState: BallState = BallState.Pause;
     public fallOriginPos: BABYLON.Vector3;
     public fallRotAxis: BABYLON.Vector3;
     public fallTimer: number = 0;
@@ -74,6 +74,26 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = false;
             }
         })
+
+        let inputLeft = document.querySelector("#input-left");
+        if (inputLeft) {
+            inputLeft.addEventListener("pointerdown", () => {
+                this.leftDown = true;
+            })
+            inputLeft.addEventListener("pointerup", () => {
+                this.leftDown = false;
+            })
+        }
+
+        let inputRight = document.querySelector("#input-right");
+        if (inputRight) {
+            inputRight.addEventListener("pointerdown", () => {
+                this.rightDown = true;
+            })
+            inputRight.addEventListener("pointerup", () => {
+                this.rightDown = false;
+            })
+        }
     }
 
     public async instantiate(): Promise<void> {
@@ -105,6 +125,10 @@ class Ball extends BABYLON.Mesh {
         }
         else if (this.inputX > 0) {
             this.inputX = Math.max(this.inputX - this.inputSpeed, 0);
+        }
+
+        if (this.game.xAxisInput && this.game.xAxisInput.pointerIsDown) {
+            this.inputX = this.game.xAxisInput.value;
         }
 
         this.inputX = Nabu.MinMax(this.inputX, -1, 1);

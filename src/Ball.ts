@@ -111,7 +111,7 @@ class Ball extends BABYLON.Mesh {
     public bounceXTimer: number = 0;
     public bounceXDelay: number = 0.4;
 
-    public update(): void {
+    public update(dt: number): void {
 
         if (this.leftDown) {
             this.inputX -= this.inputSpeed;
@@ -140,7 +140,7 @@ class Ball extends BABYLON.Mesh {
         else if (this.ballState === BallState.Move) {
             let vX = this.inputX;
             if (this.bounceXTimer > 0) {
-                this.bounceXTimer -= 0.01;
+                this.bounceXTimer -= dt;
                 if (this.bounceXValue < 0) {
                     vX = Math.min(vX, this.bounceXValue);
                 }
@@ -150,9 +150,9 @@ class Ball extends BABYLON.Mesh {
             }
 
             let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
-            speed.normalize().scaleInPlace(1);
+            speed.normalize().scaleInPlace(2);
 
-            this.position.addInPlace(speed.scale(1/60));
+            this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.terrain.zMax) {
                 this.vZ = -1;
             }
@@ -264,7 +264,7 @@ class Ball extends BABYLON.Mesh {
                 this.fallRotAxis = BABYLON.Vector3.Cross(BABYLON.Axis.Y, dHole).normalize();
             }
 
-            this.fallTimer += 0.01;
+            this.fallTimer += dt;
 
             if (this.fallTimer > 1) {
                 this.ballState = BallState.Pause;
@@ -277,7 +277,7 @@ class Ball extends BABYLON.Mesh {
             f = this.fallTimer * this.fallTimer;
             this.position.y = this.fallOriginPos.y * (1 - f) + bottom.y * f;
 
-            this.rotate(this.fallRotAxis, 2 * Math.PI * 0.01, BABYLON.Space.WORLD);
+            this.rotate(this.fallRotAxis, 2 * Math.PI * dt, BABYLON.Space.WORLD);
         }
     }
 }

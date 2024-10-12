@@ -82,7 +82,7 @@ class Ball extends BABYLON.Mesh {
         ballDatas[1].applyToMesh(this.ballTop);
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
-    update() {
+    update(dt) {
         if (this.leftDown) {
             this.inputX -= this.inputSpeed;
         }
@@ -105,7 +105,7 @@ class Ball extends BABYLON.Mesh {
         else if (this.ballState === BallState.Move) {
             let vX = this.inputX;
             if (this.bounceXTimer > 0) {
-                this.bounceXTimer -= 0.01;
+                this.bounceXTimer -= dt;
                 if (this.bounceXValue < 0) {
                     vX = Math.min(vX, this.bounceXValue);
                 }
@@ -114,8 +114,8 @@ class Ball extends BABYLON.Mesh {
                 }
             }
             let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
-            speed.normalize().scaleInPlace(1);
-            this.position.addInPlace(speed.scale(1 / 60));
+            speed.normalize().scaleInPlace(2);
+            this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.terrain.zMax) {
                 this.vZ = -1;
             }
@@ -219,7 +219,7 @@ class Ball extends BABYLON.Mesh {
                 this.fallOriginPos = this.position.clone();
                 this.fallRotAxis = BABYLON.Vector3.Cross(BABYLON.Axis.Y, dHole).normalize();
             }
-            this.fallTimer += 0.01;
+            this.fallTimer += dt;
             if (this.fallTimer > 1) {
                 this.ballState = BallState.Pause;
                 return;
@@ -229,7 +229,7 @@ class Ball extends BABYLON.Mesh {
             this.position.z = this.fallOriginPos.z * (1 - f) + bottom.z * f;
             f = this.fallTimer * this.fallTimer;
             this.position.y = this.fallOriginPos.y * (1 - f) + bottom.y * f;
-            this.rotate(this.fallRotAxis, 2 * Math.PI * 0.01, BABYLON.Space.WORLD);
+            this.rotate(this.fallRotAxis, 2 * Math.PI * dt, BABYLON.Space.WORLD);
         }
     }
 }
@@ -1208,14 +1208,17 @@ class Game {
     }
     update() {
         let rawDT = this.scene.deltaTime / 1000;
-        let targetCameraPos = this.ball.position.clone();
-        targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
-        targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
-        targetCameraPos.y += 15;
-        targetCameraPos.z -= 5;
-        BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
-        if (this.ball) {
-            this.ball.update();
+        if (isFinite(rawDT)) {
+            rawDT = Math.min(rawDT, 1);
+            let targetCameraPos = this.ball.position.clone();
+            targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
+            targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
+            targetCameraPos.y += 15;
+            targetCameraPos.z -= 5;
+            BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
+            if (this.ball) {
+                this.ball.update(rawDT);
+            }
         }
     }
     get curtainOpacity() {

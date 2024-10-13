@@ -31,6 +31,17 @@ x-axis-input {
     left: calc((100vw - 25vh) * 0.5);
 }
 
+.page {
+    display: block;
+    position: fixed;
+    padding: 0;
+    margin: 0;
+    width: min(100vw, 100svh);
+    height: 100%;
+    left: calc((100vw - min(100vw, 100svh)) * 0.5);
+    text-align: center;
+}
+
 .input-button {
     font-family: Julee;
     position: fixed;
@@ -89,11 +100,10 @@ h1 {
     position: relative;
     display: block;
     text-align: center;
-    font-size: 100px;
+    font-size: 70px;
     font-family: Julee;
     font-weight: 900;
     margin: 20px;
-    width: 400px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -108,10 +118,25 @@ h1 {
     border: 2px solid #2b2821ff;
     font-weight: 900;
     margin: 20px;
-    width: 280px;
+    width: 300px;
     height: 70px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.square-btn {
+    position: relative;
+    display: inline-block;
+    font-size: 20px;
+    font-family: Julee;
+    border-radius: 10px;
+    background-color: #5c8b93ff;
+    border: 2px solid #2b2821ff;
+    font-weight: 900;
+    margin: 5px;
+    width: 80px;
+    height: 80px;
+    padding-bottom: 50px;
 }
 
 #click-anywhere-screen {

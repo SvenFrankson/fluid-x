@@ -1,8 +1,10 @@
 0 0
-..OOOOOOOO..
-..nsnsnsns..
-............
-...........S
-............
-..snsnsnsn..
-..OOOOOOOO..
+.OOOOOOOOO
+.OnnnnnnnO
+.OnnnnnnnO
+.........O
+.....O...O
+.........O
+.OnnnnnnnO
+.OnnnnnnnO
+.OOOOOOOOO

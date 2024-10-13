@@ -452,6 +452,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         document.getElementById("click-anywhere-screen").style.display = "none";
+
+        (document.getElementById("home-menu") as Nabu.DefaultPage).show(0);
 	}
 
     public onResize = () => {

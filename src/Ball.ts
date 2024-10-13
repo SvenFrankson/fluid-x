@@ -105,52 +105,43 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
 
-    public inputX: number = 0;
-    public inputSpeed: number = 0.1;
+    public speed: number = 3;
+    public inputSpeed: number = 1000;
     public bounceXValue: number = 0;
     public bounceXTimer: number = 0;
-    public bounceXDelay: number = 0.4;
+    public bounceXDelay: number = 0.84;
+    
 
     public update(dt: number): void {
-
+        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 600, BABYLON.Color3.Black(), 0.05);
+        let vX = 0;
         if (this.leftDown) {
-            this.inputX -= this.inputSpeed;
-        }
-        else if (this.inputX < 0) {
-            this.inputX = Math.min(this.inputX + this.inputSpeed, 0);
+            vX -= 1;
         }
 
         if (this.rightDown) {
-            this.inputX += this.inputSpeed;
-        }
-        else if (this.inputX > 0) {
-            this.inputX = Math.max(this.inputX - this.inputSpeed, 0);
+            vX += 1;
         }
 
         if (this.game.xAxisInput && this.game.xAxisInput.pointerIsDown) {
-            this.inputX = this.game.xAxisInput.value;
+            vX = this.game.xAxisInput.value;
         }
 
-        this.inputX = Nabu.MinMax(this.inputX, -1, 1);
+        vX = Nabu.MinMax(vX, -1, 1);
 
         
         if (this.ballState === BallState.Pause) {
             return;
         }
         else if (this.ballState === BallState.Move) {
-            let vX = this.inputX;
+
             if (this.bounceXTimer > 0) {
-                this.bounceXTimer -= dt;
-                if (this.bounceXValue < 0) {
-                    vX = Math.min(vX, this.bounceXValue);
-                }
-                else if (this.bounceXValue > 0) {
-                    vX = Math.max(vX, this.bounceXValue);
-                }
+                vX = this.bounceXValue;
+                this.bounceXTimer -= dt * this.speed;
             }
 
-            let speed = new BABYLON.Vector3(vX * Math.sqrt(3), 0, this.vZ);
-            speed.normalize().scaleInPlace(2);
+            let speed = new BABYLON.Vector3(vX * 13 / 11, 0, this.vZ);
+            speed.normalize().scaleInPlace(this.speed);
 
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.terrain.zMax) {
@@ -161,7 +152,7 @@ class Ball extends BABYLON.Mesh {
             }
 
             if (this.position.x + this.radius > this.game.terrain.xMax) {
-                this.bounceXValue = -1;
+                this.bounceXValue = - 1;
                 this.bounceXTimer = this.bounceXDelay;
             }
             else if (this.position.x - this.radius < this.game.terrain.xMin) {
@@ -176,11 +167,13 @@ class Ball extends BABYLON.Mesh {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
                         if (dir.x > 0) {
+                            this.position.x = impact.x + this.radius;
                             this.bounceXValue = 1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
                         else {
-                            this.bounceXValue = -1;
+                            this.position.x = impact.x - this.radius;
+                            this.bounceXValue = - 1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
                     }
@@ -206,38 +199,43 @@ class Ball extends BABYLON.Mesh {
                     }
                 }
                 else {
-                    if (tile.collide(this, impact)) {
-                        let dir = this.position.subtract(impact);
-                        if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                            if (dir.x > 0) {
-                                this.bounceXValue = 1;
-                                this.bounceXTimer = this.bounceXDelay;
+                    if (tile.tileState === TileState.Active) {
+                        if (tile.collide(this, impact)) {
+                            let dir = this.position.subtract(impact);
+                            if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                                if (dir.x > 0) {
+                                    this.position.x = impact.x + this.radius;
+                                    this.bounceXValue = 1;
+                                    this.bounceXTimer = this.bounceXDelay;
+                                }
+                                else {
+                                    this.position.x = impact.x - this.radius;
+                                    this.bounceXValue = - 1;
+                                    this.bounceXTimer = this.bounceXDelay;
+                                }
                             }
                             else {
-                                this.bounceXValue = -1;
-                                this.bounceXTimer = this.bounceXDelay;
+                                if (dir.z > 0) {
+                                    this.vZ = 1;
+                                }
+                                else {
+                                    this.vZ = -1;
+                                }
                             }
-                        }
-                        else {
-                            if (dir.z > 0) {
-                                this.vZ = 1;
+                            if (tile instanceof SwitchTile) {
+                                tile.bump();
+                                this.setColor(tile.color);
                             }
-                            else {
-                                this.vZ = -1;
+                            else if (tile instanceof BlockTile) {
+                                if (tile.color === this.color) {
+                                    tile.tileState = TileState.Dying;
+                                    tile.shrink().then(() => {
+                                        tile.dispose();
+                                    });
+                                }
                             }
+                            break;
                         }
-                        if (tile instanceof SwitchTile) {
-                            tile.bump();
-                            this.setColor(tile.color);
-                        }
-                        else if (tile instanceof BlockTile) {
-                            if (tile.color === this.color) {
-                                tile.shrink().then(() => {
-                                    tile.dispose();
-                                });
-                            }
-                        }
-                        break;
                     }
                 }
             }

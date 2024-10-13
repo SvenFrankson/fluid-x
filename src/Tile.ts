@@ -6,8 +6,14 @@ interface TileProps {
     noShadow?: boolean;
 }
 
+enum TileState {
+    Active,
+    Dying
+}
+
 abstract class Tile extends BABYLON.Mesh {
 
+    public tileState: TileState = TileState.Active;
     public shadow: BABYLON.Mesh;
 
     public animateSize = Mummu.AnimationFactory.EmptyNumberCallback;

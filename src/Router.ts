@@ -2,6 +2,7 @@ class CarillonRouter extends Nabu.Router {
     public homeMenu: Nabu.DefaultPage;
     public levelPage: LevelPage;
     public playUI: Nabu.DefaultPage;
+    public editorUI: Nabu.DefaultPage;
 
     constructor(public game: Game) {
         super();
@@ -11,6 +12,7 @@ class CarillonRouter extends Nabu.Router {
         this.homeMenu = document.querySelector("#home-menu") as Nabu.DefaultPage;
         this.levelPage = new LevelPage("#level-page", this);
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
+        this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
     }
 
     protected onUpdate(): void {}
@@ -29,7 +31,7 @@ class CarillonRouter extends Nabu.Router {
             
         }
         else if (page.startsWith("#editor")) {
-            
+            await this.show(this.editorUI, false, 0);
         }
         else if (page.startsWith("#level-")) {
             let fileName = page.replace("#level-", "");

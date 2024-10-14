@@ -1407,6 +1407,7 @@ class CarillonRouter extends Nabu.Router {
         this.homeMenu = document.querySelector("#home-menu");
         this.levelPage = new LevelPage("#level-page", this);
         this.playUI = document.querySelector("#play-ui");
+        this.editorUI = document.querySelector("#editor-ui");
     }
     onUpdate() { }
     async onHRefChange(page, previousPage) {
@@ -1419,6 +1420,7 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#community")) {
         }
         else if (page.startsWith("#editor")) {
+            await this.show(this.editorUI, false, 0);
         }
         else if (page.startsWith("#level-")) {
             let fileName = page.replace("#level-", "");

@@ -16,7 +16,7 @@ class Terrain {
     }
 
     public get xMax(): number {
-        return this.w * 1.1 + 0.55;
+        return this.w * 1.1 - 0.55;
     }
 
     public get zMin(): number {
@@ -24,7 +24,7 @@ class Terrain {
     }
 
     public get zMax(): number {
-        return this.h * 1.1 + 0.55;
+        return this.h * 1.1 - 0.55;
     }
 
     constructor(public game: Game) {
@@ -72,8 +72,8 @@ class Terrain {
         this.game.ball.ballState = BallState.Ready;
         this.game.setPlayTimer(0);
         this.game.ball.vZ = 1;
-        this.h = lines.length - 1;
-        this.w = lines[0].length - 1;
+        this.h = lines.length;
+        this.w = lines[0].length;
         console.log(this.w + " " + this.h);
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
@@ -189,6 +189,57 @@ class Terrain {
         }
     }
 
+    public saveAsText(): string {
+        let lines: string[][] = [];
+        for (let j = 0; j < this.h; j++) {
+            lines[j] = [];
+            for (let i = 0; i < this.w; i++) {
+                lines[j][i] = ".";
+            }
+        }
+
+        this.tiles.forEach(tile => {
+            let i = tile.i;
+            let j = tile.j;
+            if (tile instanceof BlockTile) {
+                if (tile.color === TileColor.North) {
+                    lines[j][i] = "n";
+                }
+                else if (tile.color === TileColor.East) {
+                    lines[j][i] = "e";
+                }
+                else if (tile.color === TileColor.South) {
+                    lines[j][i] = "s";
+                }
+                else if (tile.color === TileColor.West) {
+                    lines[j][i] = "w";
+                }
+            }
+            else if (tile instanceof SwitchTile) {
+                if (tile.color === TileColor.North) {
+                    lines[j][i] = "N";
+                }
+                else if (tile.color === TileColor.East) {
+                    lines[j][i] = "E";
+                }
+                else if (tile.color === TileColor.South) {
+                    lines[j][i] = "S";
+                }
+                else if (tile.color === TileColor.West) {
+                    lines[j][i] = "W";
+                }
+            }
+        })
+
+        lines.reverse();
+
+        let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
+
+        lines2.splice(0, 0, "0 0");
+
+        return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
+    }
+
     public async instantiate(): Promise<void> {
         if (this.border) {
             this.border.dispose();
@@ -234,8 +285,8 @@ class Terrain {
         let holes = [];
         let floorDatas = [];
         let holeDatas = [];
-        for (let i = 0; i <= this.w; i++) {
-            for (let j = 0; j <= this.h; j++) {
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
                 let holeTile = this.tiles.find(tile => {
                     if (tile instanceof HoleTile) {
                         if (tile.props.i === i) {

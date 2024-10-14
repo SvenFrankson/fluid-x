@@ -876,6 +876,10 @@ class Editor {
             this.brush = EditorBrush.Tile;
             this.brushColor = TileColor.West;
         };
+        document.getElementById("save-btn").onclick = () => {
+            let content = this.game.terrain.saveAsText();
+            Nabu.download("puzzle.txt", content);
+        };
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
     }
@@ -888,6 +892,7 @@ class Editor {
         document.getElementById("tile-east-btn").onclick = undefined;
         document.getElementById("tile-south-btn").onclick = undefined;
         document.getElementById("tile-west-btn").onclick = undefined;
+        document.getElementById("save-btn").onclick = undefined;
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
     }
@@ -931,7 +936,8 @@ class LevelPage {
             "test_D",
             "test_long-line",
             "test_one-way-the-other",
-            "test_arena"
+            "test_arena",
+            "editor_1"
         ];
         this.page = 0;
         this.levelCount = this.levelFileNames.length;
@@ -1634,13 +1640,13 @@ class Terrain {
         return -0.55;
     }
     get xMax() {
-        return this.w * 1.1 + 0.55;
+        return this.w * 1.1 - 0.55;
     }
     get zMin() {
         return -0.55;
     }
     get zMax() {
-        return this.h * 1.1 + 0.55;
+        return this.h * 1.1 - 0.55;
     }
     async reset() {
         if (this._textContent) {
@@ -1675,8 +1681,8 @@ class Terrain {
         this.game.ball.ballState = BallState.Ready;
         this.game.setPlayTimer(0);
         this.game.ball.vZ = 1;
-        this.h = lines.length - 1;
-        this.w = lines[0].length - 1;
+        this.h = lines.length;
+        this.w = lines[0].length;
         console.log(this.w + " " + this.h);
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
@@ -1791,6 +1797,51 @@ class Terrain {
             }
         }
     }
+    saveAsText() {
+        let lines = [];
+        for (let j = 0; j < this.h; j++) {
+            lines[j] = [];
+            for (let i = 0; i < this.w; i++) {
+                lines[j][i] = ".";
+            }
+        }
+        this.tiles.forEach(tile => {
+            let i = tile.i;
+            let j = tile.j;
+            if (tile instanceof BlockTile) {
+                if (tile.color === TileColor.North) {
+                    lines[j][i] = "n";
+                }
+                else if (tile.color === TileColor.East) {
+                    lines[j][i] = "e";
+                }
+                else if (tile.color === TileColor.South) {
+                    lines[j][i] = "s";
+                }
+                else if (tile.color === TileColor.West) {
+                    lines[j][i] = "w";
+                }
+            }
+            else if (tile instanceof SwitchTile) {
+                if (tile.color === TileColor.North) {
+                    lines[j][i] = "N";
+                }
+                else if (tile.color === TileColor.East) {
+                    lines[j][i] = "E";
+                }
+                else if (tile.color === TileColor.South) {
+                    lines[j][i] = "S";
+                }
+                else if (tile.color === TileColor.West) {
+                    lines[j][i] = "W";
+                }
+            }
+        });
+        lines.reverse();
+        let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
+        lines2.splice(0, 0, "0 0");
+        return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
+    }
     async instantiate() {
         if (this.border) {
             this.border.dispose();
@@ -1829,8 +1880,8 @@ class Terrain {
         let holes = [];
         let floorDatas = [];
         let holeDatas = [];
-        for (let i = 0; i <= this.w; i++) {
-            for (let j = 0; j <= this.h; j++) {
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
                 let holeTile = this.tiles.find(tile => {
                     if (tile instanceof HoleTile) {
                         if (tile.props.i === i) {

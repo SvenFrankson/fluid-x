@@ -52,6 +52,11 @@ class Editor {
             this.brush = EditorBrush.Tile;
             this.brushColor = TileColor.West;
         };
+        
+        document.getElementById("save-btn").onclick = () => {
+            let content = this.game.terrain.saveAsText();
+            Nabu.download("puzzle.txt", content);
+        };
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
@@ -67,6 +72,8 @@ class Editor {
         document.getElementById("tile-east-btn").onclick = undefined;
         document.getElementById("tile-south-btn").onclick = undefined;
         document.getElementById("tile-west-btn").onclick = undefined;
+        
+        document.getElementById("save-btn").onclick = undefined;
         
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);

@@ -49,7 +49,6 @@ class Terrain {
     }
 
     public async loadFromText(content: string): Promise<void> {
-        console.log(content);
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }

@@ -21,6 +21,8 @@ class CarillonRouter extends Nabu.Router {
         console.log("onHRefChange previous " + previousPage + " now " + page);
         //?gdmachineId=1979464530
         
+        this.game.editor.deactivate();
+
         if (page.startsWith("#options")) {
             
         }
@@ -32,6 +34,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
+            this.game.editor.activate();
         }
         else if (page.startsWith("#level-")) {
             let fileName = page.replace("#level-", "");

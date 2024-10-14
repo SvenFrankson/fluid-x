@@ -251,9 +251,11 @@ class Tile extends BABYLON.Mesh {
         this.game.terrain.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
+            this.i = props.i;
             this.position.x = props.i * 1.1;
         }
         if (isFinite(props.j)) {
+            this.j = props.j;
             this.position.z = props.j * 1.1;
         }
         if (isFinite(props.h)) {
@@ -776,6 +778,120 @@ class Bridge extends Build {
         shadowData.applyToMesh(this.shadow);
     }
 }
+var EditorBrush;
+(function (EditorBrush) {
+    EditorBrush[EditorBrush["None"] = 0] = "None";
+    EditorBrush[EditorBrush["Delete"] = 1] = "Delete";
+    EditorBrush[EditorBrush["Tile"] = 2] = "Tile";
+    EditorBrush[EditorBrush["Switch"] = 3] = "Switch";
+    EditorBrush[EditorBrush["Hole"] = 4] = "Hole";
+    EditorBrush[EditorBrush["Box"] = 5] = "Box";
+    EditorBrush[EditorBrush["Ramp"] = 6] = "Ramp";
+    EditorBrush[EditorBrush["Bridge"] = 7] = "Bridge";
+})(EditorBrush || (EditorBrush = {}));
+class Editor {
+    constructor(game) {
+        this.game = game;
+        this.brush = EditorBrush.None;
+        this.brushColor = TileColor.North;
+        this.pointerDown = (ev) => {
+        };
+        this.pointerUp = (ev) => {
+            console.log(ev);
+            let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                return mesh.name === "floor" || mesh.name === "building-floor";
+            });
+            if (pick.hit) {
+                if (ev.button === 2 || this.brush === EditorBrush.Delete) {
+                    let i = Math.round(pick.pickedPoint.x / 1.1);
+                    let j = Math.round(pick.pickedPoint.z / 1.1);
+                    let tile = this.game.terrain.tiles.find(tile => {
+                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                    });
+                    if (tile) {
+                        tile.dispose();
+                    }
+                }
+                else if (ev.button === 0) {
+                    let i = Math.round(pick.pickedPoint.x / 1.1);
+                    let j = Math.round(pick.pickedPoint.z / 1.1);
+                    let tile = this.game.terrain.tiles.find(tile => {
+                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                    });
+                    if (!tile) {
+                        if (this.brush === EditorBrush.Tile) {
+                            tile = new BlockTile(this.game, {
+                                i: i,
+                                j: j,
+                                h: Math.round(pick.pickedPoint.y),
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Switch) {
+                            tile = new SwitchTile(this.game, {
+                                i: i,
+                                j: j,
+                                h: Math.round(pick.pickedPoint.y),
+                                color: this.brushColor
+                            });
+                        }
+                        if (tile) {
+                            tile.instantiate();
+                        }
+                    }
+                }
+            }
+        };
+    }
+    activate() {
+        document.getElementById("switch-north-btn").onclick = () => {
+            this.brush = EditorBrush.Switch;
+            this.brushColor = TileColor.North;
+        };
+        document.getElementById("switch-east-btn").onclick = () => {
+            this.brush = EditorBrush.Switch;
+            this.brushColor = TileColor.East;
+        };
+        document.getElementById("switch-south-btn").onclick = () => {
+            this.brush = EditorBrush.Switch;
+            this.brushColor = TileColor.South;
+        };
+        document.getElementById("switch-west-btn").onclick = () => {
+            this.brush = EditorBrush.Switch;
+            this.brushColor = TileColor.West;
+        };
+        document.getElementById("tile-north-btn").onclick = () => {
+            this.brush = EditorBrush.Tile;
+            this.brushColor = TileColor.North;
+        };
+        document.getElementById("tile-east-btn").onclick = () => {
+            this.brush = EditorBrush.Tile;
+            this.brushColor = TileColor.East;
+        };
+        document.getElementById("tile-south-btn").onclick = () => {
+            this.brush = EditorBrush.Tile;
+            this.brushColor = TileColor.South;
+        };
+        document.getElementById("tile-west-btn").onclick = () => {
+            this.brush = EditorBrush.Tile;
+            this.brushColor = TileColor.West;
+        };
+        this.game.canvas.addEventListener("pointerdown", this.pointerDown);
+        this.game.canvas.addEventListener("pointerup", this.pointerUp);
+    }
+    deactivate() {
+        document.getElementById("switch-north-btn").onclick = undefined;
+        document.getElementById("switch-east-btn").onclick = undefined;
+        document.getElementById("switch-south-btn").onclick = undefined;
+        document.getElementById("switch-west-btn").onclick = undefined;
+        document.getElementById("tile-north-btn").onclick = undefined;
+        document.getElementById("tile-east-btn").onclick = undefined;
+        document.getElementById("tile-south-btn").onclick = undefined;
+        document.getElementById("tile-west-btn").onclick = undefined;
+        this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
+        this.game.canvas.removeEventListener("pointerup", this.pointerUp);
+    }
+}
 /// <reference path="./Tile.ts"/>
 class HoleTile extends Tile {
     constructor(game, props) {
@@ -1122,7 +1238,8 @@ class Game {
         await this.terrain.loadFromFile("./datas/levels/test.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();
-        this.ball.ballState = BallState.Move;
+        this.ball.ballState = BallState.Ready;
+        this.editor = new Editor(this);
         /*
         for (let i = 0; i <= 10; i++) {
             let tile = new BlockTile(this, {
@@ -1413,6 +1530,7 @@ class CarillonRouter extends Nabu.Router {
     async onHRefChange(page, previousPage) {
         console.log("onHRefChange previous " + previousPage + " now " + page);
         //?gdmachineId=1979464530
+        this.game.editor.deactivate();
         if (page.startsWith("#options")) {
         }
         else if (page.startsWith("#credits")) {
@@ -1421,6 +1539,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
+            this.game.editor.activate();
         }
         else if (page.startsWith("#level-")) {
             let fileName = page.replace("#level-", "");
@@ -1535,7 +1654,6 @@ class Terrain {
         await this.loadFromText(content);
     }
     async loadFromText(content) {
-        console.log(content);
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }

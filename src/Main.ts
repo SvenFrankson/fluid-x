@@ -145,6 +145,7 @@ class Game {
 
     public router: CarillonRouter;
     public timerText: HTMLDivElement;
+    public editor: Editor;
 
     constructor(canvasElement: string) {
         Game.Instance = this;
@@ -266,7 +267,9 @@ class Game {
         await this.terrain.instantiate();
         await this.ball.instantiate();
 
-        this.ball.ballState = BallState.Move;
+        this.ball.ballState = BallState.Ready;
+
+        this.editor = new Editor(this);
 
         /*
         for (let i = 0; i <= 10; i++) {

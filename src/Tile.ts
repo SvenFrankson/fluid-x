@@ -26,14 +26,19 @@ abstract class Tile extends BABYLON.Mesh {
         this.scaling.copyFromFloats(s, s, s);
     }
 
+    public i: number;
+    public j: number;
+
     constructor(public game: Game, public props: TileProps) {
         super("tile");
         this.game.terrain.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
+            this.i = props.i;
             this.position.x = props.i * 1.1;
         }
         if (isFinite(props.j)) {
+            this.j = props.j;
             this.position.z = props.j * 1.1;
         }
         if (isFinite(props.h)) {

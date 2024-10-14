@@ -142,7 +142,6 @@ class Game {
     public shadowDiscMaterial: BABYLON.StandardMaterial;
     public terrain: Terrain;
     public ball: Ball;
-    public xAxisInput: XAxisInput;
 
     public router: CarillonRouter;
 
@@ -180,8 +179,6 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
-
-        this.xAxisInput = document.querySelector("x-axis-input");
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);

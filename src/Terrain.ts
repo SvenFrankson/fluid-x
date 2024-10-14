@@ -47,7 +47,16 @@ class Terrain {
         let lines = content.split("\r\n");
         let ballLine = lines.splice(0, 1)[0].split(" ");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
+        this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        if (ballLine.length > 2) {
+            this.game.ball.setColor(parseInt(ballLine[2]));
+        }
+        else {
+            this.game.ball.setColor(TileColor.North);
+        }
+        this.game.ball.ballState = BallState.Ready;
+        this.game.ball.vZ = 1;
         this.h = lines.length - 1;
         this.w = lines[0].length - 1;
         for (let j = 0; j < lines.length; j++) {

@@ -24,13 +24,6 @@ body {
     z-index: 0;
 }
 
-x-axis-input {
-    position: fixed;
-    bottom: 2vh;
-    width: 25vh;
-    left: calc((100vw - 25vh) * 0.5);
-}
-
 .page {
     display: block;
     position: fixed;
@@ -41,7 +34,6 @@ x-axis-input {
     top: 0;
     left: calc((100vw - min(100vw, 100svh)) * 0.5);
     text-align: center;
-    outline: 1px solid black;
 }
 
 .input-button {
@@ -126,6 +118,20 @@ h1 {
     margin-right: auto;
 }
 
+.medium-btn {
+    position: relative;
+    display: block;
+    font-size: 24px;
+    font-family: Julee;
+    border-radius: 10px;
+    background-color: #5c8b93ff;
+    border: 2px solid #2b2821ff;
+    font-weight: 900;
+    margin: 5px;
+    width: 150px;
+    height: 40px;
+}
+
 .square-btn-container {
     display: flex;
     flex-direction: column;
@@ -150,6 +156,20 @@ h1 {
     font-weight: 900;
     margin: 3px;
     padding: 10px;
+}
+
+#home-btn {
+    display: block;
+    position: fixed;
+    top: 5px;
+    right: 5px;
+}
+
+#reset-btn {
+    display: block;
+    position: fixed;
+    top: 50px;
+    right: 5px;
 }
 
 #click-anywhere-screen {

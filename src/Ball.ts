@@ -3,14 +3,15 @@ interface BallProps {
 }
 
 enum BallState {
-    Pause,
+    Ready,
     Move,
-    Fall
+    Fall,
+    Done
 }
 
 class Ball extends BABYLON.Mesh {
 
-    public ballState: BallState = BallState.Pause;
+    public ballState: BallState = BallState.Ready;
     public fallOriginPos: BABYLON.Vector3;
     public fallRotAxis: BABYLON.Vector3;
     public fallTimer: number = 0;
@@ -123,14 +124,13 @@ class Ball extends BABYLON.Mesh {
             vX += 1;
         }
 
-        if (this.game.xAxisInput && this.game.xAxisInput.pointerIsDown) {
-            vX = this.game.xAxisInput.value;
-        }
-
         vX = Nabu.MinMax(vX, -1, 1);
 
         
-        if (this.ballState === BallState.Pause) {
+        if (this.ballState === BallState.Ready) {
+            if (this.leftDown || this.rightDown) {
+                this.ballState = BallState.Move;
+            }
             return;
         }
         else if (this.ballState === BallState.Move) {
@@ -265,7 +265,7 @@ class Ball extends BABYLON.Mesh {
             this.fallTimer += dt;
 
             if (this.fallTimer > 1) {
-                this.ballState = BallState.Pause;
+                this.ballState = BallState.Done;
                 return;
             }
 

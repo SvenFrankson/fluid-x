@@ -1,14 +1,15 @@
 var BallState;
 (function (BallState) {
-    BallState[BallState["Pause"] = 0] = "Pause";
+    BallState[BallState["Ready"] = 0] = "Ready";
     BallState[BallState["Move"] = 1] = "Move";
     BallState[BallState["Fall"] = 2] = "Fall";
+    BallState[BallState["Done"] = 3] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
     constructor(game, props) {
         super("ball");
         this.game = game;
-        this.ballState = BallState.Pause;
+        this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.vZ = 1;
         this.radius = 0.3;
@@ -91,11 +92,11 @@ class Ball extends BABYLON.Mesh {
         if (this.rightDown) {
             vX += 1;
         }
-        if (this.game.xAxisInput && this.game.xAxisInput.pointerIsDown) {
-            vX = this.game.xAxisInput.value;
-        }
         vX = Nabu.MinMax(vX, -1, 1);
-        if (this.ballState === BallState.Pause) {
+        if (this.ballState === BallState.Ready) {
+            if (this.leftDown || this.rightDown) {
+                this.ballState = BallState.Move;
+            }
             return;
         }
         else if (this.ballState === BallState.Move) {
@@ -218,7 +219,7 @@ class Ball extends BABYLON.Mesh {
             }
             this.fallTimer += dt;
             if (this.fallTimer > 1) {
-                this.ballState = BallState.Pause;
+                this.ballState = BallState.Done;
                 return;
             }
             let f = Math.pow(this.fallTimer, 0.9);
@@ -1050,7 +1051,6 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
-        this.xAxisInput = document.querySelector("x-axis-input");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
@@ -1388,6 +1388,7 @@ class CarillonRouter extends Nabu.Router {
     onFindAllPages() {
         this.homeMenu = document.querySelector("#home-menu");
         this.levelPage = new LevelPage("#level-page", this);
+        this.playUI = document.querySelector("#play-ui");
     }
     onUpdate() { }
     async onHRefChange(page, previousPage) {
@@ -1405,6 +1406,7 @@ class CarillonRouter extends Nabu.Router {
             let fileName = page.replace("#level-", "");
             await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
             await this.game.terrain.instantiate();
+            await this.show(this.playUI, false, 0);
         }
         else if (page.startsWith("#levels")) {
             await this.show(this.levelPage.nabuPage, false, 0);
@@ -1504,7 +1506,16 @@ class Terrain {
         let lines = content.split("\r\n");
         let ballLine = lines.splice(0, 1)[0].split(" ");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
+        this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        if (ballLine.length > 2) {
+            this.game.ball.setColor(parseInt(ballLine[2]));
+        }
+        else {
+            this.game.ball.setColor(TileColor.North);
+        }
+        this.game.ball.ballState = BallState.Ready;
+        this.game.ball.vZ = 1;
         this.h = lines.length - 1;
         this.w = lines[0].length - 1;
         for (let j = 0; j < lines.length; j++) {
@@ -1745,54 +1756,3 @@ class Terrain {
         Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
     }
 }
-class XAxisInput extends HTMLElement {
-    constructor() {
-        super(...arguments);
-        this.value = 0;
-        this.pointerIsDown = false;
-        this.pointerDown = (ev) => {
-            this.pointerIsDown = true;
-            let rect = this.getBoundingClientRect();
-            let dx = (ev.clientX - rect.left) / rect.width;
-            let f = (dx - 0.1) / 0.8;
-            let x = -1 * (1 - f) + 1 * f;
-            this.setValue(x);
-        };
-        this.pointerMove = (ev) => {
-            if (this.pointerIsDown) {
-                let rect = this.getBoundingClientRect();
-                let dx = (ev.clientX - rect.left) / rect.width;
-                let f = (dx - 0.1) / 0.8;
-                let x = -1 * (1 - f) + 1 * f;
-                this.setValue(x);
-            }
-        };
-        this.pointerUp = (ev) => {
-            this.pointerIsDown = false;
-            this.setValue(0);
-        };
-    }
-    connectedCallback() {
-        this.background = document.createElement("img");
-        this.background.src = "./datas/textures/input-bar.svg";
-        this.background.style.width = "100%";
-        this.background.style.pointerEvents = "none";
-        this.appendChild(this.background);
-        this.cursor = document.createElement("img");
-        this.cursor.src = "./datas/textures/input-cursor.svg";
-        this.cursor.style.position = "absolute";
-        this.cursor.style.height = "100%";
-        this.cursor.style.left = "50%";
-        this.cursor.style.transform = "translate(-50%, 0)";
-        this.cursor.style.pointerEvents = "none";
-        this.appendChild(this.cursor);
-        this.addEventListener("pointerdown", this.pointerDown);
-        document.addEventListener("pointermove", this.pointerMove);
-        document.addEventListener("pointerup", this.pointerUp);
-    }
-    setValue(v) {
-        this.value = Nabu.MinMax(v, -1, 1);
-        this.cursor.style.left = (10 + (this.value + 1) * 40).toFixed(1) + "%";
-    }
-}
-customElements.define("x-axis-input", XAxisInput);

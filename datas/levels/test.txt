@@ -1,0 +1,10 @@
+0 0
+..OOOOOO..
+..nnnnnn.W
+..........
+..eeeeee.N
+..........
+..ssssss.E
+..........
+..wwwwww.S
+..OOOOOO..

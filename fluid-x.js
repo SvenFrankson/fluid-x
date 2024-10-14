@@ -792,9 +792,20 @@ class HoleTile extends Tile {
     }
 }
 class LevelPage {
-    constructor(queryString) {
+    constructor(queryString, router) {
+        this.router = router;
+        this.levelFileNames = [
+            "test",
+            "test_A",
+            "test_B",
+            "test_C",
+            "test_D",
+            "test_long-line",
+            "test_one-way-the-other",
+            "test_arena"
+        ];
         this.page = 0;
-        this.levelCount = 100;
+        this.levelCount = this.levelFileNames.length;
         this.nabuPage = document.querySelector(queryString);
     }
     get shown() {
@@ -827,6 +838,10 @@ class LevelPage {
                 }
                 else {
                     squareButton.innerHTML = "<stroke-text>" + (n + 1).toFixed(0) + "</stroke-text>";
+                    let hash = "#level-" + this.levelFileNames[n];
+                    squareButton.onclick = () => {
+                        location.hash = hash;
+                    };
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -839,6 +854,9 @@ class LevelPage {
         prevButton.classList.add("square-btn");
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
+            prevButton.onclick = () => {
+                location.hash = "#home";
+            };
         }
         else {
             prevButton.innerHTML = "<stroke-text>PREV</stroke-text>";
@@ -1088,7 +1106,7 @@ class Game {
         this.ball.position.x = 0;
         this.ball.position.z = 0;
         this.terrain = new Terrain(this);
-        await this.terrain.loadFromFile("./datas/level/test.txt");
+        await this.terrain.loadFromFile("./datas/levels/test.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();
         this.ball.ballState = BallState.Move;
@@ -1274,16 +1292,12 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClic);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         document.getElementById("click-anywhere-screen").style.display = "none";
-        //(document.getElementById("home-menu") as Nabu.DefaultPage).show(0);
-        let levelPage = new LevelPage("#level-page");
-        levelPage.show(0);
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    levelPage.redraw();
-                });
-            });
-        });
+        this.router = new CarillonRouter(this);
+        this.router.initialize();
+        this.router.start();
+        document.querySelector("#home-play-btn").onclick = () => {
+            location.hash = "#levels";
+        };
     }
     animate() {
         this.engine.runRenderLoop(() => {
@@ -1359,6 +1373,45 @@ let createAndInit = async () => {
 requestAnimationFrame(() => {
     createAndInit();
 });
+class CarillonRouter extends Nabu.Router {
+    constructor(game) {
+        super();
+        this.game = game;
+    }
+    onFindAllPages() {
+        this.homeMenu = document.querySelector("#home-menu");
+        this.levelPage = new LevelPage("#level-page", this);
+    }
+    onUpdate() { }
+    async onHRefChange(page, previousPage) {
+        console.log("onHRefChange previous " + previousPage + " now " + page);
+        //?gdmachineId=1979464530
+        if (page.startsWith("#options")) {
+        }
+        else if (page.startsWith("#credits")) {
+        }
+        else if (page.startsWith("#community")) {
+        }
+        else if (page.startsWith("#editor")) {
+        }
+        else if (page.startsWith("#level-")) {
+            let fileName = page.replace("#level-", "");
+            await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
+            await this.game.terrain.instantiate();
+        }
+        else if (page.startsWith("#levels")) {
+            await this.show(this.levelPage.nabuPage, false, 0);
+            this.levelPage.redraw();
+        }
+        else if (page.startsWith("#home")) {
+            await this.show(this.homeMenu, false, 0);
+        }
+        else {
+            location.hash = "#home";
+            return;
+        }
+    }
+}
 class StrokeText extends HTMLElement {
     connectedCallback() {
         this.style.position = "relative";
@@ -1433,11 +1486,15 @@ class Terrain {
         return this.h * 1.1 + 0.55;
     }
     async loadFromFile(path) {
+        while (this.tiles.length > 0) {
+            this.tiles[0].dispose();
+        }
+        while (this.build.length > 0) {
+            this.build[0].dispose();
+        }
         let file = await fetch(path);
         let content = await file.text();
-        console.log(content);
         let lines = content.split("\r\n");
-        console.log(lines);
         let ballLine = lines.splice(0, 1)[0].split(" ");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
@@ -1557,27 +1614,34 @@ class Terrain {
         }
     }
     async instantiate() {
+        if (this.border) {
+            this.border.dispose();
+        }
         this.border = new BABYLON.Mesh("border");
         let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
         top.position.x = 0.5 * (this.xMin + this.xMax);
         top.position.y = 0.1;
         top.position.z = this.zMax + 0.25;
         top.material = this.game.blackMaterial;
+        top.parent = this.border;
         let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
         right.position.x = this.xMax + 0.25;
         right.position.y = 0.1;
         right.position.z = 0.5 * (this.zMin + this.zMax);
         right.material = this.game.blackMaterial;
+        right.parent = this.border;
         let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5 });
         bottom.position.x = 0.5 * (this.xMin + this.xMax);
         bottom.position.y = 0.1;
         bottom.position.z = this.zMin - 0.25;
         bottom.material = this.game.blackMaterial;
+        bottom.parent = this.border;
         let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin });
         left.position.x = this.xMin - 0.25;
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
+        left.parent = this.border;
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
         }

@@ -144,6 +144,8 @@ class Game {
     public ball: Ball;
     public xAxisInput: XAxisInput;
 
+    public router: CarillonRouter;
+
     constructor(canvasElement: string) {
         Game.Instance = this;
         
@@ -261,7 +263,7 @@ class Game {
         this.ball.position.z = 0;
 
         this.terrain = new Terrain(this);
-        await this.terrain.loadFromFile("./datas/level/test.txt");
+        await this.terrain.loadFromFile("./datas/levels/test.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();
 
@@ -453,16 +455,13 @@ class Game {
         
         document.getElementById("click-anywhere-screen").style.display = "none";
 
-        //(document.getElementById("home-menu") as Nabu.DefaultPage).show(0);
-        let levelPage = new LevelPage("#level-page");
-        levelPage.show(0);
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    levelPage.redraw();
-                })
-            })
-        })
+        this.router = new CarillonRouter(this);
+        this.router.initialize();
+        this.router.start();
+
+        (document.querySelector("#home-play-btn") as HTMLButtonElement).onclick = () => {
+            location.hash = "#levels";
+        }
 	}
 
     public onResize = () => {

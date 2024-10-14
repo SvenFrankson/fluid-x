@@ -1,10 +1,20 @@
 class LevelPage {
 
+    public levelFileNames = [
+        "test",
+        "test_A",
+        "test_B",
+        "test_C",
+        "test_D",
+        "test_long-line",
+        "test_one-way-the-other",
+        "test_arena"
+    ]
     public page: number = 0;
-    public levelCount: number = 100;
+    public levelCount: number = this.levelFileNames.length;
     public nabuPage: Nabu.DefaultPage;
 
-    constructor(queryString: string) {
+    constructor(queryString: string, public router: CarillonRouter) {
         this.nabuPage = document.querySelector(queryString);
     }
 
@@ -44,6 +54,10 @@ class LevelPage {
                 }
                 else {
                     squareButton.innerHTML = "<stroke-text>" + (n + 1).toFixed(0) + "</stroke-text>";
+                    let hash = "#level-" + this.levelFileNames[n];
+                    squareButton.onclick = () => {
+                        location.hash = hash;
+                    }
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -58,6 +72,9 @@ class LevelPage {
         prevButton.classList.add("square-btn");
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
+            prevButton.onclick = () => {
+                location.hash = "#home";
+            }
         }
         else {
             prevButton.innerHTML = "<stroke-text>PREV</stroke-text>";

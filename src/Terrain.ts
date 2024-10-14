@@ -35,11 +35,16 @@ class Terrain {
     }
 
     public async loadFromFile(path: string): Promise<void> {
+        while (this.tiles.length > 0) {
+            this.tiles[0].dispose();
+        }
+        while (this.build.length > 0) {
+            this.build[0].dispose();
+        }
+        
         let file = await fetch(path);
         let content = await file.text();
-        console.log(content);
         let lines = content.split("\r\n");
-        console.log(lines);
         let ballLine = lines.splice(0, 1)[0].split(" ");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
@@ -160,6 +165,9 @@ class Terrain {
     }
 
     public async instantiate(): Promise<void> {
+        if (this.border) {
+            this.border.dispose();
+        }
         this.border = new BABYLON.Mesh("border");
 
         let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5});
@@ -167,24 +175,28 @@ class Terrain {
         top.position.y = 0.1;
         top.position.z = this.zMax + 0.25;
         top.material = this.game.blackMaterial;
+        top.parent = this.border;
 
         let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin});
         right.position.x = this.xMax + 0.25;
         right.position.y = 0.1;
         right.position.z = 0.5 * (this.zMin + this.zMax);
         right.material = this.game.blackMaterial;
+        right.parent = this.border;
 
         let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5});
         bottom.position.x = 0.5 * (this.xMin + this.xMax);
         bottom.position.y = 0.1;
         bottom.position.z = this.zMin - 0.25;
         bottom.material = this.game.blackMaterial;
+        bottom.parent = this.border;
 
         let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin});
         left.position.x = this.xMin - 0.25;
         left.position.y = 0.1;
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
+        left.parent = this.border;
 
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();

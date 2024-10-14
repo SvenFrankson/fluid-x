@@ -454,7 +454,15 @@ class Game {
         document.getElementById("click-anywhere-screen").style.display = "none";
 
         //(document.getElementById("home-menu") as Nabu.DefaultPage).show(0);
-        (document.getElementById("level-page") as Nabu.DefaultPage).show(0);
+        let levelPage = new LevelPage("#level-page");
+        levelPage.show(0);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    levelPage.redraw();
+                })
+            })
+        })
 	}
 
     public onResize = () => {

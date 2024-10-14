@@ -791,6 +791,40 @@ class HoleTile extends Tile {
         return true;
     }
 }
+class LevelPage {
+    constructor(queryString) {
+        this.nabuPage = document.querySelector(queryString);
+    }
+    get shown() {
+        return this.nabuPage.shown;
+    }
+    async show(duration) {
+        return this.nabuPage.show(duration);
+    }
+    async hide(duration) {
+        return this.nabuPage.hide(duration);
+    }
+    redraw() {
+        let rect = this.nabuPage.getBoundingClientRect();
+        let colCount = Math.floor(rect.width / 90);
+        let rowCount = Math.floor(rect.height * 0.7 / 90);
+        let container = this.nabuPage.querySelector(".square-btn-container");
+        container.innerHTML = "";
+        let n = 0;
+        for (let i = 0; i < rowCount; i++) {
+            let line = document.createElement("div");
+            line.classList.add("square-btn-container-line");
+            container.appendChild(line);
+            for (let j = 0; j < colCount; j++) {
+                let squareButton = document.createElement("button");
+                squareButton.classList.add("square-btn");
+                n++;
+                squareButton.innerHTML = "<stroke-text>Level " + n.toFixed(0) + "</stroke-text>";
+                line.appendChild(squareButton);
+            }
+        }
+    }
+}
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
@@ -1197,7 +1231,15 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         document.getElementById("click-anywhere-screen").style.display = "none";
         //(document.getElementById("home-menu") as Nabu.DefaultPage).show(0);
-        document.getElementById("level-page").show(0);
+        let levelPage = new LevelPage("#level-page");
+        levelPage.show(0);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    levelPage.redraw();
+                });
+            });
+        });
     }
     animate() {
         this.engine.runRenderLoop(() => {

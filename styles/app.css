@@ -38,8 +38,10 @@ x-axis-input {
     margin: 0;
     width: min(100vw, 100svh);
     height: 100%;
+    top: 0;
     left: calc((100vw - min(100vw, 100svh)) * 0.5);
     text-align: center;
+    outline: 1px solid black;
 }
 
 .input-button {
@@ -124,19 +126,29 @@ h1 {
     margin-right: auto;
 }
 
+.square-btn-container {
+    display: flex;
+    flex-direction: column;
+    height: 70%;
+}
+
+.square-btn-container-line {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+}
+
 .square-btn {
     position: relative;
-    display: inline-block;
+    display: flex;
     font-size: 20px;
     font-family: Julee;
     border-radius: 10px;
+    flex: 1;
     background-color: #5c8b93ff;
     border: 2px solid #2b2821ff;
     font-weight: 900;
-    margin: 5px;
-    width: 80px;
-    height: 80px;
-    padding-bottom: 50px;
+    margin: 3px;
 }
 
 #click-anywhere-screen {

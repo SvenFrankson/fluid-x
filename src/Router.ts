@@ -21,6 +21,7 @@ class CarillonRouter extends Nabu.Router {
         console.log("onHRefChange previous " + previousPage + " now " + page);
         //?gdmachineId=1979464530
         
+        this.game.mode = GameMode.Menu;
         this.game.editor.deactivate();
 
         if (page.startsWith("#options")) {
@@ -35,12 +36,14 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
             this.game.editor.activate();
+            this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
             let fileName = page.replace("#level-", "");
             await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
             await this.game.terrain.instantiate();
             await this.show(this.playUI, false, 0);
+            this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {
             await this.show(this.levelPage.nabuPage, false, 0);

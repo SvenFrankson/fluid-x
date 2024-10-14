@@ -930,6 +930,7 @@ class Editor {
         };
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
+        this.game.camera.attachControl();
     }
     deactivate() {
         document.getElementById("width-minus").onclick = undefined;
@@ -951,6 +952,7 @@ class Editor {
         document.getElementById("save-btn").onclick = undefined;
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
+        this.game.camera.detachControl();
     }
 }
 /// <reference path="./Tile.ts"/>
@@ -1173,12 +1175,19 @@ var TileColor;
     TileColor[TileColor["South"] = 2] = "South";
     TileColor[TileColor["West"] = 3] = "West";
 })(TileColor || (TileColor = {}));
+var GameMode;
+(function (GameMode) {
+    GameMode[GameMode["Menu"] = 0] = "Menu";
+    GameMode[GameMode["Play"] = 1] = "Play";
+    GameMode[GameMode["Editor"] = 2] = "Editor";
+})(GameMode || (GameMode = {}));
 class Game {
     constructor(canvasElement) {
         this.DEBUG_MODE = true;
         this.DEBUG_USE_LOCAL_STORAGE = true;
         this.screenRatio = 1;
         this.cameraOrtho = false;
+        this.mode = GameMode.Menu;
         this.onResize = () => {
             this.screenRatio = window.innerWidth / window.innerHeight;
             if (this.screenRatio < 1) {
@@ -1238,8 +1247,8 @@ class Game {
         this.timerText = document.querySelector("#play-timer");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
-        this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
-        this.camera.rotation.x = Math.atan(15 / 5);
+        this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
+        this.camera.wheelPrecision *= 10;
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
         northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
@@ -1519,15 +1528,23 @@ class Game {
     update() {
         let rawDT = this.scene.deltaTime / 1000;
         if (isFinite(rawDT)) {
-            rawDT = Math.min(rawDT, 1);
-            let targetCameraPos = this.ball.position.clone();
-            targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
-            targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
-            targetCameraPos.y += 15;
-            targetCameraPos.z -= 5;
-            BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
-            if (this.ball) {
-                this.ball.update(rawDT);
+            if (this.mode === GameMode.Play) {
+                rawDT = Math.min(rawDT, 1);
+                let targetCameraPos = this.ball.position.clone();
+                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
+                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
+                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
+                this.camera.alpha = this.camera.alpha * 0.99 + (-Math.PI * 0.5) * 0.01;
+                this.camera.beta = this.camera.beta * 0.99 + (Math.PI * 0.1) * 0.01;
+                this.camera.radius = this.camera.radius * 0.99 + (15) * 0.01;
+                if (this.ball) {
+                    this.ball.update(rawDT);
+                }
+            }
+            else if (this.mode === GameMode.Editor) {
+                this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.terrain.xMin, this.terrain.xMax);
+                this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.terrain.zMin, this.terrain.zMax);
+                this.camera.target.y = 0;
             }
         }
     }
@@ -1593,6 +1610,7 @@ class CarillonRouter extends Nabu.Router {
     async onHRefChange(page, previousPage) {
         console.log("onHRefChange previous " + previousPage + " now " + page);
         //?gdmachineId=1979464530
+        this.game.mode = GameMode.Menu;
         this.game.editor.deactivate();
         if (page.startsWith("#options")) {
         }
@@ -1603,12 +1621,14 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
             this.game.editor.activate();
+            this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
             let fileName = page.replace("#level-", "");
             await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
             await this.game.terrain.instantiate();
             await this.show(this.playUI, false, 0);
+            this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {
             await this.show(this.levelPage.nabuPage, false, 0);

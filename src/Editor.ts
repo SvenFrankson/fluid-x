@@ -24,7 +24,6 @@ class Editor {
     }
 
     public activate(): void {
-
         (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.terrain.w.toFixed(0));
         (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.terrain.h.toFixed(0));
 
@@ -106,6 +105,8 @@ class Editor {
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
+
+        this.game.camera.attachControl();
     }
 
     public deactivate(): void {
@@ -133,6 +134,8 @@ class Editor {
         
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
+
+        this.game.camera.detachControl();
     }
 
     public pointerDown = (ev: PointerEvent) => {

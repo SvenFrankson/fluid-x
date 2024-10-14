@@ -106,6 +106,12 @@ enum TileColor {
     West
 }
 
+enum GameMode {
+    Menu,
+    Play,
+    Editor
+}
+
 class Game {
     
     public static Instance: Game;
@@ -121,7 +127,7 @@ class Game {
     }
     public screenRatio: number = 1;
 
-    public camera: BABYLON.FreeCamera;
+    public camera: BABYLON.ArcRotateCamera;
 
     public cameraOrtho: boolean = false;
 
@@ -146,6 +152,7 @@ class Game {
     public router: CarillonRouter;
     public timerText: HTMLDivElement;
     public editor: Editor;
+    public mode: GameMode = GameMode.Menu;
 
     constructor(canvasElement: string) {
         Game.Instance = this;
@@ -186,8 +193,8 @@ class Game {
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
 
-        this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
-        this.camera.rotation.x = Math.atan(15 / 5);
+        this.camera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
+        this.camera.wheelPrecision *= 10;
 
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -516,18 +523,25 @@ class Game {
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
         if (isFinite(rawDT)) {
-            rawDT = Math.min(rawDT, 1);
-            let targetCameraPos = this.ball.position.clone();
-            targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
-            targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
-            
-            targetCameraPos.y += 15;
-            targetCameraPos.z -= 5;
-    
-            BABYLON.Vector3.LerpToRef(this.camera.position, targetCameraPos, 0.01, this.camera.position);
-            
-            if (this.ball) {
-                this.ball.update(rawDT);
+            if (this.mode === GameMode.Play) {
+                rawDT = Math.min(rawDT, 1);
+                let targetCameraPos = this.ball.position.clone();
+                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
+                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
+                    
+                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
+                this.camera.alpha = this.camera.alpha * 0.99 + (- Math.PI * 0.5) * 0.01;
+                this.camera.beta = this.camera.beta * 0.99 + (Math.PI * 0.1) * 0.01;
+                this.camera.radius = this.camera.radius * 0.99 + (15) * 0.01;
+                
+                if (this.ball) {
+                    this.ball.update(rawDT);
+                }
+            }
+            else if (this.mode === GameMode.Editor) {
+                this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.terrain.xMin, this.terrain.xMax);
+                this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.terrain.zMin, this.terrain.zMax);
+                this.camera.target.y = 0;
             }
         }
     }

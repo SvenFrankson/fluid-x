@@ -799,7 +799,7 @@ class Editor {
         this.pointerUp = (ev) => {
             console.log(ev);
             let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
-                return mesh.name === "floor" || mesh.name === "building-floor";
+                return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
             });
             if (pick.hit) {
                 if (ev.button === 2 || this.brush === EditorBrush.Delete) {
@@ -810,6 +810,7 @@ class Editor {
                     });
                     if (tile) {
                         tile.dispose();
+                        this.game.terrain.rebuildFloor();
                     }
                 }
                 else if (ev.button === 0) {
@@ -835,15 +836,50 @@ class Editor {
                                 color: this.brushColor
                             });
                         }
+                        else if (this.brush === EditorBrush.Hole) {
+                            tile = new HoleTile(this.game, {
+                                i: i,
+                                j: j,
+                                color: this.brushColor
+                            });
+                        }
                         if (tile) {
                             tile.instantiate();
+                            this.game.terrain.rebuildFloor();
                         }
                     }
                 }
             }
         };
+        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 100, height: 100 });
+        this.invisiFloorTM.position.x = 50 - 0.55;
+        this.invisiFloorTM.position.y = -0.01;
+        this.invisiFloorTM.position.z = 50 - 0.55;
+        this.invisiFloorTM.isVisible = false;
     }
     activate() {
+        document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
+        document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
+        document.getElementById("width-minus").onclick = () => {
+            this.game.terrain.w = Math.max(this.game.terrain.w - 1, 3);
+            document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+        document.getElementById("width-plus").onclick = () => {
+            this.game.terrain.w = Math.min(this.game.terrain.w + 1, 100);
+            document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+        document.getElementById("height-minus").onclick = () => {
+            this.game.terrain.h = Math.max(this.game.terrain.h - 1, 3);
+            document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+        document.getElementById("height-plus").onclick = () => {
+            this.game.terrain.h = Math.min(this.game.terrain.h + 1, 100);
+            document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
         document.getElementById("switch-north-btn").onclick = () => {
             this.brush = EditorBrush.Switch;
             this.brushColor = TileColor.North;
@@ -876,6 +912,18 @@ class Editor {
             this.brush = EditorBrush.Tile;
             this.brushColor = TileColor.West;
         };
+        document.getElementById("box-btn").onclick = () => {
+            this.brush = EditorBrush.Box;
+        };
+        document.getElementById("ramp-btn").onclick = () => {
+            this.brush = EditorBrush.Ramp;
+        };
+        document.getElementById("bridge-btn").onclick = () => {
+            this.brush = EditorBrush.Bridge;
+        };
+        document.getElementById("hole-btn").onclick = () => {
+            this.brush = EditorBrush.Hole;
+        };
         document.getElementById("save-btn").onclick = () => {
             let content = this.game.terrain.saveAsText();
             Nabu.download("puzzle.txt", content);
@@ -884,6 +932,10 @@ class Editor {
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
     }
     deactivate() {
+        document.getElementById("width-minus").onclick = undefined;
+        document.getElementById("width-plus").onclick = undefined;
+        document.getElementById("height-minus").onclick = undefined;
+        document.getElementById("height-plus").onclick = undefined;
         document.getElementById("switch-north-btn").onclick = undefined;
         document.getElementById("switch-east-btn").onclick = undefined;
         document.getElementById("switch-south-btn").onclick = undefined;
@@ -892,6 +944,10 @@ class Editor {
         document.getElementById("tile-east-btn").onclick = undefined;
         document.getElementById("tile-south-btn").onclick = undefined;
         document.getElementById("tile-west-btn").onclick = undefined;
+        document.getElementById("box-btn").onclick = undefined;
+        document.getElementById("ramp-btn").onclick = undefined;
+        document.getElementById("bridge-btn").onclick = undefined;
+        document.getElementById("hole-btn").onclick = undefined;
         document.getElementById("save-btn").onclick = undefined;
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
@@ -937,7 +993,8 @@ class LevelPage {
             "test_long-line",
             "test_one-way-the-other",
             "test_arena",
-            "editor_1"
+            "editor_1",
+            "editor_2"
         ];
         this.page = 0;
         this.levelCount = this.levelFileNames.length;
@@ -1629,7 +1686,7 @@ class Terrain {
         this.tiles = [];
         this.borders = [];
         this.builds = [];
-        this.w = 20;
+        this.w = 10;
         this.h = 10;
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
@@ -1836,6 +1893,9 @@ class Terrain {
                     lines[j][i] = "W";
                 }
             }
+            else if (tile instanceof HoleTile) {
+                lines[j][i] = "O";
+            }
         });
         lines.reverse();
         let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
@@ -1843,6 +1903,12 @@ class Terrain {
         return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
     }
     async instantiate() {
+        for (let i = 0; i < this.tiles.length; i++) {
+            await this.tiles[i].instantiate();
+        }
+        this.rebuildFloor();
+    }
+    rebuildFloor() {
         if (this.border) {
             this.border.dispose();
         }
@@ -1871,12 +1937,6 @@ class Terrain {
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
         left.parent = this.border;
-        for (let i = 0; i < this.tiles.length; i++) {
-            await this.tiles[i].instantiate();
-        }
-        this.rebuildFloor();
-    }
-    rebuildFloor() {
         let holes = [];
         let floorDatas = [];
         let holeDatas = [];

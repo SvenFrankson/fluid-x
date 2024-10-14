@@ -11,14 +11,47 @@ enum EditorBrush {
 
 class Editor {
 
+    public invisiFloorTM: BABYLON.Mesh;
     public brush: EditorBrush = EditorBrush.None;
     public brushColor: TileColor = TileColor.North;
 
     constructor(public game: Game) {
-
+        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 100, height: 100 } );
+        this.invisiFloorTM.position.x = 50 - 0.55;
+        this.invisiFloorTM.position.y = - 0.01;
+        this.invisiFloorTM.position.z = 50 - 0.55;
+        this.invisiFloorTM.isVisible = false;
     }
 
     public activate(): void {
+
+        (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.terrain.w.toFixed(0));
+        (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.terrain.h.toFixed(0));
+
+        document.getElementById("width-minus").onclick = () => {
+            this.game.terrain.w = Math.max(this.game.terrain.w - 1, 3);
+            (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.terrain.w.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+
+        document.getElementById("width-plus").onclick = () => {
+            this.game.terrain.w = Math.min(this.game.terrain.w + 1, 100);
+            (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.terrain.w.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+
+        document.getElementById("height-minus").onclick = () => {
+            this.game.terrain.h = Math.max(this.game.terrain.h - 1, 3);
+            (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.terrain.h.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+
+        document.getElementById("height-plus").onclick = () => {
+            this.game.terrain.h = Math.min(this.game.terrain.h + 1, 100);
+            (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.terrain.h.toFixed(0));
+            this.game.terrain.rebuildFloor();
+        };
+
         document.getElementById("switch-north-btn").onclick = () => {
             this.brush = EditorBrush.Switch;
             this.brushColor = TileColor.North;
@@ -52,6 +85,19 @@ class Editor {
             this.brush = EditorBrush.Tile;
             this.brushColor = TileColor.West;
         };
+
+        document.getElementById("box-btn").onclick = () => {
+            this.brush = EditorBrush.Box;
+        };
+        document.getElementById("ramp-btn").onclick = () => {
+            this.brush = EditorBrush.Ramp;
+        };
+        document.getElementById("bridge-btn").onclick = () => {
+            this.brush = EditorBrush.Bridge;
+        };
+        document.getElementById("hole-btn").onclick = () => {
+            this.brush = EditorBrush.Hole;
+        };
         
         document.getElementById("save-btn").onclick = () => {
             let content = this.game.terrain.saveAsText();
@@ -63,6 +109,11 @@ class Editor {
     }
 
     public deactivate(): void {
+        document.getElementById("width-minus").onclick = undefined;
+        document.getElementById("width-plus").onclick = undefined;
+        document.getElementById("height-minus").onclick = undefined;
+        document.getElementById("height-plus").onclick = undefined;
+
         document.getElementById("switch-north-btn").onclick = undefined;
         document.getElementById("switch-east-btn").onclick = undefined;
         document.getElementById("switch-south-btn").onclick = undefined;
@@ -73,6 +124,11 @@ class Editor {
         document.getElementById("tile-south-btn").onclick = undefined;
         document.getElementById("tile-west-btn").onclick = undefined;
         
+        document.getElementById("box-btn").onclick = undefined;
+        document.getElementById("ramp-btn").onclick = undefined;
+        document.getElementById("bridge-btn").onclick = undefined;
+        document.getElementById("hole-btn").onclick = undefined;
+
         document.getElementById("save-btn").onclick = undefined;
         
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
@@ -89,7 +145,7 @@ class Editor {
             this.game.scene.pointerX,
             this.game.scene.pointerY,
             (mesh) => {
-                return mesh.name === "floor" || mesh.name === "building-floor";
+                return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
             }
         )
         if (pick.hit) {
@@ -101,6 +157,7 @@ class Editor {
                 });
                 if (tile) {
                     tile.dispose();
+                    this.game.terrain.rebuildFloor();
                 }
             }
             else if (ev.button === 0) {
@@ -132,8 +189,19 @@ class Editor {
                             }
                         )
                     }
+                    else if (this.brush === EditorBrush.Hole) {
+                        tile = new HoleTile(
+                            this.game,
+                            {
+                                i: i,
+                                j: j,
+                                color: this.brushColor
+                            }
+                        )
+                    }
                     if (tile) {
                         tile.instantiate();
+                        this.game.terrain.rebuildFloor();
                     }
                 }
             }

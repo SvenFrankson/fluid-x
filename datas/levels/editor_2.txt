@@ -1,0 +1,10 @@
+0 0
+.OOOOOOOOO
+.nnnnnnnnO
+.........O
+.........O
+.OO.OO.OOO
+.........O
+.........O
+.nnnnnnnnO
+.OOOOOOOOO

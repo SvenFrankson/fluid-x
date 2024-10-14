@@ -220,8 +220,24 @@ h1 {
 }
 
 .editor-line {
+    position: relative;
     display: block;
+    font-family: Julee;
     height: 50px;
+}
+
+.editor-label {
+    display: inline-block;
+    width: 60px;
+    font-size: 20px;
+    color: black;
+}
+
+.editor-value {
+    display: inline-block;
+    font-size: 24px;
+    text-align: center;
+    width: 40px;
 }
 
 #click-anywhere-screen {

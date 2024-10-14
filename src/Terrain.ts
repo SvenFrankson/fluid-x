@@ -8,7 +8,7 @@ class Terrain {
     public borders: Border[] = [];
     public builds: Build[] = [];
 
-    public w: number = 20;
+    public w: number = 10;
     public h: number = 10;
 
     public get xMin(): number {
@@ -229,6 +229,9 @@ class Terrain {
                     lines[j][i] = "W";
                 }
             }
+            else if (tile instanceof HoleTile) {
+                lines[j][i] = "O";
+            }
         })
 
         lines.reverse();
@@ -241,6 +244,14 @@ class Terrain {
     }
 
     public async instantiate(): Promise<void> {
+        for (let i = 0; i < this.tiles.length; i++) {
+            await this.tiles[i].instantiate();
+        }
+
+        this.rebuildFloor();
+    }
+
+    public rebuildFloor(): void {
         if (this.border) {
             this.border.dispose();
         }
@@ -273,15 +284,7 @@ class Terrain {
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
         left.parent = this.border;
-
-        for (let i = 0; i < this.tiles.length; i++) {
-            await this.tiles[i].instantiate();
-        }
-
-        this.rebuildFloor();
-    }
-
-    public rebuildFloor(): void {
+        
         let holes = [];
         let floorDatas = [];
         let holeDatas = [];

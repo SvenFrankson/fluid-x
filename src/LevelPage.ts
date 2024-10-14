@@ -9,7 +9,8 @@ class LevelPage {
         "test_long-line",
         "test_one-way-the-other",
         "test_arena",
-        "editor_1"
+        "editor_1",
+        "editor_2"
     ]
     public page: number = 0;
     public levelCount: number = this.levelFileNames.length;

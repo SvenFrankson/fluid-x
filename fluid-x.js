@@ -84,7 +84,7 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
     update(dt) {
-        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 600, BABYLON.Color3.Black(), 0.05);
+        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 60, BABYLON.Color3.Black(), 0.05);
         let vX = 0;
         if (this.leftDown) {
             vX -= 1;
@@ -1305,6 +1305,9 @@ class Game {
         document.querySelector("#home-play-btn").onclick = () => {
             location.hash = "#levels";
         };
+        document.querySelector("#reset-btn").onclick = () => {
+            this.terrain.reset();
+        };
     }
     animate() {
         this.engine.runRenderLoop(() => {
@@ -1494,15 +1497,26 @@ class Terrain {
     get zMax() {
         return this.h * 1.1 + 0.55;
     }
+    async reset() {
+        if (this._textContent) {
+            await this.loadFromText(this._textContent);
+            await this.instantiate();
+        }
+    }
     async loadFromFile(path) {
+        let file = await fetch(path);
+        let content = await file.text();
+        await this.loadFromText(content);
+    }
+    async loadFromText(content) {
+        console.log(content);
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
         while (this.builds.length > 0) {
             this.builds[0].dispose();
         }
-        let file = await fetch(path);
-        let content = await file.text();
+        this._textContent = content;
         let lines = content.split("\r\n");
         let ballLine = lines.splice(0, 1)[0].split(" ");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
@@ -1518,6 +1532,7 @@ class Terrain {
         this.game.ball.vZ = 1;
         this.h = lines.length - 1;
         this.w = lines[0].length - 1;
+        console.log(this.w + " " + this.h);
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {

@@ -459,6 +459,10 @@ class Game {
         (document.querySelector("#home-play-btn") as HTMLButtonElement).onclick = () => {
             location.hash = "#levels";
         }
+
+        (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
+            this.terrain.reset();
+        }
 	}
 
     public onResize = () => {

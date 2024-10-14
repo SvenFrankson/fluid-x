@@ -1,5 +1,6 @@
 class Terrain {
 
+    private _textContent: string;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
@@ -34,7 +35,21 @@ class Terrain {
         this.holeWall.material = this.game.grayMaterial;
     }
 
+    public async reset(): Promise<void> {
+        if (this._textContent) {
+            await this.loadFromText(this._textContent);
+            await this.instantiate();
+        }
+    }
+
     public async loadFromFile(path: string): Promise<void> {
+        let file = await fetch(path);
+        let content = await file.text();
+        await this.loadFromText(content);
+    }
+
+    public async loadFromText(content: string): Promise<void> {
+        console.log(content);
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
@@ -42,8 +57,8 @@ class Terrain {
             this.builds[0].dispose();
         }
 
-        let file = await fetch(path);
-        let content = await file.text();
+        this._textContent = content;
+
         let lines = content.split("\r\n");
         let ballLine = lines.splice(0, 1)[0].split(" ");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
@@ -59,6 +74,7 @@ class Terrain {
         this.game.ball.vZ = 1;
         this.h = lines.length - 1;
         this.w = lines[0].length - 1;
+        console.log(this.w + " " + this.h);
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {

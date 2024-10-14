@@ -114,7 +114,7 @@ class Ball extends BABYLON.Mesh {
     
 
     public update(dt: number): void {
-        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 600, BABYLON.Color3.Black(), 0.05);
+        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 60, BABYLON.Color3.Black(), 0.05);
         let vX = 0;
         if (this.leftDown) {
             vX -= 1;

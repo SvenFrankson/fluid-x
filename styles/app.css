@@ -141,7 +141,7 @@ h1 {
 .square-btn {
     position: relative;
     display: flex;
-    font-size: 20px;
+    font-size: 24px;
     font-family: Julee;
     border-radius: 10px;
     flex: 1;
@@ -149,6 +149,7 @@ h1 {
     border: 2px solid #2b2821ff;
     font-weight: 900;
     margin: 3px;
+    padding: 10px;
 }
 
 #click-anywhere-screen {

@@ -71,6 +71,7 @@ class Terrain {
             this.game.ball.setColor(TileColor.North);
         }
         this.game.ball.ballState = BallState.Ready;
+        this.game.setPlayTimer(0);
         this.game.ball.vZ = 1;
         this.h = lines.length - 1;
         this.w = lines[0].length - 1;

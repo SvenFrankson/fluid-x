@@ -15,6 +15,7 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.3;
         this.leftDown = false;
         this.rightDown = false;
+        this.playTimer = 0;
         this.speed = 3;
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
@@ -96,10 +97,14 @@ class Ball extends BABYLON.Mesh {
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
+                this.playTimer = 0;
+                this.game.setPlayTimer(this.playTimer);
             }
             return;
         }
         else if (this.ballState === BallState.Move) {
+            this.playTimer += dt;
+            this.game.setPlayTimer(this.playTimer);
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
                 this.bounceXTimer -= dt * this.speed;
@@ -1051,6 +1056,7 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
+        this.timerText = document.querySelector("#play-timer");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero());
@@ -1309,6 +1315,15 @@ class Game {
             this.terrain.reset();
         };
     }
+    setPlayTimer(t) {
+        let min = Math.floor(t / 60);
+        let sec = Math.floor(t - 60 * min);
+        let centi = Math.floor((t - 60 * min - sec) * 100);
+        let strokes = this.timerText.querySelectorAll("stroke-text");
+        strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
+        strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
+        strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
+    }
     animate() {
         this.engine.runRenderLoop(() => {
             this.scene.render();
@@ -1428,6 +1443,10 @@ class StrokeText extends HTMLElement {
     connectedCallback() {
         this.style.position = "relative";
         let text = this.innerText;
+        this.innerText = "";
+        this.base = document.createElement("span");
+        this.base.innerText = text;
+        this.appendChild(this.base);
         this.fill = document.createElement("span");
         this.fill.innerText = text;
         this.fill.style.position = "absolute";
@@ -1445,6 +1464,11 @@ class StrokeText extends HTMLElement {
         this.stroke.style.webkitTextStroke = "4px #e3cfb4ff";
         this.stroke.style.zIndex = "0";
         this.appendChild(this.stroke);
+    }
+    setContent(text) {
+        this.base.innerText = text;
+        this.fill.innerText = text;
+        this.stroke.innerText = text;
     }
 }
 customElements.define("stroke-text", StrokeText);
@@ -1529,6 +1553,7 @@ class Terrain {
             this.game.ball.setColor(TileColor.North);
         }
         this.game.ball.ballState = BallState.Ready;
+        this.game.setPlayTimer(0);
         this.game.ball.vZ = 1;
         this.h = lines.length - 1;
         this.w = lines[0].length - 1;

@@ -144,6 +144,7 @@ class Game {
     public ball: Ball;
 
     public router: CarillonRouter;
+    public timerText: HTMLDivElement;
 
     constructor(canvasElement: string) {
         Game.Instance = this;
@@ -179,6 +180,7 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
+        this.timerText = document.querySelector("#play-timer");
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -452,6 +454,7 @@ class Game {
         
         document.getElementById("click-anywhere-screen").style.display = "none";
 
+        
         this.router = new CarillonRouter(this);
         this.router.initialize();
         this.router.start();
@@ -464,6 +467,17 @@ class Game {
             this.terrain.reset();
         }
 	}
+
+    public setPlayTimer(t: number): void {
+        let min = Math.floor(t / 60);
+        let sec = Math.floor(t - 60 * min);
+        let centi = Math.floor((t - 60 * min - sec) * 100)
+
+        let strokes = this.timerText.querySelectorAll("stroke-text") as NodeListOf<StrokeText>;
+        strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
+        strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
+        strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
+    }
 
     public onResize = () => {
         this.screenRatio = window.innerWidth / window.innerHeight;

@@ -1,5 +1,6 @@
 class StrokeText extends HTMLElement {
 
+    public base: HTMLSpanElement
     public fill: HTMLSpanElement;
     public stroke: HTMLSpanElement;
     
@@ -7,6 +8,12 @@ class StrokeText extends HTMLElement {
         this.style.position = "relative";
 
         let text = this.innerText;
+
+        this.innerText = "";
+        
+        this.base = document.createElement("span");
+        this.base.innerText = text;
+        this.appendChild(this.base);
 
         this.fill = document.createElement("span");
         this.fill.innerText = text;
@@ -26,7 +33,12 @@ class StrokeText extends HTMLElement {
         this.stroke.style.webkitTextStroke = "4px #e3cfb4ff";
         this.stroke.style.zIndex = "0";
         this.appendChild(this.stroke);
+    }
 
+    public setContent(text: string): void {
+        this.base.innerText = text;
+        this.fill.innerText = text;
+        this.stroke.innerText = text;
     }
 }
 

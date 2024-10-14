@@ -172,6 +172,21 @@ h1 {
     right: 5px;
 }
 
+#play-timer {
+    display: block;
+    position: fixed;
+    top: 10px;
+    right: 200px;
+    font-size: 40px;
+    font-family: Julee;
+    font-weight: 900;
+}
+
+#play-timer stroke-text {
+    display: inline-block;
+    width: 50px;
+}
+
 #click-anywhere-screen {
     position: fixed;
     top: 0;

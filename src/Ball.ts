@@ -106,13 +106,13 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
 
+    public playTimer: number = 0;
     public speed: number = 3;
     public inputSpeed: number = 1000;
     public bounceXValue: number = 0;
     public bounceXTimer: number = 0;
     public bounceXDelay: number = 0.84;
     
-
     public update(dt: number): void {
         Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 60, BABYLON.Color3.Black(), 0.05);
         let vX = 0;
@@ -126,15 +126,19 @@ class Ball extends BABYLON.Mesh {
 
         vX = Nabu.MinMax(vX, -1, 1);
 
-        
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
+                this.playTimer = 0;
+                this.game.setPlayTimer(this.playTimer);
             }
             return;
         }
         else if (this.ballState === BallState.Move) {
 
+            this.playTimer += dt;
+            this.game.setPlayTimer(this.playTimer);
+            
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
                 this.bounceXTimer -= dt * this.speed;

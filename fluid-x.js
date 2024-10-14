@@ -1226,7 +1226,7 @@ class Game {
     }
     async createScene() {
         this.scene = new BABYLON.Scene(this.engine);
-        this.scene.clearColor = BABYLON.Color4.FromHexString("#A1CFDBFF");
+        this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
         this.screenRatio = window.innerWidth / window.innerHeight;
         if (this.screenRatio < 1) {
@@ -1298,7 +1298,7 @@ class Game {
         this.ball.position.x = 0;
         this.ball.position.z = 0;
         this.terrain = new Terrain(this);
-        await this.terrain.loadFromFile("./datas/levels/test.txt");
+        await this.terrain.loadFromFile("./datas/levels/min.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();
         this.ball.ballState = BallState.Ready;
@@ -1636,7 +1636,7 @@ class StrokeText extends HTMLElement {
         this.fill.style.position = "absolute";
         this.fill.style.top = "0";
         this.fill.style.left = "0";
-        this.fill.style.color = "black";
+        this.fill.style.color = "#2b2821ff";
         this.fill.style.zIndex = "1";
         this.appendChild(this.fill);
         this.stroke = document.createElement("span");
@@ -1645,7 +1645,7 @@ class StrokeText extends HTMLElement {
         this.stroke.style.top = "0";
         this.stroke.style.left = "0";
         this.stroke.style.color = "#e3cfb4ff";
-        this.stroke.style.webkitTextStroke = "4px #e3cfb4ff";
+        this.stroke.style.webkitTextStroke = "2px #e3cfb4ff";
         this.stroke.style.zIndex = "0";
         this.appendChild(this.stroke);
     }

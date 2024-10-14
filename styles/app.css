@@ -6,11 +6,18 @@ html {
 }
 
 body {
-    background-color: #161718;
     --main-ui-color: white;
     --main-ui-bg1: #125185B0;
     --main-ui-bg-btn: #164c79;
     --main-ui-bg-btn-active: #2b72ac;
+    /*background-image: url("../datas/textures/background.jpg");*/
+    background-color: #5c8b93;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 100vw;
+    height: 100vh;
+    margin:0
 }
 
 a:link { 
@@ -124,9 +131,9 @@ h1 {
     display: block;
     font-size: 40px;
     font-family: Julee;
-    border-radius: 10px;
-    background-color: #5c8b93ff;
-    border: 2px solid #2b2821ff;
+    background-color: #5d7275ff;
+    border: 4px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 20px;
     width: 300px;
@@ -141,8 +148,9 @@ h1 {
     font-size: 24px;
     font-family: Julee;
     border-radius: 10px;
-    background-color: #5c8b93ff;
-    border: 2px solid #2b2821ff;
+    background-color: #5d7275ff;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 5px;
     width: 100px;
@@ -155,8 +163,9 @@ h1 {
     font-size: 24px;
     font-family: Julee;
     border-radius: 10px;
-    background-color: #5c8b93ff;
-    border: 2px solid #2b2821ff;
+    background-color: #5d7275ff;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 5px;
     margin-right: 0;
@@ -181,10 +190,10 @@ h1 {
     display: flex;
     font-size: 24px;
     font-family: Julee;
-    border-radius: 10px;
     flex: 1;
-    background-color: #5c8b93ff;
-    border: 2px solid #2b2821ff;
+    background-color: #5d7275ff;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 3px;
     padding: 10px;
@@ -219,6 +228,12 @@ h1 {
     width: 50px;
 }
 
+#editor-ui {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+}
+
 .editor-line {
     position: relative;
     display: block;
@@ -238,6 +253,7 @@ h1 {
     font-size: 24px;
     text-align: center;
     width: 40px;
+    font-weight: 900;
 }
 
 #click-anywhere-screen {

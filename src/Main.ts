@@ -170,7 +170,7 @@ class Game {
 
     public async createScene(): Promise<void> {
         this.scene = new BABYLON.Scene(this.engine);
-        this.scene.clearColor = BABYLON.Color4.FromHexString("#A1CFDBFF");
+        this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
 
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
         
@@ -263,7 +263,7 @@ class Game {
         this.ball.position.z = 0;
 
         this.terrain = new Terrain(this);
-        await this.terrain.loadFromFile("./datas/levels/test.txt");
+        await this.terrain.loadFromFile("./datas/levels/min.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();
 

@@ -20,7 +20,7 @@ class StrokeText extends HTMLElement {
         this.fill.style.position = "absolute";
         this.fill.style.top = "0";
         this.fill.style.left = "0";
-        this.fill.style.color = "black";
+        this.fill.style.color = "#2b2821ff";
         this.fill.style.zIndex = "1";
         this.appendChild(this.fill);
 
@@ -30,7 +30,7 @@ class StrokeText extends HTMLElement {
         this.stroke.style.top = "0";
         this.stroke.style.left = "0";
         this.stroke.style.color = "#e3cfb4ff";
-        this.stroke.style.webkitTextStroke = "4px #e3cfb4ff";
+        this.stroke.style.webkitTextStroke = "2px #e3cfb4ff";
         this.stroke.style.zIndex = "0";
         this.appendChild(this.stroke);
     }

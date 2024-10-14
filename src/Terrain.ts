@@ -5,7 +5,7 @@ class Terrain {
     public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
     public borders: Border[] = [];
-    public build: Build[] = [];
+    public builds: Build[] = [];
 
     public w: number = 20;
     public h: number = 10;
@@ -38,10 +38,10 @@ class Terrain {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
-        while (this.build.length > 0) {
-            this.build[0].dispose();
+        while (this.builds.length > 0) {
+            this.builds[0].dispose();
         }
-        
+
         let file = await fetch(path);
         let content = await file.text();
         let lines = content.split("\r\n");

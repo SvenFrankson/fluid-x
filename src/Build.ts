@@ -35,6 +35,11 @@ abstract class Build extends BABYLON.Mesh {
         this.shadow.parent = this;
 
         this.shadow.material = this.game.shadow9Material;
+
+        let index = this.game.terrain.builds.indexOf(this);
+        if (index === -1) {
+            this.game.terrain.builds.push(this);
+        }
     }
 
     public async instantiate(): Promise<void> { }
@@ -44,9 +49,12 @@ abstract class Build extends BABYLON.Mesh {
     }
 
     public dispose(): void {
-        let index = this.game.terrain.build.indexOf(this);
+        let index = this.game.terrain.builds.indexOf(this);
         if (index != -1) {
-            this.game.terrain.build.splice(index, 1);
+            this.game.terrain.builds.splice(index, 1);
+        }
+        for (let i = 0; i < this.borders.length; i++) {
+            this.borders[i].dispose();
         }
         super.dispose();
     }

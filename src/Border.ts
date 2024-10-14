@@ -17,13 +17,13 @@ class Border extends BABYLON.Mesh {
         super("tile");
 
         this.material = this.game.blackMaterial;
-    }
-
-    public async instantiate(): Promise<void> {
         let index = this.game.terrain.borders.indexOf(this);
         if (index === -1) {
             this.game.terrain.borders.push(this);
         }
+    }
+
+    public async instantiate(): Promise<void> {
         if (!this.ghost) {
             let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
             Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));

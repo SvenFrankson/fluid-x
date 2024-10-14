@@ -350,6 +350,10 @@ class Border extends BABYLON.Mesh {
         this.w = 0.1;
         this.d = 1;
         this.material = this.game.blackMaterial;
+        let index = this.game.terrain.borders.indexOf(this);
+        if (index === -1) {
+            this.game.terrain.borders.push(this);
+        }
     }
     get vertical() {
         return this.rotation.y === 0;
@@ -360,10 +364,6 @@ class Border extends BABYLON.Mesh {
         this.d = v ? 1 : 0.1;
     }
     async instantiate() {
-        let index = this.game.terrain.borders.indexOf(this);
-        if (index === -1) {
-            this.game.terrain.borders.push(this);
-        }
         if (!this.ghost) {
             let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
             Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
@@ -424,14 +424,21 @@ class Build extends BABYLON.Mesh {
         this.shadow.position.y = 0.01;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadow9Material;
+        let index = this.game.terrain.builds.indexOf(this);
+        if (index === -1) {
+            this.game.terrain.builds.push(this);
+        }
     }
     async instantiate() { }
     async bump() {
     }
     dispose() {
-        let index = this.game.terrain.build.indexOf(this);
+        let index = this.game.terrain.builds.indexOf(this);
         if (index != -1) {
-            this.game.terrain.build.splice(index, 1);
+            this.game.terrain.builds.splice(index, 1);
+        }
+        for (let i = 0; i < this.borders.length; i++) {
+            this.borders[i].dispose();
         }
         super.dispose();
     }
@@ -1465,7 +1472,7 @@ class Terrain {
         this.game = game;
         this.tiles = [];
         this.borders = [];
-        this.build = [];
+        this.builds = [];
         this.w = 20;
         this.h = 10;
         this.floor = new BABYLON.Mesh("floor");
@@ -1489,8 +1496,8 @@ class Terrain {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
-        while (this.build.length > 0) {
-            this.build[0].dispose();
+        while (this.builds.length > 0) {
+            this.builds[0].dispose();
         }
         let file = await fetch(path);
         let content = await file.text();

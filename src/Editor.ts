@@ -137,7 +137,7 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result as string;
                     console.log(content);
-                    await this.game.terrain.loadFromText(content);
+                    this.game.terrain.loadFromText(content);
                     this.game.terrain.instantiate();
                 });
                 reader.readAsText(file);
@@ -147,20 +147,21 @@ class Editor {
         };
         
         document.getElementById("play-btn").onclick = async () => {
-            await this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
             location.hash = "#editor-preview";
         };
         
         document.getElementById("publish-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "";
-
-            //oups
+        };
+        
+        document.getElementById("publish-confirm-btn").onclick = async () => {
             let data = {
-                title: "Tititle",
-                author: "Sven",
+                title: (document.querySelector("#title-input") as HTMLInputElement).value,
+                author: (document.querySelector("#author-input") as HTMLInputElement).value,
                 content: this.game.terrain.saveAsText()
             }
-            console.log(data.content);
+            console.log(data);
             let dataString = JSON.stringify(data);
             const response = await fetch("http://localhost/index.php/publish_puzzle", {
                 method: "POST",

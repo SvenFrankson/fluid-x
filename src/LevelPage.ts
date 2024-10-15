@@ -1,18 +1,7 @@
 class LevelPage {
 
     public levelFileNames = [
-        "test",
-        "test_A",
-        "test_B",
-        "test_C",
-        "test_D",
-        "test_long-line",
-        "test_one-way-the-other",
-        "test_arena",
-        "editor_1",
-        "editor_2",
-        "editor_3",
-        "editor_4"
+        "test"
     ]
     public page: number = 0;
     public levelCount: number = this.levelFileNames.length;

@@ -482,7 +482,10 @@ class Game {
             method: "GET",
             mode: "cors"
         });
-        console.log(await response.text());
+        let data = await response.json();
+        console.log(data);
+        this.terrain.loadFromText(data.puzzles[0].content);
+        this.terrain.instantiate();
 	}
 
     public setPlayTimer(t: number): void {

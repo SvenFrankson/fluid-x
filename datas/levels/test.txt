@@ -1,10 +1,10 @@
-0 0
-..OOOOOO..
-..nnnnnn.W
-..........
-..eeeeee.N
-..........
-..ssssss.E
-..........
-..wwwwww.S
-..OOOOOO..
+0u0x
+ooOOOOOOoox
+oonnnnnnoWx
+oooooooooox
+ooeeeeeeoNx
+oooooooooox
+oossssssoEx
+oooooooooox
+oowwwwwwoSx
+ooOOOOOOoo

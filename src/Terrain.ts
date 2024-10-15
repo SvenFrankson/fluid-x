@@ -37,7 +37,7 @@ class Terrain {
 
     public async reset(): Promise<void> {
         if (this._textContent) {
-            await this.loadFromText(this._textContent);
+            this.loadFromText(this._textContent);
             await this.instantiate();
         }
     }
@@ -45,10 +45,10 @@ class Terrain {
     public async loadFromFile(path: string): Promise<void> {
         let file = await fetch(path);
         let content = await file.text();
-        await this.loadFromText(content);
+        this.loadFromText(content);
     }
 
-    public async loadFromText(content: string): Promise<void> {
+    public loadFromText(content: string): void {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
@@ -58,8 +58,11 @@ class Terrain {
 
         this._textContent = content;
 
-        let lines = content.split("\r\n");
-        let ballLine = lines.splice(0, 1)[0].split(" ");
+        content = content.replaceAll("\r\n", "");
+        content = content.replaceAll("\n", "");
+        let lines = content.split("x");
+        console.log(lines);
+        let ballLine = lines.splice(0, 1)[0].split("u");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
@@ -151,6 +154,7 @@ class Terrain {
                         h: 0
                     });
                 }
+                /*
                 if (c === "^") {
                     let ramp = new Ramp(this.game, {
                         i: i,
@@ -185,6 +189,7 @@ class Terrain {
                     });
                     await ramp.instantiate();
                 }
+                */
             }
         }
     }
@@ -194,7 +199,7 @@ class Terrain {
         for (let j = 0; j < this.h; j++) {
             lines[j] = [];
             for (let i = 0; i < this.w; i++) {
-                lines[j][i] = ".";
+                lines[j][i] = "o";
             }
         }
 
@@ -238,9 +243,9 @@ class Terrain {
 
         let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
 
-        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + " " + this.game.ball.j.toFixed(0) + " " + this.game.ball.color.toFixed(0));
+        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + "u" + this.game.ball.j.toFixed(0) + "u" + this.game.ball.color.toFixed(0));
 
-        return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
+        return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
     }
 
     public async instantiate(): Promise<void> {

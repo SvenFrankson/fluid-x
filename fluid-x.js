@@ -971,7 +971,7 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
                     console.log(content);
-                    await this.game.terrain.loadFromText(content);
+                    this.game.terrain.loadFromText(content);
                     this.game.terrain.instantiate();
                 });
                 reader.readAsText(file);
@@ -980,18 +980,19 @@ class Editor {
             document.getElementById("load-file-input").style.display = "none";
         };
         document.getElementById("play-btn").onclick = async () => {
-            await this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
             location.hash = "#editor-preview";
         };
         document.getElementById("publish-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "";
-            //oups
+        };
+        document.getElementById("publish-confirm-btn").onclick = async () => {
             let data = {
-                title: "Tititle",
-                author: "Sven",
+                title: document.querySelector("#title-input").value,
+                author: document.querySelector("#author-input").value,
                 content: this.game.terrain.saveAsText()
             };
-            console.log(data.content);
+            console.log(data);
             let dataString = JSON.stringify(data);
             const response = await fetch("http://localhost/index.php/publish_puzzle", {
                 method: "POST",
@@ -1067,18 +1068,7 @@ class LevelPage {
     constructor(queryString, router) {
         this.router = router;
         this.levelFileNames = [
-            "test",
-            "test_A",
-            "test_B",
-            "test_C",
-            "test_D",
-            "test_long-line",
-            "test_one-way-the-other",
-            "test_arena",
-            "editor_1",
-            "editor_2",
-            "editor_3",
-            "editor_4"
+            "test"
         ];
         this.page = 0;
         this.levelCount = this.levelFileNames.length;
@@ -1590,7 +1580,10 @@ class Game {
             method: "GET",
             mode: "cors"
         });
-        console.log(await response.text());
+        let data = await response.json();
+        console.log(data);
+        this.terrain.loadFromText(data.puzzles[0].content);
+        this.terrain.instantiate();
     }
     setPlayTimer(t) {
         let min = Math.floor(t / 60);
@@ -1823,16 +1816,16 @@ class Terrain {
     }
     async reset() {
         if (this._textContent) {
-            await this.loadFromText(this._textContent);
+            this.loadFromText(this._textContent);
             await this.instantiate();
         }
     }
     async loadFromFile(path) {
         let file = await fetch(path);
         let content = await file.text();
-        await this.loadFromText(content);
+        this.loadFromText(content);
     }
-    async loadFromText(content) {
+    loadFromText(content) {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
@@ -1840,8 +1833,11 @@ class Terrain {
             this.builds[0].dispose();
         }
         this._textContent = content;
-        let lines = content.split("\r\n");
-        let ballLine = lines.splice(0, 1)[0].split(" ");
+        content = content.replaceAll("\r\n", "");
+        content = content.replaceAll("\n", "");
+        let lines = content.split("x");
+        console.log(lines);
+        let ballLine = lines.splice(0, 1)[0].split("u");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
@@ -1933,6 +1929,7 @@ class Terrain {
                         h: 0
                     });
                 }
+                /*
                 if (c === "^") {
                     let ramp = new Ramp(this.game, {
                         i: i,
@@ -1967,6 +1964,7 @@ class Terrain {
                     });
                     await ramp.instantiate();
                 }
+                */
             }
         }
     }
@@ -1975,7 +1973,7 @@ class Terrain {
         for (let j = 0; j < this.h; j++) {
             lines[j] = [];
             for (let i = 0; i < this.w; i++) {
-                lines[j][i] = ".";
+                lines[j][i] = "o";
             }
         }
         this.tiles.forEach(tile => {
@@ -2015,8 +2013,8 @@ class Terrain {
         });
         lines.reverse();
         let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
-        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + " " + this.game.ball.j.toFixed(0) + " " + this.game.ball.color.toFixed(0));
-        return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
+        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + "u" + this.game.ball.j.toFixed(0) + "u" + this.game.ball.color.toFixed(0));
+        return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
     }
     async instantiate() {
         for (let i = 0; i < this.tiles.length; i++) {

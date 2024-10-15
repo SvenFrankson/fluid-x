@@ -153,6 +153,24 @@ class Editor {
         
         document.getElementById("publish-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "";
+
+            //oups
+            let data = {
+                title: "Tititle",
+                author: "Sven",
+                content: this.game.terrain.saveAsText()
+            }
+            console.log(data.content);
+            let dataString = JSON.stringify(data);
+            const response = await fetch("http://localhost/index.php/publish_puzzle", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: dataString,
+            });
+            console.log(await response.text());
         };
         
         document.getElementById("publish-cancel-btn").onclick = async () => {

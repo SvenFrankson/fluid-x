@@ -102,6 +102,27 @@ class Editor {
             let content = this.game.terrain.saveAsText();
             Nabu.download("puzzle.txt", content);
         };
+        
+        document.getElementById("load-btn").onclick = () => {
+            document.getElementById("load-btn").style.display = "none";
+            document.getElementById("load-file-input").style.display = "";
+        };
+        document.getElementById("load-file-input").onchange = (event: Event) => {            
+            let files = (event.target as HTMLInputElement).files;
+            let file = files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.addEventListener('load', async (event) => {
+                    let content = event.target.result as string;
+                    console.log(content);
+                    await this.game.terrain.loadFromText(content);
+                    this.game.terrain.instantiate();
+                });
+                reader.readAsText(file);
+            }
+            document.getElementById("load-btn").style.display = "";
+            document.getElementById("load-file-input").style.display = "none";
+        };
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
@@ -131,6 +152,8 @@ class Editor {
         document.getElementById("hole-btn").onclick = undefined;
 
         document.getElementById("save-btn").onclick = undefined;
+        document.getElementById("load-btn").onclick = undefined;
+        document.getElementById("load-file-input").onchange = undefined;
         
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);

@@ -159,6 +159,7 @@ class Ball extends BABYLON.Mesh {
                 if (tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;
+                        this.fallTimer = 0;
                         this.hole = tile;
                         return;
                     }
@@ -928,6 +929,26 @@ class Editor {
             let content = this.game.terrain.saveAsText();
             Nabu.download("puzzle.txt", content);
         };
+        document.getElementById("load-btn").onclick = () => {
+            document.getElementById("load-btn").style.display = "none";
+            document.getElementById("load-file-input").style.display = "";
+        };
+        document.getElementById("load-file-input").onchange = (event) => {
+            let files = event.target.files;
+            let file = files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.addEventListener('load', async (event) => {
+                    let content = event.target.result;
+                    console.log(content);
+                    await this.game.terrain.loadFromText(content);
+                    this.game.terrain.instantiate();
+                });
+                reader.readAsText(file);
+            }
+            document.getElementById("load-btn").style.display = "";
+            document.getElementById("load-file-input").style.display = "none";
+        };
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
         this.game.camera.attachControl();
@@ -950,6 +971,8 @@ class Editor {
         document.getElementById("bridge-btn").onclick = undefined;
         document.getElementById("hole-btn").onclick = undefined;
         document.getElementById("save-btn").onclick = undefined;
+        document.getElementById("load-btn").onclick = undefined;
+        document.getElementById("load-file-input").onchange = undefined;
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
         this.game.camera.detachControl();
@@ -996,7 +1019,9 @@ class LevelPage {
             "test_one-way-the-other",
             "test_arena",
             "editor_1",
-            "editor_2"
+            "editor_2",
+            "editor_3",
+            "editor_4"
         ];
         this.page = 0;
         this.levelCount = this.levelFileNames.length;
@@ -1118,6 +1143,7 @@ let onFirstPlayerInteractionTouch = (ev) => {
     document.getElementById("click-anywhere-screen").style.display = "none";
     Game.Instance.onResize();
     IsTouchScreen = 1;
+    document.getElementById("touch-input").style.display = "";
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");

@@ -198,6 +198,7 @@ class Ball extends BABYLON.Mesh {
                 if (tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;
+                        this.fallTimer = 0;
                         this.hole = tile;
                         return;
                     }

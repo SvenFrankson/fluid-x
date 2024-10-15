@@ -125,16 +125,27 @@ h1 {
     margin-right: auto;
 }
 
-
-.large-btn {
-    position: relative;
-    display: block;
+h2 {
     font-size: 40px;
     font-family: Julee;
+    font-weight: 900;
+    margin: 5px;
+    margin-bottom: 10px;
+}
+
+button {
+    position: relative;
+    display: block;
+    font-family: Julee;
     background-color: #5d7275ff;
+    font-weight: 900;
+}
+
+.large-btn {
     border: 4px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
-    font-weight: 900;
+    font-size: 40px;
+    border-radius: 4px;
     margin: 20px;
     width: 300px;
     height: 70px;
@@ -143,27 +154,30 @@ h1 {
 }
 
 .medium-btn {
-    position: relative;
-    display: block;
     font-size: 24px;
-    font-family: Julee;
-    border-radius: 10px;
-    background-color: #5d7275ff;
+    border-radius: 4px;
     border: 2px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
-    font-weight: 900;
     margin: 5px;
     width: 100px;
     height: 40px;
 }
 
+.square-btn {
+    display: flex;
+    font-size: 24px;
+    flex: 1;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    font-weight: 900;
+    margin: 3px;
+    padding: 10px;
+}
+
 .small-btn {
-    position: relative;
     display: inline-block;
     font-size: 24px;
-    font-family: Julee;
-    border-radius: 10px;
-    background-color: #5d7275ff;
+    border-radius: 4px;
     border: 2px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
@@ -171,6 +185,23 @@ h1 {
     margin-right: 0;
     width: 40px;
     height: 40px;
+}
+
+.xsmall-btn {
+    display: inline-block;
+    font-size: 18px;
+    border-radius: 2px;
+    background-color: #5d7275ff;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    font-weight: 900;
+    width: 25px;
+    height: 25px;
+}
+
+.inline {
+    position: relative;
+    display: inline-block;
 }
 
 .square-btn-container {
@@ -185,18 +216,13 @@ h1 {
     flex-direction: row;
 }
 
-.square-btn {
-    position: relative;
-    display: flex;
-    font-size: 24px;
-    font-family: Julee;
-    flex: 1;
-    background-color: #5d7275ff;
-    border: 2px solid #624c3cff;
-    box-shadow: 2px 2px 2px #2b2821ff;
-    font-weight: 900;
-    margin: 3px;
-    padding: 10px;
+input[type="text"] {
+    width: 220px;
+    font-size: 20px;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .home-btn {
@@ -245,7 +271,7 @@ h1 {
     position: relative;
     display: block;
     font-family: Julee;
-    height: 50px;
+    margin-bottom: 4px;
 }
 
 .editor-label {
@@ -261,6 +287,22 @@ h1 {
     text-align: center;
     width: 40px;
     font-weight: 900;
+}
+
+#editor-publish-form {
+    position: fixed;
+    width: 310px;
+    height: 220px;
+    left: calc((100vw - 338px) * 0.5);
+    top: calc((100svh - 248px) * 0.5);
+    display: block;
+    margin: 0;
+    padding: 10px;
+    background-color: #5d7275;
+    border: 4px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    z-index: 10;
+    font-family: Julee;
 }
 
 #click-anywhere-screen {

@@ -150,6 +150,14 @@ class Editor {
             await this.game.terrain.loadFromText(this.game.terrain.saveAsText());
             location.hash = "#editor-preview";
         };
+        
+        document.getElementById("publish-btn").onclick = async () => {
+            document.getElementById("editor-publish-form").style.display = "";
+        };
+        
+        document.getElementById("publish-cancel-btn").onclick = async () => {
+            document.getElementById("editor-publish-form").style.display = "none";
+        };
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);

@@ -24,8 +24,30 @@ class Editor {
     }
 
     public activate(): void {
+        (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
+        (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
         (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.terrain.w.toFixed(0));
         (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.terrain.h.toFixed(0));
+
+        document.getElementById("ball-i-minus").onclick = () => {
+            this.game.ball.i = Math.max(this.game.ball.i - 1, 0);
+            (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
+        };
+
+        document.getElementById("ball-i-plus").onclick = () => {
+            this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.terrain.w - 1);
+            (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
+        };
+        
+        document.getElementById("ball-j-minus").onclick = () => {
+            this.game.ball.j = Math.max(this.game.ball.j - 1, 0);
+            (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
+        };
+
+        document.getElementById("ball-j-plus").onclick = () => {
+            this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.terrain.h - 1);
+            (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
+        };
 
         document.getElementById("width-minus").onclick = () => {
             this.game.terrain.w = Math.max(this.game.terrain.w - 1, 3);

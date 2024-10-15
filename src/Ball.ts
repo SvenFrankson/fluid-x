@@ -33,6 +33,19 @@ class Ball extends BABYLON.Mesh {
         }
     }
 
+    public get i(): number {
+        return Math.round(this.position.x / 1.1);
+    }
+    public set i(v: number) {
+        this.position.x = v * 1.1;
+    }
+    public get j(): number {
+        return Math.round(this.position.z / 1.1);
+    }
+    public set j(v: number) {
+        this.position.z = v * 1.1;
+    }
+
     constructor(public game: Game, props: BallProps) {
         super("ball");
         this.rotationQuaternion = BABYLON.Quaternion.Identity();

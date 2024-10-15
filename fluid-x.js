@@ -78,6 +78,18 @@ class Ball extends BABYLON.Mesh {
             this.ballTop.material = this.game.colorMaterials[this.color];
         }
     }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
+    }
     async instantiate() {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         ballDatas[0].applyToMesh(this);
@@ -859,8 +871,26 @@ class Editor {
         this.invisiFloorTM.isVisible = false;
     }
     activate() {
+        document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
+        document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
         document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
         document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
+        document.getElementById("ball-i-minus").onclick = () => {
+            this.game.ball.i = Math.max(this.game.ball.i - 1, 0);
+            document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
+        };
+        document.getElementById("ball-i-plus").onclick = () => {
+            this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.terrain.w - 1);
+            document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
+        };
+        document.getElementById("ball-j-minus").onclick = () => {
+            this.game.ball.j = Math.max(this.game.ball.j - 1, 0);
+            document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
+        };
+        document.getElementById("ball-j-plus").onclick = () => {
+            this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.terrain.h - 1);
+            document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
+        };
         document.getElementById("width-minus").onclick = () => {
             this.game.terrain.w = Math.max(this.game.terrain.w - 1, 3);
             document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
@@ -1957,7 +1987,7 @@ class Terrain {
         });
         lines.reverse();
         let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
-        lines2.splice(0, 0, "0 0");
+        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + " " + this.game.ball.j.toFixed(0) + " " + this.game.ball.color.toFixed(0));
         return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
     }
     async instantiate() {

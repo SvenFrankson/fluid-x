@@ -238,7 +238,7 @@ class Terrain {
 
         let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
 
-        lines2.splice(0, 0, "0 0");
+        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + " " + this.game.ball.j.toFixed(0) + " " + this.game.ball.color.toFixed(0));
 
         return lines2.reduce((l1, l2) => { return l1 + "\r\n" + l2; });
     }

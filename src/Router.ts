@@ -33,8 +33,15 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#community")) {
             
         }
+        else if (page.startsWith("#editor-preview")) {
+            await this.show(this.playUI, false, 0);
+            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
+            await this.game.terrain.reset();
+            this.game.mode = GameMode.Play;
+        }
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
+            await this.game.terrain.reset();
             this.game.editor.activate();
             this.game.mode = GameMode.Editor;
         }
@@ -43,6 +50,7 @@ class CarillonRouter extends Nabu.Router {
             await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
             await this.game.terrain.instantiate();
             await this.show(this.playUI, false, 0);
+            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {

@@ -123,6 +123,11 @@ class Editor {
             document.getElementById("load-btn").style.display = "";
             document.getElementById("load-file-input").style.display = "none";
         };
+        
+        document.getElementById("play-btn").onclick = async () => {
+            await this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            location.hash = "#editor-preview";
+        };
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);

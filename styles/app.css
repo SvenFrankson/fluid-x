@@ -84,12 +84,6 @@ a:active {
     transform: rotate(45deg);
 }
 
-button:active {
-    margin-bottom: -2px;
-    background-color: rgb(74, 117, 124);
-    border: 2px solid rgb(65, 61, 51);
-}
-
 #input-left {
     right: calc((50vw + 25px));
 }
@@ -139,6 +133,11 @@ button {
     font-family: Julee;
     background-color: #5d7275ff;
     font-weight: 900;
+}
+
+button.selected {
+    border: 2px solid rgb(61, 44, 32);
+    background-color: rgb(74, 96, 99);
 }
 
 .large-btn {

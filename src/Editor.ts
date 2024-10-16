@@ -15,6 +15,21 @@ class Editor {
     public brush: EditorBrush = EditorBrush.None;
     public brushColor: TileColor = TileColor.North;
 
+    public switchTileNorthButton: HTMLButtonElement;
+    public switchTileEastButton: HTMLButtonElement;
+    public switchTileSouthButton: HTMLButtonElement;
+    public switchTileWestButton: HTMLButtonElement;
+    public blockTileNorthButton: HTMLButtonElement;
+    public blockTileEastButton: HTMLButtonElement;
+    public blockTileSouthButton: HTMLButtonElement;
+    public blockTileWestButton: HTMLButtonElement;
+    public holeButton: HTMLButtonElement;
+    public boxButton: HTMLButtonElement;
+    public rampButton: HTMLButtonElement;
+    public bridgeButton: HTMLButtonElement;
+
+    public selectableButtons: HTMLButtonElement[] = [];
+
     constructor(public game: Game) {
         this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 100, height: 100 } );
         this.invisiFloorTM.position.x = 50 - 0.55;
@@ -73,52 +88,62 @@ class Editor {
             this.game.terrain.rebuildFloor();
         };
 
-        document.getElementById("switch-north-btn").onclick = () => {
-            this.brush = EditorBrush.Switch;
-            this.brushColor = TileColor.North;
-        };
-        document.getElementById("switch-east-btn").onclick = () => {
-            this.brush = EditorBrush.Switch;
-            this.brushColor = TileColor.East;
-        };
-        document.getElementById("switch-south-btn").onclick = () => {
-            this.brush = EditorBrush.Switch;
-            this.brushColor = TileColor.South;
-        };
-        document.getElementById("switch-west-btn").onclick = () => {
-            this.brush = EditorBrush.Switch;
-            this.brushColor = TileColor.West;
-        };
-        
-        document.getElementById("tile-north-btn").onclick = () => {
-            this.brush = EditorBrush.Tile;
-            this.brushColor = TileColor.North;
-        };
-        document.getElementById("tile-east-btn").onclick = () => {
-            this.brush = EditorBrush.Tile;
-            this.brushColor = TileColor.East;
-        };
-        document.getElementById("tile-south-btn").onclick = () => {
-            this.brush = EditorBrush.Tile;
-            this.brushColor = TileColor.South;
-        };
-        document.getElementById("tile-west-btn").onclick = () => {
-            this.brush = EditorBrush.Tile;
-            this.brushColor = TileColor.West;
-        };
+        this.switchTileNorthButton = document.getElementById("switch-north-btn") as HTMLButtonElement;
+        this.switchTileEastButton = document.getElementById("switch-east-btn") as HTMLButtonElement;
+        this.switchTileSouthButton = document.getElementById("switch-south-btn") as HTMLButtonElement;
+        this.switchTileWestButton = document.getElementById("switch-west-btn") as HTMLButtonElement;
+        this.blockTileNorthButton = document.getElementById("tile-north-btn") as HTMLButtonElement;
+        this.blockTileEastButton = document.getElementById("tile-east-btn") as HTMLButtonElement;
+        this.blockTileSouthButton = document.getElementById("tile-south-btn") as HTMLButtonElement;
+        this.blockTileWestButton = document.getElementById("tile-west-btn") as HTMLButtonElement;
+        this.holeButton = document.getElementById("hole-btn") as HTMLButtonElement;
+        this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
+        this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
+        this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
 
-        document.getElementById("box-btn").onclick = () => {
-            this.brush = EditorBrush.Box;
-        };
-        document.getElementById("ramp-btn").onclick = () => {
-            this.brush = EditorBrush.Ramp;
-        };
-        document.getElementById("bridge-btn").onclick = () => {
-            this.brush = EditorBrush.Bridge;
-        };
-        document.getElementById("hole-btn").onclick = () => {
-            this.brush = EditorBrush.Hole;
-        };
+        this.selectableButtons = [
+            this.switchTileNorthButton,
+            this.switchTileEastButton,
+            this.switchTileSouthButton,
+            this.switchTileWestButton,
+            this.blockTileNorthButton,
+            this.blockTileEastButton,
+            this.blockTileSouthButton,
+            this.blockTileWestButton,
+            this.holeButton,
+            this.boxButton,
+            this.rampButton,
+            this.bridgeButton
+        ];
+
+        let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, brushColor?: TileColor) => {
+            button.onclick = () => {
+                this.unselectAllButtons();
+                if (this.brush != brush || (isFinite(brushColor) && this.brushColor != brushColor)) {
+                    this.brush = brush;
+                    this.brushColor = brushColor;
+                    button.classList.add("selected");
+                }
+                else {
+                    this.brush = EditorBrush.None;
+                }
+            }
+        }
+
+        makeBrushButton(this.switchTileNorthButton, EditorBrush.Switch, TileColor.North);
+        makeBrushButton(this.switchTileEastButton, EditorBrush.Switch, TileColor.East);
+        makeBrushButton(this.switchTileSouthButton, EditorBrush.Switch, TileColor.South);
+        makeBrushButton(this.switchTileWestButton, EditorBrush.Switch, TileColor.West);
+        
+        makeBrushButton(this.blockTileNorthButton, EditorBrush.Tile, TileColor.North);
+        makeBrushButton(this.blockTileEastButton, EditorBrush.Tile, TileColor.East);
+        makeBrushButton(this.blockTileSouthButton, EditorBrush.Tile, TileColor.South);
+        makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
+
+        makeBrushButton(this.holeButton, EditorBrush.Hole);
+        makeBrushButton(this.boxButton, EditorBrush.Box);
+        makeBrushButton(this.rampButton, EditorBrush.Ramp);
+        makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
         
         document.getElementById("save-btn").onclick = () => {
             let content = this.game.terrain.saveAsText();
@@ -213,6 +238,12 @@ class Editor {
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
 
         this.game.camera.detachControl();
+    }
+
+    public unselectAllButtons(): void {
+        this.selectableButtons.forEach(button => {
+            button.classList.remove("selected");
+        })
     }
 
     public pointerDown = (ev: PointerEvent) => {

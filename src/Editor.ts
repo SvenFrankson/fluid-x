@@ -148,6 +148,12 @@ class Editor {
         
         document.getElementById("play-btn").onclick = async () => {
             this.dropBrush();
+            this.game.terrain.data = {
+                id: -1,
+                title: "Current Machine",
+                author: "Editor",
+                content: this.game.terrain.saveAsText()
+            };
             this.game.terrain.reset();
             location.hash = "#editor-preview";
         };

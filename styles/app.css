@@ -142,14 +142,59 @@ h2 {
 button {
     position: relative;
     display: block;
+    background-color: #5d7275;
+    background-image: url("../datas/textures/rainbow_pattern.png");
+    background-size: 40px;
     font-family: Julee;
-    background-color: #5d7275ff;
     font-weight: 900;
 }
 
+button.black {
+    background-color: #2b2821;
+}
+
+button.brown {
+    background-color: #624c3c;
+}
+
+button.salmon {
+    background-color: #d9ac8b;
+}
+
+button.blue {
+    background-color: #243d5c;
+}
+
+button.bluegrey {
+    background-color: #5d7275;
+}
+
+button.lightblue {
+    background-color: #5c8b93;
+}
+
+button.beige {
+    background-color: #b1a58d;
+}
+
+button.red {
+    background-color: #b03a48;
+}
+
+button.orange {
+    background-color: #d4804d;
+}
+
+button.yellow {
+    background-color: #e0c872;
+}
+
+button.green {
+    background-color: #3e6958;
+}
+
 button.selected {
-    border: 2px solid rgb(61, 44, 32);
-    background-color: rgb(74, 96, 99);
+    border: 2px solid rgb(37, 26, 17);
 }
 
 .large-btn {
@@ -176,13 +221,13 @@ button.selected {
 
 .square-btn {
     display: flex;
-    font-size: 24px;
+    font-size: 20px;
     flex: 1;
     border: 2px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 3px;
-    padding: 10px;
+    padding: 5px;
 }
 
 .small-btn {
@@ -225,6 +270,16 @@ button.selected {
     display: flex;
     flex: 1;
     flex-direction: row;
+}
+
+.square-btn-author {
+    display: block;
+    position: absolute;
+    font-size: 16px;
+    bottom: 5px;
+    right: 5px;
+    width: 100%;
+    text-align: right;
 }
 
 input[type="text"] {

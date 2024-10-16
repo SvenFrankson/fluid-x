@@ -1,5 +1,7 @@
 interface IPuzzleTileData {
     onclick: () => void;
+    title: string;
+    author: string;
 }
 
 abstract class LevelPage {
@@ -34,8 +36,8 @@ abstract class LevelPage {
 
     public async redraw(): Promise<void> {
         let rect = this.nabuPage.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 90);
-        let rowCount = Math.floor(rect.height * 0.7 / 90);
+        let colCount = Math.floor(rect.width / 120);
+        let rowCount = Math.floor(rect.height * 0.7 / 120);
 
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
@@ -43,7 +45,7 @@ abstract class LevelPage {
         this.levelsPerPage = colCount * (rowCount - 1);
         let maxPage = Math.ceil(this.levelCount / this.levelsPerPage);
 
-        let puzzleDatas = await this.getPuzzlesData(this.page, this.levelsPerPage);
+        let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
 
         let n = 0;
         for (let i = 0; i < rowCount - 1; i++) {
@@ -53,12 +55,19 @@ abstract class LevelPage {
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
                 squareButton.classList.add("square-btn");
-                if (n >= puzzleDatas.length) {
+                if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
                 else {
-                    squareButton.innerHTML = "<stroke-text>" + (n + 1).toFixed(0) + "</stroke-text>";
-                    squareButton.onclick = puzzleDatas[n].onclick;
+                    squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].title + "</stroke-text>";
+                    squareButton.onclick = puzzleTileData[n].onclick;
+
+                    let authorField = document.createElement("div");
+                    authorField.classList.add("square-btn-author")
+                    let authorText = document.createElement("stroke-text") as StrokeText;
+                    authorText.setContent(puzzleTileData[n].author);
+                    authorField.appendChild(authorText);
+                    squareButton.appendChild(authorField);
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -126,6 +135,8 @@ class BaseLevelPage extends LevelPage {
             if (this.levelFileNames[index]) {
                 let hash = "#level-" + this.levelFileNames[index];
                 puzzleData[i] = {
+                    title: "Level " + n.toFixed(0),
+                    author: "Tiaratum Games",
                     onclick: () => {
                         location.hash = hash;
                     }
@@ -134,14 +145,6 @@ class BaseLevelPage extends LevelPage {
         }
 
         return puzzleData;
-    }
-
-    public setSquareButtonOnClick(squareButton: HTMLButtonElement, n: number): void {
-        n += this.page * this.levelsPerPage; 
-        let hash = "#level-" + this.levelFileNames[n];
-        squareButton.onclick = () => {
-            location.hash = hash;
-        }
     }
 }
 
@@ -161,8 +164,9 @@ class CommunityLevelPage extends LevelPage {
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let id = data.puzzles[i].id;
-            let content = data.puzzles[i].content;
             puzzleData[i] = {
+                title: data.puzzles[i].title,
+                author: data.puzzles[i].author,
                 onclick: () => {
                     this.router.game.terrain.loadFromData(data.puzzles[i]);
                     location.hash = "play-community-" + id;

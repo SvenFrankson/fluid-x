@@ -3,20 +3,23 @@ class StrokeText extends HTMLElement {
     public base: HTMLSpanElement
     public fill: HTMLSpanElement;
     public stroke: HTMLSpanElement;
+    public content: string;
     
     public connectedCallback(): void {
         this.style.position = "relative";
 
-        let text = this.innerText;
+        if (!this.content) {
+            this.content = this.innerText;
+        }
 
         this.innerText = "";
         
         this.base = document.createElement("span");
-        this.base.innerText = text;
+        this.base.innerText = this.content;
         this.appendChild(this.base);
 
         this.fill = document.createElement("span");
-        this.fill.innerText = text;
+        this.fill.innerText = this.content;
         this.fill.style.position = "absolute";
         this.fill.style.top = "0";
         this.fill.style.left = "0";
@@ -25,7 +28,7 @@ class StrokeText extends HTMLElement {
         this.appendChild(this.fill);
 
         this.stroke = document.createElement("span");
-        this.stroke.innerText = text;
+        this.stroke.innerText = this.content;
         this.stroke.style.position = "absolute";
         this.stroke.style.top = "0";
         this.stroke.style.left = "0";
@@ -36,9 +39,14 @@ class StrokeText extends HTMLElement {
     }
 
     public setContent(text: string): void {
-        this.base.innerText = text;
-        this.fill.innerText = text;
-        this.stroke.innerText = text;
+        if (this.base && this.fill && this.stroke) {
+            this.base.innerText = text;
+            this.fill.innerText = text;
+            this.stroke.innerText = text;
+        }
+        else {
+            this.content = text;
+        }
     }
 }
 

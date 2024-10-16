@@ -160,11 +160,12 @@ class CommunityLevelPage extends LevelPage {
         //this.terrain.instantiate();
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let id = data.puzzles[i].id;
             let content = data.puzzles[i].content;
             puzzleData[i] = {
                 onclick: () => {
-                    this.router.game.terrain.loadFromText(content);
-                    location.hash = "play-community";
+                    this.router.game.terrain.loadFromData(data.puzzles[i]);
+                    location.hash = "play-community-" + id;
                 }
             }
         }

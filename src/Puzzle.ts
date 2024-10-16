@@ -1,6 +1,19 @@
-class Terrain {
+interface IPuzzleData {
+    id: number;
+    title: string;
+    author: string;
+    content: string;
+}
 
-    private _textContent: string;
+class Puzzle {
+
+    public data: IPuzzleData = {
+        id: -1,
+        title: "No Title",
+        author: "No Author",
+        content: ""
+    };
+
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
@@ -53,8 +66,8 @@ class Terrain {
     }
 
     public async reset(): Promise<void> {
-        if (this._textContent) {
-            this.loadFromText(this._textContent);
+        if (this.data) {
+            this.loadFromData(this.data);
             await this.instantiate();
         }
         this.game.successPanel.style.display = "none";
@@ -64,10 +77,15 @@ class Terrain {
     public async loadFromFile(path: string): Promise<void> {
         let file = await fetch(path);
         let content = await file.text();
-        this.loadFromText(content);
+        this.loadFromData({
+            id: 42,
+            title: "No Title",
+            author: "No Author",
+            content: content
+        });
     }
 
-    public loadFromText(content: string): void {
+    public loadFromData(data: IPuzzleData): void {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
@@ -75,8 +93,9 @@ class Terrain {
             this.builds[0].dispose();
         }
 
-        this._textContent = content;
+        this.data = data;
 
+        let content = this.data.content;
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");

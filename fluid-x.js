@@ -974,7 +974,7 @@ class Editor {
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
         document.getElementById("play-btn").onclick = async () => {
             this.dropBrush();
-            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            this.game.terrain.reset();
             location.hash = "#editor-preview";
         };
         document.getElementById("save-btn").onclick = () => {
@@ -995,7 +995,12 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
                     console.log(content);
-                    this.game.terrain.loadFromText(content);
+                    this.game.terrain.loadFromData({
+                        id: 42,
+                        title: "No Title",
+                        author: "No Author",
+                        content: content
+                    });
                     this.game.terrain.instantiate();
                 });
                 reader.readAsText(file);
@@ -1224,11 +1229,12 @@ class CommunityLevelPage extends LevelPage {
         //this.terrain.loadFromText(data.puzzles[0].content);
         //this.terrain.instantiate();
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let id = data.puzzles[i].id;
             let content = data.puzzles[i].content;
             puzzleData[i] = {
                 onclick: () => {
-                    this.router.game.terrain.loadFromText(content);
-                    location.hash = "play-community";
+                    this.router.game.terrain.loadFromData(data.puzzles[i]);
+                    location.hash = "play-community-" + id;
                 }
             };
         }
@@ -1463,7 +1469,7 @@ class Game {
         this.ball = new Ball(this, { color: TileColor.North });
         this.ball.position.x = 0;
         this.ball.position.z = 0;
-        this.terrain = new Terrain(this);
+        this.terrain = new Puzzle(this);
         await this.terrain.loadFromFile("./datas/levels/min.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();
@@ -1603,151 +1609,15 @@ let createAndInit = async () => {
 requestAnimationFrame(() => {
     createAndInit();
 });
-class CarillonRouter extends Nabu.Router {
-    constructor(game) {
-        super();
-        this.game = game;
-    }
-    onFindAllPages() {
-        this.homeMenu = document.querySelector("#home-menu");
-        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
-        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
-        this.playUI = document.querySelector("#play-ui");
-        this.editorUI = document.querySelector("#editor-ui");
-        this.successReplayButton = document.querySelector("#success-replay-btn");
-        this.successReplayButton.onclick = () => {
-            this.game.terrain.reset();
-        };
-        this.successBackButton = document.querySelector("#success-back-btn");
-        this.successNextButton = document.querySelector("#success-next-btn");
-        this.gameoverBackButton = document.querySelector("#gameover-back-btn");
-        this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
-        this.gameoverReplayButton.onclick = () => {
-            this.game.terrain.reset();
-        };
-    }
-    onUpdate() { }
-    async onHRefChange(page, previousPage) {
-        console.log("onHRefChange previous " + previousPage + " now " + page);
-        //?gdmachineId=1979464530
-        this.game.mode = GameMode.Menu;
-        this.game.editor.deactivate();
-        if (page.startsWith("#options")) {
-        }
-        else if (page.startsWith("#credits")) {
-        }
-        else if (page.startsWith("#community")) {
-            await this.show(this.communityLevelPage.nabuPage, false, 0);
-            this.communityLevelPage.redraw();
-        }
-        else if (page.startsWith("#editor-preview")) {
-            this.successBackButton.parentElement.href = "#editor";
-            this.successNextButton.parentElement.href = "#editor";
-            this.gameoverBackButton.parentElement.href = "#editor";
-            await this.show(this.playUI, false, 0);
-            document.querySelector("#editor-btn").style.display = "";
-            await this.game.terrain.reset();
-            this.game.mode = GameMode.Play;
-        }
-        else if (page.startsWith("#editor")) {
-            await this.show(this.editorUI, false, 0);
-            await this.game.terrain.reset();
-            this.game.editor.activate();
-            this.game.mode = GameMode.Editor;
-        }
-        else if (page.startsWith("#level-")) {
-            this.successBackButton.parentElement.href = "#levels";
-            this.successNextButton.parentElement.href = "#levels";
-            this.gameoverBackButton.parentElement.href = "#levels";
-            let fileName = page.replace("#level-", "");
-            await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
-            await this.game.terrain.reset();
-            await this.show(this.playUI, false, 0);
-            document.querySelector("#editor-btn").style.display = "none";
-            this.game.mode = GameMode.Play;
-        }
-        else if (page.startsWith("#play-community")) {
-            this.successBackButton.parentElement.href = "#community";
-            this.successNextButton.parentElement.href = "#community";
-            this.gameoverBackButton.parentElement.href = "#community";
-            await this.game.terrain.reset();
-            await this.show(this.playUI, false, 0);
-            document.querySelector("#editor-btn").style.display = "none";
-            this.game.mode = GameMode.Play;
-        }
-        else if (page.startsWith("#levels")) {
-            await this.show(this.baseLevelPage.nabuPage, false, 0);
-            this.baseLevelPage.redraw();
-        }
-        else if (page.startsWith("#home")) {
-            await this.show(this.homeMenu, false, 0);
-        }
-        else {
-            location.hash = "#home";
-            return;
-        }
-    }
-}
-class StrokeText extends HTMLElement {
-    connectedCallback() {
-        this.style.position = "relative";
-        let text = this.innerText;
-        this.innerText = "";
-        this.base = document.createElement("span");
-        this.base.innerText = text;
-        this.appendChild(this.base);
-        this.fill = document.createElement("span");
-        this.fill.innerText = text;
-        this.fill.style.position = "absolute";
-        this.fill.style.top = "0";
-        this.fill.style.left = "0";
-        this.fill.style.color = "#2b2821ff";
-        this.fill.style.zIndex = "1";
-        this.appendChild(this.fill);
-        this.stroke = document.createElement("span");
-        this.stroke.innerText = text;
-        this.stroke.style.position = "absolute";
-        this.stroke.style.top = "0";
-        this.stroke.style.left = "0";
-        this.stroke.style.color = "#e3cfb4ff";
-        this.stroke.style.webkitTextStroke = "2px #e3cfb4ff";
-        this.stroke.style.zIndex = "0";
-        this.appendChild(this.stroke);
-    }
-    setContent(text) {
-        this.base.innerText = text;
-        this.fill.innerText = text;
-        this.stroke.innerText = text;
-    }
-}
-customElements.define("stroke-text", StrokeText);
-/// <reference path="./Tile.ts"/>
-class SwitchTile extends Tile {
-    constructor(game, props) {
-        super(game, props);
-        this.material = this.game.brownMaterial;
-        this.tileFrame = new BABYLON.Mesh("tile-frame");
-        this.tileFrame.parent = this;
-        this.tileFrame.material = this.game.blackMaterial;
-        this.tileTop = new BABYLON.Mesh("tile-top");
-        this.tileTop.parent = this;
-        this.tileTop.material = this.game.colorMaterials[this.color];
-        this.tileBottom = new BABYLON.Mesh("tile-bottom");
-        this.tileBottom.parent = this;
-        this.tileBottom.material = this.game.salmonMaterial;
-    }
-    async instantiate() {
-        await super.instantiate();
-        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
-        tileData[0].applyToMesh(this);
-        tileData[1].applyToMesh(this.tileFrame);
-        tileData[2].applyToMesh(this.tileTop);
-        tileData[3].applyToMesh(this.tileBottom);
-    }
-}
-class Terrain {
+class Puzzle {
     constructor(game) {
         this.game = game;
+        this.data = {
+            id: -1,
+            title: "No Title",
+            author: "No Author",
+            content: ""
+        };
         this.tiles = [];
         this.borders = [];
         this.builds = [];
@@ -1784,8 +1654,8 @@ class Terrain {
         this.game.gameoverPanel.style.display = "";
     }
     async reset() {
-        if (this._textContent) {
-            this.loadFromText(this._textContent);
+        if (this.data) {
+            this.loadFromData(this.data);
             await this.instantiate();
         }
         this.game.successPanel.style.display = "none";
@@ -1794,16 +1664,22 @@ class Terrain {
     async loadFromFile(path) {
         let file = await fetch(path);
         let content = await file.text();
-        this.loadFromText(content);
+        this.loadFromData({
+            id: 42,
+            title: "No Title",
+            author: "No Author",
+            content: content
+        });
     }
-    loadFromText(content) {
+    loadFromData(data) {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
         while (this.builds.length > 0) {
             this.builds[0].dispose();
         }
-        this._textContent = content;
+        this.data = data;
+        let content = this.data.content;
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
@@ -2119,5 +1995,156 @@ class Terrain {
             this.game.ball.ballState = BallState.Done;
             this.win();
         }
+    }
+}
+class CarillonRouter extends Nabu.Router {
+    constructor(game) {
+        super();
+        this.game = game;
+    }
+    onFindAllPages() {
+        this.homeMenu = document.querySelector("#home-menu");
+        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
+        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
+        this.playUI = document.querySelector("#play-ui");
+        this.editorUI = document.querySelector("#editor-ui");
+        this.successReplayButton = document.querySelector("#success-replay-btn");
+        this.successReplayButton.onclick = () => {
+            this.game.terrain.reset();
+        };
+        this.successBackButton = document.querySelector("#success-back-btn");
+        this.successNextButton = document.querySelector("#success-next-btn");
+        this.gameoverBackButton = document.querySelector("#gameover-back-btn");
+        this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
+        this.gameoverReplayButton.onclick = () => {
+            this.game.terrain.reset();
+        };
+    }
+    onUpdate() { }
+    async onHRefChange(page, previousPage) {
+        console.log("onHRefChange previous " + previousPage + " now " + page);
+        //?gdmachineId=1979464530
+        this.game.mode = GameMode.Menu;
+        this.game.editor.deactivate();
+        if (page.startsWith("#options")) {
+        }
+        else if (page.startsWith("#credits")) {
+        }
+        else if (page.startsWith("#community")) {
+            await this.show(this.communityLevelPage.nabuPage, false, 0);
+            this.communityLevelPage.redraw();
+        }
+        else if (page.startsWith("#editor-preview")) {
+            this.successBackButton.parentElement.href = "#editor";
+            this.successNextButton.parentElement.href = "#editor";
+            this.gameoverBackButton.parentElement.href = "#editor";
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "";
+            await this.game.terrain.reset();
+            this.game.mode = GameMode.Play;
+        }
+        else if (page.startsWith("#editor")) {
+            await this.show(this.editorUI, false, 0);
+            await this.game.terrain.reset();
+            this.game.editor.activate();
+            this.game.mode = GameMode.Editor;
+        }
+        else if (page.startsWith("#level-")) {
+            this.successBackButton.parentElement.href = "#levels";
+            this.successNextButton.parentElement.href = "#levels";
+            this.gameoverBackButton.parentElement.href = "#levels";
+            let fileName = page.replace("#level-", "");
+            await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
+            await this.game.terrain.reset();
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "none";
+            this.game.mode = GameMode.Play;
+        }
+        else if (page.startsWith("#play-community-")) {
+            this.successBackButton.parentElement.href = "#community";
+            this.successNextButton.parentElement.href = "#community";
+            this.gameoverBackButton.parentElement.href = "#community";
+            let id = parseInt(page.replace("#play-community-", ""));
+            if (this.game.terrain.data.id != id) {
+                const response = await fetch("http://localhost/index.php/puzzle/" + id.toFixed(0), {
+                    method: "GET",
+                    mode: "cors"
+                });
+                let data = await response.json();
+                await this.game.terrain.loadFromData(data);
+            }
+            await this.game.terrain.reset();
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "none";
+            this.game.mode = GameMode.Play;
+        }
+        else if (page.startsWith("#levels")) {
+            await this.show(this.baseLevelPage.nabuPage, false, 0);
+            this.baseLevelPage.redraw();
+        }
+        else if (page.startsWith("#home")) {
+            await this.show(this.homeMenu, false, 0);
+        }
+        else {
+            location.hash = "#home";
+            return;
+        }
+    }
+}
+class StrokeText extends HTMLElement {
+    connectedCallback() {
+        this.style.position = "relative";
+        let text = this.innerText;
+        this.innerText = "";
+        this.base = document.createElement("span");
+        this.base.innerText = text;
+        this.appendChild(this.base);
+        this.fill = document.createElement("span");
+        this.fill.innerText = text;
+        this.fill.style.position = "absolute";
+        this.fill.style.top = "0";
+        this.fill.style.left = "0";
+        this.fill.style.color = "#2b2821ff";
+        this.fill.style.zIndex = "1";
+        this.appendChild(this.fill);
+        this.stroke = document.createElement("span");
+        this.stroke.innerText = text;
+        this.stroke.style.position = "absolute";
+        this.stroke.style.top = "0";
+        this.stroke.style.left = "0";
+        this.stroke.style.color = "#e3cfb4ff";
+        this.stroke.style.webkitTextStroke = "2px #e3cfb4ff";
+        this.stroke.style.zIndex = "0";
+        this.appendChild(this.stroke);
+    }
+    setContent(text) {
+        this.base.innerText = text;
+        this.fill.innerText = text;
+        this.stroke.innerText = text;
+    }
+}
+customElements.define("stroke-text", StrokeText);
+/// <reference path="./Tile.ts"/>
+class SwitchTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.material = this.game.brownMaterial;
+        this.tileFrame = new BABYLON.Mesh("tile-frame");
+        this.tileFrame.parent = this;
+        this.tileFrame.material = this.game.blackMaterial;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.material = this.game.colorMaterials[this.color];
+        this.tileBottom = new BABYLON.Mesh("tile-bottom");
+        this.tileBottom.parent = this;
+        this.tileBottom.material = this.game.salmonMaterial;
+    }
+    async instantiate() {
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
+        tileData[0].applyToMesh(this);
+        tileData[1].applyToMesh(this.tileFrame);
+        tileData[2].applyToMesh(this.tileTop);
+        tileData[3].applyToMesh(this.tileBottom);
     }
 }

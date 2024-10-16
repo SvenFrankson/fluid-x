@@ -80,10 +80,19 @@ class CarillonRouter extends Nabu.Router {
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
             this.game.mode = GameMode.Play;
         }
-        else if (page.startsWith("#play-community")) {
+        else if (page.startsWith("#play-community-")) {
             (this.successBackButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
+            let id = parseInt(page.replace("#play-community-", ""));
+            if (this.game.terrain.data.id != id) {
+                const response = await fetch("http://localhost/index.php/puzzle/" + id.toFixed(0), {
+                    method: "GET",
+                    mode: "cors"
+                });
+                let data = await response.json();
+                await this.game.terrain.loadFromData(data);
+            }
             await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";

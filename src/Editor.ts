@@ -148,7 +148,7 @@ class Editor {
         
         document.getElementById("play-btn").onclick = async () => {
             this.dropBrush();
-            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            this.game.terrain.reset();
             location.hash = "#editor-preview";
         };
 
@@ -172,7 +172,12 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result as string;
                     console.log(content);
-                    this.game.terrain.loadFromText(content);
+                    this.game.terrain.loadFromData({
+                        id: 42,
+                        title: "No Title",
+                        author: "No Author",
+                        content: content
+                    });
                     this.game.terrain.instantiate();
                 });
                 reader.readAsText(file);

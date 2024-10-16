@@ -147,7 +147,7 @@ class Game {
     public darkFloorMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
-    public terrain: Terrain;
+    public terrain: Puzzle;
     public ball: Ball;
 
     public router: CarillonRouter;
@@ -274,7 +274,7 @@ class Game {
         this.ball.position.x = 0;
         this.ball.position.z = 0;
 
-        this.terrain = new Terrain(this);
+        this.terrain = new Puzzle(this);
         await this.terrain.loadFromFile("./datas/levels/min.txt");
         await this.terrain.instantiate();
         await this.ball.instantiate();

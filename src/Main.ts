@@ -477,15 +477,6 @@ class Game {
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
             this.terrain.reset();
         }
-
-        const response = await fetch("http://localhost/index.php/get_puzzles/0/12/", {
-            method: "GET",
-            mode: "cors"
-        });
-        let data = await response.json();
-        console.log(data);
-        this.terrain.loadFromText(data.puzzles[0].content);
-        this.terrain.instantiate();
 	}
 
     public setPlayTimer(t: number): void {

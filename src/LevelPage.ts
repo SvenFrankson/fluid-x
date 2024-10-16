@@ -1,10 +1,13 @@
-class LevelPage {
+interface IPuzzleTileData {
+    onclick: () => void;
+}
 
-    public levelFileNames = [
-        "test"
-    ]
+abstract class LevelPage {
+
     public page: number = 0;
-    public levelCount: number = this.levelFileNames.length;
+    public levelsPerPage: number = 9;
+    public levelCount: number = 0;
+
     public nabuPage: Nabu.DefaultPage;
 
     constructor(queryString: string, public router: CarillonRouter) {
@@ -23,7 +26,13 @@ class LevelPage {
         return this.nabuPage.hide(duration);
     }
 
-    public redraw(): void {
+    public setSquareButtonOnClick(squareButton: HTMLButtonElement, n: number): void {
+
+    }
+
+    protected abstract getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]>;
+
+    public async redraw(): Promise<void> {
         let rect = this.nabuPage.getBoundingClientRect();
         let colCount = Math.floor(rect.width / 90);
         let rowCount = Math.floor(rect.height * 0.7 / 90);
@@ -31,10 +40,12 @@ class LevelPage {
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
 
-        let levelsPerPage = colCount * (rowCount - 1);
-        let maxPage = Math.ceil(this.levelCount / levelsPerPage);
+        this.levelsPerPage = colCount * (rowCount - 1);
+        let maxPage = Math.ceil(this.levelCount / this.levelsPerPage);
 
-        let n = this.page * levelsPerPage;
+        let puzzleDatas = await this.getPuzzlesData(this.page, this.levelsPerPage);
+
+        let n = 0;
         for (let i = 0; i < rowCount - 1; i++) {
             let line = document.createElement("div");
             line.classList.add("square-btn-container-line");
@@ -42,15 +53,12 @@ class LevelPage {
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
                 squareButton.classList.add("square-btn");
-                if (n >= this.levelCount) {
+                if (n >= puzzleDatas.length) {
                     squareButton.style.visibility = "hidden";
                 }
                 else {
                     squareButton.innerHTML = "<stroke-text>" + (n + 1).toFixed(0) + "</stroke-text>";
-                    let hash = "#level-" + this.levelFileNames[n];
-                    squareButton.onclick = () => {
-                        location.hash = hash;
-                    }
+                    squareButton.onclick = puzzleDatas[n].onclick;
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -96,5 +104,71 @@ class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
+    }
+}
+
+class BaseLevelPage extends LevelPage {
+    public levelFileNames = [
+        "test"
+    ];
+
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.levelCount = this.levelFileNames.length;
+    }
+    
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+
+        let n = page * levelsPerPage;
+        for (let i = 0; i < levelsPerPage; i++) {
+            let index = i + n;
+            if (this.levelFileNames[index]) {
+                let hash = "#level-" + this.levelFileNames[index];
+                puzzleData[i] = {
+                    onclick: () => {
+                        location.hash = hash;
+                    }
+                }
+            }
+        }
+
+        return puzzleData;
+    }
+
+    public setSquareButtonOnClick(squareButton: HTMLButtonElement, n: number): void {
+        n += this.page * this.levelsPerPage; 
+        let hash = "#level-" + this.levelFileNames[n];
+        squareButton.onclick = () => {
+            location.hash = hash;
+        }
+    }
+}
+
+class CommunityLevelPage extends LevelPage {
+    
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+
+        const response = await fetch("http://localhost/index.php/get_puzzles/0/12/", {
+            method: "GET",
+            mode: "cors"
+        });
+        let data = await response.json();
+        console.log(data);
+        //this.terrain.loadFromText(data.puzzles[0].content);
+        //this.terrain.instantiate();
+
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let content = data.puzzles[i].content;
+            puzzleData[i] = {
+                onclick: () => {
+                    this.router.game.terrain.loadFromText(content);
+                    location.hash = "play-community";
+                }
+            }
+        }
+
+        return puzzleData;
     }
 }

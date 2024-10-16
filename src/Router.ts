@@ -1,6 +1,7 @@
 class CarillonRouter extends Nabu.Router {
     public homeMenu: Nabu.DefaultPage;
-    public levelPage: LevelPage;
+    public baseLevelPage: BaseLevelPage;
+    public communityLevelPage: CommunityLevelPage;
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
 
@@ -10,7 +11,8 @@ class CarillonRouter extends Nabu.Router {
 
     protected onFindAllPages(): void {
         this.homeMenu = document.querySelector("#home-menu") as Nabu.DefaultPage;
-        this.levelPage = new LevelPage("#level-page", this);
+        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
+        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
     }
@@ -31,7 +33,8 @@ class CarillonRouter extends Nabu.Router {
             
         }
         else if (page.startsWith("#community")) {
-            
+            await this.show(this.communityLevelPage.nabuPage, false, 0);
+            this.communityLevelPage.redraw();
         }
         else if (page.startsWith("#editor-preview")) {
             await this.show(this.playUI, false, 0);
@@ -53,9 +56,15 @@ class CarillonRouter extends Nabu.Router {
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
             this.game.mode = GameMode.Play;
         }
+        else if (page.startsWith("#play-community")) {
+            await this.game.terrain.instantiate();
+            await this.show(this.playUI, false, 0);
+            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
+            this.game.mode = GameMode.Play;
+        }
         else if (page.startsWith("#levels")) {
-            await this.show(this.levelPage.nabuPage, false, 0);
-            this.levelPage.redraw();
+            await this.show(this.baseLevelPage.nabuPage, false, 0);
+            this.baseLevelPage.redraw();
         }
         else if (page.startsWith("#home")) {
             await this.show(this.homeMenu, false, 0);

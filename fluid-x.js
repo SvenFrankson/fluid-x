@@ -1067,11 +1067,9 @@ class HoleTile extends Tile {
 class LevelPage {
     constructor(queryString, router) {
         this.router = router;
-        this.levelFileNames = [
-            "test"
-        ];
         this.page = 0;
-        this.levelCount = this.levelFileNames.length;
+        this.levelsPerPage = 9;
+        this.levelCount = 0;
         this.nabuPage = document.querySelector(queryString);
     }
     get shown() {
@@ -1083,15 +1081,18 @@ class LevelPage {
     async hide(duration) {
         return this.nabuPage.hide(duration);
     }
-    redraw() {
+    setSquareButtonOnClick(squareButton, n) {
+    }
+    async redraw() {
         let rect = this.nabuPage.getBoundingClientRect();
         let colCount = Math.floor(rect.width / 90);
         let rowCount = Math.floor(rect.height * 0.7 / 90);
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
-        let levelsPerPage = colCount * (rowCount - 1);
-        let maxPage = Math.ceil(this.levelCount / levelsPerPage);
-        let n = this.page * levelsPerPage;
+        this.levelsPerPage = colCount * (rowCount - 1);
+        let maxPage = Math.ceil(this.levelCount / this.levelsPerPage);
+        let puzzleDatas = await this.getPuzzlesData(this.page, this.levelsPerPage);
+        let n = 0;
         for (let i = 0; i < rowCount - 1; i++) {
             let line = document.createElement("div");
             line.classList.add("square-btn-container-line");
@@ -1099,15 +1100,12 @@ class LevelPage {
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
                 squareButton.classList.add("square-btn");
-                if (n >= this.levelCount) {
+                if (n >= puzzleDatas.length) {
                     squareButton.style.visibility = "hidden";
                 }
                 else {
                     squareButton.innerHTML = "<stroke-text>" + (n + 1).toFixed(0) + "</stroke-text>";
-                    let hash = "#level-" + this.levelFileNames[n];
-                    squareButton.onclick = () => {
-                        location.hash = hash;
-                    };
+                    squareButton.onclick = puzzleDatas[n].onclick;
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -1151,6 +1149,61 @@ class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
+    }
+}
+class BaseLevelPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.levelFileNames = [
+            "test"
+        ];
+        this.levelCount = this.levelFileNames.length;
+    }
+    async getPuzzlesData(page, levelsPerPage) {
+        let puzzleData = [];
+        let n = page * levelsPerPage;
+        for (let i = 0; i < levelsPerPage; i++) {
+            let index = i + n;
+            if (this.levelFileNames[index]) {
+                let hash = "#level-" + this.levelFileNames[index];
+                puzzleData[i] = {
+                    onclick: () => {
+                        location.hash = hash;
+                    }
+                };
+            }
+        }
+        return puzzleData;
+    }
+    setSquareButtonOnClick(squareButton, n) {
+        n += this.page * this.levelsPerPage;
+        let hash = "#level-" + this.levelFileNames[n];
+        squareButton.onclick = () => {
+            location.hash = hash;
+        };
+    }
+}
+class CommunityLevelPage extends LevelPage {
+    async getPuzzlesData(page, levelsPerPage) {
+        let puzzleData = [];
+        const response = await fetch("http://localhost/index.php/get_puzzles/0/12/", {
+            method: "GET",
+            mode: "cors"
+        });
+        let data = await response.json();
+        console.log(data);
+        //this.terrain.loadFromText(data.puzzles[0].content);
+        //this.terrain.instantiate();
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let content = data.puzzles[i].content;
+            puzzleData[i] = {
+                onclick: () => {
+                    this.router.game.terrain.loadFromText(content);
+                    location.hash = "play-community";
+                }
+            };
+        }
+        return puzzleData;
     }
 }
 /// <reference path="../lib/nabu/nabu.d.ts"/>
@@ -1576,14 +1629,6 @@ class Game {
         document.querySelector("#reset-btn").onclick = () => {
             this.terrain.reset();
         };
-        const response = await fetch("http://localhost/index.php/get_puzzles/0/12/", {
-            method: "GET",
-            mode: "cors"
-        });
-        let data = await response.json();
-        console.log(data);
-        this.terrain.loadFromText(data.puzzles[0].content);
-        this.terrain.instantiate();
     }
     setPlayTimer(t) {
         let min = Math.floor(t / 60);
@@ -1683,7 +1728,8 @@ class CarillonRouter extends Nabu.Router {
     }
     onFindAllPages() {
         this.homeMenu = document.querySelector("#home-menu");
-        this.levelPage = new LevelPage("#level-page", this);
+        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
+        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
     }
@@ -1698,6 +1744,8 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#credits")) {
         }
         else if (page.startsWith("#community")) {
+            await this.show(this.communityLevelPage.nabuPage, false, 0);
+            this.communityLevelPage.redraw();
         }
         else if (page.startsWith("#editor-preview")) {
             await this.show(this.playUI, false, 0);
@@ -1719,9 +1767,15 @@ class CarillonRouter extends Nabu.Router {
             document.querySelector("#editor-btn").style.display = "none";
             this.game.mode = GameMode.Play;
         }
+        else if (page.startsWith("#play-community")) {
+            await this.game.terrain.instantiate();
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "none";
+            this.game.mode = GameMode.Play;
+        }
         else if (page.startsWith("#levels")) {
-            await this.show(this.levelPage.nabuPage, false, 0);
-            this.levelPage.redraw();
+            await this.show(this.baseLevelPage.nabuPage, false, 0);
+            this.baseLevelPage.redraw();
         }
         else if (page.startsWith("#home")) {
             await this.show(this.homeMenu, false, 0);

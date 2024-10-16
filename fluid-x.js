@@ -238,6 +238,7 @@ class Ball extends BABYLON.Mesh {
             this.fallTimer += dt;
             if (this.fallTimer > 1) {
                 this.ballState = BallState.Done;
+                this.game.terrain.lose();
                 return;
             }
             let f = Math.pow(this.fallTimer, 0.9);
@@ -808,58 +809,66 @@ class Editor {
         this.brush = EditorBrush.None;
         this.brushColor = TileColor.North;
         this.selectableButtons = [];
+        this._pointerX = 0;
+        this._pointerY = 0;
         this.pointerDown = (ev) => {
+            this._pointerX = ev.clientX;
+            this._pointerY = ev.clientY;
         };
         this.pointerUp = (ev) => {
-            console.log(ev);
-            let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
-                return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
-            });
-            if (pick.hit) {
-                if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                    let i = Math.round(pick.pickedPoint.x / 1.1);
-                    let j = Math.round(pick.pickedPoint.z / 1.1);
-                    let tile = this.game.terrain.tiles.find(tile => {
-                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
-                    });
-                    if (tile) {
-                        tile.dispose();
-                        this.game.terrain.rebuildFloor();
-                    }
-                }
-                else if (ev.button === 0) {
-                    let i = Math.round(pick.pickedPoint.x / 1.1);
-                    let j = Math.round(pick.pickedPoint.z / 1.1);
-                    let tile = this.game.terrain.tiles.find(tile => {
-                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
-                    });
-                    if (!tile) {
-                        if (this.brush === EditorBrush.Tile) {
-                            tile = new BlockTile(this.game, {
-                                i: i,
-                                j: j,
-                                h: Math.round(pick.pickedPoint.y),
-                                color: this.brushColor
-                            });
-                        }
-                        else if (this.brush === EditorBrush.Switch) {
-                            tile = new SwitchTile(this.game, {
-                                i: i,
-                                j: j,
-                                h: Math.round(pick.pickedPoint.y),
-                                color: this.brushColor
-                            });
-                        }
-                        else if (this.brush === EditorBrush.Hole) {
-                            tile = new HoleTile(this.game, {
-                                i: i,
-                                j: j,
-                                color: this.brushColor
-                            });
-                        }
+            let dx = ev.clientX - this._pointerX;
+            let dy = ev.clientY - this._pointerY;
+            let dd = dx * dx + dy * dy;
+            if (dd < 9) {
+                let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                });
+                if (pick.hit) {
+                    if (ev.button === 2 || this.brush === EditorBrush.Delete) {
+                        let i = Math.round(pick.pickedPoint.x / 1.1);
+                        let j = Math.round(pick.pickedPoint.z / 1.1);
+                        let tile = this.game.terrain.tiles.find(tile => {
+                            return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                        });
                         if (tile) {
-                            tile.instantiate();
+                            tile.dispose();
                             this.game.terrain.rebuildFloor();
+                        }
+                    }
+                    else if (ev.button === 0) {
+                        let i = Math.round(pick.pickedPoint.x / 1.1);
+                        let j = Math.round(pick.pickedPoint.z / 1.1);
+                        let tile = this.game.terrain.tiles.find(tile => {
+                            return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                        });
+                        if (!tile) {
+                            if (this.brush === EditorBrush.Tile) {
+                                tile = new BlockTile(this.game, {
+                                    i: i,
+                                    j: j,
+                                    h: Math.round(pick.pickedPoint.y),
+                                    color: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Switch) {
+                                tile = new SwitchTile(this.game, {
+                                    i: i,
+                                    j: j,
+                                    h: Math.round(pick.pickedPoint.y),
+                                    color: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Hole) {
+                                tile = new HoleTile(this.game, {
+                                    i: i,
+                                    j: j,
+                                    color: this.brushColor
+                                });
+                            }
+                            if (tile) {
+                                tile.instantiate();
+                                this.game.terrain.rebuildFloor();
+                            }
                         }
                     }
                 }
@@ -963,11 +972,18 @@ class Editor {
         makeBrushButton(this.boxButton, EditorBrush.Box);
         makeBrushButton(this.rampButton, EditorBrush.Ramp);
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
+        document.getElementById("play-btn").onclick = async () => {
+            this.dropBrush();
+            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            location.hash = "#editor-preview";
+        };
         document.getElementById("save-btn").onclick = () => {
+            this.dropBrush();
             let content = this.game.terrain.saveAsText();
             Nabu.download("puzzle.txt", content);
         };
         document.getElementById("load-btn").onclick = () => {
+            this.dropBrush();
             document.getElementById("load-btn").style.display = "none";
             document.getElementById("load-file-input").style.display = "";
         };
@@ -987,11 +1003,8 @@ class Editor {
             document.getElementById("load-btn").style.display = "";
             document.getElementById("load-file-input").style.display = "none";
         };
-        document.getElementById("play-btn").onclick = async () => {
-            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
-            location.hash = "#editor-preview";
-        };
         document.getElementById("publish-btn").onclick = async () => {
+            this.dropBrush();
             document.getElementById("editor-publish-form").style.display = "";
         };
         document.getElementById("publish-confirm-btn").onclick = async () => {
@@ -1010,7 +1023,6 @@ class Editor {
                 },
                 body: dataString,
             });
-            console.log(await response.text());
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
@@ -1042,6 +1054,10 @@ class Editor {
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
         this.game.camera.detachControl();
+    }
+    dropBrush() {
+        this.unselectAllButtons();
+        this.brush = EditorBrush.None;
     }
     unselectAllButtons() {
         this.selectableButtons.forEach(button => {
@@ -1384,6 +1400,8 @@ class Game {
             document.body.classList.remove("vertical");
         }
         this.timerText = document.querySelector("#play-timer");
+        this.successPanel = document.querySelector("#play-success-panel");
+        this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
@@ -1452,158 +1470,6 @@ class Game {
         this.ball.ballState = BallState.Ready;
         this.editor = new Editor(this);
         /*
-        for (let i = 0; i <= 10; i++) {
-            let tile = new BlockTile(this, {
-                color: Math.floor(Math.random() * 4),
-                i: i,
-                j: 10
-            });
-            await tile.instantiate();
-        }
-
-        let tile = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 0,
-            j: 0
-        });
-        await tile.instantiate();
-
-        let tileA = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 1,
-            j: 9
-        });
-        await tileA.instantiate();
-
-        let tileC = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 1,
-            j: 8
-        });
-        await tileC.instantiate();
-
-        let tileE = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 1,
-            j: 7
-        });
-        await tileE.instantiate();
-
-        let switchNorth = new SwitchTile(this, {
-            color: TileColor.North,
-            i: 8,
-            j: 7,
-            h: 1
-        });
-        await switchNorth.instantiate();
-
-        let switchEast = new SwitchTile(this, {
-            color: TileColor.East,
-            i: 12,
-            j: 7,
-            h: 1
-        });
-        await switchEast.instantiate();
-
-        let switchSouth = new SwitchTile(this, {
-            color: TileColor.South,
-            i: 8,
-            j: 0,
-            h: 0
-        });
-        await switchSouth.instantiate();
-
-        let holeA = new HoleTile(this, {
-            color: TileColor.South,
-            i: 7,
-            j: 0,
-            h: 0
-        });
-        await holeA.instantiate();
-
-        let holeB = new HoleTile(this, {
-            color: TileColor.South,
-            i: 9,
-            j: 0,
-            h: 0
-        });
-        await holeB.instantiate();
-
-        let holeC = new HoleTile(this, {
-            color: TileColor.South,
-            i: 9,
-            j: 1,
-            h: 0
-        });
-        await holeC.instantiate();
-
-        let switchWest = new SwitchTile(this, {
-            color: TileColor.West,
-            i: 1,
-            j: 5,
-            h: 0
-        });
-        await switchWest.instantiate();
-
-        let ramp0 = new Ramp(this, {
-            i: 4,
-            j: 3
-        });
-        await ramp0.instantiate();
-
-        let ramp = new Ramp(this, {
-            i: 8,
-            j: 3
-        });
-        await ramp.instantiate();
-
-        let box = new Box(this, {
-            i: 8,
-            j: 6,
-            borderLeft: true,
-        });
-        await box.instantiate();
-
-        let boxA = new Box(this, {
-            i: 8,
-            j: 8,
-            borderRight: true,
-            borderTop: true
-        });
-        await boxA.instantiate();
-
-        let boxB = new Box(this, {
-            i: 6,
-            j: 8,
-            borderBottom: true,
-            borderTop: true
-        });
-        await boxB.instantiate();
-
-        let boxC = new Box(this, {
-            i: 4,
-            j: 8,
-            borderLeft: true,
-            borderTop: true
-        });
-        await boxC.instantiate();
-
-        let boxD = new Box(this, {
-            i: 4,
-            j: 6,
-            borderLeft: true,
-            borderRight: true
-        });
-        await boxD.instantiate();
-
-        let box2 = new Box(this, {
-            i: 10,
-            j: 6,
-            borderBottom: true,
-            borderTop: true
-        });
-        await box2.instantiate();
-
         let bridge = new Bridge(this, {
             i: 12,
             j: 6,
@@ -1679,6 +1545,9 @@ class Game {
                 if (this.ball) {
                     this.ball.update(rawDT);
                 }
+                if (this.terrain) {
+                    this.terrain.update(rawDT);
+                }
             }
             else if (this.mode === GameMode.Editor) {
                 this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.terrain.xMin, this.terrain.xMax);
@@ -1745,6 +1614,17 @@ class CarillonRouter extends Nabu.Router {
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
+        this.successReplayButton = document.querySelector("#success-replay-btn");
+        this.successReplayButton.onclick = () => {
+            this.game.terrain.reset();
+        };
+        this.successBackButton = document.querySelector("#success-back-btn");
+        this.successNextButton = document.querySelector("#success-next-btn");
+        this.gameoverBackButton = document.querySelector("#gameover-back-btn");
+        this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
+        this.gameoverReplayButton.onclick = () => {
+            this.game.terrain.reset();
+        };
     }
     onUpdate() { }
     async onHRefChange(page, previousPage) {
@@ -1761,6 +1641,9 @@ class CarillonRouter extends Nabu.Router {
             this.communityLevelPage.redraw();
         }
         else if (page.startsWith("#editor-preview")) {
+            this.successBackButton.parentElement.href = "#editor";
+            this.successNextButton.parentElement.href = "#editor";
+            this.gameoverBackButton.parentElement.href = "#editor";
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "";
             await this.game.terrain.reset();
@@ -1773,15 +1656,21 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
+            this.successBackButton.parentElement.href = "#levels";
+            this.successNextButton.parentElement.href = "#levels";
+            this.gameoverBackButton.parentElement.href = "#levels";
             let fileName = page.replace("#level-", "");
             await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
-            await this.game.terrain.instantiate();
+            await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "none";
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#play-community")) {
-            await this.game.terrain.instantiate();
+            this.successBackButton.parentElement.href = "#community";
+            this.successNextButton.parentElement.href = "#community";
+            this.gameoverBackButton.parentElement.href = "#community";
+            await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "none";
             this.game.mode = GameMode.Play;
@@ -1881,11 +1770,26 @@ class Terrain {
     get zMax() {
         return this.h * 1.1 - 0.55;
     }
+    win() {
+        this.game.successPanel.style.display = "";
+        this.game.gameoverPanel.style.display = "none";
+        let t = this.game.ball.playTimer;
+        let min = Math.floor(t / 60);
+        let sec = Math.floor(t - 60 * min);
+        let centi = Math.floor((t - 60 * min - sec) * 100);
+        this.game.successPanel.querySelector("#success-timer stroke-text").setContent(min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0"));
+    }
+    lose() {
+        this.game.successPanel.style.display = "none";
+        this.game.gameoverPanel.style.display = "";
+    }
     async reset() {
         if (this._textContent) {
             this.loadFromText(this._textContent);
             await this.instantiate();
         }
+        this.game.successPanel.style.display = "none";
+        this.game.gameoverPanel.style.display = "none";
     }
     async loadFromFile(path) {
         let file = await fetch(path);
@@ -2206,5 +2110,14 @@ class Terrain {
         }
         Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
         Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
+    }
+    update(dt) {
+        let tiles = this.tiles.filter(t => {
+            return t instanceof BlockTile && t.tileState === TileState.Active;
+        });
+        if (tiles.length === 0) {
+            this.game.ball.ballState = BallState.Done;
+            this.win();
+        }
     }
 }

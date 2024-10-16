@@ -152,6 +152,8 @@ class Game {
 
     public router: CarillonRouter;
     public timerText: HTMLDivElement;
+    public successPanel: HTMLDivElement;
+    public gameoverPanel: HTMLDivElement;
     public editor: Editor;
     public mode: GameMode = GameMode.Menu;
 
@@ -190,6 +192,8 @@ class Game {
             document.body.classList.remove("vertical");
         }
         this.timerText = document.querySelector("#play-timer");
+        this.successPanel = document.querySelector("#play-success-panel");
+        this.gameoverPanel = document.querySelector("#play-gameover-panel");
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -280,158 +284,6 @@ class Game {
         this.editor = new Editor(this);
 
         /*
-        for (let i = 0; i <= 10; i++) {
-            let tile = new BlockTile(this, {
-                color: Math.floor(Math.random() * 4),
-                i: i,
-                j: 10
-            });
-            await tile.instantiate();
-        }
-
-        let tile = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 0,
-            j: 0
-        });
-        await tile.instantiate();
-
-        let tileA = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 1,
-            j: 9
-        });
-        await tileA.instantiate();
-
-        let tileC = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 1,
-            j: 8
-        });
-        await tileC.instantiate();
-
-        let tileE = new BlockTile(this, {
-            color: Math.floor(Math.random() * 4),
-            i: 1,
-            j: 7
-        });
-        await tileE.instantiate();
-
-        let switchNorth = new SwitchTile(this, {
-            color: TileColor.North,
-            i: 8,
-            j: 7,
-            h: 1
-        });
-        await switchNorth.instantiate();
-
-        let switchEast = new SwitchTile(this, {
-            color: TileColor.East,
-            i: 12,
-            j: 7,
-            h: 1
-        });
-        await switchEast.instantiate();
-
-        let switchSouth = new SwitchTile(this, {
-            color: TileColor.South,
-            i: 8,
-            j: 0,
-            h: 0
-        });
-        await switchSouth.instantiate();
-
-        let holeA = new HoleTile(this, {
-            color: TileColor.South,
-            i: 7,
-            j: 0,
-            h: 0
-        });
-        await holeA.instantiate();
-
-        let holeB = new HoleTile(this, {
-            color: TileColor.South,
-            i: 9,
-            j: 0,
-            h: 0
-        });
-        await holeB.instantiate();
-
-        let holeC = new HoleTile(this, {
-            color: TileColor.South,
-            i: 9,
-            j: 1,
-            h: 0
-        });
-        await holeC.instantiate();
-
-        let switchWest = new SwitchTile(this, {
-            color: TileColor.West,
-            i: 1,
-            j: 5,
-            h: 0
-        });
-        await switchWest.instantiate();
-
-        let ramp0 = new Ramp(this, {
-            i: 4,
-            j: 3
-        });
-        await ramp0.instantiate();
-
-        let ramp = new Ramp(this, {
-            i: 8,
-            j: 3
-        });
-        await ramp.instantiate();
-
-        let box = new Box(this, {
-            i: 8,
-            j: 6,
-            borderLeft: true,
-        });
-        await box.instantiate();
-
-        let boxA = new Box(this, {
-            i: 8,
-            j: 8,
-            borderRight: true,
-            borderTop: true
-        });
-        await boxA.instantiate();
-
-        let boxB = new Box(this, {
-            i: 6,
-            j: 8,
-            borderBottom: true,
-            borderTop: true
-        });
-        await boxB.instantiate();
-
-        let boxC = new Box(this, {
-            i: 4,
-            j: 8,
-            borderLeft: true,
-            borderTop: true
-        });
-        await boxC.instantiate();
-
-        let boxD = new Box(this, {
-            i: 4,
-            j: 6,
-            borderLeft: true,
-            borderRight: true
-        });
-        await boxD.instantiate();
-
-        let box2 = new Box(this, {
-            i: 10,
-            j: 6,
-            borderBottom: true,
-            borderTop: true
-        });
-        await box2.instantiate();
-
         let bridge = new Bridge(this, {
             i: 12,
             j: 6,
@@ -482,7 +334,7 @@ class Game {
     public setPlayTimer(t: number): void {
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);
-        let centi = Math.floor((t - 60 * min - sec) * 100)
+        let centi = Math.floor((t - 60 * min - sec) * 100);
 
         let strokes = this.timerText.querySelectorAll("stroke-text") as NodeListOf<StrokeText>;
         strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
@@ -537,6 +389,9 @@ class Game {
                 
                 if (this.ball) {
                     this.ball.update(rawDT);
+                }
+                if (this.terrain) {
+                    this.terrain.update(rawDT);
                 }
             }
             else if (this.mode === GameMode.Editor) {

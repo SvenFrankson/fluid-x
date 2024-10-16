@@ -127,6 +127,18 @@ h2 {
     margin-bottom: 10px;
 }
 
+.panel {
+    position: fixed;
+    display: block;
+    margin: 0;
+    padding: 10px;
+    background-color: #5d7275;
+    border: 4px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    z-index: 1;
+    font-family: Julee;
+}
+
 button {
     position: relative;
     display: block;
@@ -260,6 +272,22 @@ input[type="text"] {
     width: 50px;
 }
 
+#play-success-panel {
+    width: 310px;
+    height: 250px;
+    left: calc((100vw - 338px) * 0.5);
+    top: calc((100svh - 278px) * 0.5);
+    text-align: center;
+}
+
+#play-gameover-panel {
+    width: 310px;
+    height: 120px;
+    left: calc((100vw - 338px) * 0.5);
+    top: calc((100svh - 148px) * 0.5);
+    text-align: center;
+}
+
 #editor-ui {
     position: fixed;
     top: 10px;
@@ -289,19 +317,10 @@ input[type="text"] {
 }
 
 #editor-publish-form {
-    position: fixed;
     width: 310px;
     height: 220px;
     left: calc((100vw - 338px) * 0.5);
     top: calc((100svh - 248px) * 0.5);
-    display: block;
-    margin: 0;
-    padding: 10px;
-    background-color: #5d7275;
-    border: 4px solid #624c3cff;
-    box-shadow: 2px 2px 2px #2b2821ff;
-    z-index: 10;
-    font-family: Julee;
 }
 
 #click-anywhere-screen {

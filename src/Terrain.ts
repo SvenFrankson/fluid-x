@@ -35,11 +35,30 @@ class Terrain {
         this.holeWall.material = this.game.grayMaterial;
     }
 
+    public win(): void {
+        this.game.successPanel.style.display = "";
+        this.game.gameoverPanel.style.display = "none";
+
+        let t = this.game.ball.playTimer;
+        let min = Math.floor(t / 60);
+        let sec = Math.floor(t - 60 * min);
+        let centi = Math.floor((t - 60 * min - sec) * 100);
+
+        (this.game.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0"));
+    }
+
+    public lose(): void {
+        this.game.successPanel.style.display = "none";
+        this.game.gameoverPanel.style.display = "";
+    }
+
     public async reset(): Promise<void> {
         if (this._textContent) {
             this.loadFromText(this._textContent);
             await this.instantiate();
         }
+        this.game.successPanel.style.display = "none";
+        this.game.gameoverPanel.style.display = "none";
     }
 
     public async loadFromFile(path: string): Promise<void> {
@@ -379,5 +398,15 @@ class Terrain {
         }
         Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
         Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
+    }
+
+    public update(dt: number): void {
+        let tiles = this.tiles.filter(t => {
+            return t instanceof BlockTile && t.tileState === TileState.Active;
+        })
+        if (tiles.length === 0) {
+            this.game.ball.ballState = BallState.Done;
+            this.win();
+        }
     }
 }

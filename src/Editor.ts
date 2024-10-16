@@ -145,15 +145,25 @@ class Editor {
         makeBrushButton(this.rampButton, EditorBrush.Ramp);
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
         
+        
+        document.getElementById("play-btn").onclick = async () => {
+            this.dropBrush();
+            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
+            location.hash = "#editor-preview";
+        };
+
         document.getElementById("save-btn").onclick = () => {
+            this.dropBrush();
             let content = this.game.terrain.saveAsText();
             Nabu.download("puzzle.txt", content);
         };
         
         document.getElementById("load-btn").onclick = () => {
+            this.dropBrush();
             document.getElementById("load-btn").style.display = "none";
             document.getElementById("load-file-input").style.display = "";
         };
+
         document.getElementById("load-file-input").onchange = (event: Event) => {            
             let files = (event.target as HTMLInputElement).files;
             let file = files[0];
@@ -171,12 +181,8 @@ class Editor {
             document.getElementById("load-file-input").style.display = "none";
         };
         
-        document.getElementById("play-btn").onclick = async () => {
-            this.game.terrain.loadFromText(this.game.terrain.saveAsText());
-            location.hash = "#editor-preview";
-        };
-        
         document.getElementById("publish-btn").onclick = async () => {
+            this.dropBrush();
             document.getElementById("editor-publish-form").style.display = "";
         };
         
@@ -196,7 +202,6 @@ class Editor {
                 },
                 body: dataString,
             });
-            console.log(await response.text());
         };
         
         document.getElementById("publish-cancel-btn").onclick = async () => {
@@ -240,82 +245,95 @@ class Editor {
         this.game.camera.detachControl();
     }
 
+    public dropBrush(): void {
+        this.unselectAllButtons();
+        this.brush = EditorBrush.None;
+    }
+
     public unselectAllButtons(): void {
         this.selectableButtons.forEach(button => {
             button.classList.remove("selected");
         })
     }
 
+    private _pointerX: number = 0;
+    private _pointerY: number = 0;
+
     public pointerDown = (ev: PointerEvent) => {
-        
+        this._pointerX = ev.clientX;
+        this._pointerY = ev.clientY;    
     }
 
     public pointerUp = (ev: PointerEvent) => {
-        console.log(ev);
-        let pick = this.game.scene.pick(
-            this.game.scene.pointerX,
-            this.game.scene.pointerY,
-            (mesh) => {
-                return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
-            }
-        )
-        if (pick.hit) {
-            if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                let i = Math.round(pick.pickedPoint.x / 1.1);
-                let j = Math.round(pick.pickedPoint.z / 1.1);
-                let tile = this.game.terrain.tiles.find(tile => {
-                    return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
-                });
-                if (tile) {
-                    tile.dispose();
-                    this.game.terrain.rebuildFloor();
+        let dx = ev.clientX - this._pointerX;
+        let dy = ev.clientY - this._pointerY;
+        let dd = dx * dx + dy * dy;
+        if (dd < 9) {
+            let pick = this.game.scene.pick(
+                this.game.scene.pointerX,
+                this.game.scene.pointerY,
+                (mesh) => {
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
                 }
-            }
-            else if (ev.button === 0) {
-                let i = Math.round(pick.pickedPoint.x / 1.1);
-                let j = Math.round(pick.pickedPoint.z / 1.1);
-                let tile = this.game.terrain.tiles.find(tile => {
-                    return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
-                });
-                if (!tile) {
-                    if (this.brush === EditorBrush.Tile) {
-                        tile = new BlockTile(
-                            this.game,
-                            {
-                                i: i,
-                                j: j,
-                                h: Math.round(pick.pickedPoint.y),
-                                color: this.brushColor
-                            }
-                        )
-                    }
-                    else if (this.brush === EditorBrush.Switch) {
-                        tile = new SwitchTile(
-                            this.game,
-                            {
-                                i: i,
-                                j: j,
-                                h: Math.round(pick.pickedPoint.y),
-                                color: this.brushColor
-                            }
-                        )
-                    }
-                    else if (this.brush === EditorBrush.Hole) {
-                        tile = new HoleTile(
-                            this.game,
-                            {
-                                i: i,
-                                j: j,
-                                color: this.brushColor
-                            }
-                        )
-                    }
+            )
+            if (pick.hit) {
+                if (ev.button === 2 || this.brush === EditorBrush.Delete) {
+                    let i = Math.round(pick.pickedPoint.x / 1.1);
+                    let j = Math.round(pick.pickedPoint.z / 1.1);
+                    let tile = this.game.terrain.tiles.find(tile => {
+                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                    });
                     if (tile) {
-                        tile.instantiate();
+                        tile.dispose();
                         this.game.terrain.rebuildFloor();
                     }
                 }
-            }
+                else if (ev.button === 0) {
+                    let i = Math.round(pick.pickedPoint.x / 1.1);
+                    let j = Math.round(pick.pickedPoint.z / 1.1);
+                    let tile = this.game.terrain.tiles.find(tile => {
+                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                    });
+                    if (!tile) {
+                        if (this.brush === EditorBrush.Tile) {
+                            tile = new BlockTile(
+                                this.game,
+                                {
+                                    i: i,
+                                    j: j,
+                                    h: Math.round(pick.pickedPoint.y),
+                                    color: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Switch) {
+                            tile = new SwitchTile(
+                                this.game,
+                                {
+                                    i: i,
+                                    j: j,
+                                    h: Math.round(pick.pickedPoint.y),
+                                    color: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Hole) {
+                            tile = new HoleTile(
+                                this.game,
+                                {
+                                    i: i,
+                                    j: j,
+                                    color: this.brushColor
+                                }
+                            )
+                        }
+                        if (tile) {
+                            tile.instantiate();
+                            this.game.terrain.rebuildFloor();
+                        }
+                    }
+                }
+            }     
         }
     }
 }

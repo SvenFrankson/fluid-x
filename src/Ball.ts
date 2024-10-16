@@ -284,6 +284,7 @@ class Ball extends BABYLON.Mesh {
 
             if (this.fallTimer > 1) {
                 this.ballState = BallState.Done;
+                this.game.terrain.lose();
                 return;
             }
 

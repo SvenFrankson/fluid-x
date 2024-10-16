@@ -2,6 +2,7 @@ interface IPuzzleTileData {
     onclick: () => void;
     title: string;
     author: string;
+    content: string;
 }
 
 abstract class LevelPage {
@@ -62,8 +63,12 @@ abstract class LevelPage {
                     squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].title + "</stroke-text>";
                     squareButton.onclick = puzzleTileData[n].onclick;
 
+                    let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].content)
+                    miniature.classList.add("square-btn-miniature");
+                    squareButton.appendChild(miniature);
+
                     let authorField = document.createElement("div");
-                    authorField.classList.add("square-btn-author")
+                    authorField.classList.add("square-btn-author");
                     let authorText = document.createElement("stroke-text") as StrokeText;
                     authorText.setContent(puzzleTileData[n].author);
                     authorField.appendChild(authorText);
@@ -137,6 +142,7 @@ class BaseLevelPage extends LevelPage {
                 puzzleData[i] = {
                     title: "Level " + n.toFixed(0),
                     author: "Tiaratum Games",
+                    content: "",
                     onclick: () => {
                         location.hash = hash;
                     }
@@ -167,6 +173,7 @@ class CommunityLevelPage extends LevelPage {
             puzzleData[i] = {
                 title: data.puzzles[i].title,
                 author: data.puzzles[i].author,
+                content: data.puzzles[i].content,
                 onclick: () => {
                     this.router.game.terrain.loadFromData(data.puzzles[i]);
                     location.hash = "play-community-" + id;

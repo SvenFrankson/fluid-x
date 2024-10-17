@@ -879,37 +879,45 @@ class Editor {
         document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
         document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
         document.getElementById("ball-i-minus").onclick = () => {
+            this.dropClear();
             this.game.ball.i = Math.max(this.game.ball.i - 1, 0);
             document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
         };
         document.getElementById("ball-i-plus").onclick = () => {
+            this.dropClear();
             this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.puzzle.w - 1);
             document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
         };
         document.getElementById("ball-j-minus").onclick = () => {
+            this.dropClear();
             this.game.ball.j = Math.max(this.game.ball.j - 1, 0);
             document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
         };
         document.getElementById("ball-j-plus").onclick = () => {
+            this.dropClear();
             this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.puzzle.h - 1);
             document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
         };
         document.getElementById("width-minus").onclick = () => {
+            this.dropClear();
             this.game.puzzle.w = Math.max(this.game.puzzle.w - 1, 3);
             document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
             this.game.puzzle.rebuildFloor();
         };
         document.getElementById("width-plus").onclick = () => {
+            this.dropClear();
             this.game.puzzle.w = Math.min(this.game.puzzle.w + 1, 100);
             document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
             this.game.puzzle.rebuildFloor();
         };
         document.getElementById("height-minus").onclick = () => {
+            this.dropClear();
             this.game.puzzle.h = Math.max(this.game.puzzle.h - 1, 3);
             document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
             this.game.puzzle.rebuildFloor();
         };
         document.getElementById("height-plus").onclick = () => {
+            this.dropClear();
             this.game.puzzle.h = Math.min(this.game.puzzle.h + 1, 100);
             document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
             this.game.puzzle.rebuildFloor();
@@ -944,6 +952,7 @@ class Editor {
         ];
         let makeBrushButton = (button, brush, brushColor) => {
             button.onclick = () => {
+                this.dropClear();
                 this.unselectAllButtons();
                 if (this.brush != brush || (isFinite(brushColor) && this.brushColor != brushColor)) {
                     this.brush = brush;
@@ -969,6 +978,7 @@ class Editor {
         makeBrushButton(this.rampButton, EditorBrush.Ramp);
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
         document.getElementById("play-btn").onclick = async () => {
+            this.dropClear();
             this.dropBrush();
             this.game.puzzle.data = {
                 id: -1,
@@ -980,11 +990,13 @@ class Editor {
             location.hash = "#editor-preview";
         };
         document.getElementById("save-btn").onclick = () => {
+            this.dropClear();
             this.dropBrush();
             let content = this.game.puzzle.saveAsText();
             Nabu.download("puzzle.txt", content);
         };
         document.getElementById("load-btn").onclick = () => {
+            this.dropClear();
             this.dropBrush();
             document.getElementById("load-btn").style.display = "none";
             document.getElementById("load-file-input").style.display = "";
@@ -1011,6 +1023,7 @@ class Editor {
             document.getElementById("load-file-input").style.display = "none";
         };
         document.getElementById("publish-btn").onclick = async () => {
+            this.dropClear();
             this.dropBrush();
             document.getElementById("editor-publish-form").style.display = "";
         };
@@ -1033,6 +1046,17 @@ class Editor {
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
+        };
+        this.clearButton = document.getElementById("clear-btn");
+        this.doClearButton = document.getElementById("doclear-btn");
+        this.clearButton.onclick = () => {
+            this.clearButton.parentElement.style.display = "none";
+            this.doClearButton.parentElement.style.display = "block";
+        };
+        this.doClearButton.onclick = async () => {
+            this.dropClear();
+            await this.game.puzzle.loadFromFile("./datas/levels/min.txt");
+            await this.game.puzzle.instantiate();
         };
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
@@ -1061,6 +1085,10 @@ class Editor {
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
         this.game.camera.detachControl();
+    }
+    dropClear() {
+        this.clearButton.parentElement.style.display = "";
+        this.doClearButton.parentElement.style.display = "none";
     }
     dropBrush() {
         this.unselectAllButtons();

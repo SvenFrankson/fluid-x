@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.436893"
-     inkscape:cx="45.918454"
-     inkscape:cy="58.730314"
+     inkscape:zoom="10.873786"
+     inkscape:cx="3.2296248"
+     inkscape:cy="44.741483"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -46,7 +46,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -69,5 +69,10 @@
        style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
        d="m 333.43691,434.2735 -2.52137,2.52137 -28.57546,28.57547 -2.52137,2.52136 2.52137,2.52137 31.09683,31.09683 2.52136,-2.52136 31.09683,-31.09684 -31.09683,-31.09683 z m 0,5.04274 6.11921,6.1192 -12.23718,-7.8e-4 z m 9.68459,9.68457 9.29439,9.2944 1.4e-4,19.19283 -9.24022,9.24023 -19.47822,-4e-4 -9.00875,-9.00877 1.5e-4,-19.65495 9.06293,-9.06294 z m 12.8614,12.8614 6.02948,6.02949 -6.02933,6.02933 z m -44.85928,-0.2327 -1.4e-4,12.52421 -6.26204,-6.26202 z m 28.48683,28.66412 -6.17354,6.17354 -6.17231,-6.1723 z"
        sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccc" />
+    <path
+       id="path840"
+       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:34.0158;paint-order:stroke fill markers;stroke-opacity:1"
+       d="M 37.486328 25 A 12.5 12.5 0 0 0 25 37.5 A 12.5 12.5 0 0 0 37.5 50 A 12.5 12.5 0 0 0 50 37.5 A 12.5 12.5 0 0 0 37.5 25 A 12.5 12.5 0 0 0 37.486328 25 z M 37.386719 29 A 8.5 8.5 0 0 1 37.5 29 A 8.5 8.5 0 0 1 46 37.5 A 8.5 8.5 0 0 1 37.5 46 A 8.5 8.5 0 0 1 29 37.5 A 8.5 8.5 0 0 1 37.386719 29 z "
+       transform="translate(295.93692,431.06141)" />
   </g>
 </svg>

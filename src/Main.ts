@@ -129,6 +129,9 @@ class Game {
     public screenRatio: number = 1;
 
     public camera: BABYLON.ArcRotateCamera;
+    public menuCamAlpha: number = - Math.PI * 0.75;
+    public menuCamBeta: number = Math.PI * 0.3;
+    public menuCamRadius: number = 15;
 
     public cameraOrtho: boolean = false;
 
@@ -152,6 +155,7 @@ class Game {
 
     public router: CarillonRouter;
     public timerText: HTMLDivElement;
+    public puzzleIntro: HTMLDivElement;
     public successPanel: HTMLDivElement;
     public gameoverPanel: HTMLDivElement;
     public editor: Editor;
@@ -192,6 +196,7 @@ class Game {
             document.body.classList.remove("vertical");
         }
         this.timerText = document.querySelector("#play-timer");
+        this.puzzleIntro = document.querySelector("#puzzle-intro");
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
 
@@ -275,7 +280,7 @@ class Game {
         this.ball.position.z = 0;
 
         this.puzzle = new Puzzle(this);
-        await this.puzzle.loadFromFile("./datas/levels/min.txt");
+        await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
         await this.ball.instantiate();
 
@@ -317,7 +322,6 @@ class Game {
         
         document.getElementById("click-anywhere-screen").style.display = "none";
 
-        
         this.router = new CarillonRouter(this);
         this.router.initialize();
         this.router.start();
@@ -325,6 +329,15 @@ class Game {
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.reset();
         }
+
+        let updateCamMenuData = () => {
+            this.menuCamAlpha = - Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
+            this.menuCamBeta = Math.PI * 0.3 + (Math.random() - 0.5) * 2 * Math.PI * 0.1;
+            this.menuCamRadius = 15 + (Math.random() - 0.5) * 2 * 5;
+
+            setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
+        }
+        updateCamMenuData();
 	}
 
     public setPlayTimer(t: number): void {
@@ -390,6 +403,19 @@ class Game {
                     this.puzzle.update(rawDT);
                 }
             }
+            else if (this.mode === GameMode.Menu) {
+                rawDT = Math.min(rawDT, 1);
+                let targetCameraPos = new BABYLON.Vector3(
+                    0.5 * (this.puzzle.xMin + this.puzzle.xMax),
+                    0,
+                    0.5 * (this.puzzle.zMin + this.puzzle.zMax)
+                )
+                
+                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
+                this.camera.alpha = this.camera.alpha * 0.998 + this.menuCamAlpha * 0.002;
+                this.camera.beta = this.camera.beta * 0.998 + this.menuCamBeta * 0.002;
+                this.camera.radius = this.camera.radius * 0.998 + this.menuCamRadius * 0.002;
+            }
             else if (this.mode === GameMode.Editor) {
                 this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);
                 this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
@@ -431,6 +457,40 @@ class Game {
             this.canvasCurtain.style.display = "block";
             this.canvasCurtain.style.backgroundColor = "#000000" + Math.round(this._curtainOpacity * 255).toString(16).padStart(2, "0");
         }
+    }
+
+    public async fadeInIntro(duration: number = 1): Promise<void> {
+        this.puzzleIntro.style.opacity = "0";
+
+        let t0 = performance.now();
+        let step = () => {
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                this.puzzleIntro.style.opacity = f.toFixed(2);
+                requestAnimationFrame(step);
+            }
+            else {
+                this.puzzleIntro.style.opacity = "1";
+            }
+        }
+        step();
+    }
+
+    public async fadeOutIntro(duration: number = 1): Promise<void> {
+        this.puzzleIntro.style.opacity = "1";
+
+        let t0 = performance.now();
+        let step = () => {
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                this.puzzleIntro.style.opacity = (1 - f).toFixed(2);
+                requestAnimationFrame(step);
+            }
+            else {
+                this.puzzleIntro.style.opacity = "0";
+            }
+        }
+        step();
     }
 }
 

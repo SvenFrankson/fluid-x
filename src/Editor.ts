@@ -155,7 +155,7 @@ class Editor {
             this.dropBrush();
             this.game.puzzle.data = {
                 id: -1,
-                title: "Current Machine",
+                title: "Custom Machine",
                 author: "Editor",
                 content: this.game.puzzle.saveAsText()
             };
@@ -185,8 +185,8 @@ class Editor {
                     console.log(content);
                     this.game.puzzle.loadFromData({
                         id: 42,
-                        title: "No Title",
-                        author: "No Author",
+                        title: "Custom Machine",
+                        author: "Editor",
                         content: content
                     });
                     this.game.puzzle.instantiate();

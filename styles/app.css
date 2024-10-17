@@ -129,6 +129,15 @@ h2 {
     color: #2b2821;
 }
 
+h3 {
+    font-size: 25px;
+    font-family: Julee;
+    font-weight: 900;
+    margin: 5px;
+    margin-bottom: 10px;
+    color: #2b2821;
+}
+
 .panel {
     position: fixed;
     display: block;

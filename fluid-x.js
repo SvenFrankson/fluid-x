@@ -97,7 +97,6 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
     update(dt) {
-        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 60, BABYLON.Color3.Black(), 0.05);
         let vX = 0;
         if (this.leftDown) {
             vX -= 1;
@@ -109,6 +108,7 @@ class Ball extends BABYLON.Mesh {
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
+                this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
             }
@@ -972,7 +972,7 @@ class Editor {
             this.dropBrush();
             this.game.puzzle.data = {
                 id: -1,
-                title: "Current Machine",
+                title: "Custom Machine",
                 author: "Editor",
                 content: this.game.puzzle.saveAsText()
             };
@@ -999,8 +999,8 @@ class Editor {
                     console.log(content);
                     this.game.puzzle.loadFromData({
                         id: 42,
-                        title: "No Title",
-                        author: "No Author",
+                        title: "Custom Machine",
+                        author: "Editor",
                         content: content
                     });
                     this.game.puzzle.instantiate();
@@ -1361,6 +1361,9 @@ class Game {
         this.DEBUG_MODE = true;
         this.DEBUG_USE_LOCAL_STORAGE = true;
         this.screenRatio = 1;
+        this.menuCamAlpha = -Math.PI * 0.75;
+        this.menuCamBeta = Math.PI * 0.3;
+        this.menuCamRadius = 15;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
         this.onResize = () => {
@@ -1420,6 +1423,7 @@ class Game {
             document.body.classList.remove("vertical");
         }
         this.timerText = document.querySelector("#play-timer");
+        this.puzzleIntro = document.querySelector("#puzzle-intro");
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
@@ -1484,7 +1488,7 @@ class Game {
         this.ball.position.x = 0;
         this.ball.position.z = 0;
         this.puzzle = new Puzzle(this);
-        await this.puzzle.loadFromFile("./datas/levels/min.txt");
+        await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
         await this.ball.instantiate();
         this.ball.ballState = BallState.Ready;
@@ -1525,6 +1529,13 @@ class Game {
         document.querySelector("#reset-btn").onclick = () => {
             this.puzzle.reset();
         };
+        let updateCamMenuData = () => {
+            this.menuCamAlpha = -Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
+            this.menuCamBeta = Math.PI * 0.3 + (Math.random() - 0.5) * 2 * Math.PI * 0.1;
+            this.menuCamRadius = 15 + (Math.random() - 0.5) * 2 * 5;
+            setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
+        };
+        updateCamMenuData();
     }
     setPlayTimer(t) {
         let min = Math.floor(t / 60);
@@ -1566,6 +1577,14 @@ class Game {
                     this.puzzle.update(rawDT);
                 }
             }
+            else if (this.mode === GameMode.Menu) {
+                rawDT = Math.min(rawDT, 1);
+                let targetCameraPos = new BABYLON.Vector3(0.5 * (this.puzzle.xMin + this.puzzle.xMax), 0, 0.5 * (this.puzzle.zMin + this.puzzle.zMax));
+                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
+                this.camera.alpha = this.camera.alpha * 0.998 + this.menuCamAlpha * 0.002;
+                this.camera.beta = this.camera.beta * 0.998 + this.menuCamBeta * 0.002;
+                this.camera.radius = this.camera.radius * 0.998 + this.menuCamRadius * 0.002;
+            }
             else if (this.mode === GameMode.Editor) {
                 this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);
                 this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
@@ -1585,6 +1604,36 @@ class Game {
             this.canvasCurtain.style.display = "block";
             this.canvasCurtain.style.backgroundColor = "#000000" + Math.round(this._curtainOpacity * 255).toString(16).padStart(2, "0");
         }
+    }
+    async fadeInIntro(duration = 1) {
+        this.puzzleIntro.style.opacity = "0";
+        let t0 = performance.now();
+        let step = () => {
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                this.puzzleIntro.style.opacity = f.toFixed(2);
+                requestAnimationFrame(step);
+            }
+            else {
+                this.puzzleIntro.style.opacity = "1";
+            }
+        };
+        step();
+    }
+    async fadeOutIntro(duration = 1) {
+        this.puzzleIntro.style.opacity = "1";
+        let t0 = performance.now();
+        let step = () => {
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                this.puzzleIntro.style.opacity = (1 - f).toFixed(2);
+                requestAnimationFrame(step);
+            }
+            else {
+                this.puzzleIntro.style.opacity = "0";
+            }
+        };
+        step();
     }
 }
 function DEBUG_LOG_MESHES_NAMES() {
@@ -1775,6 +1824,9 @@ class Puzzle {
         }
         this.game.successPanel.style.display = "none";
         this.game.gameoverPanel.style.display = "none";
+        document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
+        document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
+        this.game.fadeInIntro();
     }
     async loadFromFile(path) {
         let file = await fetch(path);

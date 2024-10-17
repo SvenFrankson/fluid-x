@@ -127,7 +127,6 @@ class Ball extends BABYLON.Mesh {
     public bounceXDelay: number = 0.84;
     
     public update(dt: number): void {
-        Mummu.DrawDebugPoint(this.position.add(new BABYLON.Vector3(0, 0.05, 0)), 60, BABYLON.Color3.Black(), 0.05);
         let vX = 0;
         if (this.leftDown) {
             vX -= 1;
@@ -142,6 +141,7 @@ class Ball extends BABYLON.Mesh {
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
+                this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
             }

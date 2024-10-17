@@ -93,6 +93,9 @@ class Puzzle {
         }
         this.game.successPanel.style.display = "none";
         this.game.gameoverPanel.style.display = "none";
+        (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
+        (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
+        this.game.fadeInIntro();
     }
 
     public async loadFromFile(path: string): Promise<void> {

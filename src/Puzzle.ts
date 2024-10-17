@@ -120,9 +120,17 @@ class Puzzle {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {
                 let c = line[i];
+                if (c === "p") {
+                    let push = new PushTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
                 if (c === "O") {
                     let hole = new HoleTile(this.game, {
-                        color: TileColor.South,
+                        color: TileColor.North,
                         i: i,
                         j: j,
                         h: 0
@@ -271,6 +279,9 @@ class Puzzle {
                 else if (tile.color === TileColor.West) {
                     lines[j][i] = "W";
                 }
+            }
+            else if (tile instanceof PushTile) {
+                lines[j][i] = "p";
             }
             else if (tile instanceof HoleTile) {
                 lines[j][i] = "O";

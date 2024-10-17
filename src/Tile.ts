@@ -8,7 +8,8 @@ interface TileProps {
 
 enum TileState {
     Active,
-    Dying
+    Dying,
+    Moving
 }
 
 abstract class Tile extends BABYLON.Mesh {
@@ -26,8 +27,18 @@ abstract class Tile extends BABYLON.Mesh {
         this.scaling.copyFromFloats(s, s, s);
     }
 
-    public i: number;
-    public j: number;
+    public get i(): number {
+        return Math.round(this.position.x / 1.1);
+    }
+    public set i(v: number) {
+        this.position.x = v * 1.1;
+    }
+    public get j(): number {
+        return Math.round(this.position.z / 1.1);
+    }
+    public set j(v: number) {
+        this.position.z = v * 1.1;
+    }
 
     constructor(public game: Game, public props: TileProps) {
         super("tile");
@@ -35,11 +46,9 @@ abstract class Tile extends BABYLON.Mesh {
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
-            this.position.x = props.i * 1.1;
         }
         if (isFinite(props.j)) {
             this.j = props.j;
-            this.position.z = props.j * 1.1;
         }
         if (isFinite(props.h)) {
             this.position.y = props.h;

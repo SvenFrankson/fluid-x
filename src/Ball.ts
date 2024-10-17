@@ -220,6 +220,7 @@ class Ball extends BABYLON.Mesh {
                     if (tile.tileState === TileState.Active) {
                         if (tile.collide(this, impact)) {
                             let dir = this.position.subtract(impact);
+                            dir.normalize();
                             if (Math.abs(dir.x) > Math.abs(dir.z)) {
                                 if (dir.x > 0) {
                                     this.position.x = impact.x + this.radius;
@@ -251,6 +252,9 @@ class Ball extends BABYLON.Mesh {
                                         tile.dispose();
                                     });
                                 }
+                            }
+                            else if (tile instanceof PushTile) {
+                                tile.push(dir.scale(-1));
                             }
                             break;
                         }

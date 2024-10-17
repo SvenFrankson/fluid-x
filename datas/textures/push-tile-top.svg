@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="75"
+   height="75"
+   id="svg3739"
+   version="1.1"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="push-tile-top.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\textures\push-tile-top.png"
+   inkscape:export-xdpi="327.67999"
+   inkscape:export-ydpi="327.67999">
+  <defs
+     id="defs3741" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="5.436893"
+     inkscape:cx="45.918454"
+     inkscape:cy="58.730314"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:document-rotation="0"
+     inkscape:pagecheckerboard="true" />
+  <metadata
+     id="metadata3744">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-295.93692,-431.06141)">
+    <rect
+       style="fill:#624c3c;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect833"
+       width="75"
+       height="75"
+       x="295.93692"
+       y="431.06143"
+       ry="0"
+       rx="0" />
+    <path
+       id="rect1408"
+       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       d="m 333.43691,434.2735 -2.52137,2.52137 -28.57546,28.57547 -2.52137,2.52136 2.52137,2.52137 31.09683,31.09683 2.52136,-2.52136 31.09683,-31.09684 -31.09683,-31.09683 z m 0,5.04274 6.11921,6.1192 -12.23718,-7.8e-4 z m 9.68459,9.68457 9.29439,9.2944 1.4e-4,19.19283 -9.24022,9.24023 -19.47822,-4e-4 -9.00875,-9.00877 1.5e-4,-19.65495 9.06293,-9.06294 z m 12.8614,12.8614 6.02948,6.02949 -6.02933,6.02933 z m -44.85928,-0.2327 -1.4e-4,12.52421 -6.26204,-6.26202 z m 28.48683,28.66412 -6.17354,6.17354 -6.17231,-6.1723 z"
+       sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccc" />
+  </g>
+</svg>

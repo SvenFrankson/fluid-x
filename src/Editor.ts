@@ -3,6 +3,7 @@ enum EditorBrush {
     Delete,
     Tile,
     Switch,
+    Push,
     Hole,
     Box,
     Ramp,
@@ -23,6 +24,7 @@ class Editor {
     public blockTileEastButton: HTMLButtonElement;
     public blockTileSouthButton: HTMLButtonElement;
     public blockTileWestButton: HTMLButtonElement;
+    public pushTileButton: HTMLButtonElement;
     public holeButton: HTMLButtonElement;
     public boxButton: HTMLButtonElement;
     public rampButton: HTMLButtonElement;
@@ -96,6 +98,7 @@ class Editor {
         this.blockTileEastButton = document.getElementById("tile-east-btn") as HTMLButtonElement;
         this.blockTileSouthButton = document.getElementById("tile-south-btn") as HTMLButtonElement;
         this.blockTileWestButton = document.getElementById("tile-west-btn") as HTMLButtonElement;
+        this.pushTileButton = document.getElementById("push-tile-btn") as HTMLButtonElement;
         this.holeButton = document.getElementById("hole-btn") as HTMLButtonElement;
         this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
         this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
@@ -110,6 +113,7 @@ class Editor {
             this.blockTileEastButton,
             this.blockTileSouthButton,
             this.blockTileWestButton,
+            this.pushTileButton,
             this.holeButton,
             this.boxButton,
             this.rampButton,
@@ -140,6 +144,7 @@ class Editor {
         makeBrushButton(this.blockTileSouthButton, EditorBrush.Tile, TileColor.South);
         makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
 
+        makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.boxButton, EditorBrush.Box);
         makeBrushButton(this.rampButton, EditorBrush.Ramp);
@@ -324,6 +329,16 @@ class Editor {
                                     i: i,
                                     j: j,
                                     h: Math.round(pick.pickedPoint.y),
+                                    color: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Push) {
+                            tile = new PushTile(
+                                this.game,
+                                {
+                                    i: i,
+                                    j: j,
                                     color: this.brushColor
                                 }
                             )

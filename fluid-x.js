@@ -180,6 +180,7 @@ class Ball extends BABYLON.Mesh {
                     if (tile.tileState === TileState.Active) {
                         if (tile.collide(this, impact)) {
                             let dir = this.position.subtract(impact);
+                            dir.normalize();
                             if (Math.abs(dir.x) > Math.abs(dir.z)) {
                                 if (dir.x > 0) {
                                     this.position.x = impact.x + this.radius;
@@ -211,6 +212,9 @@ class Ball extends BABYLON.Mesh {
                                         tile.dispose();
                                     });
                                 }
+                            }
+                            else if (tile instanceof PushTile) {
+                                tile.push(dir.scale(-1));
                             }
                             break;
                         }
@@ -254,6 +258,7 @@ var TileState;
 (function (TileState) {
     TileState[TileState["Active"] = 0] = "Active";
     TileState[TileState["Dying"] = 1] = "Dying";
+    TileState[TileState["Moving"] = 2] = "Moving";
 })(TileState || (TileState = {}));
 class Tile extends BABYLON.Mesh {
     constructor(game, props) {
@@ -266,11 +271,9 @@ class Tile extends BABYLON.Mesh {
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
-            this.position.x = props.i * 1.1;
         }
         if (isFinite(props.j)) {
             this.j = props.j;
-            this.position.z = props.j * 1.1;
         }
         if (isFinite(props.h)) {
             this.position.y = props.h;
@@ -290,6 +293,18 @@ class Tile extends BABYLON.Mesh {
     }
     set size(s) {
         this.scaling.copyFromFloats(s, s, s);
+    }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
     }
     async instantiate() {
         if (this.props.noShadow != true) {
@@ -798,10 +813,11 @@ var EditorBrush;
     EditorBrush[EditorBrush["Delete"] = 1] = "Delete";
     EditorBrush[EditorBrush["Tile"] = 2] = "Tile";
     EditorBrush[EditorBrush["Switch"] = 3] = "Switch";
-    EditorBrush[EditorBrush["Hole"] = 4] = "Hole";
-    EditorBrush[EditorBrush["Box"] = 5] = "Box";
-    EditorBrush[EditorBrush["Ramp"] = 6] = "Ramp";
-    EditorBrush[EditorBrush["Bridge"] = 7] = "Bridge";
+    EditorBrush[EditorBrush["Push"] = 4] = "Push";
+    EditorBrush[EditorBrush["Hole"] = 5] = "Hole";
+    EditorBrush[EditorBrush["Box"] = 6] = "Box";
+    EditorBrush[EditorBrush["Ramp"] = 7] = "Ramp";
+    EditorBrush[EditorBrush["Bridge"] = 8] = "Bridge";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -855,6 +871,13 @@ class Editor {
                                     i: i,
                                     j: j,
                                     h: Math.round(pick.pickedPoint.y),
+                                    color: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Push) {
+                                tile = new PushTile(this.game, {
+                                    i: i,
+                                    j: j,
                                     color: this.brushColor
                                 });
                             }
@@ -929,6 +952,7 @@ class Editor {
         this.blockTileEastButton = document.getElementById("tile-east-btn");
         this.blockTileSouthButton = document.getElementById("tile-south-btn");
         this.blockTileWestButton = document.getElementById("tile-west-btn");
+        this.pushTileButton = document.getElementById("push-tile-btn");
         this.holeButton = document.getElementById("hole-btn");
         this.boxButton = document.getElementById("box-btn");
         this.rampButton = document.getElementById("ramp-btn");
@@ -942,6 +966,7 @@ class Editor {
             this.blockTileEastButton,
             this.blockTileSouthButton,
             this.blockTileWestButton,
+            this.pushTileButton,
             this.holeButton,
             this.boxButton,
             this.rampButton,
@@ -968,6 +993,7 @@ class Editor {
         makeBrushButton(this.blockTileEastButton, EditorBrush.Tile, TileColor.East);
         makeBrushButton(this.blockTileSouthButton, EditorBrush.Tile, TileColor.South);
         makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
+        makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.boxButton, EditorBrush.Box);
         makeBrushButton(this.rampButton, EditorBrush.Ramp);
@@ -1622,6 +1648,47 @@ let createAndInit = async () => {
 requestAnimationFrame(() => {
     createAndInit();
 });
+/// <reference path="./Tile.ts"/>
+class PushTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.animatePosition = Mummu.AnimationFactory.EmptyVector3Callback;
+        this.color = props.color;
+        this.animatePosition = Mummu.AnimationFactory.CreateVector3(this, this, "position");
+        this.material = this.game.brownMaterial;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        let pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
+        pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
+        pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
+        this.tileTop.material = pushTileTopMaterial;
+    }
+    async instantiate() {
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
+        tileData.applyToMesh(this);
+        this.tileTop.position.y = 0.3;
+        BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
+    }
+    async push(dir) {
+        if (this.tileState === TileState.Active) {
+            dir.x = Math.round(dir.x);
+            dir.z = Math.round(dir.z);
+            let newI = this.i + dir.x;
+            let newJ = this.j + dir.z;
+            if (newI >= 0 && newI < this.game.terrain.w) {
+                if (newJ >= 0 && newJ < this.game.terrain.h) {
+                    let newPos = this.position.clone();
+                    newPos.x = newI * 1.1;
+                    newPos.z = newJ * 1.1;
+                    this.tileState = TileState.Moving;
+                    await this.animatePosition(newPos, 1);
+                    this.tileState = TileState.Active;
+                }
+            }
+        }
+    }
+}
 class Puzzle {
     constructor(game) {
         this.game = game;
@@ -1717,9 +1784,17 @@ class Puzzle {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {
                 let c = line[i];
+                if (c === "p") {
+                    let push = new PushTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
                 if (c === "O") {
                     let hole = new HoleTile(this.game, {
-                        color: TileColor.South,
+                        color: TileColor.North,
                         i: i,
                         j: j,
                         h: 0
@@ -1866,6 +1941,9 @@ class Puzzle {
                 else if (tile.color === TileColor.West) {
                     lines[j][i] = "W";
                 }
+            }
+            else if (tile instanceof PushTile) {
+                lines[j][i] = "p";
             }
             else if (tile instanceof HoleTile) {
                 lines[j][i] = "O";

@@ -15,6 +15,22 @@ abstract class Build extends BABYLON.Mesh {
     public floor: BABYLON.Mesh;
     public shadow: BABYLON.Mesh;
     public borders: Border[] = [];
+    public get puzzle(): Puzzle {
+        return this.game.puzzle;
+    }
+
+    public get i(): number {
+        return Math.round(this.position.x / 1.1);
+    }
+    public set i(v: number) {
+        this.position.x = v * 1.1;
+    }
+    public get j(): number {
+        return Math.round(this.position.z / 1.1);
+    }
+    public set j(v: number) {
+        this.position.z = v * 1.1;
+    }
 
     constructor(public game: Game, protected boxProps: BuildProps) {
         super("tile");
@@ -36,9 +52,9 @@ abstract class Build extends BABYLON.Mesh {
 
         this.shadow.material = this.game.shadow9Material;
 
-        let index = this.game.terrain.builds.indexOf(this);
+        let index = this.game.puzzle.buildings.indexOf(this);
         if (index === -1) {
-            this.game.terrain.builds.push(this);
+            this.game.puzzle.buildings.push(this);
         }
     }
 
@@ -48,10 +64,14 @@ abstract class Build extends BABYLON.Mesh {
         
     }
 
+    public fillHeightmap(): void { }
+
+    public regenerateBorders(): void { }
+
     public dispose(): void {
-        let index = this.game.terrain.builds.indexOf(this);
+        let index = this.game.puzzle.buildings.indexOf(this);
         if (index != -1) {
-            this.game.terrain.builds.splice(index, 1);
+            this.game.puzzle.buildings.splice(index, 1);
         }
         for (let i = 0; i < this.borders.length; i++) {
             this.borders[i].dispose();
@@ -149,12 +169,37 @@ class Ramp extends Build {
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 1 + 0.5 * m));
         shadowData.applyToMesh(this.shadow);
     }
+
+    public fillHeightmap() {
+        for (let ii = 0; ii < 2; ii++) {
+            for (let jj = 0; jj < 3; jj++) {
+                this.game.puzzle.hMapSet(jj / 2, this.i + ii, this.j + jj);
+            }
+        }
+    }
 }
 
 class Box extends Build {
     
     constructor(game: Game, protected boxProps: BoxProps) {
         super(game, boxProps);
+
+        this.scaling.copyFromFloats(1.1, 1, 1.1);
+        this.material = this.game.salmonMaterial;
+    }
+
+    public fillHeightmap() {
+        for (let ii = 0; ii < 2; ii++) {
+            for (let jj = 0; jj < 2; jj++) {
+                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
+            }
+        }
+    }
+    
+    public regenerateBorders(): void {
+        while (this.borders.length > 0) {
+            this.borders.pop().dispose();
+        }
 
         let border = new Border(this.game, true);
         border.position.copyFrom(this.position);
@@ -166,8 +211,45 @@ class Box extends Build {
         border.position.x -= 0.5 * 1.1;
         border.position.z += 1.1;
         this.borders.push(border);
+        
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        this.borders.push(border);
+        
+        border = new Border(this.game, true);
+        border.position.copyFrom(this.position);
+        border.position.x += 1.5 * 1.1;
+        border.position.z += 1.1;
+        this.borders.push(border);
 
-        if (boxProps.borderLeft) {
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+
+        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1 || this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
             border = new Border(this.game, false);
             border.position.copyFrom(this.position);
             border.position.x -= 0.5 * 1.1;
@@ -181,19 +263,8 @@ class Box extends Build {
             border.position.z += 1.1;
             this.borders.push(border);
         }
-        
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        this.borders.push(border);
-        
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        border.position.z += 1.1;
-        this.borders.push(border);
 
-        if (boxProps.borderRight) {
+        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
             border = new Border(this.game, false);
             border.position.copyFrom(this.position);
             border.position.x += 1.5 * 1.1;
@@ -208,20 +279,7 @@ class Box extends Build {
             this.borders.push(border);
         }
 
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-
-        if (boxProps.borderBottom) {
+        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
             border = new Border(this.game, false);
             border.vertical = false;
             border.position.copyFrom(this.position);
@@ -238,20 +296,7 @@ class Box extends Build {
             this.borders.push(border);
         }
 
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-        
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-
-        if (boxProps.borderTop) {
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
             border = new Border(this.game, false);
             border.vertical = false;
             border.position.copyFrom(this.position);
@@ -267,9 +312,6 @@ class Box extends Build {
             border.position.z += 1.5 * 1.1;
             this.borders.push(border);
         }
-
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
-        this.material = this.game.salmonMaterial;
     }
 
     public async instantiate(): Promise<void> {
@@ -448,5 +490,13 @@ class Bridge extends Build {
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5, 0, 0.5));
         shadowData.applyToMesh(this.shadow);
+    }
+
+    public fillHeightmap() {
+        for (let ii = 0; ii < 4; ii++) {
+            for (let jj = 0; jj < 2; jj++) {
+                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
+            }
+        }
     }
 }

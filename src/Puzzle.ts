@@ -19,10 +19,25 @@ class Puzzle {
     public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
     public borders: Border[] = [];
-    public builds: Build[] = [];
+    public buildings: Build[] = [];
 
     public w: number = 10;
     public h: number = 10;
+    public heightMap: number[][];
+    public hMapGet(i: number, j: number): number {
+        if (i < this.heightMap.length) {
+            if (j < this.heightMap[i].length) {
+                return this.heightMap[i][j];
+            }
+        }
+    }
+    public hMapSet(v: number, i: number, j: number): void {
+        if (i < this.heightMap.length) {
+            if (j < this.heightMap[i].length) {
+                this.heightMap[i][j] = v;
+            }
+        }
+    }
 
     public get xMin(): number {
         return - 0.55;
@@ -89,8 +104,8 @@ class Puzzle {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
-        while (this.builds.length > 0) {
-            this.builds[0].dispose();
+        while (this.buildings.length > 0) {
+            this.buildings[0].dispose();
         }
 
         this.data = data;
@@ -200,42 +215,32 @@ class Puzzle {
                         h: 0
                     });
                 }
-                /*
-                if (c === "^") {
+                if (c === "B") {
+                    let box = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderBottom: true,
+                        borderRight: true,
+                        borderLeft: true,
+                        borderTop: true
+                    });
+                }
+                if (c === "R") {
                     let ramp = new Ramp(this.game, {
                         i: i,
                         j: j
                     });
-                    await ramp.instantiate();
                 }
-                if (c === "/") {
-                    let ramp = new Box(this.game, {
+                if (c === "U") {
+                    let bridge = new Bridge(this.game, {
                         i: i,
                         j: j,
+                        borderBottom: true,
+                        borderRight: true,
                         borderLeft: true,
                         borderTop: true
                     });
-                    await ramp.instantiate();
                 }
-                if (c === "7") {
-                    let ramp = new Box(this.game, {
-                        i: i,
-                        j: j,
-                        borderRight: true,
-                        borderTop: true
-                    });
-                    await ramp.instantiate();
-                }
-                if (c === "=") {
-                    let ramp = new Box(this.game, {
-                        i: i,
-                        j: j,
-                        borderTop: true,
-                        borderBottom: true
-                    });
-                    await ramp.instantiate();
-                }
-                */
             }
         }
     }
@@ -286,6 +291,20 @@ class Puzzle {
             else if (tile instanceof HoleTile) {
                 lines[j][i] = "O";
             }
+        });
+
+        this.buildings.forEach(building => {
+            let i = building.i;
+            let j = building.j;
+            if (building instanceof Box) {
+                lines[j][i] = "B";
+            }
+            if (building instanceof Ramp) {
+                lines[j][i] = "R";
+            }
+            if (building instanceof Bridge) {
+                lines[j][i] = "U";
+            }
         })
 
         lines.reverse();
@@ -298,11 +317,31 @@ class Puzzle {
     }
 
     public async instantiate(): Promise<void> {
+        this.regenerateHeightMap();
+
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
         }
+        for (let i = 0; i < this.buildings.length; i++) {
+            this.buildings[i].regenerateBorders();
+            await this.buildings[i].instantiate();
+        }
 
         this.rebuildFloor();
+    }
+
+    public regenerateHeightMap(): void {
+        this.heightMap = [];
+        for (let i = 0; i < this.w; i++) {
+            this.heightMap[i] = [];
+            for (let j = 0; j < this.h; j++) {
+                this.heightMap[i][j] = 0;
+            }
+        }
+
+        this.buildings.forEach(building => {
+            building.fillHeightmap();
+        })
     }
 
     public rebuildFloor(): void {

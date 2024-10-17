@@ -124,23 +124,23 @@ class Ball extends BABYLON.Mesh {
             let speed = new BABYLON.Vector3(vX * 13 / 11, 0, this.vZ);
             speed.normalize().scaleInPlace(this.speed);
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.game.terrain.zMax) {
+            if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
             }
-            else if (this.position.z - this.radius < this.game.terrain.zMin) {
+            else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
             }
-            if (this.position.x + this.radius > this.game.terrain.xMax) {
+            if (this.position.x + this.radius > this.game.puzzle.xMax) {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
             }
-            else if (this.position.x - this.radius < this.game.terrain.xMin) {
+            else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
             }
             let impact = BABYLON.Vector3.Zero();
-            for (let i = 0; i < this.game.terrain.borders.length; i++) {
-                let border = this.game.terrain.borders[i];
+            for (let i = 0; i < this.game.puzzle.borders.length; i++) {
+                let border = this.game.puzzle.borders[i];
                 if (border.collide(this, impact)) {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
@@ -166,8 +166,8 @@ class Ball extends BABYLON.Mesh {
                     break;
                 }
             }
-            for (let i = 0; i < this.game.terrain.tiles.length; i++) {
-                let tile = this.game.terrain.tiles[i];
+            for (let i = 0; i < this.game.puzzle.tiles.length; i++) {
+                let tile = this.game.puzzle.tiles[i];
                 if (tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;
@@ -241,7 +241,7 @@ class Ball extends BABYLON.Mesh {
             this.fallTimer += dt;
             if (this.fallTimer > 1) {
                 this.ballState = BallState.Done;
-                this.game.terrain.lose();
+                this.game.puzzle.lose();
                 return;
             }
             let f = Math.pow(this.fallTimer, 0.9);
@@ -266,7 +266,7 @@ class Tile extends BABYLON.Mesh {
         this.props = props;
         this.tileState = TileState.Active;
         this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.game.terrain.tiles.push(this);
+        this.game.puzzle.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
@@ -326,9 +326,9 @@ class Tile extends BABYLON.Mesh {
         await this.animateSize(0.01, 0.3);
     }
     dispose() {
-        let index = this.game.terrain.tiles.indexOf(this);
+        let index = this.game.puzzle.tiles.indexOf(this);
         if (index != -1) {
-            this.game.terrain.tiles.splice(index, 1);
+            this.game.puzzle.tiles.splice(index, 1);
         }
         super.dispose();
     }
@@ -386,9 +386,9 @@ class Border extends BABYLON.Mesh {
         this.w = 0.1;
         this.d = 1;
         this.material = this.game.blackMaterial;
-        let index = this.game.terrain.borders.indexOf(this);
+        let index = this.game.puzzle.borders.indexOf(this);
         if (index === -1) {
-            this.game.terrain.borders.push(this);
+            this.game.puzzle.borders.push(this);
         }
     }
     get vertical() {
@@ -407,9 +407,9 @@ class Border extends BABYLON.Mesh {
         }
     }
     dispose() {
-        let index = this.game.terrain.borders.indexOf(this);
+        let index = this.game.puzzle.borders.indexOf(this);
         if (index != -1) {
-            this.game.terrain.borders.splice(index, 1);
+            this.game.puzzle.borders.splice(index, 1);
         }
         super.dispose();
     }
@@ -460,18 +460,35 @@ class Build extends BABYLON.Mesh {
         this.shadow.position.y = 0.01;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadow9Material;
-        let index = this.game.terrain.builds.indexOf(this);
+        let index = this.game.puzzle.buildings.indexOf(this);
         if (index === -1) {
-            this.game.terrain.builds.push(this);
+            this.game.puzzle.buildings.push(this);
         }
+    }
+    get puzzle() {
+        return this.game.puzzle;
+    }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
     }
     async instantiate() { }
     async bump() {
     }
+    fillHeightmap() { }
+    regenerateBorders() { }
     dispose() {
-        let index = this.game.terrain.builds.indexOf(this);
+        let index = this.game.puzzle.buildings.indexOf(this);
         if (index != -1) {
-            this.game.terrain.builds.splice(index, 1);
+            this.game.puzzle.buildings.splice(index, 1);
         }
         for (let i = 0; i < this.borders.length; i++) {
             this.borders[i].dispose();
@@ -552,11 +569,32 @@ class Ramp extends Build {
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 1 + 0.5 * m));
         shadowData.applyToMesh(this.shadow);
     }
+    fillHeightmap() {
+        for (let ii = 0; ii < 2; ii++) {
+            for (let jj = 0; jj < 3; jj++) {
+                this.game.puzzle.hMapSet(jj / 2, this.i + ii, this.j + jj);
+            }
+        }
+    }
 }
 class Box extends Build {
     constructor(game, boxProps) {
         super(game, boxProps);
         this.boxProps = boxProps;
+        this.scaling.copyFromFloats(1.1, 1, 1.1);
+        this.material = this.game.salmonMaterial;
+    }
+    fillHeightmap() {
+        for (let ii = 0; ii < 2; ii++) {
+            for (let jj = 0; jj < 2; jj++) {
+                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
+            }
+        }
+    }
+    regenerateBorders() {
+        while (this.borders.length > 0) {
+            this.borders.pop().dispose();
+        }
         let border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x -= 0.5 * 1.1;
@@ -566,19 +604,6 @@ class Box extends Build {
         border.position.x -= 0.5 * 1.1;
         border.position.z += 1.1;
         this.borders.push(border);
-        if (boxProps.borderLeft) {
-            border = new Border(this.game, false);
-            border.position.copyFrom(this.position);
-            border.position.x -= 0.5 * 1.1;
-            border.position.y += 1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.position.copyFrom(this.position);
-            border.position.x -= 0.5 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.1;
-            this.borders.push(border);
-        }
         border = new Border(this.game, true);
         border.position.copyFrom(this.position);
         border.position.x += 1.5 * 1.1;
@@ -588,7 +613,42 @@ class Box extends Build {
         border.position.x += 1.5 * 1.1;
         border.position.z += 1.1;
         this.borders.push(border);
-        if (boxProps.borderRight) {
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z -= 0.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        border = new Border(this.game, true);
+        border.vertical = false;
+        border.position.copyFrom(this.position);
+        border.position.x += 1 * 1.1;
+        border.position.z += 1.5 * 1.1;
+        this.borders.push(border);
+        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1 || this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+            border = new Border(this.game, false);
+            border.position.copyFrom(this.position);
+            border.position.x -= 0.5 * 1.1;
+            border.position.y += 1;
+            this.borders.push(border);
+            border = new Border(this.game, false);
+            border.position.copyFrom(this.position);
+            border.position.x -= 0.5 * 1.1;
+            border.position.y += 1;
+            border.position.z += 1.1;
+            this.borders.push(border);
+        }
+        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
             border = new Border(this.game, false);
             border.position.copyFrom(this.position);
             border.position.x += 1.5 * 1.1;
@@ -601,18 +661,7 @@ class Box extends Build {
             border.position.z += 1.1;
             this.borders.push(border);
         }
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        if (boxProps.borderBottom) {
+        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
             border = new Border(this.game, false);
             border.vertical = false;
             border.position.copyFrom(this.position);
@@ -627,18 +676,7 @@ class Box extends Build {
             border.position.z -= 0.5 * 1.1;
             this.borders.push(border);
         }
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-        if (boxProps.borderTop) {
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
             border = new Border(this.game, false);
             border.vertical = false;
             border.position.copyFrom(this.position);
@@ -653,8 +691,6 @@ class Box extends Build {
             border.position.z += 1.5 * 1.1;
             this.borders.push(border);
         }
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
-        this.material = this.game.salmonMaterial;
     }
     async instantiate() {
         for (let i = 0; i < this.borders.length; i++) {
@@ -805,6 +841,13 @@ class Bridge extends Build {
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5, 0, 0.5));
         shadowData.applyToMesh(this.shadow);
     }
+    fillHeightmap() {
+        for (let ii = 0; ii < 4; ii++) {
+            for (let jj = 0; jj < 2; jj++) {
+                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
+            }
+        }
+    }
 }
 var EditorBrush;
 (function (EditorBrush) {
@@ -842,18 +885,27 @@ class Editor {
                     if (ev.button === 2 || this.brush === EditorBrush.Delete) {
                         let i = Math.round(pick.pickedPoint.x / 1.1);
                         let j = Math.round(pick.pickedPoint.z / 1.1);
-                        let tile = this.game.terrain.tiles.find(tile => {
+                        let tile = this.game.puzzle.tiles.find(tile => {
                             return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
                         });
                         if (tile) {
                             tile.dispose();
-                            this.game.terrain.rebuildFloor();
+                            this.game.puzzle.rebuildFloor();
+                        }
+                        else {
+                            let building = this.game.puzzle.buildings.find(build => {
+                                return build.i === i && build.j === j && Math.abs(build.position.y - pick.pickedPoint.y) < 0.3;
+                            });
+                            if (building) {
+                                building.dispose();
+                                this.game.puzzle.rebuildFloor();
+                            }
                         }
                     }
                     else if (ev.button === 0) {
                         let i = Math.round(pick.pickedPoint.x / 1.1);
                         let j = Math.round(pick.pickedPoint.z / 1.1);
-                        let tile = this.game.terrain.tiles.find(tile => {
+                        let tile = this.game.puzzle.tiles.find(tile => {
                             return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
                         });
                         if (!tile) {
@@ -887,9 +939,38 @@ class Editor {
                                     color: this.brushColor
                                 });
                             }
+                            else if (this.brush === EditorBrush.Box) {
+                                let box = new Box(this.game, {
+                                    i: i,
+                                    j: j,
+                                    borderBottom: true,
+                                    borderRight: true,
+                                    borderLeft: true,
+                                    borderTop: true
+                                });
+                                box.instantiate();
+                            }
+                            else if (this.brush === EditorBrush.Ramp) {
+                                let box = new Ramp(this.game, {
+                                    i: i,
+                                    j: j
+                                });
+                                box.instantiate();
+                            }
+                            else if (this.brush === EditorBrush.Bridge) {
+                                let box = new Bridge(this.game, {
+                                    i: i,
+                                    j: j,
+                                    borderBottom: true,
+                                    borderRight: true,
+                                    borderLeft: true,
+                                    borderTop: true
+                                });
+                                box.instantiate();
+                            }
                             if (tile) {
                                 tile.instantiate();
-                                this.game.terrain.rebuildFloor();
+                                this.game.puzzle.rebuildFloor();
                             }
                         }
                     }
@@ -905,14 +986,14 @@ class Editor {
     activate() {
         document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
         document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
-        document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
-        document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
+        document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
+        document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
         document.getElementById("ball-i-minus").onclick = () => {
             this.game.ball.i = Math.max(this.game.ball.i - 1, 0);
             document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
         };
         document.getElementById("ball-i-plus").onclick = () => {
-            this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.terrain.w - 1);
+            this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.puzzle.w - 1);
             document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
         };
         document.getElementById("ball-j-minus").onclick = () => {
@@ -920,28 +1001,28 @@ class Editor {
             document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
         };
         document.getElementById("ball-j-plus").onclick = () => {
-            this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.terrain.h - 1);
+            this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.puzzle.h - 1);
             document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
         };
         document.getElementById("width-minus").onclick = () => {
-            this.game.terrain.w = Math.max(this.game.terrain.w - 1, 3);
-            document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
-            this.game.terrain.rebuildFloor();
+            this.game.puzzle.w = Math.max(this.game.puzzle.w - 1, 3);
+            document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
+            this.game.puzzle.rebuildFloor();
         };
         document.getElementById("width-plus").onclick = () => {
-            this.game.terrain.w = Math.min(this.game.terrain.w + 1, 100);
-            document.querySelector("#width-value stroke-text").setContent(this.game.terrain.w.toFixed(0));
-            this.game.terrain.rebuildFloor();
+            this.game.puzzle.w = Math.min(this.game.puzzle.w + 1, 100);
+            document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
+            this.game.puzzle.rebuildFloor();
         };
         document.getElementById("height-minus").onclick = () => {
-            this.game.terrain.h = Math.max(this.game.terrain.h - 1, 3);
-            document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
-            this.game.terrain.rebuildFloor();
+            this.game.puzzle.h = Math.max(this.game.puzzle.h - 1, 3);
+            document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
+            this.game.puzzle.rebuildFloor();
         };
         document.getElementById("height-plus").onclick = () => {
-            this.game.terrain.h = Math.min(this.game.terrain.h + 1, 100);
-            document.querySelector("#height-value stroke-text").setContent(this.game.terrain.h.toFixed(0));
-            this.game.terrain.rebuildFloor();
+            this.game.puzzle.h = Math.min(this.game.puzzle.h + 1, 100);
+            document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
+            this.game.puzzle.rebuildFloor();
         };
         this.switchTileNorthButton = document.getElementById("switch-north-btn");
         this.switchTileEastButton = document.getElementById("switch-east-btn");
@@ -999,18 +1080,18 @@ class Editor {
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
         document.getElementById("play-btn").onclick = async () => {
             this.dropBrush();
-            this.game.terrain.data = {
+            this.game.puzzle.data = {
                 id: -1,
                 title: "Current Machine",
                 author: "Editor",
-                content: this.game.terrain.saveAsText()
+                content: this.game.puzzle.saveAsText()
             };
-            this.game.terrain.reset();
+            this.game.puzzle.reset();
             location.hash = "#editor-preview";
         };
         document.getElementById("save-btn").onclick = () => {
             this.dropBrush();
-            let content = this.game.terrain.saveAsText();
+            let content = this.game.puzzle.saveAsText();
             Nabu.download("puzzle.txt", content);
         };
         document.getElementById("load-btn").onclick = () => {
@@ -1026,13 +1107,13 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
                     console.log(content);
-                    this.game.terrain.loadFromData({
+                    this.game.puzzle.loadFromData({
                         id: 42,
                         title: "No Title",
                         author: "No Author",
                         content: content
                     });
-                    this.game.terrain.instantiate();
+                    this.game.puzzle.instantiate();
                 });
                 reader.readAsText(file);
             }
@@ -1047,7 +1128,7 @@ class Editor {
             let data = {
                 title: document.querySelector("#title-input").value,
                 author: document.querySelector("#author-input").value,
-                content: this.game.terrain.saveAsText()
+                content: this.game.puzzle.saveAsText()
             };
             console.log(data);
             let dataString = JSON.stringify(data);
@@ -1252,7 +1333,7 @@ class BaseLevelPage extends LevelPage {
                 content: data[i].content,
                 locked: i > 2,
                 onclick: () => {
-                    this.router.game.terrain.loadFromData(data[i]);
+                    this.router.game.puzzle.loadFromData(data[i]);
                     location.hash = "level-" + i;
                 }
             };
@@ -1276,7 +1357,7 @@ class CommunityLevelPage extends LevelPage {
                 author: data.puzzles[i].author,
                 content: data.puzzles[i].content,
                 onclick: () => {
-                    this.router.game.terrain.loadFromData(data.puzzles[i]);
+                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
                     location.hash = "play-community-" + id;
                 }
             };
@@ -1512,9 +1593,9 @@ class Game {
         this.ball = new Ball(this, { color: TileColor.North });
         this.ball.position.x = 0;
         this.ball.position.z = 0;
-        this.terrain = new Puzzle(this);
-        await this.terrain.loadFromFile("./datas/levels/min.txt");
-        await this.terrain.instantiate();
+        this.puzzle = new Puzzle(this);
+        await this.puzzle.loadFromFile("./datas/levels/min.txt");
+        await this.puzzle.instantiate();
         await this.ball.instantiate();
         this.ball.ballState = BallState.Ready;
         this.editor = new Editor(this);
@@ -1552,7 +1633,7 @@ class Game {
         this.router.initialize();
         this.router.start();
         document.querySelector("#reset-btn").onclick = () => {
-            this.terrain.reset();
+            this.puzzle.reset();
         };
     }
     setPlayTimer(t) {
@@ -1582,8 +1663,8 @@ class Game {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.ball.position.clone();
-                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
-                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
+                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + 2, this.puzzle.xMax - 2);
+                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + 2, this.puzzle.zMax - 2);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
                 this.camera.alpha = this.camera.alpha * 0.99 + (-Math.PI * 0.5) * 0.01;
                 this.camera.beta = this.camera.beta * 0.99 + (Math.PI * 0.1) * 0.01;
@@ -1591,13 +1672,13 @@ class Game {
                 if (this.ball) {
                     this.ball.update(rawDT);
                 }
-                if (this.terrain) {
-                    this.terrain.update(rawDT);
+                if (this.puzzle) {
+                    this.puzzle.update(rawDT);
                 }
             }
             else if (this.mode === GameMode.Editor) {
-                this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.terrain.xMin, this.terrain.xMax);
-                this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.terrain.zMin, this.terrain.zMax);
+                this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);
+                this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
                 this.camera.target.y = 0;
             }
         }
@@ -1690,9 +1771,9 @@ class PushTile extends Tile {
             }
             let newI = this.i + dir.x;
             let newJ = this.j + dir.z;
-            if (newI >= 0 && newI < this.game.terrain.w) {
-                if (newJ >= 0 && newJ < this.game.terrain.h) {
-                    let tileAtDestination = this.game.terrain.tiles.find(tile => {
+            if (newI >= 0 && newI < this.game.puzzle.w) {
+                if (newJ >= 0 && newJ < this.game.puzzle.h) {
+                    let tileAtDestination = this.game.puzzle.tiles.find(tile => {
                         return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.5;
                     });
                     if (tileAtDestination instanceof HoleTile) {
@@ -1744,13 +1825,27 @@ class Puzzle {
         };
         this.tiles = [];
         this.borders = [];
-        this.builds = [];
+        this.buildings = [];
         this.w = 10;
         this.h = 10;
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
+    }
+    hMapGet(i, j) {
+        if (i < this.heightMap.length) {
+            if (j < this.heightMap[i].length) {
+                return this.heightMap[i][j];
+            }
+        }
+    }
+    hMapSet(v, i, j) {
+        if (i < this.heightMap.length) {
+            if (j < this.heightMap[i].length) {
+                this.heightMap[i][j] = v;
+            }
+        }
     }
     get xMin() {
         return -0.55;
@@ -1799,8 +1894,8 @@ class Puzzle {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
-        while (this.builds.length > 0) {
-            this.builds[0].dispose();
+        while (this.buildings.length > 0) {
+            this.buildings[0].dispose();
         }
         this.data = data;
         let content = this.data.content;
@@ -1908,42 +2003,32 @@ class Puzzle {
                         h: 0
                     });
                 }
-                /*
-                if (c === "^") {
+                if (c === "B") {
+                    let box = new Box(this.game, {
+                        i: i,
+                        j: j,
+                        borderBottom: true,
+                        borderRight: true,
+                        borderLeft: true,
+                        borderTop: true
+                    });
+                }
+                if (c === "R") {
                     let ramp = new Ramp(this.game, {
                         i: i,
                         j: j
                     });
-                    await ramp.instantiate();
                 }
-                if (c === "/") {
-                    let ramp = new Box(this.game, {
+                if (c === "U") {
+                    let bridge = new Bridge(this.game, {
                         i: i,
                         j: j,
+                        borderBottom: true,
+                        borderRight: true,
                         borderLeft: true,
                         borderTop: true
                     });
-                    await ramp.instantiate();
                 }
-                if (c === "7") {
-                    let ramp = new Box(this.game, {
-                        i: i,
-                        j: j,
-                        borderRight: true,
-                        borderTop: true
-                    });
-                    await ramp.instantiate();
-                }
-                if (c === "=") {
-                    let ramp = new Box(this.game, {
-                        i: i,
-                        j: j,
-                        borderTop: true,
-                        borderBottom: true
-                    });
-                    await ramp.instantiate();
-                }
-                */
             }
         }
     }
@@ -1993,16 +2078,46 @@ class Puzzle {
                 lines[j][i] = "O";
             }
         });
+        this.buildings.forEach(building => {
+            let i = building.i;
+            let j = building.j;
+            if (building instanceof Box) {
+                lines[j][i] = "B";
+            }
+            if (building instanceof Ramp) {
+                lines[j][i] = "R";
+            }
+            if (building instanceof Bridge) {
+                lines[j][i] = "U";
+            }
+        });
         lines.reverse();
         let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
         lines2.splice(0, 0, this.game.ball.i.toFixed(0) + "u" + this.game.ball.j.toFixed(0) + "u" + this.game.ball.color.toFixed(0));
         return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
     }
     async instantiate() {
+        this.regenerateHeightMap();
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
         }
+        for (let i = 0; i < this.buildings.length; i++) {
+            this.buildings[i].regenerateBorders();
+            await this.buildings[i].instantiate();
+        }
         this.rebuildFloor();
+    }
+    regenerateHeightMap() {
+        this.heightMap = [];
+        for (let i = 0; i < this.w; i++) {
+            this.heightMap[i] = [];
+            for (let j = 0; j < this.h; j++) {
+                this.heightMap[i][j] = 0;
+            }
+        }
+        this.buildings.forEach(building => {
+            building.fillHeightmap();
+        });
     }
     rebuildFloor() {
         if (this.border) {
@@ -2230,14 +2345,14 @@ class CarillonRouter extends Nabu.Router {
         this.playBackButton = document.querySelector("#play-ui .back-btn");
         this.successReplayButton = document.querySelector("#success-replay-btn");
         this.successReplayButton.onclick = () => {
-            this.game.terrain.reset();
+            this.game.puzzle.reset();
         };
         this.successBackButton = document.querySelector("#success-back-btn");
         this.successNextButton = document.querySelector("#success-next-btn");
         this.gameoverBackButton = document.querySelector("#gameover-back-btn");
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
         this.gameoverReplayButton.onclick = () => {
-            this.game.terrain.reset();
+            this.game.puzzle.reset();
         };
     }
     onUpdate() { }
@@ -2260,12 +2375,12 @@ class CarillonRouter extends Nabu.Router {
             this.gameoverBackButton.parentElement.href = "#editor";
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "";
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             this.game.editor.activate();
             this.game.mode = GameMode.Editor;
         }
@@ -2275,20 +2390,20 @@ class CarillonRouter extends Nabu.Router {
             this.gameoverBackButton.parentElement.href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             this.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
-            if (this.game.terrain.data.id != numLevel) {
+            if (this.game.puzzle.data.id != numLevel) {
                 const response = await fetch("./datas/levels/tiaratum_levels.json", {
                     method: "GET",
                     mode: "cors"
                 });
                 let data = await response.json();
                 if (data[numLevel]) {
-                    this.game.terrain.loadFromData(data[numLevel]);
+                    this.game.puzzle.loadFromData(data[numLevel]);
                 }
                 else {
                     location.hash = "#levels";
                 }
             }
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "none";
             this.game.mode = GameMode.Play;
@@ -2299,15 +2414,15 @@ class CarillonRouter extends Nabu.Router {
             this.successNextButton.parentElement.href = "#community";
             this.gameoverBackButton.parentElement.href = "#community";
             let id = parseInt(page.replace("#play-community-", ""));
-            if (this.game.terrain.data.id != id) {
+            if (this.game.puzzle.data.id != id) {
                 const response = await fetch("http://localhost/index.php/puzzle/" + id.toFixed(0), {
                     method: "GET",
                     mode: "cors"
                 });
                 let data = await response.json();
-                this.game.terrain.loadFromData(data);
+                this.game.puzzle.loadFromData(data);
             }
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "none";
             this.game.mode = GameMode.Play;

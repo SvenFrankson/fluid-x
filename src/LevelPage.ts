@@ -3,6 +3,7 @@ interface IPuzzleTileData {
     title: string;
     author: string;
     content: string;
+    locked?: boolean;
 }
 
 abstract class LevelPage {
@@ -57,11 +58,15 @@ abstract class LevelPage {
             container.appendChild(line);
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
-                squareButton.classList.add("square-btn-panel", "lightblue");
+                squareButton.classList.add("square-btn-panel");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
                 else {
+                    if (puzzleTileData[n].locked) {
+                        squareButton.classList.add("locked");
+                    }
+
                     squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].title + "</stroke-text>";
                     squareButton.onclick = puzzleTileData[n].onclick;
 
@@ -141,14 +146,15 @@ class BaseLevelPage extends LevelPage {
         //this.terrain.instantiate();
 
         for (let i = 0; i < levelsPerPage && i < data.length; i++) {
-            let id = data[i].id;
+            data[i].id = i;
             puzzleData[i] = {
                 title: data[i].title,
                 author: data[i].author,
                 content: data[i].content,
+                locked: i > 2,
                 onclick: () => {
                     this.router.game.terrain.loadFromData(data[i]);
-                    location.hash = "play-community-" + id;
+                    location.hash = "level-" + i;
                 }
             }
         }

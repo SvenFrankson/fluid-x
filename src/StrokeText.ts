@@ -23,7 +23,6 @@ class StrokeText extends HTMLElement {
         this.fill.style.position = "absolute";
         this.fill.style.top = "0";
         this.fill.style.left = "0";
-        this.fill.style.color = "#2b2821ff";
         this.fill.style.zIndex = "1";
         this.appendChild(this.fill);
 

@@ -1166,11 +1166,14 @@ class LevelPage {
             container.appendChild(line);
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
-                squareButton.classList.add("square-btn-panel", "lightblue");
+                squareButton.classList.add("square-btn-panel");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
                 else {
+                    if (puzzleTileData[n].locked) {
+                        squareButton.classList.add("locked");
+                    }
                     squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].title + "</stroke-text>";
                     squareButton.onclick = puzzleTileData[n].onclick;
                     let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].content);
@@ -1242,14 +1245,15 @@ class BaseLevelPage extends LevelPage {
         //this.terrain.loadFromText(data.puzzles[0].content);
         //this.terrain.instantiate();
         for (let i = 0; i < levelsPerPage && i < data.length; i++) {
-            let id = data[i].id;
+            data[i].id = i;
             puzzleData[i] = {
                 title: data[i].title,
                 author: data[i].author,
                 content: data[i].content,
+                locked: i > 2,
                 onclick: () => {
                     this.router.game.terrain.loadFromData(data[i]);
-                    location.hash = "play-community-" + id;
+                    location.hash = "level-" + i;
                 }
             };
         }
@@ -1547,9 +1551,6 @@ class Game {
         this.router = new CarillonRouter(this);
         this.router.initialize();
         this.router.start();
-        document.querySelector("#home-play-btn").onclick = () => {
-            location.hash = "#levels";
-        };
         document.querySelector("#reset-btn").onclick = () => {
             this.terrain.reset();
         };
@@ -2271,10 +2272,22 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#level-")) {
             this.playBackButton.parentElement.href = "#levels";
             this.successBackButton.parentElement.href = "#levels";
-            this.successNextButton.parentElement.href = "#levels";
             this.gameoverBackButton.parentElement.href = "#levels";
-            let fileName = page.replace("#level-", "");
-            await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
+            let numLevel = parseInt(page.replace("#level-", ""));
+            this.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
+            if (this.game.terrain.data.id != numLevel) {
+                const response = await fetch("./datas/levels/tiaratum_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                let data = await response.json();
+                if (data[numLevel]) {
+                    this.game.terrain.loadFromData(data[numLevel]);
+                }
+                else {
+                    location.hash = "#levels";
+                }
+            }
             await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = "none";
@@ -2292,7 +2305,7 @@ class CarillonRouter extends Nabu.Router {
                     mode: "cors"
                 });
                 let data = await response.json();
-                await this.game.terrain.loadFromData(data);
+                this.game.terrain.loadFromData(data);
             }
             await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);
@@ -2327,7 +2340,6 @@ class StrokeText extends HTMLElement {
         this.fill.style.position = "absolute";
         this.fill.style.top = "0";
         this.fill.style.left = "0";
-        this.fill.style.color = "#2b2821ff";
         this.fill.style.zIndex = "1";
         this.appendChild(this.fill);
         this.stroke = document.createElement("span");

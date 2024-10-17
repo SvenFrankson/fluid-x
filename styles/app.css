@@ -17,7 +17,7 @@ body {
     background-position: center;
     width: 100vw;
     height: 100vh;
-    margin:0
+    margin:0;
 }
 
 a:link { 
@@ -117,6 +117,7 @@ h1 {
     margin: 20px;
     margin-left: auto;
     margin-right: auto;
+    color: #2b2821;
 }
 
 h2 {
@@ -125,6 +126,7 @@ h2 {
     font-weight: 900;
     margin: 5px;
     margin-bottom: 10px;
+    color: #2b2821;
 }
 
 .panel {
@@ -137,6 +139,7 @@ h2 {
     box-shadow: 2px 2px 2px #2b2821ff;
     z-index: 1;
     font-family: Julee;
+    color: #2b2821;
 }
 
 button {
@@ -147,6 +150,15 @@ button {
     background-size: 40px;
     font-family: Julee;
     font-weight: 900;
+    color: #2b2821;
+    cursor: pointer;
+}
+
+button.locked {
+    background-color: #404040;
+    color: #504d46;
+    pointer-events: none;
+    border-color: rgb(53, 47, 43);
 }
 
 button.black {
@@ -198,6 +210,7 @@ button.selected {
 }
 
 .large-btn {
+    display: block;
     border: 4px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
     font-size: 40px;
@@ -222,7 +235,7 @@ button.selected {
 .square-btn-panel {
     display: flex;
     text-align: left;
-    font-size: 18px;
+    font-size: 22px;
     flex: 1;
     border: 2px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
@@ -304,6 +317,10 @@ button.selected {
     max-height: 50%;
     z-index: 1;
     border: 2px solid #2b282180;
+}
+
+.locked .square-btn-miniature {
+    opacity: 0.75;
 }
 
 .square-btn-author {

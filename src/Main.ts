@@ -322,10 +322,6 @@ class Game {
         this.router.initialize();
         this.router.start();
 
-        (document.querySelector("#home-play-btn") as HTMLButtonElement).onclick = () => {
-            location.hash = "#levels";
-        }
-
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
             this.terrain.reset();
         }

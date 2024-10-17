@@ -74,10 +74,22 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#level-")) {
             (this.playBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.successBackButton.parentElement as HTMLAnchorElement).href = "#levels";
-            (this.successNextButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
-            let fileName = page.replace("#level-", "");
-            await this.game.terrain.loadFromFile("./datas/levels/" + fileName + ".txt");
+            let numLevel = parseInt(page.replace("#level-", ""));
+            (this.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
+            if (this.game.terrain.data.id != numLevel) {
+                const response = await fetch("./datas/levels/tiaratum_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                let data = await response.json();
+                if (data[numLevel]) {
+                    this.game.terrain.loadFromData(data[numLevel]);
+                }
+                else {
+                    location.hash = "#levels";
+                }
+            }
             await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
@@ -95,7 +107,7 @@ class CarillonRouter extends Nabu.Router {
                     mode: "cors"
                 });
                 let data = await response.json();
-                await this.game.terrain.loadFromData(data);
+                this.game.terrain.loadFromData(data);
             }
             await this.game.terrain.reset();
             await this.show(this.playUI, false, 0);

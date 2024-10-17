@@ -309,7 +309,7 @@ class Editor {
                         });
                         if (building) {
                             building.dispose();
-                            this.game.puzzle.rebuildFloor();
+                            this.game.puzzle.editorRegenerateBuildings();
                         }
                     }
                 }
@@ -374,7 +374,7 @@ class Editor {
                                     borderTop: true
                                 }
                             );
-                            box.instantiate();
+                            this.game.puzzle.editorRegenerateBuildings();
                         }
                         else if (this.brush === EditorBrush.Ramp) {
                             let box = new Ramp(
@@ -384,7 +384,7 @@ class Editor {
                                     j: j
                                 }
                             );
-                            box.instantiate();
+                            this.game.puzzle.editorRegenerateBuildings();
                         }
                         else if (this.brush === EditorBrush.Bridge) {
                             let box = new Bridge(
@@ -398,7 +398,7 @@ class Editor {
                                     borderTop: true
                                 }
                             );
-                            box.instantiate();
+                            this.game.puzzle.editorRegenerateBuildings();
                         }
                         if (tile) {
                             tile.instantiate();

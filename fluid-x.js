@@ -379,7 +379,7 @@ class BlockTile extends Tile {
     }
 }
 class Border extends BABYLON.Mesh {
-    constructor(game, ghost = true) {
+    constructor(game, ghost = false) {
         super("tile");
         this.game = game;
         this.ghost = ghost;
@@ -398,6 +398,36 @@ class Border extends BABYLON.Mesh {
         this.rotation.y = v ? 0 : Math.PI * 0.5;
         this.w = v ? 0.1 : 1;
         this.d = v ? 1 : 0.1;
+    }
+    static BorderLeft(game, i, j, y = 0, ghost = false) {
+        let border = new Border(game, ghost);
+        border.position.x = (i - 0.5) * 1.1;
+        border.position.y = y;
+        border.position.z = j * 1.1;
+        return border;
+    }
+    static BorderRight(game, i, j, y = 0, ghost = false) {
+        let border = new Border(game, ghost);
+        border.position.x = (i + 0.5) * 1.1;
+        border.position.y = y;
+        border.position.z = j * 1.1;
+        return border;
+    }
+    static BorderTop(game, i, j, y = 0, ghost = false) {
+        let border = new Border(game, ghost);
+        border.vertical = false;
+        border.position.x = i * 1.1;
+        border.position.y = y;
+        border.position.z = (j + 0.5) * 1.1;
+        return border;
+    }
+    static BorderBottom(game, i, j, y = 0, ghost = false) {
+        let border = new Border(game, ghost);
+        border.vertical = false;
+        border.position.x = i * 1.1;
+        border.position.y = y;
+        border.position.z = (j - 0.5) * 1.1;
+        return border;
     }
     async instantiate() {
         if (!this.ghost) {
@@ -442,16 +472,16 @@ class Border extends BABYLON.Mesh {
     }
 }
 class Build extends BABYLON.Mesh {
-    constructor(game, boxProps) {
+    constructor(game, props) {
         super("tile");
         this.game = game;
-        this.boxProps = boxProps;
+        this.props = props;
         this.borders = [];
-        if (isFinite(boxProps.i)) {
-            this.position.x = boxProps.i * 1.1;
+        if (isFinite(props.i)) {
+            this.position.x = props.i * 1.1;
         }
-        if (isFinite(boxProps.j)) {
-            this.position.z = boxProps.j * 1.1;
+        if (isFinite(props.j)) {
+            this.position.z = props.j * 1.1;
         }
         this.floor = new BABYLON.Mesh("building-floor");
         this.floor.parent = this;
@@ -499,56 +529,40 @@ class Build extends BABYLON.Mesh {
 class Ramp extends Build {
     constructor(game, props) {
         super(game, props);
-        let border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x -= 0.5 * 1.1;
-        border.position.y += 0.5;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        border.position.y += 0.5;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x -= 0.5 * 1.1;
-        border.position.y += 0.5;
-        border.position.z += 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        border.position.y += 0.5;
-        border.position.z += 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x -= 0.5 * 1.1;
-        border.position.y += 0.5;
-        border.position.z += 2 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        border.position.y += 0.5;
-        border.position.z += 2 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z += 2.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z += 2.5 * 1.1;
-        this.borders.push(border);
         this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
         this.builtInBorder.material = this.game.blackMaterial;
+    }
+    fillHeightmap() {
+        for (let ii = 0; ii < 2; ii++) {
+            for (let jj = 0; jj < 3; jj++) {
+                this.game.puzzle.hMapSet(jj / 2, this.i + ii, this.j + jj);
+            }
+        }
+    }
+    regenerateBorders() {
+        while (this.borders.length > 0) {
+            this.borders.pop().dispose();
+        }
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0.5, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 1, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0.5, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 2, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 2, 1, true));
+        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 2, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 2, 0, true));
+        this.props.borderLeft = true;
+        this.props.borderRight = true;
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
+            this.props.borderTop = true;
+            this.borders.push(Border.BorderTop(this.game, this.i, this.j + 2, 1));
+            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 2, 1));
+        }
     }
     async instantiate() {
         for (let i = 0; i < this.borders.length; i++) {
@@ -569,18 +583,10 @@ class Ramp extends Build {
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 1 + 0.5 * m));
         shadowData.applyToMesh(this.shadow);
     }
-    fillHeightmap() {
-        for (let ii = 0; ii < 2; ii++) {
-            for (let jj = 0; jj < 3; jj++) {
-                this.game.puzzle.hMapSet(jj / 2, this.i + ii, this.j + jj);
-            }
-        }
-    }
 }
 class Box extends Build {
-    constructor(game, boxProps) {
-        super(game, boxProps);
-        this.boxProps = boxProps;
+    constructor(game, props) {
+        super(game, props);
         this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
     }
@@ -595,101 +601,37 @@ class Box extends Build {
         while (this.borders.length > 0) {
             this.borders.pop().dispose();
         }
-        let border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x -= 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x -= 0.5 * 1.1;
-        border.position.z += 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 1.5 * 1.1;
-        border.position.z += 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 1 * 1.1;
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0, true));
+        this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 0, true));
+        this.props.borderLeft = false;
+        this.props.borderRight = false;
+        this.props.borderBottom = false;
+        this.props.borderTop = false;
         if (this.puzzle.hMapGet(this.i - 1, this.j) != 1 || this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
-            border = new Border(this.game, false);
-            border.position.copyFrom(this.position);
-            border.position.x -= 0.5 * 1.1;
-            border.position.y += 1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.position.copyFrom(this.position);
-            border.position.x -= 0.5 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.1;
-            this.borders.push(border);
+            this.props.borderLeft = true;
+            this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
+            this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
         }
         if (this.puzzle.hMapGet(this.i + 2, this.j) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
-            border = new Border(this.game, false);
-            border.position.copyFrom(this.position);
-            border.position.x += 1.5 * 1.1;
-            border.position.y += 1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.position.copyFrom(this.position);
-            border.position.x += 1.5 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.1;
-            this.borders.push(border);
+            this.props.borderRight = true;
+            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 1));
+            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 1));
         }
         if (this.puzzle.hMapGet(this.i, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.y += 1;
-            border.position.z -= 0.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 1 * 1.1;
-            border.position.y += 1;
-            border.position.z -= 0.5 * 1.1;
-            this.borders.push(border);
+            this.props.borderBottom = true;
+            this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
+            this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
         }
         if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.z += 1.5 * 1.1;
-            border.position.y += 1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 1 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.5 * 1.1;
-            this.borders.push(border);
+            this.props.borderTop = true;
+            this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
+            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
         }
     }
     async instantiate() {
@@ -699,15 +641,16 @@ class Box extends Build {
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         data[6].applyToMesh(this);
         data[7].applyToMesh(this.floor);
+        console.log(this.props);
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
             width: 2 + 2 * m,
             height: 2 + 2 * m,
             margin: m,
-            cutTop: this.boxProps.borderTop ? false : true,
-            cutRight: this.boxProps.borderRight ? false : true,
-            cutBottom: this.boxProps.borderBottom ? false : true,
-            cutLeft: this.boxProps.borderLeft ? false : true,
+            cutTop: this.props.borderTop ? false : true,
+            cutRight: this.props.borderRight ? false : true,
+            cutBottom: this.props.borderBottom ? false : true,
+            cutLeft: this.props.borderLeft ? false : true,
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 0.5));
@@ -717,109 +660,63 @@ class Box extends Build {
 class Bridge extends Build {
     constructor(game, props) {
         super(game, props);
-        let border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 0.5 * 1.1;
-        border.position.z += 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 2.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.position.copyFrom(this.position);
-        border.position.x += 2.5 * 1.1;
-        border.position.z += 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 3 * 1.1;
-        border.position.z -= 0.5 * 1.1;
-        this.borders.push(border);
-        border = new Border(this.game, true);
-        border.vertical = false;
-        border.position.copyFrom(this.position);
-        border.position.x += 3 * 1.1;
-        border.position.z += 1.5 * 1.1;
-        this.borders.push(border);
-        if (props.borderTop) {
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.y += 1;
-            border.position.z += 1.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 1 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 2 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 3 * 1.1;
-            border.position.y += 1;
-            border.position.z += 1.5 * 1.1;
-            this.borders.push(border);
-        }
-        if (props.borderBottom) {
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.y += 1;
-            border.position.z -= 0.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 1 * 1.1;
-            border.position.y += 1;
-            border.position.z -= 0.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 2 * 1.1;
-            border.position.y += 1;
-            border.position.z -= 0.5 * 1.1;
-            this.borders.push(border);
-            border = new Border(this.game, false);
-            border.vertical = false;
-            border.position.copyFrom(this.position);
-            border.position.x += 3 * 1.1;
-            border.position.y += 1;
-            border.position.z -= 0.5 * 1.1;
-            this.borders.push(border);
-        }
         this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
         this.builtInBorder.material = this.game.blackMaterial;
+    }
+    fillHeightmap() {
+        for (let ii = 0; ii < 4; ii++) {
+            for (let jj = 0; jj < 2; jj++) {
+                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
+            }
+        }
+    }
+    regenerateBorders() {
+        while (this.borders.length > 0) {
+            this.borders.pop().dispose();
+        }
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i + 3, this.j, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i + 3, this.j + 1, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 3, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 3, this.j + 1, 0, true));
+        this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderBottom(this.game, this.i + 3, this.j, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i + 3, this.j + 1, 0, true));
+        this.props.borderLeft = false;
+        this.props.borderRight = false;
+        this.props.borderBottom = false;
+        this.props.borderTop = false;
+        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1 || this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+            this.props.borderLeft = true;
+            this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
+            this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 4, this.j) != 1 || this.puzzle.hMapGet(this.i + 4, this.j + 1) != 1) {
+            this.props.borderRight = true;
+            this.borders.push(Border.BorderRight(this.game, this.i + 3, this.j, 1));
+            this.borders.push(Border.BorderRight(this.game, this.i + 3, this.j + 1, 1));
+        }
+        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 2, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 3, this.j - 1) != 1) {
+            this.props.borderBottom = true;
+            this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
+            this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
+            this.borders.push(Border.BorderBottom(this.game, this.i + 2, this.j, 1));
+            this.borders.push(Border.BorderBottom(this.game, this.i + 3, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 3, this.j + 2) != 1) {
+            this.props.borderTop = true;
+            this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
+            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
+            this.borders.push(Border.BorderTop(this.game, this.i + 2, this.j + 1, 1));
+            this.borders.push(Border.BorderTop(this.game, this.i + 3, this.j + 1, 1));
+        }
     }
     async instantiate() {
         for (let i = 0; i < this.borders.length; i++) {
@@ -834,19 +731,12 @@ class Bridge extends Build {
             width: 4 + 2 * m,
             height: 2 + 2 * m,
             margin: m,
-            cutRight: true,
-            cutLeft: true,
+            cutRight: this.props.borderRight ? false : true,
+            cutLeft: this.props.borderLeft ? false : true
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5, 0, 0.5));
         shadowData.applyToMesh(this.shadow);
-    }
-    fillHeightmap() {
-        for (let ii = 0; ii < 4; ii++) {
-            for (let jj = 0; jj < 2; jj++) {
-                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
-            }
-        }
     }
 }
 var EditorBrush;
@@ -898,7 +788,7 @@ class Editor {
                             });
                             if (building) {
                                 building.dispose();
-                                this.game.puzzle.rebuildFloor();
+                                this.game.puzzle.editorRegenerateBuildings();
                             }
                         }
                     }
@@ -948,14 +838,14 @@ class Editor {
                                     borderLeft: true,
                                     borderTop: true
                                 });
-                                box.instantiate();
+                                this.game.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Ramp) {
                                 let box = new Ramp(this.game, {
                                     i: i,
                                     j: j
                                 });
-                                box.instantiate();
+                                this.game.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Bridge) {
                                 let box = new Bridge(this.game, {
@@ -966,7 +856,7 @@ class Editor {
                                     borderLeft: true,
                                     borderTop: true
                                 });
-                                box.instantiate();
+                                this.game.puzzle.editorRegenerateBuildings();
                             }
                             if (tile) {
                                 tile.instantiate();
@@ -1331,7 +1221,7 @@ class BaseLevelPage extends LevelPage {
                 title: data[i].title,
                 author: data[i].author,
                 content: data[i].content,
-                locked: i > 2,
+                locked: false,
                 onclick: () => {
                     this.router.game.puzzle.loadFromData(data[i]);
                     location.hash = "level-" + i;
@@ -1836,6 +1726,9 @@ class Puzzle {
     hMapGet(i, j) {
         if (i < this.heightMap.length) {
             if (j < this.heightMap[i].length) {
+                if (!this.heightMap[i]) {
+                    return 0;
+                }
                 return this.heightMap[i][j];
             }
         }
@@ -1843,6 +1736,9 @@ class Puzzle {
     hMapSet(v, i, j) {
         if (i < this.heightMap.length) {
             if (j < this.heightMap[i].length) {
+                if (!this.heightMap[i]) {
+                    this.heightMap[i] = [];
+                }
                 this.heightMap[i][j] = v;
             }
         }
@@ -2118,6 +2014,13 @@ class Puzzle {
         this.buildings.forEach(building => {
             building.fillHeightmap();
         });
+    }
+    async editorRegenerateBuildings() {
+        this.regenerateHeightMap();
+        for (let i = 0; i < this.buildings.length; i++) {
+            this.buildings[i].regenerateBorders();
+            await this.buildings[i].instantiate();
+        }
     }
     rebuildFloor() {
         if (this.border) {

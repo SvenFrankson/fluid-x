@@ -27,6 +27,9 @@ class Puzzle {
     public hMapGet(i: number, j: number): number {
         if (i < this.heightMap.length) {
             if (j < this.heightMap[i].length) {
+                if (!this.heightMap[i]) {
+                    return 0;
+                }
                 return this.heightMap[i][j];
             }
         }
@@ -34,6 +37,9 @@ class Puzzle {
     public hMapSet(v: number, i: number, j: number): void {
         if (i < this.heightMap.length) {
             if (j < this.heightMap[i].length) {
+                if (!this.heightMap[i]) {
+                    this.heightMap[i] = [];
+                }
                 this.heightMap[i][j] = v;
             }
         }
@@ -342,6 +348,15 @@ class Puzzle {
         this.buildings.forEach(building => {
             building.fillHeightmap();
         })
+    }
+
+    public async editorRegenerateBuildings(): Promise<void> {
+        this.regenerateHeightMap();
+
+        for (let i = 0; i < this.buildings.length; i++) {
+            this.buildings[i].regenerateBorders();
+            await this.buildings[i].instantiate();
+        }
     }
 
     public rebuildFloor(): void {

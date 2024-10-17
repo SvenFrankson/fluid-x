@@ -151,7 +151,7 @@ class BaseLevelPage extends LevelPage {
                 title: data[i].title,
                 author: data[i].author,
                 content: data[i].content,
-                locked: i > 2,
+                locked: false,
                 onclick: () => {
                     this.router.game.puzzle.loadFromData(data[i]);
                     location.hash = "level-" + i;

@@ -13,7 +13,45 @@ class Border extends BABYLON.Mesh {
     public w: number = 0.1;
     public d: number = 1;
 
-    constructor(public game: Game, public ghost = true) {
+    public static BorderLeft(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
+        let border = new Border(game, ghost);
+        border.position.x = (i - 0.5) * 1.1;
+        border.position.y = y;
+        border.position.z = j * 1.1;
+        
+        return border;
+    }
+
+    public static BorderRight(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
+        let border = new Border(game, ghost);
+        border.position.x = (i + 0.5) * 1.1;
+        border.position.y = y;
+        border.position.z = j * 1.1;
+        
+        return border;
+    }
+
+    public static BorderTop(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
+        let border = new Border(game, ghost);
+        border.vertical = false;
+        border.position.x = i * 1.1;
+        border.position.y = y;
+        border.position.z = (j + 0.5) * 1.1;
+        
+        return border;
+    }
+
+    public static BorderBottom(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
+        let border = new Border(game, ghost);
+        border.vertical = false;
+        border.position.x = i * 1.1;
+        border.position.y = y;
+        border.position.z = (j - 0.5) * 1.1;
+        
+        return border;
+    }
+
+    constructor(public game: Game, public ghost = false) {
         super("tile");
 
         this.material = this.game.blackMaterial;

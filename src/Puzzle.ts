@@ -371,6 +371,14 @@ class Puzzle {
         top.position.z = this.zMax + 0.25;
         top.material = this.game.blackMaterial;
         top.parent = this.border;
+        
+        let topPanel = BABYLON.MeshBuilder.CreateGround("top-panel", { width: this.xMax - this.xMin + 1, height: 5.5});
+        topPanel.position.x = 0.5 * (this.xMin + this.xMax);
+        topPanel.position.y = - 5.5 * 0.5;
+        topPanel.position.z = this.zMax + 0.5;
+        topPanel.rotation.x = Math.PI * 0.5;
+        topPanel.material = this.game.blackMaterial;
+        topPanel.parent = this.border;
 
         let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin});
         right.position.x = this.xMax + 0.25;
@@ -378,6 +386,14 @@ class Puzzle {
         right.position.z = 0.5 * (this.zMin + this.zMax);
         right.material = this.game.blackMaterial;
         right.parent = this.border;
+        
+        let rightPanel = BABYLON.MeshBuilder.CreateGround("right-panel", { width: 5.5, height: this.zMax - this.zMin + 1});
+        rightPanel.position.x = this.xMax + 0.5;
+        rightPanel.position.y = - 5.5 * 0.5;
+        rightPanel.position.z = 0.5 * (this.zMin + this.zMax);
+        rightPanel.rotation.z = - Math.PI * 0.5;
+        rightPanel.material = this.game.blackMaterial;
+        rightPanel.parent = this.border;
 
         let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5});
         bottom.position.x = 0.5 * (this.xMin + this.xMax);
@@ -385,6 +401,14 @@ class Puzzle {
         bottom.position.z = this.zMin - 0.25;
         bottom.material = this.game.blackMaterial;
         bottom.parent = this.border;
+        
+        let bottomPanel = BABYLON.MeshBuilder.CreateGround("bottom-panel", { width: this.xMax - this.xMin + 1, height: 5.5});
+        bottomPanel.position.x = 0.5 * (this.xMin + this.xMax);
+        bottomPanel.position.y = - 5.5 * 0.5;
+        bottomPanel.position.z = this.zMin - 0.5;
+        bottomPanel.rotation.x = - Math.PI * 0.5;
+        bottomPanel.material = this.game.blackMaterial;
+        bottomPanel.parent = this.border;
 
         let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin});
         left.position.x = this.xMin - 0.25;
@@ -392,6 +416,14 @@ class Puzzle {
         left.position.z = 0.5 * (this.zMin + this.zMax);
         left.material = this.game.blackMaterial;
         left.parent = this.border;
+        
+        let leftPanel = BABYLON.MeshBuilder.CreateGround("left-panel", { width: 5.5, height: this.zMax - this.zMin + 1});
+        leftPanel.position.x = this.xMin - 0.5;
+        leftPanel.position.y = - 5.5 * 0.5;
+        leftPanel.position.z = 0.5 * (this.zMin + this.zMax);
+        leftPanel.rotation.z = Math.PI * 0.5;
+        leftPanel.material = this.game.blackMaterial;
+        leftPanel.parent = this.border;
         
         let holes = [];
         let floorDatas = [];

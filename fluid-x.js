@@ -1149,11 +1149,14 @@ class LevelPage {
     setSquareButtonOnClick(squareButton, n) {
     }
     async redraw() {
-        let rect = this.nabuPage.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 120);
-        let rowCount = Math.floor(rect.height * 0.7 / 120);
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
+        let rect = container.getBoundingClientRect();
+        let colCount = Math.floor(rect.width / 140);
+        let rowCount = Math.floor(rect.height / 140);
+        while (colCount < 3) {
+            colCount++;
+        }
         this.levelsPerPage = colCount * (rowCount - 1);
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
         let n = 0;
@@ -1163,7 +1166,7 @@ class LevelPage {
             container.appendChild(line);
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
-                squareButton.classList.add("square-btn");
+                squareButton.classList.add("square-btn-panel", "lightblue");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
@@ -1185,7 +1188,10 @@ class LevelPage {
             }
         }
         let line = document.createElement("div");
-        line.classList.add("square-btn-container-line");
+        line.classList.add("square-btn-container-halfline");
+        container.appendChild(line);
+        line = document.createElement("div");
+        line.classList.add("square-btn-container-halfline");
         container.appendChild(line);
         let prevButton = document.createElement("button");
         prevButton.classList.add("square-btn");
@@ -2220,6 +2226,7 @@ class CarillonRouter extends Nabu.Router {
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
+        this.playBackButton = document.querySelector("#play-ui .back-btn");
         this.successReplayButton = document.querySelector("#success-replay-btn");
         this.successReplayButton.onclick = () => {
             this.game.terrain.reset();
@@ -2262,6 +2269,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
+            this.playBackButton.parentElement.href = "#levels";
             this.successBackButton.parentElement.href = "#levels";
             this.successNextButton.parentElement.href = "#levels";
             this.gameoverBackButton.parentElement.href = "#levels";
@@ -2273,6 +2281,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#play-community-")) {
+            this.playBackButton.parentElement.href = "#community";
             this.successBackButton.parentElement.href = "#community";
             this.successNextButton.parentElement.href = "#community";
             this.gameoverBackButton.parentElement.href = "#community";

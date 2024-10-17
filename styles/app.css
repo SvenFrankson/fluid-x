@@ -219,15 +219,27 @@ button.selected {
     height: 40px;
 }
 
-.square-btn {
+.square-btn-panel {
     display: flex;
-    font-size: 20px;
+    text-align: left;
+    font-size: 18px;
     flex: 1;
     border: 2px solid #624c3cff;
     box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 3px;
-    padding: 5px;
+    padding: 5px 5px 5px 5px;
+}
+
+.square-btn {
+    display: flex;
+    font-size: 30px;
+    flex: 1;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    font-weight: 900;
+    margin: 3px;
+    padding: 15px;
 }
 
 .small-btn {
@@ -263,33 +275,47 @@ button.selected {
 .square-btn-container {
     display: flex;
     flex-direction: column;
-    height: 70%;
+    height: calc(100svh - 150px);
 }
 
 .square-btn-container-line {
     display: flex;
+    flex: 2;
+    flex-direction: row;
+}
+
+.square-btn-container-halfline {
+    display: flex;
     flex: 1;
     flex-direction: row;
+}
+
+
+.square-btn-panel stroke-text {
+    z-index: 2;
+}
+
+.square-btn-miniature {
+    display: block;
+    position: absolute;
+    left: 25%;
+    bottom: 28px;
+    max-width: 50%;
+    max-height: 50%;
+    z-index: 1;
+    border: 2px solid #2b282180;
 }
 
 .square-btn-author {
     display: block;
     position: absolute;
     font-size: 16px;
+    font-weight: 700;
     bottom: 5px;
     right: 5px;
     width: 100%;
+    z-index: 2;
     text-align: right;
-}
-
-.square-btn-miniature {
-    display: block;
-    position: absolute;
-    left: 20%;
-    bottom: 26px;
-    max-width: 50%;
-    max-height: 50%;
-    border: 2px solid #2b282180;
 }
 
 input[type="text"] {
@@ -301,7 +327,7 @@ input[type="text"] {
     padding-right: 5px;
 }
 
-.home-btn {
+.back-btn {
     display: block;
     position: fixed;
     top: 5px;

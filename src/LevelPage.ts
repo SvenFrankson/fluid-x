@@ -36,12 +36,16 @@ abstract class LevelPage {
     protected abstract getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]>;
 
     public async redraw(): Promise<void> {
-        let rect = this.nabuPage.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 120);
-        let rowCount = Math.floor(rect.height * 0.7 / 120);
 
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
+
+        let rect = container.getBoundingClientRect();
+        let colCount = Math.floor(rect.width / 140);
+        let rowCount = Math.floor(rect.height / 140);
+        while (colCount < 3) {
+            colCount++;
+        }
 
         this.levelsPerPage = colCount * (rowCount - 1);
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
@@ -53,7 +57,7 @@ abstract class LevelPage {
             container.appendChild(line);
             for (let j = 0; j < colCount; j++) {
                 let squareButton = document.createElement("button");
-                squareButton.classList.add("square-btn");
+                squareButton.classList.add("square-btn-panel", "lightblue");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
@@ -76,9 +80,13 @@ abstract class LevelPage {
                 line.appendChild(squareButton);
             }
         }
-
+        
         let line = document.createElement("div");
-        line.classList.add("square-btn-container-line");
+        line.classList.add("square-btn-container-halfline");
+        container.appendChild(line);
+
+        line = document.createElement("div");
+        line.classList.add("square-btn-container-halfline");
         container.appendChild(line);
 
         let prevButton = document.createElement("button");

@@ -5,6 +5,7 @@ class CarillonRouter extends Nabu.Router {
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
 
+    public playBackButton: HTMLButtonElement;
     public successReplayButton: HTMLButtonElement;
     public successBackButton: HTMLButtonElement;
     public successNextButton: HTMLButtonElement;
@@ -22,6 +23,7 @@ class CarillonRouter extends Nabu.Router {
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
 
+        this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
         this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;
         this.successReplayButton.onclick = () => {
             this.game.terrain.reset();
@@ -70,6 +72,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
+            (this.playBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.successBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
@@ -81,6 +84,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#play-community-")) {
+            (this.playBackButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.successBackButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";

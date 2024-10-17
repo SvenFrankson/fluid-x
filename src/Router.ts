@@ -26,14 +26,14 @@ class CarillonRouter extends Nabu.Router {
         this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
         this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;
         this.successReplayButton.onclick = () => {
-            this.game.terrain.reset();
+            this.game.puzzle.reset();
         }
         this.successBackButton = document.querySelector("#success-back-btn") as HTMLButtonElement;
         this.successNextButton = document.querySelector("#success-next-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
         this.gameoverReplayButton.onclick = () => {
-            this.game.terrain.reset();
+            this.game.puzzle.reset();
         }
     }
 
@@ -62,12 +62,12 @@ class CarillonRouter extends Nabu.Router {
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#editor")) {
             await this.show(this.editorUI, false, 0);
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             this.game.editor.activate();
             this.game.mode = GameMode.Editor;
         }
@@ -77,20 +77,20 @@ class CarillonRouter extends Nabu.Router {
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
-            if (this.game.terrain.data.id != numLevel) {
+            if (this.game.puzzle.data.id != numLevel) {
                 const response = await fetch("./datas/levels/tiaratum_levels.json", {
                     method: "GET",
                     mode: "cors"
                 });
                 let data = await response.json();
                 if (data[numLevel]) {
-                    this.game.terrain.loadFromData(data[numLevel]);
+                    this.game.puzzle.loadFromData(data[numLevel]);
                 }
                 else {
                     location.hash = "#levels";
                 }
             }
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
             this.game.mode = GameMode.Play;
@@ -101,15 +101,15 @@ class CarillonRouter extends Nabu.Router {
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
             let id = parseInt(page.replace("#play-community-", ""));
-            if (this.game.terrain.data.id != id) {
+            if (this.game.puzzle.data.id != id) {
                 const response = await fetch("http://localhost/index.php/puzzle/" + id.toFixed(0), {
                     method: "GET",
                     mode: "cors"
                 });
                 let data = await response.json();
-                this.game.terrain.loadFromData(data);
+                this.game.puzzle.loadFromData(data);
             }
-            await this.game.terrain.reset();
+            await this.game.puzzle.reset();
             await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
             this.game.mode = GameMode.Play;

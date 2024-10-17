@@ -54,9 +54,9 @@ class PushTile extends Tile {
             let newI = this.i + dir.x;
             let newJ = this.j + dir.z;
     
-            if (newI >= 0 && newI < this.game.terrain.w) {
-                if (newJ >= 0 && newJ < this.game.terrain.h) {
-                    let tileAtDestination = this.game.terrain.tiles.find(tile => {
+            if (newI >= 0 && newI < this.game.puzzle.w) {
+                if (newJ >= 0 && newJ < this.game.puzzle.h) {
+                    let tileAtDestination = this.game.puzzle.tiles.find(tile => {
                         return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.5;
                     })
                     if (tileAtDestination instanceof HoleTile) {

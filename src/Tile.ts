@@ -42,7 +42,7 @@ abstract class Tile extends BABYLON.Mesh {
 
     constructor(public game: Game, public props: TileProps) {
         super("tile");
-        this.game.terrain.tiles.push(this);
+        this.game.puzzle.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
@@ -91,9 +91,9 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public dispose(): void {
-        let index = this.game.terrain.tiles.indexOf(this);
+        let index = this.game.puzzle.tiles.indexOf(this);
         if (index != -1) {
-            this.game.terrain.tiles.splice(index, 1);
+            this.game.puzzle.tiles.splice(index, 1);
         }
         super.dispose();
     }

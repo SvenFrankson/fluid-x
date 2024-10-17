@@ -147,7 +147,7 @@ class Game {
     public darkFloorMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
-    public terrain: Puzzle;
+    public puzzle: Puzzle;
     public ball: Ball;
 
     public router: CarillonRouter;
@@ -274,9 +274,9 @@ class Game {
         this.ball.position.x = 0;
         this.ball.position.z = 0;
 
-        this.terrain = new Puzzle(this);
-        await this.terrain.loadFromFile("./datas/levels/min.txt");
-        await this.terrain.instantiate();
+        this.puzzle = new Puzzle(this);
+        await this.puzzle.loadFromFile("./datas/levels/min.txt");
+        await this.puzzle.instantiate();
         await this.ball.instantiate();
 
         this.ball.ballState = BallState.Ready;
@@ -323,7 +323,7 @@ class Game {
         this.router.start();
 
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
-            this.terrain.reset();
+            this.puzzle.reset();
         }
 	}
 
@@ -375,8 +375,8 @@ class Game {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.ball.position.clone();
-                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.terrain.xMin + 2, this.terrain.xMax - 2);
-                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.terrain.zMin + 2, this.terrain.zMax - 2);
+                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + 2, this.puzzle.xMax - 2);
+                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + 2, this.puzzle.zMax - 2);
                     
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
                 this.camera.alpha = this.camera.alpha * 0.99 + (- Math.PI * 0.5) * 0.01;
@@ -386,13 +386,13 @@ class Game {
                 if (this.ball) {
                     this.ball.update(rawDT);
                 }
-                if (this.terrain) {
-                    this.terrain.update(rawDT);
+                if (this.puzzle) {
+                    this.puzzle.update(rawDT);
                 }
             }
             else if (this.mode === GameMode.Editor) {
-                this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.terrain.xMin, this.terrain.xMax);
-                this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.terrain.zMin, this.terrain.zMax);
+                this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);
+                this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
                 this.camera.target.y = 0;
             }
         }

@@ -161,25 +161,25 @@ class Ball extends BABYLON.Mesh {
             speed.normalize().scaleInPlace(this.speed);
 
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.game.terrain.zMax) {
+            if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
             }
-            else if (this.position.z - this.radius < this.game.terrain.zMin) {
+            else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
             }
 
-            if (this.position.x + this.radius > this.game.terrain.xMax) {
+            if (this.position.x + this.radius > this.game.puzzle.xMax) {
                 this.bounceXValue = - 1;
                 this.bounceXTimer = this.bounceXDelay;
             }
-            else if (this.position.x - this.radius < this.game.terrain.xMin) {
+            else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
             }
 
             let impact = BABYLON.Vector3.Zero();
-            for (let i = 0; i < this.game.terrain.borders.length; i++) {
-                let border = this.game.terrain.borders[i];
+            for (let i = 0; i < this.game.puzzle.borders.length; i++) {
+                let border = this.game.puzzle.borders[i];
                 if (border.collide(this, impact)) {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
@@ -206,8 +206,8 @@ class Ball extends BABYLON.Mesh {
                 }
             }
 
-            for (let i = 0; i < this.game.terrain.tiles.length; i++) {
-                let tile = this.game.terrain.tiles[i];
+            for (let i = 0; i < this.game.puzzle.tiles.length; i++) {
+                let tile = this.game.puzzle.tiles[i];
                 if (tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;
@@ -287,7 +287,7 @@ class Ball extends BABYLON.Mesh {
 
             if (this.fallTimer > 1) {
                 this.ballState = BallState.Done;
-                this.game.terrain.lose();
+                this.game.puzzle.lose();
                 return;
             }
 

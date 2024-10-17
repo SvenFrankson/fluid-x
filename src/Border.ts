@@ -17,9 +17,9 @@ class Border extends BABYLON.Mesh {
         super("tile");
 
         this.material = this.game.blackMaterial;
-        let index = this.game.terrain.borders.indexOf(this);
+        let index = this.game.puzzle.borders.indexOf(this);
         if (index === -1) {
-            this.game.terrain.borders.push(this);
+            this.game.puzzle.borders.push(this);
         }
     }
 
@@ -33,9 +33,9 @@ class Border extends BABYLON.Mesh {
 
 
     public dispose(): void {
-        let index = this.game.terrain.borders.indexOf(this);
+        let index = this.game.puzzle.borders.indexOf(this);
         if (index != -1) {
-            this.game.terrain.borders.splice(index, 1);
+            this.game.puzzle.borders.splice(index, 1);
         }
         super.dispose();
     }

@@ -153,7 +153,7 @@ class BaseLevelPage extends LevelPage {
                 content: data[i].content,
                 locked: i > 2,
                 onclick: () => {
-                    this.router.game.terrain.loadFromData(data[i]);
+                    this.router.game.puzzle.loadFromData(data[i]);
                     location.hash = "level-" + i;
                 }
             }
@@ -182,7 +182,7 @@ class CommunityLevelPage extends LevelPage {
                 author: data.puzzles[i].author,
                 content: data.puzzles[i].content,
                 onclick: () => {
-                    this.router.game.terrain.loadFromData(data.puzzles[i]);
+                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
                     location.hash = "play-community-" + id;
                 }
             }

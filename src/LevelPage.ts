@@ -44,8 +44,6 @@ abstract class LevelPage {
         container.innerHTML = "";
 
         this.levelsPerPage = colCount * (rowCount - 1);
-        let maxPage = Math.ceil(this.levelCount / this.levelsPerPage);
-
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
 
         let n = 0;
@@ -107,7 +105,7 @@ abstract class LevelPage {
         }
         let nextButton = document.createElement("button");
         nextButton.classList.add("square-btn");
-        if (this.page < maxPage - 1) {
+        if (puzzleTileData.length === this.levelsPerPage) {
             nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
             nextButton.onclick = () => {
                 this.page++;
@@ -122,30 +120,27 @@ abstract class LevelPage {
 }
 
 class BaseLevelPage extends LevelPage {
-    public levelFileNames = [
-        "test"
-    ];
-
-    constructor(queryString: string, router: CarillonRouter) {
-        super(queryString, router);
-        this.levelCount = this.levelFileNames.length;
-    }
-    
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        let n = page * levelsPerPage;
-        for (let i = 0; i < levelsPerPage; i++) {
-            let index = i + n;
-            if (this.levelFileNames[index]) {
-                let hash = "#level-" + this.levelFileNames[index];
-                puzzleData[i] = {
-                    title: "Level " + n.toFixed(0),
-                    author: "Tiaratum Games",
-                    content: "",
-                    onclick: () => {
-                        location.hash = hash;
-                    }
+        const response = await fetch("./datas/levels/tiaratum_levels.json", {
+            method: "GET",
+            mode: "cors"
+        });
+        let data = await response.json();
+        console.log(data);
+        //this.terrain.loadFromText(data.puzzles[0].content);
+        //this.terrain.instantiate();
+
+        for (let i = 0; i < levelsPerPage && i < data.length; i++) {
+            let id = data[i].id;
+            puzzleData[i] = {
+                title: data[i].title,
+                author: data[i].author,
+                content: data[i].content,
+                onclick: () => {
+                    this.router.game.terrain.loadFromData(data[i]);
+                    location.hash = "play-community-" + id;
                 }
             }
         }
@@ -159,14 +154,12 @@ class CommunityLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        const response = await fetch("http://localhost/index.php/get_puzzles/0/12/", {
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/", {
             method: "GET",
             mode: "cors"
         });
         let data = await response.json();
         console.log(data);
-        //this.terrain.loadFromText(data.puzzles[0].content);
-        //this.terrain.instantiate();
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let id = data.puzzles[i].id;

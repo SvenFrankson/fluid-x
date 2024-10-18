@@ -60,6 +60,13 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#dev-levels")) {
             await this.show(this.devLevelPage.nabuPage, false, 0);
+            if (page.indexOf("#dev-levels-") != -1) {
+                let state = parseInt(page.replace("#dev-levels-", ""));
+                this.devLevelPage.levelStateToFetch = state;
+            }
+            else {
+                this.devLevelPage.levelStateToFetch = 0;
+            }
             this.devLevelPage.redraw();
         }
         else if (page.startsWith("#editor-preview")) {

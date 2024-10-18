@@ -192,11 +192,13 @@ class CommunityLevelPage extends LevelPage {
 }
 
 class DevLevelPage extends LevelPage {
+
+    public levelStateToFetch: number = 0;
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/0", {
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
             mode: "cors"
         });

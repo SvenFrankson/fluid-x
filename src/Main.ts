@@ -595,6 +595,27 @@ async function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): Prom
 
         for (let i = 0; i < devStateBtns.length; i++) {
             devStateBtns[i].style.display = "block";
+            let state = i;
+            devStateBtns[i].onclick = async () => {
+                let id = parseInt(location.hash.replace("#play-community-", ""));
+                if (isFinite(id)) {
+                    let data = {
+                        id: id,
+                        state: state,
+                        password: var1
+                    };
+                    let dataString = JSON.stringify(data);
+                    const response = await fetch("http://localhost/index.php/set_puzzle_state", {
+                        method: "POST",
+                        mode: "cors",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: dataString,
+                    });
+                    console.log(await response.text());
+                }
+            }
         }
     }
 }

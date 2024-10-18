@@ -1337,9 +1337,13 @@ class CommunityLevelPage extends LevelPage {
     }
 }
 class DevLevelPage extends LevelPage {
+    constructor() {
+        super(...arguments);
+        this.levelStateToFetch = 0;
+    }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/0", {
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
             mode: "cors"
         });
@@ -1834,6 +1838,27 @@ async function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
         }
         for (let i = 0; i < devStateBtns.length; i++) {
             devStateBtns[i].style.display = "block";
+            let state = i;
+            devStateBtns[i].onclick = async () => {
+                let id = parseInt(location.hash.replace("#play-community-", ""));
+                if (isFinite(id)) {
+                    let data = {
+                        id: id,
+                        state: state,
+                        password: var1
+                    };
+                    let dataString = JSON.stringify(data);
+                    const response = await fetch("http://localhost/index.php/set_puzzle_state", {
+                        method: "POST",
+                        mode: "cors",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: dataString,
+                    });
+                    console.log(await response.text());
+                }
+            };
         }
     }
 }
@@ -2617,6 +2642,13 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#dev-levels")) {
             await this.show(this.devLevelPage.nabuPage, false, 0);
+            if (page.indexOf("#dev-levels-") != -1) {
+                let state = parseInt(page.replace("#dev-levels-", ""));
+                this.devLevelPage.levelStateToFetch = state;
+            }
+            else {
+                this.devLevelPage.levelStateToFetch = 0;
+            }
             this.devLevelPage.redraw();
         }
         else if (page.startsWith("#editor-preview")) {

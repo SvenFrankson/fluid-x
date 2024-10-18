@@ -1,8 +1,6 @@
 interface IPuzzleTileData {
+    data: IPuzzleData;
     onclick: () => void;
-    title: string;
-    author: string;
-    content: string;
     locked?: boolean;
 }
 
@@ -42,8 +40,8 @@ abstract class LevelPage {
         container.innerHTML = "";
 
         let rect = container.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 140);
-        let rowCount = Math.floor(rect.height / 140);
+        let colCount = Math.floor(rect.width / 150);
+        let rowCount = Math.floor(rect.height / 150);
         while (colCount < 3) {
             colCount++;
         }
@@ -67,19 +65,25 @@ abstract class LevelPage {
                         squareButton.classList.add("locked");
                     }
 
-                    squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].title + "</stroke-text>";
+                    squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].data.title + "</stroke-text>";
                     squareButton.onclick = puzzleTileData[n].onclick;
 
-                    let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].content)
+                    let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].data.content)
                     miniature.classList.add("square-btn-miniature");
                     squareButton.appendChild(miniature);
 
                     let authorField = document.createElement("div");
                     authorField.classList.add("square-btn-author");
                     let authorText = document.createElement("stroke-text") as StrokeText;
-                    authorText.setContent(puzzleTileData[n].author);
                     authorField.appendChild(authorText);
                     squareButton.appendChild(authorField);
+                    if (puzzleTileData[n].data.score != null) {
+                        let val = "# 1 " + puzzleTileData[n].data.player + " " + Game.ScoreToString(puzzleTileData[n].data.score);
+                        authorText.setContent(val);
+                    }
+                    else {
+                        authorText.setContent(puzzleTileData[n].data.author);
+                    }
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -148,9 +152,7 @@ class BaseLevelPage extends LevelPage {
         for (let i = 0; i < levelsPerPage && i < data.length; i++) {
             data[i].id = i;
             puzzleData[i] = {
-                title: data[i].title,
-                author: data[i].author,
-                content: data[i].content,
+                data: data[i],
                 locked: false,
                 onclick: () => {
                     this.router.game.puzzle.loadFromData(data[i]);
@@ -172,20 +174,28 @@ class CommunityLevelPage extends LevelPage {
             method: "GET",
             mode: "cors"
         });
-        let data = await response.json();
-        console.log(data);
 
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-            let id = data.puzzles[i].id;
-            puzzleData[i] = {
-                title: data.puzzles[i].title,
-                author: data.puzzles[i].author,
-                content: data.puzzles[i].content,
-                onclick: () => {
-                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
-                    location.hash = "play-community-" + id;
+        if (response.status === 200) {
+            let data = await response.json();
+            console.log(data);
+    
+            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+                if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
+                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
+                }
+
+                let id = data.puzzles[i].id;
+                puzzleData[i] = {
+                    data: data.puzzles[i],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        location.hash = "play-community-" + id;
+                    }
                 }
             }
+        }
+        else {
+            console.error(await response.text());
         }
 
         return puzzleData;

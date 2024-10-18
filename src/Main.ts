@@ -357,6 +357,15 @@ class Game {
         updateCamMenuData();
 	}
 
+    public static ScoreToString(t: number): string {
+        t = t / 100;
+        let min = Math.floor(t / 60);
+        let sec = Math.floor(t - 60 * min);
+        let centi = Math.floor((t - 60 * min - sec) * 100);
+
+        return min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0");
+    }
+
     public setPlayTimer(t: number): void {
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);

@@ -1188,8 +1188,8 @@ class LevelPage {
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
         let rect = container.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 140);
-        let rowCount = Math.floor(rect.height / 140);
+        let colCount = Math.floor(rect.width / 150);
+        let rowCount = Math.floor(rect.height / 150);
         while (colCount < 3) {
             colCount++;
         }
@@ -1210,17 +1210,23 @@ class LevelPage {
                     if (puzzleTileData[n].locked) {
                         squareButton.classList.add("locked");
                     }
-                    squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].title + "</stroke-text>";
+                    squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].data.title + "</stroke-text>";
                     squareButton.onclick = puzzleTileData[n].onclick;
-                    let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].content);
+                    let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].data.content);
                     miniature.classList.add("square-btn-miniature");
                     squareButton.appendChild(miniature);
                     let authorField = document.createElement("div");
                     authorField.classList.add("square-btn-author");
                     let authorText = document.createElement("stroke-text");
-                    authorText.setContent(puzzleTileData[n].author);
                     authorField.appendChild(authorText);
                     squareButton.appendChild(authorField);
+                    if (puzzleTileData[n].data.score != null) {
+                        let val = "# 1 " + puzzleTileData[n].data.player + " " + Game.ScoreToString(puzzleTileData[n].data.score);
+                        authorText.setContent(val);
+                    }
+                    else {
+                        authorText.setContent(puzzleTileData[n].data.author);
+                    }
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -1283,9 +1289,7 @@ class BaseLevelPage extends LevelPage {
         for (let i = 0; i < levelsPerPage && i < data.length; i++) {
             data[i].id = i;
             puzzleData[i] = {
-                title: data[i].title,
-                author: data[i].author,
-                content: data[i].content,
+                data: data[i],
                 locked: false,
                 onclick: () => {
                     this.router.game.puzzle.loadFromData(data[i]);
@@ -1303,19 +1307,25 @@ class CommunityLevelPage extends LevelPage {
             method: "GET",
             mode: "cors"
         });
-        let data = await response.json();
-        console.log(data);
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-            let id = data.puzzles[i].id;
-            puzzleData[i] = {
-                title: data.puzzles[i].title,
-                author: data.puzzles[i].author,
-                content: data.puzzles[i].content,
-                onclick: () => {
-                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
-                    location.hash = "play-community-" + id;
+        if (response.status === 200) {
+            let data = await response.json();
+            console.log(data);
+            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+                if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
+                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
                 }
-            };
+                let id = data.puzzles[i].id;
+                puzzleData[i] = {
+                    data: data.puzzles[i],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        location.hash = "play-community-" + id;
+                    }
+                };
+            }
+        }
+        else {
+            console.error(await response.text());
         }
         return puzzleData;
     }
@@ -1617,6 +1627,13 @@ class Game {
         };
         updateCamMenuData();
     }
+    static ScoreToString(t) {
+        t = t / 100;
+        let min = Math.floor(t / 60);
+        let sec = Math.floor(t - 60 * min);
+        let centi = Math.floor((t - 60 * min - sec) * 100);
+        return min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0");
+    }
     setPlayTimer(t) {
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);
@@ -1913,16 +1930,18 @@ class Puzzle {
         return this.h * 1.1 - 0.55;
     }
     win() {
-        let t = this.game.ball.playTimer;
-        let min = Math.floor(t / 60);
-        let sec = Math.floor(t - 60 * min);
-        let centi = Math.floor((t - 60 * min - sec) * 100);
-        this.game.successPanel.querySelector("#success-timer stroke-text").setContent(min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0"));
+        let score = Math.floor(this.game.ball.playTimer * 100);
+        this.game.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
                 this.game.successPanel.style.display = "";
                 this.game.gameoverPanel.style.display = "none";
-                this.setHighscoreState(1);
+                if (this.data.score === null || score < this.data.score) {
+                    this.setHighscoreState(1);
+                }
+                else {
+                    this.setHighscoreState(0);
+                }
             }
         }, 1000);
     }
@@ -1938,17 +1957,17 @@ class Puzzle {
         console.log("setHighscoreState " + state);
         if (state === 0) {
             document.querySelector("#yes-highscore-container").style.display = "none";
-            document.querySelector("#no-highscore-container").style.display = "block";
+            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "block";
         }
         else if (state === 1) {
             document.querySelector("#yes-highscore-container").style.display = "block";
-            document.querySelector("#no-highscore-container").style.display = "none";
+            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
             document.querySelector("#success-score-btn").style.display = "inline-block";
             document.querySelector("#success-score-done-btn").style.display = "none";
         }
         else if (state === 2) {
             document.querySelector("#yes-highscore-container").style.display = "block";
-            document.querySelector("#no-highscore-container").style.display = "none";
+            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
             document.querySelector("#success-score-btn").style.display = "none";
             document.querySelector("#success-score-done-btn").style.display = "inline-block";
         }
@@ -1956,15 +1975,15 @@ class Puzzle {
     async submitHighscore() {
         let score = Math.round(this.game.ball.playTimer * 100);
         let puzzleId = this.data.id;
-        let author = document.querySelector("#score-player-input").value;
+        let player = document.querySelector("#score-player-input").value;
         let actions = "cheating";
         let data = {
             puzzle_id: puzzleId,
-            author: author,
+            player: player,
             score: score,
             actions: actions
         };
-        if (data.author.length > 3) {
+        if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
             const response = await fetch("http://localhost/index.php/publish_score", {
                 method: "POST",
@@ -2007,6 +2026,7 @@ class Puzzle {
             this.buildings[0].dispose();
         }
         this.data = data;
+        console.log(this.data);
         let content = this.data.content;
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");

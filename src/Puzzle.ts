@@ -3,6 +3,8 @@ interface IPuzzleData {
     title: string;
     author: string;
     content: string;
+    score?: number;
+    player?: string;
 }
 
 class Puzzle {
@@ -70,18 +72,19 @@ class Puzzle {
     }
 
     public win(): void {
-        let t = this.game.ball.playTimer;
-        let min = Math.floor(t / 60);
-        let sec = Math.floor(t - 60 * min);
-        let centi = Math.floor((t - 60 * min - sec) * 100);
-
-        (this.game.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0"));
+        let score = Math.floor(this.game.ball.playTimer * 100);
+        (this.game.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
                 this.game.successPanel.style.display = "";
                 this.game.gameoverPanel.style.display = "none";
-                this.setHighscoreState(1);
+                if (this.data.score === null || score < this.data.score) {
+                    this.setHighscoreState(1);
+                }
+                else {
+                    this.setHighscoreState(0);
+                }
             }
         }, 1000);
     }
@@ -99,18 +102,18 @@ class Puzzle {
         console.log("setHighscoreState " + state)
         if (state === 0) {
             (document.querySelector("#yes-highscore-container") as HTMLDivElement).style.display = "none";
-            (document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "block";
+            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "block";
         }
         else if (state === 1) {
             (document.querySelector("#yes-highscore-container") as HTMLDivElement).style.display = "block";
-            (document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
+            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
 
             (document.querySelector("#success-score-btn") as HTMLButtonElement).style.display = "inline-block";
             (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "none";
         }
         else if (state === 2) {
             (document.querySelector("#yes-highscore-container") as HTMLDivElement).style.display = "block";
-            (document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
+            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
 
             (document.querySelector("#success-score-btn") as HTMLButtonElement).style.display = "none";
             (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "inline-block";
@@ -120,16 +123,16 @@ class Puzzle {
     public async submitHighscore(): Promise<void> {
         let score = Math.round(this.game.ball.playTimer * 100);
         let puzzleId = this.data.id;
-        let author = (document.querySelector("#score-player-input") as HTMLInputElement).value;
+        let player = (document.querySelector("#score-player-input") as HTMLInputElement).value;
         let actions = "cheating";
 
         let data = {
             puzzle_id: puzzleId,
-            author: author,
+            player: player,
             score: score,
             actions: actions
         }
-        if (data.author.length > 3) {
+        if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
             const response = await fetch("http://localhost/index.php/publish_score", {
                 method: "POST",
@@ -177,6 +180,8 @@ class Puzzle {
         }
 
         this.data = data;
+
+        console.log(this.data);
 
         let content = this.data.content;
         content = content.replaceAll("\r\n", "");

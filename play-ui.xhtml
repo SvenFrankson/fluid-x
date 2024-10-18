@@ -20,11 +20,20 @@
 <div id="play-success-panel" class="panel" style="display: none;">
     <h2><stroke-text>SUCCESS !</stroke-text></h2>
     <h2 id="success-timer"><stroke-text>00:42:00</stroke-text></h2>
-    <div class="editor-line">
+    <div id="no-highscore-container" class="editor-line" style="display: none;">
         <span>Need time below 00:00:42 to enter leaderboard.</span>
     </div>
+    <div id="yes-highscore-container">
+        <div class="editor-line">
+            <span class="editor-label">player</span><input id="score-player-input" type="text"/>
+        </div>
+        <div class="editor-line">
+            <button id="success-score-btn" class="medium-btn inline orange" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
+            <button id="success-score-done-btn" class="medium-btn inline green" style="width: 220px;"><stroke-text>Well Played !</stroke-text></button>
+        </div>
+    </div>
     <div class="editor-line">
-        <button id="success-replay-btn" class="medium-btn inline red"><stroke-text>Replay</stroke-text></button>
+        <button id="success-replay-btn" class="medium-btn inline red" style="width: 220px"><stroke-text>Replay</stroke-text></button>
     </div>
     <div class="editor-line">
         <a href="#home"><button id="success-back-btn" class="medium-btn inline"><stroke-text>Back</stroke-text></button></a>

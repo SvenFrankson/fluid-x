@@ -391,10 +391,13 @@ input[type="text"] {
 
 #play-success-panel {
     width: 310px;
-    height: 250px;
     left: calc((100vw - 338px) * 0.5);
     top: calc((100svh - 278px) * 0.5);
     text-align: center;
+}
+
+#score-player-input {
+    width: 150px;
 }
 
 #play-gameover-panel {

@@ -335,6 +335,10 @@ class Game {
         
         document.getElementById("click-anywhere-screen").style.display = "none";
 
+        (document.querySelector("#success-score-btn") as HTMLButtonElement).onclick = () => {
+            this.puzzle.submitHighscore();
+        }
+
         this.router = new CarillonRouter(this);
         this.router.initialize();
         this.router.start();

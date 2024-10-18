@@ -1600,6 +1600,9 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClic);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         document.getElementById("click-anywhere-screen").style.display = "none";
+        document.querySelector("#success-score-btn").onclick = () => {
+            this.puzzle.submitHighscore();
+        };
         this.router = new CarillonRouter(this);
         this.router.initialize();
         this.router.start();
@@ -1919,6 +1922,7 @@ class Puzzle {
             if (this.game.ball.ballState === BallState.Done) {
                 this.game.successPanel.style.display = "";
                 this.game.gameoverPanel.style.display = "none";
+                this.setHighscoreState(1);
             }
         }, 1000);
     }
@@ -1929,6 +1933,50 @@ class Puzzle {
                 this.game.gameoverPanel.style.display = "";
             }
         }, 1000);
+    }
+    setHighscoreState(state) {
+        console.log("setHighscoreState " + state);
+        if (state === 0) {
+            document.querySelector("#yes-highscore-container").style.display = "none";
+            document.querySelector("#no-highscore-container").style.display = "block";
+        }
+        else if (state === 1) {
+            document.querySelector("#yes-highscore-container").style.display = "block";
+            document.querySelector("#no-highscore-container").style.display = "none";
+            document.querySelector("#success-score-btn").style.display = "inline-block";
+            document.querySelector("#success-score-done-btn").style.display = "none";
+        }
+        else if (state === 2) {
+            document.querySelector("#yes-highscore-container").style.display = "block";
+            document.querySelector("#no-highscore-container").style.display = "none";
+            document.querySelector("#success-score-btn").style.display = "none";
+            document.querySelector("#success-score-done-btn").style.display = "inline-block";
+        }
+    }
+    async submitHighscore() {
+        let score = Math.round(this.game.ball.playTimer * 100);
+        let puzzleId = this.data.id;
+        let author = document.querySelector("#score-player-input").value;
+        let actions = "cheating";
+        let data = {
+            puzzle_id: puzzleId,
+            author: author,
+            score: score,
+            actions: actions
+        };
+        if (data.author.length > 3) {
+            let dataString = JSON.stringify(data);
+            const response = await fetch("http://localhost/index.php/publish_score", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: dataString,
+            });
+            console.log("!!!");
+            this.setHighscoreState(2);
+        }
     }
     async reset() {
         if (this.data) {
@@ -2337,7 +2385,7 @@ class Puzzle {
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
         });
-        if (tiles.length === 0) {
+        if (tiles.length === 0 && this.game.ball.ballState != BallState.Done) {
             this.game.ball.ballState = BallState.Done;
             this.win();
         }

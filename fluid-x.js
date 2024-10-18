@@ -143,21 +143,30 @@ class Ball extends BABYLON.Mesh {
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
-                this.woodChocSound2.play();
+                if (!this.woodChocSound2.isPlaying) {
+                    this.woodChocSound2.play();
+                }
             }
             else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
-                this.woodChocSound2.play();
+                if (!this.woodChocSound2.isPlaying) {
+                    this.woodChocSound2.play();
+                }
             }
             if (this.position.x + this.radius > this.game.puzzle.xMax) {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
+                if (!this.woodChocSound2.isPlaying) {
+                    this.woodChocSound2.play();
+                }
             }
             else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
-                this.woodChocSound2.play();
+                if (!this.woodChocSound2.isPlaying) {
+                    this.woodChocSound2.play();
+                }
             }
             let impact = BABYLON.Vector3.Zero();
             for (let i = 0; i < this.game.puzzle.borders.length; i++) {
@@ -175,7 +184,6 @@ class Ball extends BABYLON.Mesh {
                             this.bounceXValue = -1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
-                        this.woodChocSound2.play();
                     }
                     else {
                         if (dir.z > 0) {
@@ -184,6 +192,9 @@ class Ball extends BABYLON.Mesh {
                         else {
                             this.vZ = -1;
                         }
+                    }
+                    if (!this.woodChocSound2.isPlaying) {
+                        this.woodChocSound2.play();
                     }
                     break;
                 }
@@ -213,7 +224,9 @@ class Ball extends BABYLON.Mesh {
                                     this.bounceXValue = -1;
                                     this.bounceXTimer = this.bounceXDelay;
                                 }
-                                this.woodChocSound.play();
+                                if (!this.woodChocSound.isPlaying) {
+                                    this.woodChocSound.play();
+                                }
                             }
                             else {
                                 if (dir.z > 0) {
@@ -222,7 +235,9 @@ class Ball extends BABYLON.Mesh {
                                 else {
                                     this.vZ = -1;
                                 }
-                                this.woodChocSound.play();
+                                if (!this.woodChocSound.isPlaying) {
+                                    this.woodChocSound.play();
+                                }
                             }
                             if (this.ballState === BallState.Move) {
                                 if (tile instanceof SwitchTile) {
@@ -1278,22 +1293,13 @@ class LevelPage {
 class BaseLevelPage extends LevelPage {
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch("./datas/levels/tiaratum_levels.json", {
-            method: "GET",
-            mode: "cors"
-        });
-        let data = await response.json();
-        console.log(data);
-        //this.terrain.loadFromText(data.puzzles[0].content);
-        //this.terrain.instantiate();
-        for (let i = 0; i < levelsPerPage && i < data.length; i++) {
-            data[i].id = i;
+        let data = this.router.game.tiaratumGameLevels;
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             puzzleData[i] = {
-                data: data[i],
-                locked: false,
+                data: data.puzzles[i],
                 onclick: () => {
-                    this.router.game.puzzle.loadFromData(data[i]);
-                    location.hash = "level-" + i;
+                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                    location.hash = "level-" + (i + 1).toFixed(0);
                 }
             };
         }
@@ -1303,7 +1309,37 @@ class BaseLevelPage extends LevelPage {
 class CommunityLevelPage extends LevelPage {
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/", {
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
+            method: "GET",
+            mode: "cors"
+        });
+        if (response.status === 200) {
+            let data = await response.json();
+            console.log(data);
+            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+                if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
+                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
+                }
+                let id = data.puzzles[i].id;
+                puzzleData[i] = {
+                    data: data.puzzles[i],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        location.hash = "play-community-" + id;
+                    }
+                };
+            }
+        }
+        else {
+            console.error(await response.text());
+        }
+        return puzzleData;
+    }
+}
+class DevLevelPage extends LevelPage {
+    async getPuzzlesData(page, levelsPerPage) {
+        let puzzleData = [];
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/0", {
             method: "GET",
             mode: "cors"
         });
@@ -1571,6 +1607,24 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
+        const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
+            method: "GET",
+            mode: "cors"
+        });
+        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        //    method: "GET",
+        //    mode: "cors"
+        //});
+        let data = await response.json();
+        for (let i = 0; i < data.puzzles.length; i++) {
+            if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
+                data.puzzles[i].score = parseInt(data.puzzles[i].score);
+            }
+        }
+        this.tiaratumGameLevels = data;
+        for (let i = 0; i < this.tiaratumGameLevels.puzzles.length; i++) {
+            this.tiaratumGameLevels.puzzles[i].numLevel = (i + 1);
+        }
         this.ball = new Ball(this, { color: TileColor.North });
         this.ball.position.x = 0;
         this.ball.position.z = 0;
@@ -1755,6 +1809,33 @@ function DEBUG_LOG_MESHES_NAMES() {
     });
     countedMeshNames.sort((e1, e2) => { return e1.count - e2.count; });
     console.log(countedMeshNames);
+}
+async function DEV_GENERATE_STORYMODE_LEVEL_FILE() {
+    const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
+        method: "GET",
+        mode: "cors"
+    });
+    if (response.status === 200) {
+        let data = await response.json();
+        Nabu.download("tiaratum_levels.json", JSON.stringify(data));
+    }
+    else {
+        console.error(await response.text());
+    }
+}
+var var1 = "";
+async function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
+    if (password === "Zy5QvAxcCBX8eL9ofMgpY8vE" || true) {
+        var1 = password;
+        let devStateBtns = [];
+        for (let i = 0; i <= 5; i++) {
+            let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
+            devStateBtns.push(btn);
+        }
+        for (let i = 0; i < devStateBtns.length; i++) {
+            devStateBtns[i].style.display = "block";
+        }
+    }
 }
 let createAndInit = async () => {
     try {
@@ -2504,6 +2585,7 @@ class CarillonRouter extends Nabu.Router {
         this.homeMenu = document.querySelector("#home-menu");
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
+        this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
         this.playBackButton = document.querySelector("#play-ui .back-btn");
@@ -2533,6 +2615,10 @@ class CarillonRouter extends Nabu.Router {
             await this.show(this.communityLevelPage.nabuPage, false, 0);
             this.communityLevelPage.redraw();
         }
+        else if (page.startsWith("#dev-levels")) {
+            await this.show(this.devLevelPage.nabuPage, false, 0);
+            this.devLevelPage.redraw();
+        }
         else if (page.startsWith("#editor-preview")) {
             this.successBackButton.parentElement.href = "#editor";
             this.successNextButton.parentElement.href = "#editor";
@@ -2554,14 +2640,10 @@ class CarillonRouter extends Nabu.Router {
             this.gameoverBackButton.parentElement.href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             this.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
-            if (this.game.puzzle.data.id != numLevel) {
-                const response = await fetch("./datas/levels/tiaratum_levels.json", {
-                    method: "GET",
-                    mode: "cors"
-                });
-                let data = await response.json();
-                if (data[numLevel]) {
-                    this.game.puzzle.loadFromData(data[numLevel]);
+            if (this.game.puzzle.data.numLevel != numLevel) {
+                let data = this.game.tiaratumGameLevels;
+                if (data.puzzles[numLevel]) {
+                    this.game.puzzle.loadFromData(data.puzzles[numLevel]);
                 }
                 else {
                     location.hash = "#levels";

@@ -154,6 +154,7 @@ class Game {
     public puzzle: Puzzle;
     public ball: Ball;
 
+    public tiaratumGameLevels: IPuzzlesData;
     public router: CarillonRouter;
     public timerText: HTMLDivElement;
     public puzzleIntro: HTMLDivElement;
@@ -286,6 +287,27 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
+
+        const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
+            method: "GET",
+            mode: "cors"
+        });
+        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        //    method: "GET",
+        //    mode: "cors"
+        //});
+        let data = await response.json();
+        
+        for (let i = 0; i < data.puzzles.length; i++) {
+            if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
+                data.puzzles[i].score = parseInt(data.puzzles[i].score);
+            }
+        }
+
+        this.tiaratumGameLevels = data;
+        for (let i = 0; i < this.tiaratumGameLevels.puzzles.length; i++) {
+            this.tiaratumGameLevels.puzzles[i].numLevel = (i + 1);
+        }
 
         this.ball = new Ball(this, { color: TileColor.North });
 
@@ -544,6 +566,37 @@ function DEBUG_LOG_MESHES_NAMES(): void {
     });
     countedMeshNames.sort((e1, e2) => { return e1.count - e2.count; });
     console.log(countedMeshNames);
+}
+
+async function DEV_GENERATE_STORYMODE_LEVEL_FILE(): Promise<void> {
+    const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
+        method: "GET",
+        mode: "cors"
+    });
+
+    if (response.status === 200) {
+        let data = await response.json();
+        Nabu.download("tiaratum_levels.json", JSON.stringify(data));
+    }
+    else {
+        console.error(await response.text());
+    }
+}
+
+var var1: string = "";
+async function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): Promise<void> {
+    if (password === "Zy5QvAxcCBX8eL9ofMgpY8vE" || true) {
+        var1 = password;
+        let devStateBtns: HTMLButtonElement[] = [];
+        for (let i = 0; i <= 5; i++) {
+            let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
+            devStateBtns.push(btn);
+        }
+
+        for (let i = 0; i < devStateBtns.length; i++) {
+            devStateBtns[i].style.display = "block";
+        }
+    }
 }
 
 let createAndInit = async () => {

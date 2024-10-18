@@ -139,24 +139,13 @@ abstract class LevelPage {
 class BaseLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
-
-        const response = await fetch("./datas/levels/tiaratum_levels.json", {
-            method: "GET",
-            mode: "cors"
-        });
-        let data = await response.json();
-        console.log(data);
-        //this.terrain.loadFromText(data.puzzles[0].content);
-        //this.terrain.instantiate();
-
-        for (let i = 0; i < levelsPerPage && i < data.length; i++) {
-            data[i].id = i;
+        let data = this.router.game.tiaratumGameLevels;
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             puzzleData[i] = {
-                data: data[i],
-                locked: false,
+                data: data.puzzles[i],
                 onclick: () => {
-                    this.router.game.puzzle.loadFromData(data[i]);
-                    location.hash = "level-" + i;
+                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                    location.hash = "level-" + (i + 1).toFixed(0);
                 }
             }
         }
@@ -170,7 +159,44 @@ class CommunityLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/", {
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
+            method: "GET",
+            mode: "cors"
+        });
+
+        if (response.status === 200) {
+            let data = await response.json();
+            console.log(data);
+    
+            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+                if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
+                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
+                }
+
+                let id = data.puzzles[i].id;
+                puzzleData[i] = {
+                    data: data.puzzles[i],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        location.hash = "play-community-" + id;
+                    }
+                }
+            }
+        }
+        else {
+            console.error(await response.text());
+        }
+
+        return puzzleData;
+    }
+}
+
+class DevLevelPage extends LevelPage {
+    
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+
+        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/0", {
             method: "GET",
             mode: "cors"
         });

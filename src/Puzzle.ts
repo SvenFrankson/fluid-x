@@ -3,8 +3,13 @@ interface IPuzzleData {
     title: string;
     author: string;
     content: string;
+    numLevel?: number;
     score?: number;
     player?: string;
+}
+
+interface IPuzzlesData {
+    puzzles: IPuzzleData[];
 }
 
 class Puzzle {

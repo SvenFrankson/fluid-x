@@ -2,6 +2,7 @@ class CarillonRouter extends Nabu.Router {
     public homeMenu: Nabu.DefaultPage;
     public baseLevelPage: BaseLevelPage;
     public communityLevelPage: CommunityLevelPage;
+    public devLevelPage: DevLevelPage;
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
 
@@ -20,6 +21,7 @@ class CarillonRouter extends Nabu.Router {
         this.homeMenu = document.querySelector("#home-menu") as Nabu.DefaultPage;
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
+        this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
 
@@ -56,6 +58,10 @@ class CarillonRouter extends Nabu.Router {
             await this.show(this.communityLevelPage.nabuPage, false, 0);
             this.communityLevelPage.redraw();
         }
+        else if (page.startsWith("#dev-levels")) {
+            await this.show(this.devLevelPage.nabuPage, false, 0);
+            this.devLevelPage.redraw();
+        }
         else if (page.startsWith("#editor-preview")) {
             (this.successBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
@@ -77,14 +83,10 @@ class CarillonRouter extends Nabu.Router {
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
-            if (this.game.puzzle.data.id != numLevel) {
-                const response = await fetch("./datas/levels/tiaratum_levels.json", {
-                    method: "GET",
-                    mode: "cors"
-                });
-                let data = await response.json();
-                if (data[numLevel]) {
-                    this.game.puzzle.loadFromData(data[numLevel]);
+            if (this.game.puzzle.data.numLevel != numLevel) {
+                let data = this.game.tiaratumGameLevels;
+                if (data.puzzles[numLevel]) {
+                    this.game.puzzle.loadFromData(data.puzzles[numLevel]);
                 }
                 else {
                     location.hash = "#levels";

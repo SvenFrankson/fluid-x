@@ -374,6 +374,42 @@ input[type="text"] {
     right: 5px;
 }
 
+#dev-state-0-btn{
+    position: fixed;
+    top: 185px;
+    right: 5px;
+}
+
+#dev-state-1-btn{
+    position: fixed;
+    top: 230px;
+    right: 5px;
+}
+
+#dev-state-2-btn{
+    position: fixed;
+    top: 275px;
+    right: 5px;
+}
+
+#dev-state-3-btn{
+    position: fixed;
+    top: 320px;
+    right: 5px;
+}
+
+#dev-state-4-btn{
+    position: fixed;
+    top: 365px;
+    right: 5px;
+}
+
+#dev-state-5-btn{
+    position: fixed;
+    top: 410px;
+    right: 5px;
+}
+
 #play-timer {
     display: block;
     position: fixed;

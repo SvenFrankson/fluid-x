@@ -1345,7 +1345,10 @@ class DevLevelPage extends LevelPage {
         let puzzleData = [];
         const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
-            mode: "cors"
+            mode: "cors",
+            headers: {
+                "Authorization": var1
+            }
         });
         if (response.status === 200) {
             let data = await response.json();

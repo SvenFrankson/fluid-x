@@ -138,6 +138,7 @@ class Game {
     public light: BABYLON.HemisphericLight;
     public shadowGenerator: BABYLON.ShadowGenerator;
 
+    public noiseTexture: BABYLON.RawTexture3D;
     public vertexDataLoader: Mummu.VertexDataLoader;
 
     public colorMaterials: BABYLON.Material[];
@@ -273,6 +274,18 @@ class Game {
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.randomize();
+        cubicNoiseTexture.smooth();
+        this.noiseTexture = cubicNoiseTexture.get3DTexture();
 
         this.ball = new Ball(this, { color: TileColor.North });
 
@@ -459,11 +472,16 @@ class Game {
         }
     }
 
+    public fadeIntroDir: number = 0;
+
     public async fadeInIntro(duration: number = 1): Promise<void> {
         this.puzzleIntro.style.opacity = "0";
 
         let t0 = performance.now();
         let step = () => {
+            if (this.fadeIntroDir < 0) {
+                return;
+            }
             let f = (performance.now() - t0) / 1000 / duration;
             if (f < 1) {
                 this.puzzleIntro.style.opacity = f.toFixed(2);
@@ -473,6 +491,7 @@ class Game {
                 this.puzzleIntro.style.opacity = "1";
             }
         }
+        this.fadeIntroDir = 1;
         step();
     }
 
@@ -481,6 +500,9 @@ class Game {
 
         let t0 = performance.now();
         let step = () => {
+            if (this.fadeIntroDir > 0) {
+                return;
+            }
             let f = (performance.now() - t0) / 1000 / duration;
             if (f < 1) {
                 this.puzzleIntro.style.opacity = (1 - f).toFixed(2);
@@ -490,6 +512,7 @@ class Game {
                 this.puzzleIntro.style.opacity = "0";
             }
         }
+        this.fadeIntroDir = -1;
         step();
     }
 }

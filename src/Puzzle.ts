@@ -70,20 +70,28 @@ class Puzzle {
     }
 
     public win(): void {
-        this.game.successPanel.style.display = "";
-        this.game.gameoverPanel.style.display = "none";
-
         let t = this.game.ball.playTimer;
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);
         let centi = Math.floor((t - 60 * min - sec) * 100);
 
         (this.game.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0"));
+
+        setTimeout(() => {
+            if (this.game.ball.ballState === BallState.Done) {
+                this.game.successPanel.style.display = "";
+                this.game.gameoverPanel.style.display = "none";
+            }
+        }, 1000);
     }
 
     public lose(): void {
-        this.game.successPanel.style.display = "none";
-        this.game.gameoverPanel.style.display = "";
+        setTimeout(() => {
+            if (this.game.ball.ballState === BallState.Done) {
+                this.game.successPanel.style.display = "none";
+                this.game.gameoverPanel.style.display = "";
+            }
+        }, 1000);
     }
 
     public async reset(): Promise<void> {

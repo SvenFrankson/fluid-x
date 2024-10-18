@@ -71,6 +71,15 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = false;
             });
         }
+        this.woodChocSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc.wav");
+        this.woodChocSound.autoplay = false;
+        this.woodChocSound.loop = false;
+        this.woodChocSound2 = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav");
+        this.woodChocSound2.autoplay = false;
+        this.woodChocSound2.loop = false;
+        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpact.autoplay = false;
+        this.fallImpact.loop = false;
     }
     setColor(color) {
         this.color = color;
@@ -108,15 +117,23 @@ class Ball extends BABYLON.Mesh {
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
+                this.bounceXValue = 0;
+                this.bounceXTimer = 0;
+                this.speed = 3;
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
             }
             return;
         }
-        else if (this.ballState === BallState.Move) {
-            this.playTimer += dt;
-            this.game.setPlayTimer(this.playTimer);
+        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+            if (this.ballState === BallState.Done) {
+                this.speed *= 0.99;
+            }
+            else {
+                this.playTimer += dt;
+                this.game.setPlayTimer(this.playTimer);
+            }
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
                 this.bounceXTimer -= dt * this.speed;
@@ -126,17 +143,21 @@ class Ball extends BABYLON.Mesh {
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
+                this.woodChocSound2.play();
             }
             else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
+                this.woodChocSound2.play();
             }
             if (this.position.x + this.radius > this.game.puzzle.xMax) {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
+                this.woodChocSound2.play();
             }
             else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
+                this.woodChocSound2.play();
             }
             let impact = BABYLON.Vector3.Zero();
             for (let i = 0; i < this.game.puzzle.borders.length; i++) {
@@ -154,6 +175,7 @@ class Ball extends BABYLON.Mesh {
                             this.bounceXValue = -1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
+                        this.woodChocSound2.play();
                     }
                     else {
                         if (dir.z > 0) {
@@ -168,7 +190,7 @@ class Ball extends BABYLON.Mesh {
             }
             for (let i = 0; i < this.game.puzzle.tiles.length; i++) {
                 let tile = this.game.puzzle.tiles[i];
-                if (tile instanceof HoleTile) {
+                if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;
                         this.fallTimer = 0;
@@ -191,6 +213,7 @@ class Ball extends BABYLON.Mesh {
                                     this.bounceXValue = -1;
                                     this.bounceXTimer = this.bounceXDelay;
                                 }
+                                this.woodChocSound.play();
                             }
                             else {
                                 if (dir.z > 0) {
@@ -199,23 +222,26 @@ class Ball extends BABYLON.Mesh {
                                 else {
                                     this.vZ = -1;
                                 }
+                                this.woodChocSound.play();
                             }
-                            if (tile instanceof SwitchTile) {
-                                tile.bump();
-                                this.setColor(tile.color);
-                            }
-                            else if (tile instanceof BlockTile) {
-                                if (tile.color === this.color) {
-                                    tile.tileState = TileState.Dying;
-                                    tile.shrink().then(() => {
-                                        tile.dispose();
-                                    });
+                            if (this.ballState === BallState.Move) {
+                                if (tile instanceof SwitchTile) {
+                                    tile.bump();
+                                    this.setColor(tile.color);
                                 }
+                                else if (tile instanceof BlockTile) {
+                                    if (tile.color === this.color) {
+                                        tile.tileState = TileState.Dying;
+                                        tile.shrink().then(() => {
+                                            tile.dispose();
+                                        });
+                                    }
+                                }
+                                else if (tile instanceof PushTile) {
+                                    tile.push(dir.scale(-1));
+                                }
+                                break;
                             }
-                            else if (tile instanceof PushTile) {
-                                tile.push(dir.scale(-1));
-                            }
-                            break;
                         }
                     }
                 }
@@ -240,6 +266,17 @@ class Ball extends BABYLON.Mesh {
             }
             this.fallTimer += dt;
             if (this.fallTimer > 1) {
+                this.fallImpact.play();
+                let explosionCloud = new Explosion(this.game);
+                let p = this.position.clone();
+                p.y = -1;
+                explosionCloud.origin.copyFrom(p);
+                explosionCloud.setRadius(0.4);
+                explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
+                explosionCloud.lifespan = 4;
+                explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
+                explosionCloud.tZero = 0.9;
+                explosionCloud.boom();
                 this.ballState = BallState.Done;
                 this.game.puzzle.lose();
                 return;
@@ -1423,6 +1460,7 @@ class Game {
         this.onWheelEvent = (event) => {
         };
         this._curtainOpacity = 0;
+        this.fadeIntroDir = 0;
         Game.Instance = this;
         this.canvas = document.getElementById(canvasElement);
         this.canvas.requestPointerLock = this.canvas.requestPointerLock || this.canvas.msRequestPointerLock || this.canvas.mozRequestPointerLock || this.canvas.webkitRequestPointerLock;
@@ -1512,6 +1550,17 @@ class Game {
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+        let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.double();
+        cubicNoiseTexture.randomize();
+        cubicNoiseTexture.smooth();
+        this.noiseTexture = cubicNoiseTexture.get3DTexture();
         this.ball = new Ball(this, { color: TileColor.North });
         this.ball.position.x = 0;
         this.ball.position.z = 0;
@@ -1637,6 +1686,9 @@ class Game {
         this.puzzleIntro.style.opacity = "0";
         let t0 = performance.now();
         let step = () => {
+            if (this.fadeIntroDir < 0) {
+                return;
+            }
             let f = (performance.now() - t0) / 1000 / duration;
             if (f < 1) {
                 this.puzzleIntro.style.opacity = f.toFixed(2);
@@ -1646,12 +1698,16 @@ class Game {
                 this.puzzleIntro.style.opacity = "1";
             }
         };
+        this.fadeIntroDir = 1;
         step();
     }
     async fadeOutIntro(duration = 1) {
         this.puzzleIntro.style.opacity = "1";
         let t0 = performance.now();
         let step = () => {
+            if (this.fadeIntroDir > 0) {
+                return;
+            }
             let f = (performance.now() - t0) / 1000 / duration;
             if (f < 1) {
                 this.puzzleIntro.style.opacity = (1 - f).toFixed(2);
@@ -1661,6 +1717,7 @@ class Game {
                 this.puzzleIntro.style.opacity = "0";
             }
         };
+        this.fadeIntroDir = -1;
         step();
     }
 }
@@ -1717,6 +1774,13 @@ class PushTile extends Tile {
         pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
         pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
         this.tileTop.material = pushTileTopMaterial;
+        this.pushSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-drag.wav");
+        this.pushSound.setVolume(0.8);
+        this.pushSound.autoplay = false;
+        this.pushSound.loop = false;
+        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpact.autoplay = false;
+        this.fallImpact.loop = false;
     }
     async instantiate() {
         await super.instantiate();
@@ -1748,6 +1812,7 @@ class PushTile extends Tile {
                         newPos.x = (this.i + dir.x * 0.75) * 1.1;
                         newPos.z = (this.j + dir.z * 0.75) * 1.1;
                         this.tileState = TileState.Moving;
+                        this.pushSound.play();
                         await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
                         if (dir.x === 1) {
                             this.animateRotZ(-Math.PI, 0.4);
@@ -1764,6 +1829,17 @@ class PushTile extends Tile {
                         await this.animateWait(0.2);
                         newPos.y -= 5.5;
                         await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
+                        let explosionCloud = new Explosion(this.game);
+                        let p = this.position.clone();
+                        p.y = -1;
+                        explosionCloud.origin.copyFrom(p);
+                        explosionCloud.setRadius(0.4);
+                        explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
+                        explosionCloud.lifespan = 4;
+                        explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
+                        explosionCloud.tZero = 0.9;
+                        explosionCloud.boom();
+                        this.fallImpact.play();
                         this.dispose();
                     }
                     else if (tileAtDestination) {
@@ -1773,6 +1849,7 @@ class PushTile extends Tile {
                         newPos.x = newI * 1.1;
                         newPos.z = newJ * 1.1;
                         this.tileState = TileState.Moving;
+                        this.pushSound.play();
                         await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
                         this.tileState = TileState.Active;
                     }
@@ -1833,17 +1910,25 @@ class Puzzle {
         return this.h * 1.1 - 0.55;
     }
     win() {
-        this.game.successPanel.style.display = "";
-        this.game.gameoverPanel.style.display = "none";
         let t = this.game.ball.playTimer;
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);
         let centi = Math.floor((t - 60 * min - sec) * 100);
         this.game.successPanel.querySelector("#success-timer stroke-text").setContent(min.toFixed(0).padStart(2, "0") + ":" + sec.toFixed(0).padStart(2, "0") + ":" + centi.toFixed(0).padStart(2, "0"));
+        setTimeout(() => {
+            if (this.game.ball.ballState === BallState.Done) {
+                this.game.successPanel.style.display = "";
+                this.game.gameoverPanel.style.display = "none";
+            }
+        }, 1000);
     }
     lose() {
-        this.game.successPanel.style.display = "none";
-        this.game.gameoverPanel.style.display = "";
+        setTimeout(() => {
+            if (this.game.ball.ballState === BallState.Done) {
+                this.game.successPanel.style.display = "none";
+                this.game.gameoverPanel.style.display = "";
+            }
+        }, 1000);
     }
     async reset() {
         if (this.data) {
@@ -2512,5 +2597,438 @@ class SwitchTile extends Tile {
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);
         tileData[3].applyToMesh(this.tileBottom);
+    }
+}
+class CubicNoiseTexture {
+    constructor(scene) {
+        this.scene = scene;
+        this.size = 1;
+        this._data = [[[0.5]]];
+    }
+    getData(i, j, k) {
+        while (i < 0) {
+            i += this.size;
+        }
+        while (j < 0) {
+            j += this.size;
+        }
+        while (k < 0) {
+            k += this.size;
+        }
+        i = i % this.size;
+        j = j % this.size;
+        k = k % this.size;
+        return this._data[i][j][k];
+    }
+    setData(v, i, j, k) {
+        while (i < 0) {
+            i += this.size;
+        }
+        while (j < 0) {
+            j += this.size;
+        }
+        while (k < 0) {
+            k += this.size;
+        }
+        i = i % this.size;
+        j = j % this.size;
+        k = k % this.size;
+        return this._data[i][j][k];
+    }
+    double() {
+        let newSize = this.size * 2;
+        let newData = [];
+        for (let i = 0; i < newSize; i++) {
+            newData[i] = [];
+            for (let j = 0; j < newSize; j++) {
+                newData[i][j] = [];
+            }
+        }
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                for (let k = 0; k < this.size; k++) {
+                    let v = this._data[i][j][k];
+                    newData[2 * i][2 * j][2 * k] = v;
+                    newData[2 * i + 1][2 * j][2 * k] = v;
+                    newData[2 * i + 1][2 * j + 1][2 * k] = v;
+                    newData[2 * i][2 * j + 1][2 * k] = v;
+                    newData[2 * i][2 * j][2 * k + 1] = v;
+                    newData[2 * i + 1][2 * j][2 * k + 1] = v;
+                    newData[2 * i + 1][2 * j + 1][2 * k + 1] = v;
+                    newData[2 * i][2 * j + 1][2 * k + 1] = v;
+                }
+            }
+        }
+        this.size = newSize;
+        this._data = newData;
+    }
+    smooth() {
+        let newData = [];
+        for (let i = 0; i < this.size; i++) {
+            newData[i] = [];
+            for (let j = 0; j < this.size; j++) {
+                newData[i][j] = [];
+            }
+        }
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                for (let k = 0; k < this.size; k++) {
+                    let val = 0;
+                    let c = 0;
+                    for (let ii = -1; ii <= 1; ii++) {
+                        for (let jj = -1; jj <= 1; jj++) {
+                            for (let kk = -1; kk <= 1; kk++) {
+                                let d = Math.sqrt(ii * ii + jj * jj + kk * kk);
+                                let w = 2 - d;
+                                let v = this.getData(i + ii, j + jj, k + kk);
+                                val += w * v;
+                                c += w;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    noise() {
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                for (let k = 0; k < this.size; k++) {
+                    this._data[i][j][k] = (this._data[i][j][k] + Math.random()) * 0.5;
+                }
+            }
+        }
+    }
+    randomize() {
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                for (let k = 0; k < this.size; k++) {
+                    this._data[i][j][k] = Math.random();
+                }
+            }
+        }
+    }
+    get3DTexture() {
+        let data = new Uint8ClampedArray(this.size * this.size * this.size);
+        let min = 255;
+        let max = 0;
+        for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+                for (let k = 0; k < this.size; k++) {
+                    data[i + j * this.size + k * this.size * this.size] = 256 * this._data[i][j][k];
+                    min = Math.min(min, data[i + j * this.size + k * this.size * this.size]);
+                    max = Math.max(max, data[i + j * this.size + k * this.size * this.size]);
+                }
+            }
+        }
+        console.log(min + " " + max);
+        let tex = new BABYLON.RawTexture3D(data, this.size, this.size, this.size, BABYLON.Constants.TEXTUREFORMAT_R, this.scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, BABYLON.Engine.TEXTURETYPE_UNSIGNED_BYTE);
+        tex.wrapU = 1;
+        tex.wrapV = 1;
+        tex.wrapR = 1;
+        return tex;
+    }
+}
+class Explosion {
+    constructor(game) {
+        this.game = game;
+        this.origin = BABYLON.Vector3.Zero();
+        this.lifespan = 2;
+        this.tZero = 0;
+        this.particles = [];
+        this.particulesCount = 10;
+        this.particuleRadius = 1;
+        this.targetPositions = [];
+        this.delays = [];
+        this.radiusXZ = 1;
+        this.radiusY = 1;
+        this.maxOffset = BABYLON.Vector3.Zero();
+        this.keepAlive = false;
+        this._timer = 0;
+        this.update = () => {
+            this._timer += this.game.scene.deltaTime / 1000;
+            let globalF = 1;
+            let done = true;
+            for (let i = 0; i < this.particles.length; i++) {
+                let bubble = this.particles[i];
+                let f = (this._timer - this.delays[i]) / this.lifespan;
+                if (f < 1) {
+                    done = false;
+                }
+                globalF = Math.min(globalF, f);
+                f = Nabu.MinMax(f, 0, 1);
+                let fScale = 0;
+                let fPos = 0;
+                if (this.sizeEasing) {
+                    fScale = this.sizeEasing(f);
+                    fPos = this.sizeEasing(f);
+                }
+                else {
+                    fScale = Nabu.Easing.easeOutCubic(Nabu.Easing.easeOutCubic(f));
+                    fPos = Nabu.Easing.easeOutCubic(Nabu.Easing.easeOutCubic(f));
+                }
+                BABYLON.Vector3.LerpToRef(this.origin, this.targetPositions[i], fPos, bubble.position);
+                bubble.rotate(BABYLON.Axis.Y, 0.01, BABYLON.Space.LOCAL);
+                bubble.scaling.copyFromFloats(fScale, fScale, fScale);
+            }
+            this.bubbleMaterial.setFloat("time", 2 * globalF + this.tZero);
+            if (done) {
+                if (this.keepAlive) {
+                    for (let i = 0; i < this.particles.length; i++) {
+                        this.particles[i].isVisible = false;
+                    }
+                    this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
+                }
+                else {
+                    this.dispose();
+                }
+            }
+        };
+        this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
+        this.bubbleMaterial.setUseLightFromPOV(true);
+        this.bubbleMaterial.setAutoLight(0.8);
+    }
+    setRadius(v) {
+        this.radiusXZ = v;
+        this.radiusY = v;
+        this.particuleRadius = v;
+    }
+    get color() {
+        return this.bubbleMaterial.diffuse;
+    }
+    set color(c) {
+        this.bubbleMaterial.setDiffuse(c);
+    }
+    static RandomInSphere() {
+        let p = new BABYLON.Vector3(-1 + 2 * Math.random(), -1 + 2 * Math.random(), -1 + 2 * Math.random());
+        while (p.lengthSquared() > 1) {
+            p.copyFromFloats(-1 + 2 * Math.random(), -1 + 2 * Math.random(), -1 + 2 * Math.random());
+        }
+        return p;
+    }
+    dispose() {
+        this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
+        while (this.particles.length > 0) {
+            this.particles.pop().dispose();
+        }
+    }
+    async MakeNoisedBlob(radius) {
+        let data = await this.game.vertexDataLoader.getAtIndex("datas/meshes/explosion.babylon", 0);
+        data = Mummu.CloneVertexData(data);
+        data = Mummu.ScaleVertexDataInPlace(data, radius);
+        let positions = [...data.positions];
+        let delta = new BABYLON.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        delta.scaleInPlace(radius * 0.5 * Math.random());
+        for (let i = 0; i < positions.length / 3; i++) {
+            positions[3 * i + 0] += delta.x;
+            positions[3 * i + 1] += delta.y;
+            positions[3 * i + 2] += delta.z;
+        }
+        data.positions = positions;
+        return data;
+    }
+    async boom() {
+        this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
+        if (this.particles.length > 0 && this.particles.length != this.particulesCount) {
+            while (this.particles.length > 0) {
+                this.particles.pop().dispose();
+            }
+            this.targetPositions = [];
+        }
+        this._timer = 0;
+        this.bubbleMaterial.setFloat("time", 0);
+        this.bubbleMaterial.setVector3("origin", this.origin);
+        this.bubbleMaterial.setFloat("radius", 2 * this.radiusXZ);
+        this.bubbleMaterial.setTexture("noiseTexture", this.game.noiseTexture);
+        for (let i = 0; i < this.particulesCount; i++) {
+            let bubble = this.particles[i];
+            if (!bubble) {
+                bubble = new BABYLON.Mesh("bubble-" + i);
+            }
+            (await this.MakeNoisedBlob((0.6 + 0.4 * Math.random()) * this.particuleRadius)).applyToMesh(bubble);
+            bubble.position.copyFrom(this.origin);
+            bubble.material = this.bubbleMaterial;
+            bubble.rotation.copyFromFloats(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            bubble.isVisible = true;
+            let targetPosition = Explosion.RandomInSphere().multiplyInPlace(new BABYLON.Vector3(this.radiusXZ, this.radiusY, this.radiusXZ));
+            targetPosition.addInPlace(this.origin);
+            targetPosition.addInPlace(this.maxOffset);
+            this.particles[i] = bubble;
+            this.targetPositions[i] = targetPosition;
+            this.delays[i] = 0.2 * Math.random() * this.lifespan;
+        }
+        this.game.scene.onBeforeRenderObservable.add(this.update);
+    }
+}
+class ExplosionMaterial extends BABYLON.ShaderMaterial {
+    constructor(name, scene) {
+        super(name, scene, {
+            vertex: "explosion",
+            fragment: "explosion",
+        }, {
+            attributes: ["position", "normal", "uv", "color"],
+            uniforms: [
+                "world", "worldView", "worldViewProjection", "view", "projection",
+                "useVertexColor",
+                "useLightFromPOV",
+                "autoLight",
+                "diffuseSharpness",
+                "diffuse",
+                "viewPositionW",
+                "viewDirectionW",
+                "lightInvDirW",
+                "useFlatSpecular",
+                "specularIntensity",
+                "specularColor",
+                "specularCount",
+                "specularPower",
+                "time",
+                "origin",
+                "radius"
+            ],
+            needAlphaBlending: true,
+            needAlphaTesting: true
+        });
+        this._update = () => {
+            let camera = this.getScene().activeCamera;
+            let direction = camera.getForwardRay().direction;
+            this.setVector3("viewPositionW", camera.globalPosition);
+            this.setVector3("viewDirectionW", direction);
+            let lights = this.getScene().lights;
+            for (let i = 0; i < lights.length; i++) {
+                let light = lights[i];
+                if (light instanceof BABYLON.HemisphericLight) {
+                    this.setVector3("lightInvDirW", light.direction);
+                }
+            }
+        };
+        this._useVertexColor = false;
+        this._useLightFromPOV = false;
+        this._autoLight = 0;
+        this._diffuseSharpness = 0;
+        this._diffuse = BABYLON.Color3.White();
+        this._useFlatSpecular = false;
+        this._specularIntensity = 0;
+        this._specular = BABYLON.Color3.White();
+        this._specularCount = 1;
+        this._specularPower = 4;
+        this.updateUseVertexColor();
+        this.updateUseLightFromPOV();
+        this.updateAutoLight();
+        this.updateDiffuseSharpness();
+        this.updateDiffuse();
+        this.updateUseFlatSpecular();
+        this.updateSpecularIntensity();
+        this.updateSpecular();
+        this.updateSpecularCount();
+        this.updateSpecularPower();
+        this.setVector3("viewPositionW", BABYLON.Vector3.Zero());
+        this.setVector3("viewDirectionW", BABYLON.Vector3.Up());
+        this.setVector3("lightInvDirW", BABYLON.Vector3.Up());
+        this.getScene().onBeforeRenderObservable.add(this._update);
+    }
+    dispose(forceDisposeEffect, forceDisposeTextures, notBoundToMesh) {
+        super.dispose(forceDisposeEffect, forceDisposeTextures, notBoundToMesh);
+        this.getScene().onBeforeRenderObservable.removeCallback(this._update);
+    }
+    get useVertexColor() {
+        return this._useVertexColor;
+    }
+    setUseVertexColor(b) {
+        this._useVertexColor = b;
+        this.updateUseVertexColor();
+    }
+    updateUseVertexColor() {
+        this.setInt("useVertexColor", this._useVertexColor ? 1 : 0);
+    }
+    get useLightFromPOV() {
+        return this._useLightFromPOV;
+    }
+    setUseLightFromPOV(b) {
+        this._useLightFromPOV = b;
+        this.updateUseLightFromPOV();
+    }
+    updateUseLightFromPOV() {
+        this.setInt("useLightFromPOV", this._useLightFromPOV ? 1 : 0);
+    }
+    get autoLight() {
+        return this._autoLight;
+    }
+    setAutoLight(v) {
+        this._autoLight = v;
+        this.updateAutoLight();
+    }
+    updateAutoLight() {
+        this.setFloat("autoLight", this._autoLight);
+    }
+    get diffuseSharpness() {
+        return this._diffuseSharpness;
+    }
+    setDiffuseSharpness(v) {
+        this._diffuseSharpness = v;
+        this.updateDiffuseSharpness();
+    }
+    updateDiffuseSharpness() {
+        this.setFloat("diffuseSharpness", this._diffuseSharpness);
+    }
+    get diffuse() {
+        return this._diffuse;
+    }
+    setDiffuse(c) {
+        this._diffuse = c;
+        this.updateDiffuse();
+    }
+    updateDiffuse() {
+        this.setColor3("diffuse", this._diffuse);
+    }
+    get useFlatSpecular() {
+        return this._useFlatSpecular;
+    }
+    setUseFlatSpecular(b) {
+        this._useFlatSpecular = b;
+        this.updateUseFlatSpecular();
+    }
+    updateUseFlatSpecular() {
+        this.setInt("useFlatSpecular", this._useFlatSpecular ? 1 : 0);
+    }
+    get specularIntensity() {
+        return this._specularIntensity;
+    }
+    setSpecularIntensity(v) {
+        this._specularIntensity = v;
+        this.updateSpecularIntensity();
+    }
+    updateSpecularIntensity() {
+        this.setFloat("specularIntensity", this._specularIntensity);
+    }
+    get specular() {
+        return this._specular;
+    }
+    setSpecular(c) {
+        this._specular = c;
+        this.updateSpecular();
+    }
+    updateSpecular() {
+        this.setColor3("specular", this._specular);
+    }
+    get specularCount() {
+        return this._specularCount;
+    }
+    setSpecularCount(v) {
+        this._specularCount = v;
+        this.updateSpecularCount();
+    }
+    updateSpecularCount() {
+        this.setFloat("specularCount", this._specularCount);
+    }
+    get specularPower() {
+        return this._specularPower;
+    }
+    setSpecularPower(v) {
+        this._specularPower = v;
+        this.updateSpecularPower();
+    }
+    updateSpecularPower() {
+        this.setFloat("specularPower", this._specularPower);
     }
 }

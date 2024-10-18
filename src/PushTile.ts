@@ -2,6 +2,9 @@
 
 class PushTile extends Tile {
 
+    public pushSound: BABYLON.Sound;
+    public fallImpact: BABYLON.Sound;
+
     public tileTop: BABYLON.Mesh;
     public animatePosition = Mummu.AnimationFactory.EmptyVector3Callback;
     public animateRotX = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -27,6 +30,15 @@ class PushTile extends Tile {
         pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
 
         this.tileTop.material = pushTileTopMaterial;
+
+        this.pushSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-drag.wav");
+        this.pushSound.setVolume(0.8);
+        this.pushSound.autoplay = false;
+        this.pushSound.loop = false;
+
+        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpact.autoplay = false;
+        this.fallImpact.loop = false;
     }
 
     public async instantiate(): Promise<void> {
@@ -65,6 +77,7 @@ class PushTile extends Tile {
                         newPos.z = (this.j + dir.z * 0.75) * 1.1;
         
                         this.tileState = TileState.Moving;
+                        this.pushSound.play();
                         await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
 
                         if (dir.x === 1) {
@@ -82,6 +95,17 @@ class PushTile extends Tile {
                         await this.animateWait(0.2);
                         newPos.y -= 5.5
                         await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
+                        let explosionCloud = new Explosion(this.game);
+                        let p = this.position.clone();
+                        p.y = -1;
+                        explosionCloud.origin.copyFrom(p);
+                        explosionCloud.setRadius(0.4);
+                        explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
+                        explosionCloud.lifespan = 4;
+                        explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
+                        explosionCloud.tZero = 0.9;
+                        explosionCloud.boom();
+                        this.fallImpact.play();
                         this.dispose();
                     }
                     else if (tileAtDestination) {
@@ -93,6 +117,7 @@ class PushTile extends Tile {
                         newPos.z = newJ * 1.1;
         
                         this.tileState = TileState.Moving;
+                        this.pushSound.play();
                         await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
                         this.tileState = TileState.Active;
                     }

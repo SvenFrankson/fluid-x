@@ -17,7 +17,7 @@ var HasLocalStorage = false;
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -609,15 +609,14 @@ function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): void {
                 if (isFinite(id)) {
                     let data = {
                         id: id,
-                        state: state,
-                        password: var1
+                        state: state
                     };
                     let dataString = JSON.stringify(data);
                     const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
                         method: "POST",
                         mode: "cors",
                         headers: {
-                            "Content-Type": "application/json",
+                            "Authorization": 'Basic ' + btoa("carillon:" + var1)
                         },
                         body: dataString,
                     });

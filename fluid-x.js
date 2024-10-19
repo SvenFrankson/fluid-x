@@ -1391,7 +1391,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -1856,15 +1856,14 @@ function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
                 if (isFinite(id)) {
                     let data = {
                         id: id,
-                        state: state,
-                        password: var1
+                        state: state
                     };
                     let dataString = JSON.stringify(data);
                     const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
                         method: "POST",
                         mode: "cors",
                         headers: {
-                            "Content-Type": "application/json",
+                            "Authorization": 'Basic ' + btoa("carillon:" + var1)
                         },
                         body: dataString,
                     });
@@ -2705,9 +2704,16 @@ class CarillonRouter extends Nabu.Router {
             this.gameoverBackButton.parentElement.href = "#community";
             let id = parseInt(page.replace("#play-community-", ""));
             if (this.game.puzzle.data.id != id) {
+                let headers = {};
+                if (var1) {
+                    headers = {
+                        "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                    };
+                }
                 const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + id.toFixed(0), {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    headers: headers
                 });
                 let data = await response.json();
                 this.game.puzzle.loadFromData(data);

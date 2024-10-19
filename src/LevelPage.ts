@@ -159,7 +159,7 @@ class CommunityLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
             method: "GET",
             mode: "cors"
         });
@@ -198,11 +198,12 @@ class DevLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
+        console.log(var1);
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
             mode: "cors",
             headers: {
-                "Authorization": var1
+                "Authorization": 'Basic ' + btoa("carillon:" + var1)
             }
         });
 

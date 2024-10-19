@@ -15,6 +15,11 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
+var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
+if (location.host.startsWith("127.0.0.1")) {
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+}
+
 async function WaitPlayerInteraction(): Promise<void> {
     return new Promise<void>(resolve => {
         let wait = () => {
@@ -288,14 +293,14 @@ class Game {
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
 
-        const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
-            method: "GET",
-            mode: "cors"
-        });
-        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        //const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         //    method: "GET",
         //    mode: "cors"
         //});
+        const response = await fetch("./datas/levels/tiaratum_levels.json", {
+            method: "GET",
+            mode: "cors"
+        });
         let text = await response.text();
         console.log(text);
         
@@ -572,7 +577,7 @@ function DEBUG_LOG_MESHES_NAMES(): void {
 }
 
 async function DEV_GENERATE_STORYMODE_LEVEL_FILE(): Promise<void> {
-    const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         method: "GET",
         mode: "cors"
     });
@@ -587,7 +592,7 @@ async function DEV_GENERATE_STORYMODE_LEVEL_FILE(): Promise<void> {
 }
 
 var var1: string = "";
-async function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): Promise<void> {
+function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): void {
     if (password === "Zy5QvAxcCBX8eL9ofMgpY8vE" || true) {
         var1 = password;
         let devStateBtns: HTMLButtonElement[] = [];
@@ -608,7 +613,7 @@ async function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): Prom
                         password: var1
                     };
                     let dataString = JSON.stringify(data);
-                    const response = await fetch("http://localhost/index.php/set_puzzle_state", {
+                    const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
                         method: "POST",
                         mode: "cors",
                         headers: {

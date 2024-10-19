@@ -139,7 +139,7 @@ class Puzzle {
         }
         if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
-            const response = await fetch("http://localhost/index.php/publish_score", {
+            const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
                 method: "POST",
                 mode: "cors",
                 headers: {
@@ -147,8 +147,7 @@ class Puzzle {
                 },
                 body: dataString,
             });
-
-            console.log("!!!");
+            console.log(await response.text());
             this.setHighscoreState(2);
         }
     }

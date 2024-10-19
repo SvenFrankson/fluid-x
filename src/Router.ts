@@ -111,7 +111,7 @@ class CarillonRouter extends Nabu.Router {
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
             let id = parseInt(page.replace("#play-community-", ""));
             if (this.game.puzzle.data.id != id) {
-                const response = await fetch("http://localhost/index.php/puzzle/" + id.toFixed(0), {
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + id.toFixed(0), {
                     method: "GET",
                     mode: "cors"
                 });

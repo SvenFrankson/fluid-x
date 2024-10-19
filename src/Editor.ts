@@ -225,7 +225,7 @@ class Editor {
             }
             console.log(data);
             let dataString = JSON.stringify(data);
-            const response = await fetch("http://localhost/index.php/publish_puzzle", {
+            const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
                 method: "POST",
                 mode: "cors",
                 headers: {
@@ -233,6 +233,7 @@ class Editor {
                 },
                 body: dataString,
             });
+            console.log(await response.text());
         };
         
         document.getElementById("publish-cancel-btn").onclick = async () => {

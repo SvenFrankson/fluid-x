@@ -1087,7 +1087,7 @@ class Editor {
             };
             console.log(data);
             let dataString = JSON.stringify(data);
-            const response = await fetch("http://localhost/index.php/publish_puzzle", {
+            const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
                 method: "POST",
                 mode: "cors",
                 headers: {
@@ -1095,6 +1095,7 @@ class Editor {
                 },
                 body: dataString,
             });
+            console.log(await response.text());
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
@@ -1309,7 +1310,7 @@ class BaseLevelPage extends LevelPage {
 class CommunityLevelPage extends LevelPage {
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
             method: "GET",
             mode: "cors"
         });
@@ -1343,11 +1344,12 @@ class DevLevelPage extends LevelPage {
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch("http://localhost/index.php/get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
+        console.log(var1);
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
             mode: "cors",
             headers: {
-                "Authorization": var1
+                "Authorization": 'Basic ' + btoa("carillon:" + var1)
             }
         });
         if (response.status === 200) {
@@ -1387,6 +1389,10 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
+var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
+if (location.host.startsWith("127.0.0.1")) {
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+}
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
         let wait = () => {
@@ -1615,14 +1621,14 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
-        const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
-            method: "GET",
-            mode: "cors"
-        });
-        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        //const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         //    method: "GET",
         //    mode: "cors"
         //});
+        const response = await fetch("./datas/levels/tiaratum_levels.json", {
+            method: "GET",
+            mode: "cors"
+        });
         let text = await response.text();
         console.log(text);
         let data = JSON.parse(text);
@@ -1821,7 +1827,7 @@ function DEBUG_LOG_MESHES_NAMES() {
     console.log(countedMeshNames);
 }
 async function DEV_GENERATE_STORYMODE_LEVEL_FILE() {
-    const response = await fetch("http://localhost/index.php/get_puzzles/0/20/2", {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         method: "GET",
         mode: "cors"
     });
@@ -1834,7 +1840,7 @@ async function DEV_GENERATE_STORYMODE_LEVEL_FILE() {
     }
 }
 var var1 = "";
-async function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
+function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
     if (password === "Zy5QvAxcCBX8eL9ofMgpY8vE" || true) {
         var1 = password;
         let devStateBtns = [];
@@ -1854,7 +1860,7 @@ async function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
                         password: var1
                     };
                     let dataString = JSON.stringify(data);
-                    const response = await fetch("http://localhost/index.php/set_puzzle_state", {
+                    const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
                         method: "POST",
                         mode: "cors",
                         headers: {
@@ -2097,7 +2103,7 @@ class Puzzle {
         };
         if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
-            const response = await fetch("http://localhost/index.php/publish_score", {
+            const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
                 method: "POST",
                 mode: "cors",
                 headers: {
@@ -2105,7 +2111,7 @@ class Puzzle {
                 },
                 body: dataString,
             });
-            console.log("!!!");
+            console.log(await response.text());
             this.setHighscoreState(2);
         }
     }
@@ -2699,7 +2705,7 @@ class CarillonRouter extends Nabu.Router {
             this.gameoverBackButton.parentElement.href = "#community";
             let id = parseInt(page.replace("#play-community-", ""));
             if (this.game.puzzle.data.id != id) {
-                const response = await fetch("http://localhost/index.php/puzzle/" + id.toFixed(0), {
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + id.toFixed(0), {
                     method: "GET",
                     mode: "cors"
                 });

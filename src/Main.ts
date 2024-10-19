@@ -17,7 +17,7 @@ var HasLocalStorage = false;
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -293,14 +293,14 @@ class Game {
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
 
-        //const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-        //    method: "GET",
-        //    mode: "cors"
-        //});
-        const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
             method: "GET",
             mode: "cors"
         });
+        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        //    method: "GET",
+        //    mode: "cors"
+        //});
         let text = await response.text();
         console.log(text);
         
@@ -375,6 +375,10 @@ class Game {
 
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.reset();
+        }
+
+        (document.querySelector("#dev-mode-activate-btn") as HTMLButtonElement).onclick = () => {
+            DEV_ACTIVATE();
         }
 
         let updateCamMenuData = () => {
@@ -591,37 +595,40 @@ async function DEV_GENERATE_STORYMODE_LEVEL_FILE(): Promise<void> {
     }
 }
 
+var DEV_MODE_ACTIVATED: boolean = false;
 var var1: string = "";
-function DEV_ACTIVATE(password: string = "5qkxZNgMjhhxWLQQvPJcX3XU"): void {
-    if (password === "Zy5QvAxcCBX8eL9ofMgpY8vE" || true) {
-        var1 = password;
-        let devStateBtns: HTMLButtonElement[] = [];
-        for (let i = 0; i <= 5; i++) {
-            let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
-            devStateBtns.push(btn);
-        }
+function DEV_ACTIVATE(): void {
+    DEV_MODE_ACTIVATED = true;
+    var1 = (document.querySelector("#dev-username-input") as HTMLInputElement).value;
+    (document.querySelector("#dev-page .dev-active") as HTMLDivElement).style.display = "block";
+    (document.querySelector("#dev-back-btn") as HTMLButtonElement).style.display = "block";
+    (document.querySelector("#dev-page .dev-not-active") as HTMLDivElement).style.display = "none";
+    let devStateBtns: HTMLButtonElement[] = [];
+    for (let i = 0; i <= 5; i++) {
+        let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
+        devStateBtns.push(btn);
+    }
 
-        for (let i = 0; i < devStateBtns.length; i++) {
-            devStateBtns[i].style.display = "block";
-            let state = i;
-            devStateBtns[i].onclick = async () => {
-                let id = parseInt(location.hash.replace("#play-community-", ""));
-                if (isFinite(id)) {
-                    let data = {
-                        id: id,
-                        state: state
-                    };
-                    let dataString = JSON.stringify(data);
-                    const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
-                        method: "POST",
-                        mode: "cors",
-                        headers: {
-                            "Authorization": 'Basic ' + btoa("carillon:" + var1)
-                        },
-                        body: dataString,
-                    });
-                    console.log(await response.text());
-                }
+    for (let i = 0; i < devStateBtns.length; i++) {
+        devStateBtns[i].style.display = "block";
+        let state = i;
+        devStateBtns[i].onclick = async () => {
+            let id = parseInt(location.hash.replace("#play-community-", ""));
+            if (isFinite(id)) {
+                let data = {
+                    id: id,
+                    state: state
+                };
+                let dataString = JSON.stringify(data);
+                const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                    },
+                    body: dataString,
+                });
+                console.log(await response.text());
             }
         }
     }

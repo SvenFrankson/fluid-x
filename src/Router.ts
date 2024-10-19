@@ -5,6 +5,7 @@ class CarillonRouter extends Nabu.Router {
     public devLevelPage: DevLevelPage;
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
+    public devPage: Nabu.DefaultPage;
 
     public playBackButton: HTMLButtonElement;
     public successReplayButton: HTMLButtonElement;
@@ -24,6 +25,7 @@ class CarillonRouter extends Nabu.Router {
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
+        this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
 
         this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
         this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;
@@ -54,11 +56,18 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#credits")) {
             
         }
+        else if (page === "#dev") {
+            await this.show(this.devPage, false, 0);
+        }
         else if (page.startsWith("#community")) {
             await this.show(this.communityLevelPage.nabuPage, false, 0);
             this.communityLevelPage.redraw();
         }
         else if (page.startsWith("#dev-levels")) {
+            if (!DEV_MODE_ACTIVATED) {
+                location.hash = "#dev";
+                return;
+            }
             await this.show(this.devLevelPage.nabuPage, false, 0);
             if (page.indexOf("#dev-levels-") != -1) {
                 let state = parseInt(page.replace("#dev-levels-", ""));
@@ -97,6 +106,7 @@ class CarillonRouter extends Nabu.Router {
                 }
                 else {
                     location.hash = "#levels";
+                    return;
                 }
             }
             await this.game.puzzle.reset();

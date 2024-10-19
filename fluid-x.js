@@ -1391,7 +1391,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -1621,14 +1621,14 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
-        //const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-        //    method: "GET",
-        //    mode: "cors"
-        //});
-        const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
             method: "GET",
             mode: "cors"
         });
+        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
+        //    method: "GET",
+        //    mode: "cors"
+        //});
         let text = await response.text();
         console.log(text);
         let data = JSON.parse(text);
@@ -1688,6 +1688,9 @@ class Game {
         this.router.start();
         document.querySelector("#reset-btn").onclick = () => {
             this.puzzle.reset();
+        };
+        document.querySelector("#dev-mode-activate-btn").onclick = () => {
+            DEV_ACTIVATE();
         };
         let updateCamMenuData = () => {
             this.menuCamAlpha = -Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
@@ -1839,38 +1842,41 @@ async function DEV_GENERATE_STORYMODE_LEVEL_FILE() {
         console.error(await response.text());
     }
 }
+var DEV_MODE_ACTIVATED = false;
 var var1 = "";
-function DEV_ACTIVATE(password = "5qkxZNgMjhhxWLQQvPJcX3XU") {
-    if (password === "Zy5QvAxcCBX8eL9ofMgpY8vE" || true) {
-        var1 = password;
-        let devStateBtns = [];
-        for (let i = 0; i <= 5; i++) {
-            let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
-            devStateBtns.push(btn);
-        }
-        for (let i = 0; i < devStateBtns.length; i++) {
-            devStateBtns[i].style.display = "block";
-            let state = i;
-            devStateBtns[i].onclick = async () => {
-                let id = parseInt(location.hash.replace("#play-community-", ""));
-                if (isFinite(id)) {
-                    let data = {
-                        id: id,
-                        state: state
-                    };
-                    let dataString = JSON.stringify(data);
-                    const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
-                        method: "POST",
-                        mode: "cors",
-                        headers: {
-                            "Authorization": 'Basic ' + btoa("carillon:" + var1)
-                        },
-                        body: dataString,
-                    });
-                    console.log(await response.text());
-                }
-            };
-        }
+function DEV_ACTIVATE() {
+    DEV_MODE_ACTIVATED = true;
+    var1 = document.querySelector("#dev-username-input").value;
+    document.querySelector("#dev-page .dev-active").style.display = "block";
+    document.querySelector("#dev-back-btn").style.display = "block";
+    document.querySelector("#dev-page .dev-not-active").style.display = "none";
+    let devStateBtns = [];
+    for (let i = 0; i <= 5; i++) {
+        let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
+        devStateBtns.push(btn);
+    }
+    for (let i = 0; i < devStateBtns.length; i++) {
+        devStateBtns[i].style.display = "block";
+        let state = i;
+        devStateBtns[i].onclick = async () => {
+            let id = parseInt(location.hash.replace("#play-community-", ""));
+            if (isFinite(id)) {
+                let data = {
+                    id: id,
+                    state: state
+                };
+                let dataString = JSON.stringify(data);
+                const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_state", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                    },
+                    body: dataString,
+                });
+                console.log(await response.text());
+            }
+        };
     }
 }
 let createAndInit = async () => {
@@ -2624,6 +2630,7 @@ class CarillonRouter extends Nabu.Router {
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
+        this.devPage = document.querySelector("#dev-page");
         this.playBackButton = document.querySelector("#play-ui .back-btn");
         this.successReplayButton = document.querySelector("#success-replay-btn");
         this.successReplayButton.onclick = () => {
@@ -2647,11 +2654,18 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#credits")) {
         }
+        else if (page === "#dev") {
+            await this.show(this.devPage, false, 0);
+        }
         else if (page.startsWith("#community")) {
             await this.show(this.communityLevelPage.nabuPage, false, 0);
             this.communityLevelPage.redraw();
         }
         else if (page.startsWith("#dev-levels")) {
+            if (!DEV_MODE_ACTIVATED) {
+                location.hash = "#dev";
+                return;
+            }
             await this.show(this.devLevelPage.nabuPage, false, 0);
             if (page.indexOf("#dev-levels-") != -1) {
                 let state = parseInt(page.replace("#dev-levels-", ""));
@@ -2690,6 +2704,7 @@ class CarillonRouter extends Nabu.Router {
                 }
                 else {
                     location.hash = "#levels";
+                    return;
                 }
             }
             await this.game.puzzle.reset();

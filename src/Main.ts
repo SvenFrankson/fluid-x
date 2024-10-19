@@ -296,7 +296,10 @@ class Game {
         //    method: "GET",
         //    mode: "cors"
         //});
-        let data = await response.json();
+        let text = await response.text();
+        console.log(text);
+        
+        let data = JSON.parse(text);
         
         for (let i = 0; i < data.puzzles.length; i++) {
             if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {

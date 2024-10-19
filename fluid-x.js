@@ -1351,8 +1351,9 @@ class DevLevelPage extends LevelPage {
             }
         });
         if (response.status === 200) {
-            let data = await response.json();
-            console.log(data);
+            let text = await response.text();
+            console.log(text);
+            let data = JSON.parse(text);
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
                 if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
                     data.puzzles[i].score = parseInt(data.puzzles[i].score);
@@ -1622,7 +1623,9 @@ class Game {
         //    method: "GET",
         //    mode: "cors"
         //});
-        let data = await response.json();
+        let text = await response.text();
+        console.log(text);
+        let data = JSON.parse(text);
         for (let i = 0; i < data.puzzles.length; i++) {
             if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
                 data.puzzles[i].score = parseInt(data.puzzles[i].score);

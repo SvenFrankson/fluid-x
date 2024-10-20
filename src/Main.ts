@@ -112,6 +112,13 @@ enum TileColor {
     West
 }
 
+var TileColorNames = [
+    "North",
+    "East",
+    "South",
+    "West"
+]
+
 enum GameMode {
     Menu,
     Play,

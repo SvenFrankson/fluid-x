@@ -59,11 +59,30 @@ class Editor {
         this.setCursorSize({ w: 1, h: 0, d: 1 });
     }
 
-    public activate(): void {
+    public initValues(): void {
+        (document.querySelector("#ball-color-value stroke-text") as StrokeText).setContent(TileColorNames[this.game.ball.color]);
         (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
         (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
         (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.puzzle.w.toFixed(0));
         (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.puzzle.h.toFixed(0));
+    }
+
+    public activate(): void {
+        this.initValues();
+
+        document.getElementById("ball-color-minus").onclick = () => {
+            this.dropClear();
+            let color = (this.game.ball.color - 1 + 4) % 4;
+            this.game.ball.setColor(color);
+            (document.querySelector("#ball-color-value stroke-text") as StrokeText).setContent(TileColorNames[this.game.ball.color]);
+        };
+
+        document.getElementById("ball-color-plus").onclick = () => {
+            this.dropClear();
+            let color = (this.game.ball.color + 1) % 4;
+            this.game.ball.setColor(color);
+            (document.querySelector("#ball-color-value stroke-text") as StrokeText).setContent(TileColorNames[this.game.ball.color]);
+        };
 
         document.getElementById("ball-i-minus").onclick = () => {
             this.dropClear();
@@ -232,7 +251,8 @@ class Editor {
                         author: "Editor",
                         content: content
                     });
-                    this.game.puzzle.instantiate();
+                    await this.game.puzzle.instantiate();
+                    this.initValues();
                 });
                 reader.readAsText(file);
             }
@@ -301,6 +321,7 @@ class Editor {
             this.dropClear();
             await this.game.puzzle.loadFromFile("./datas/levels/min.txt");
             await this.game.puzzle.instantiate();
+            this.initValues();
         }
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);

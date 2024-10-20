@@ -32,14 +32,15 @@ class Puzzle {
     public h: number = 10;
     public heightMap: number[][];
     public hMapGet(i: number, j: number): number {
-        if (i < this.heightMap.length) {
-            if (j < this.heightMap[i].length) {
-                if (!this.heightMap[i]) {
-                    return 0;
-                }
+        if (i >= 0 && i < this.heightMap.length) {
+            if (!this.heightMap[i]) {
+                return 0;
+            }
+            if (j >= 0 && j < this.heightMap[i].length) {
                 return this.heightMap[i][j];
             }
         }
+        return 0;
     }
     public hMapSet(v: number, i: number, j: number): void {
         if (i < this.heightMap.length) {

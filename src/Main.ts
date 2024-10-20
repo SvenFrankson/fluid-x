@@ -381,6 +381,51 @@ class Game {
             DEV_ACTIVATE();
         }
 
+        let devSecret = 0;
+        let devSecretTimout: number = 0;
+        (document.querySelector("#home h1") as HTMLHeadingElement).style.pointerEvents = "auto";
+        (document.querySelector("#home h1") as HTMLDivElement).onclick = () => {
+            if (devSecret < 6) {
+                devSecret++;
+            }
+            console.log(devSecret);
+            clearTimeout(devSecretTimout);
+            devSecretTimout = setTimeout(() => {
+                devSecret = 0;
+            }, 3000);
+        }
+
+        document.addEventListener("keyup", ev => {
+            if (devSecret === 6 && ev.code === "KeyD") {
+                devSecret++;
+            } 
+            else if (devSecret === 7 && ev.code === "KeyE") {
+                devSecret++;
+            } 
+            else if (devSecret === 8 && ev.code === "KeyV") {
+                devSecret++;
+            } 
+            else if (devSecret === 9 && ev.code === "Numpad1") {
+                devSecret++;
+            }
+            else if (devSecret === 10 && ev.code === "Numpad9") {
+                devSecret++;
+            }
+            else if (devSecret === 11 && ev.code === "Numpad9") {
+                devSecret++;
+            }
+            else if (devSecret === 12 && ev.code === "Numpad1") {
+                clearTimeout(devSecretTimout);
+                devSecret = 0;
+                location.hash = "#dev";
+            }
+            clearTimeout(devSecretTimout);
+            devSecretTimout = setTimeout(() => {
+                devSecret = 0;
+            }, 3000);
+            console.log(devSecret);
+        })
+
         let updateCamMenuData = () => {
             this.menuCamAlpha = - Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
             this.menuCamBeta = Math.PI * 0.3 + (Math.random() - 0.5) * 2 * Math.PI * 0.1;
@@ -603,6 +648,19 @@ function DEV_ACTIVATE(): void {
     (document.querySelector("#dev-page .dev-active") as HTMLDivElement).style.display = "block";
     (document.querySelector("#dev-back-btn") as HTMLButtonElement).style.display = "block";
     (document.querySelector("#dev-page .dev-not-active") as HTMLDivElement).style.display = "none";
+    document.querySelectorAll("h1").forEach(e => {
+        e.style.fontFamily = "Consolas";
+        e.style.color = "lime";
+        e.style.backgroundColor = "black";
+
+        let info = document.createElement("div");
+        info.innerHTML = "[dev mode ON] with great power comes great responsibilities";
+        info.style.fontSize = "16px";
+        info.style.color = "lime";
+        info.style.paddingBottom = "5px";
+
+        e.appendChild(info);
+    });
     let devStateBtns: HTMLButtonElement[] = [];
     for (let i = 0; i <= 5; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;

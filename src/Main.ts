@@ -525,6 +525,8 @@ class Game {
                 this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);
                 this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
                 this.camera.target.y = 0;
+
+                this.editor.update(rawDT);
             }
         }
     }

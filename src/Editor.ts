@@ -12,6 +12,14 @@ enum EditorBrush {
 
 class Editor {
 
+    public active: boolean = false;
+
+    public cursor: BABYLON.Mesh;
+    public cursorOffset: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public cursorI: number = 0;
+    public cursorJ: number = 0;
+    public cursorH: number = 0;
+
     public invisiFloorTM: BABYLON.Mesh;
     public brush: EditorBrush = EditorBrush.None;
     public brushColor: TileColor = TileColor.North;
@@ -29,6 +37,7 @@ class Editor {
     public boxButton: HTMLButtonElement;
     public rampButton: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
+    public deleteButton: HTMLButtonElement;
     public doClearButton: HTMLButtonElement;
     public clearButton: HTMLButtonElement;
 
@@ -40,6 +49,14 @@ class Editor {
         this.invisiFloorTM.position.y = - 0.01;
         this.invisiFloorTM.position.z = 50 - 0.55;
         this.invisiFloorTM.isVisible = false;
+
+        this.cursor = Mummu.CreateLineBox("cursor", {
+            width: 1,
+            height: 1,
+            depth: 1,
+            color: new BABYLON.Color4(0, 1, 0, 1)
+        });
+        this.setCursorSize({ w: 1, h: 0, d: 1 });
     }
 
     public activate(): void {
@@ -113,6 +130,7 @@ class Editor {
         this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
         this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
+        this.deleteButton = document.getElementById("delete-btn") as HTMLButtonElement;
 
         this.selectableButtons = [
             this.switchTileNorthButton,
@@ -130,7 +148,10 @@ class Editor {
             this.bridgeButton
         ];
 
-        let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, brushColor?: TileColor) => {
+        let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, brushColor?: TileColor, cursorSize?: { w?: number, h?: number, d?: number }) => {
+            if (!cursorSize) {
+                cursorSize = {};
+            }
             button.onclick = () => {
                 this.dropClear();
                 this.unselectAllButtons();
@@ -138,9 +159,11 @@ class Editor {
                     this.brush = brush;
                     this.brushColor = brushColor;
                     button.classList.add("selected");
+                    this.setCursorSize(cursorSize);
                 }
                 else {
                     this.brush = EditorBrush.None;
+                    this.setCursorSize({});
                 }
             }
         }
@@ -157,9 +180,11 @@ class Editor {
 
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
-        makeBrushButton(this.boxButton, EditorBrush.Box);
-        makeBrushButton(this.rampButton, EditorBrush.Ramp);
-        makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
+        makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
+        makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
+        makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
+
+        makeBrushButton(this.deleteButton, EditorBrush.Delete);
         
         
         document.getElementById("play-btn").onclick = async () => {
@@ -258,9 +283,13 @@ class Editor {
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
 
         this.game.camera.attachControl();
+
+        this.active = true;
     }
 
     public deactivate(): void {
+        this.active = false;
+
         document.getElementById("width-minus").onclick = undefined;
         document.getElementById("width-plus").onclick = undefined;
         document.getElementById("height-minus").onclick = undefined;
@@ -288,6 +317,8 @@ class Editor {
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
 
+        this.cursor.isVisible = false;
+
         this.game.camera.detachControl();
     }
 
@@ -307,8 +338,52 @@ class Editor {
         })
     }
 
+    public setCursorSize(size: { w?: number, h?: number, d?: number }): void {
+        if (isNaN(size.w)) {
+            size.w = 1;
+        }
+        if (isNaN(size.h)) {
+            size.h = 0;
+        }
+        if (isNaN(size.d)) {
+            size.d = 1;
+        }
+        this.cursor.scaling.x = size.w * 1.1;
+        this.cursorOffset.x = 0 + (size.w - 1) * 1.1 * 0.5;
+        
+        this.cursor.scaling.y = 0.7 + size.h;
+        this.cursorOffset.y = size.h * 0.5;
+
+        this.cursor.scaling.z = size.d * 1.1;
+        this.cursorOffset.z = 0 + (size.d - 1) * 1.1 * 0.5;
+    }
+
     private _pointerX: number = 0;
     private _pointerY: number = 0;
+
+    public update = (dt: number) => {
+        if (this.active) {
+            let pick = this.game.scene.pick(
+                this.game.scene.pointerX,
+                this.game.scene.pointerY,
+                (mesh) => {
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                }
+            )
+            if (pick.hit) {
+                this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
+                this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
+                this.cursorH = this.game.puzzle.hMapGet(this.cursorI, this.cursorJ);
+
+                this.cursor.isVisible = true;
+                this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
+                this.cursor.position.addInPlace(this.cursorOffset);
+            }
+            else {
+                this.cursor.isVisible = false;
+            }
+        }
+    }
 
     public pointerDown = (ev: PointerEvent) => {
         this._pointerX = ev.clientX;
@@ -329,10 +404,8 @@ class Editor {
             )
             if (pick.hit) {
                 if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                    let i = Math.round(pick.pickedPoint.x / 1.1);
-                    let j = Math.round(pick.pickedPoint.z / 1.1);
                     let tile = this.game.puzzle.tiles.find(tile => {
-                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                        return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
                     if (tile) {
                         tile.dispose();
@@ -340,7 +413,7 @@ class Editor {
                     }
                     else {
                         let building = this.game.puzzle.buildings.find(build => {
-                            return build.i === i && build.j === j && Math.abs(build.position.y - pick.pickedPoint.y) < 0.3;
+                            return build.i === this.cursorI && build.j === this.cursorJ;
                         });
                         if (building) {
                             building.dispose();
@@ -349,19 +422,17 @@ class Editor {
                     }
                 }
                 else if (ev.button === 0) {
-                    let i = Math.round(pick.pickedPoint.x / 1.1);
-                    let j = Math.round(pick.pickedPoint.z / 1.1);
                     let tile = this.game.puzzle.tiles.find(tile => {
-                        return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                        return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
                     if (!tile) {
                         if (this.brush === EditorBrush.Tile) {
                             tile = new BlockTile(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j,
-                                    h: Math.round(pick.pickedPoint.y),
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
                                     color: this.brushColor
                                 }
                             )
@@ -370,9 +441,9 @@ class Editor {
                             tile = new SwitchTile(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j,
-                                    h: Math.round(pick.pickedPoint.y),
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
                                     color: this.brushColor
                                 }
                             )
@@ -381,8 +452,8 @@ class Editor {
                             tile = new PushTile(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j,
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
                                     color: this.brushColor
                                 }
                             )
@@ -391,8 +462,8 @@ class Editor {
                             tile = new HoleTile(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j,
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
                                     color: this.brushColor
                                 }
                             )
@@ -401,12 +472,8 @@ class Editor {
                             let box = new Box(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j,
-                                    borderBottom: true,
-                                    borderRight: true,
-                                    borderLeft: true,
-                                    borderTop: true
+                                    i: this.cursorI,
+                                    j: this.cursorJ
                                 }
                             );
                             this.game.puzzle.editorRegenerateBuildings();
@@ -415,8 +482,8 @@ class Editor {
                             let box = new Ramp(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j
+                                    i: this.cursorI,
+                                    j: this.cursorJ
                                 }
                             );
                             this.game.puzzle.editorRegenerateBuildings();
@@ -425,12 +492,8 @@ class Editor {
                             let box = new Bridge(
                                 this.game,
                                 {
-                                    i: i,
-                                    j: j,
-                                    borderBottom: true,
-                                    borderRight: true,
-                                    borderLeft: true,
-                                    borderTop: true
+                                    i: this.cursorI,
+                                    j: this.cursorJ
                                 }
                             );
                             this.game.puzzle.editorRegenerateBuildings();

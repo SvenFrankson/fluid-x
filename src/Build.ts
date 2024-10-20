@@ -96,7 +96,7 @@ class Ramp extends Build {
     public fillHeightmap() {
         for (let ii = 0; ii < 2; ii++) {
             for (let jj = 0; jj < 3; jj++) {
-                this.game.puzzle.hMapSet(jj / 2, this.i + ii, this.j + jj);
+                this.game.puzzle.hMapSet((jj + 1) / 3, this.i + ii, this.j + jj);
             }
         }
     }

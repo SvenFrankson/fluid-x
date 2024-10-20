@@ -590,7 +590,7 @@ class Ramp extends Build {
     fillHeightmap() {
         for (let ii = 0; ii < 2; ii++) {
             for (let jj = 0; jj < 3; jj++) {
-                this.game.puzzle.hMapSet(jj / 2, this.i + ii, this.j + jj);
+                this.game.puzzle.hMapSet((jj + 1) / 3, this.i + ii, this.j + jj);
             }
         }
     }
@@ -806,11 +806,34 @@ var EditorBrush;
 class Editor {
     constructor(game) {
         this.game = game;
+        this.active = false;
+        this.cursorOffset = BABYLON.Vector3.Zero();
+        this.cursorI = 0;
+        this.cursorJ = 0;
+        this.cursorH = 0;
         this.brush = EditorBrush.None;
         this.brushColor = TileColor.North;
         this.selectableButtons = [];
         this._pointerX = 0;
         this._pointerY = 0;
+        this.update = (dt) => {
+            if (this.active) {
+                let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                });
+                if (pick.hit) {
+                    this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
+                    this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
+                    this.cursorH = this.game.puzzle.hMapGet(this.cursorI, this.cursorJ);
+                    this.cursor.isVisible = true;
+                    this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
+                    this.cursor.position.addInPlace(this.cursorOffset);
+                }
+                else {
+                    this.cursor.isVisible = false;
+                }
+            }
+        };
         this.pointerDown = (ev) => {
             this._pointerX = ev.clientX;
             this._pointerY = ev.clientY;
@@ -825,10 +848,8 @@ class Editor {
                 });
                 if (pick.hit) {
                     if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                        let i = Math.round(pick.pickedPoint.x / 1.1);
-                        let j = Math.round(pick.pickedPoint.z / 1.1);
                         let tile = this.game.puzzle.tiles.find(tile => {
-                            return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
                         if (tile) {
                             tile.dispose();
@@ -836,7 +857,7 @@ class Editor {
                         }
                         else {
                             let building = this.game.puzzle.buildings.find(build => {
-                                return build.i === i && build.j === j && Math.abs(build.position.y - pick.pickedPoint.y) < 0.3;
+                                return build.i === this.cursorI && build.j === this.cursorJ;
                             });
                             if (building) {
                                 building.dispose();
@@ -845,68 +866,58 @@ class Editor {
                         }
                     }
                     else if (ev.button === 0) {
-                        let i = Math.round(pick.pickedPoint.x / 1.1);
-                        let j = Math.round(pick.pickedPoint.z / 1.1);
                         let tile = this.game.puzzle.tiles.find(tile => {
-                            return tile.i === i && tile.j === j && Math.abs(tile.position.y - pick.pickedPoint.y) < 0.3;
+                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
                         if (!tile) {
                             if (this.brush === EditorBrush.Tile) {
                                 tile = new BlockTile(this.game, {
-                                    i: i,
-                                    j: j,
-                                    h: Math.round(pick.pickedPoint.y),
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
                                     color: this.brushColor
                                 });
                             }
                             else if (this.brush === EditorBrush.Switch) {
                                 tile = new SwitchTile(this.game, {
-                                    i: i,
-                                    j: j,
-                                    h: Math.round(pick.pickedPoint.y),
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
                                     color: this.brushColor
                                 });
                             }
                             else if (this.brush === EditorBrush.Push) {
                                 tile = new PushTile(this.game, {
-                                    i: i,
-                                    j: j,
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
                                     color: this.brushColor
                                 });
                             }
                             else if (this.brush === EditorBrush.Hole) {
                                 tile = new HoleTile(this.game, {
-                                    i: i,
-                                    j: j,
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
                                     color: this.brushColor
                                 });
                             }
                             else if (this.brush === EditorBrush.Box) {
                                 let box = new Box(this.game, {
-                                    i: i,
-                                    j: j,
-                                    borderBottom: true,
-                                    borderRight: true,
-                                    borderLeft: true,
-                                    borderTop: true
+                                    i: this.cursorI,
+                                    j: this.cursorJ
                                 });
                                 this.game.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Ramp) {
                                 let box = new Ramp(this.game, {
-                                    i: i,
-                                    j: j
+                                    i: this.cursorI,
+                                    j: this.cursorJ
                                 });
                                 this.game.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Bridge) {
                                 let box = new Bridge(this.game, {
-                                    i: i,
-                                    j: j,
-                                    borderBottom: true,
-                                    borderRight: true,
-                                    borderLeft: true,
-                                    borderTop: true
+                                    i: this.cursorI,
+                                    j: this.cursorJ
                                 });
                                 this.game.puzzle.editorRegenerateBuildings();
                             }
@@ -924,6 +935,13 @@ class Editor {
         this.invisiFloorTM.position.y = -0.01;
         this.invisiFloorTM.position.z = 50 - 0.55;
         this.invisiFloorTM.isVisible = false;
+        this.cursor = Mummu.CreateLineBox("cursor", {
+            width: 1,
+            height: 1,
+            depth: 1,
+            color: new BABYLON.Color4(0, 1, 0, 1)
+        });
+        this.setCursorSize({ w: 1, h: 0, d: 1 });
     }
     activate() {
         document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
@@ -987,6 +1005,7 @@ class Editor {
         this.boxButton = document.getElementById("box-btn");
         this.rampButton = document.getElementById("ramp-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
+        this.deleteButton = document.getElementById("delete-btn");
         this.selectableButtons = [
             this.switchTileNorthButton,
             this.switchTileEastButton,
@@ -1002,7 +1021,10 @@ class Editor {
             this.rampButton,
             this.bridgeButton
         ];
-        let makeBrushButton = (button, brush, brushColor) => {
+        let makeBrushButton = (button, brush, brushColor, cursorSize) => {
+            if (!cursorSize) {
+                cursorSize = {};
+            }
             button.onclick = () => {
                 this.dropClear();
                 this.unselectAllButtons();
@@ -1010,9 +1032,11 @@ class Editor {
                     this.brush = brush;
                     this.brushColor = brushColor;
                     button.classList.add("selected");
+                    this.setCursorSize(cursorSize);
                 }
                 else {
                     this.brush = EditorBrush.None;
+                    this.setCursorSize({});
                 }
             };
         };
@@ -1026,9 +1050,10 @@ class Editor {
         makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
-        makeBrushButton(this.boxButton, EditorBrush.Box);
-        makeBrushButton(this.rampButton, EditorBrush.Ramp);
-        makeBrushButton(this.bridgeButton, EditorBrush.Bridge);
+        makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
+        makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
+        makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
+        makeBrushButton(this.deleteButton, EditorBrush.Delete);
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
@@ -1114,8 +1139,10 @@ class Editor {
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
         this.game.camera.attachControl();
+        this.active = true;
     }
     deactivate() {
+        this.active = false;
         document.getElementById("width-minus").onclick = undefined;
         document.getElementById("width-plus").onclick = undefined;
         document.getElementById("height-minus").onclick = undefined;
@@ -1137,6 +1164,7 @@ class Editor {
         document.getElementById("load-file-input").onchange = undefined;
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
+        this.cursor.isVisible = false;
         this.game.camera.detachControl();
     }
     dropClear() {
@@ -1151,6 +1179,23 @@ class Editor {
         this.selectableButtons.forEach(button => {
             button.classList.remove("selected");
         });
+    }
+    setCursorSize(size) {
+        if (isNaN(size.w)) {
+            size.w = 1;
+        }
+        if (isNaN(size.h)) {
+            size.h = 0;
+        }
+        if (isNaN(size.d)) {
+            size.d = 1;
+        }
+        this.cursor.scaling.x = size.w * 1.1;
+        this.cursorOffset.x = 0 + (size.w - 1) * 1.1 * 0.5;
+        this.cursor.scaling.y = 0.7 + size.h;
+        this.cursorOffset.y = size.h * 0.5;
+        this.cursor.scaling.z = size.d * 1.1;
+        this.cursorOffset.z = 0 + (size.d - 1) * 1.1 * 0.5;
     }
 }
 /// <reference path="./Tile.ts"/>
@@ -1802,6 +1847,7 @@ class Game {
                 this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);
                 this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
                 this.camera.target.y = 0;
+                this.editor.update(rawDT);
             }
         }
     }

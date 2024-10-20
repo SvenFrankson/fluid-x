@@ -646,7 +646,7 @@ var DEV_MODE_ACTIVATED: boolean = false;
 var var1: string = "";
 function DEV_ACTIVATE(): void {
     DEV_MODE_ACTIVATED = true;
-    var1 = (document.querySelector("#dev-username-input") as HTMLInputElement).value;
+    var1 = (document.querySelector("#dev-pass-input") as HTMLInputElement).value;
     (document.querySelector("#dev-page .dev-active") as HTMLDivElement).style.display = "block";
     (document.querySelector("#dev-back-btn") as HTMLButtonElement).style.display = "block";
     (document.querySelector("#dev-page .dev-not-active") as HTMLDivElement).style.display = "none";

@@ -259,6 +259,8 @@ class Editor {
                 body: dataString,
             });
             console.log(await response.text());
+            let url = location.protocol + "//" + location.host + "/#play-community-" + "42";
+            document.querySelector("#publish-generated-url").innerHTML = url;
         };
         
         document.getElementById("publish-cancel-btn").onclick = async () => {

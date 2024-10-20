@@ -149,6 +149,7 @@ h3 {
     box-shadow: 2px 2px 2px #2b2821ff;
     z-index: 1;
     font-family: Julee;
+    font-size: 18px;
     color: #2b2821;
 }
 
@@ -481,10 +482,21 @@ input[type="text"] {
 }
 
 #editor-publish-form {
-    width: 310px;
-    height: 220px;
-    left: calc((100vw - 338px) * 0.5);
-    top: calc((100svh - 248px) * 0.5);
+    text-align: center;
+    width: 360px;
+    left: calc((100vw - 388px) * 0.5);
+    top: calc((100svh - 200px) * 0.5);
+}
+
+#publish-generated-url {
+    display: inline-block;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 3px;
+    font-size: 16px;
+    width: 260px;
 }
 
 #dev-page {

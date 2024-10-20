@@ -1121,6 +1121,8 @@ class Editor {
                 body: dataString,
             });
             console.log(await response.text());
+            let url = location.protocol + "//" + location.host + "/#play-community-" + "42";
+            document.querySelector("#publish-generated-url").innerHTML = url;
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
@@ -1935,7 +1937,7 @@ var DEV_MODE_ACTIVATED = false;
 var var1 = "";
 function DEV_ACTIVATE() {
     DEV_MODE_ACTIVATED = true;
-    var1 = document.querySelector("#dev-username-input").value;
+    var1 = document.querySelector("#dev-pass-input").value;
     document.querySelector("#dev-page .dev-active").style.display = "block";
     document.querySelector("#dev-back-btn").style.display = "block";
     document.querySelector("#dev-page .dev-not-active").style.display = "none";

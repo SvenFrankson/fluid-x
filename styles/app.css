@@ -245,6 +245,15 @@ button.selected {
     height: 40px;
 }
 
+.medium-square-btn {
+    font-size: 24px;
+    border-radius: 4px;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    width: 70px;
+    height: 70px;
+}
+
 .square-btn-panel {
     display: flex;
     text-align: left;
@@ -296,6 +305,11 @@ button.selected {
 .inline {
     position: relative;
     display: inline-block;
+}
+
+.bged {
+    background-size: contain;
+    background-position: center;
 }
 
 .square-btn-container {

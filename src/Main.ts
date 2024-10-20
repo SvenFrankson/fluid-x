@@ -293,18 +293,23 @@ class Game {
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
 
-        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-            method: "GET",
-            mode: "cors"
-        });
-        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
-        //    method: "GET",
-        //    mode: "cors"
-        //});
-        let text = await response.text();
-        console.log(text);
+        let storyModePuzzlesContent: string = "";
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
+                method: "GET",
+                mode: "cors"
+            });
+            storyModePuzzlesContent = await response.text();
+        }
+        catch (e) {
+            const response = await fetch("./datas/levels/tiaratum_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            storyModePuzzlesContent = await response.text();
+        }
         
-        let data = JSON.parse(text);
+        let data = JSON.parse(storyModePuzzlesContent);
         
         for (let i = 0; i < data.puzzles.length; i++) {
             if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {

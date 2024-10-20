@@ -396,6 +396,10 @@ class Puzzle {
 
     public async instantiate(): Promise<void> {
         this.regenerateHeightMap();
+        for (let i = 0; i < this.tiles.length; i++) {
+            let t = this.tiles[i];
+            t.position.y = this.hMapGet(t.i, t.j);
+        }
 
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();

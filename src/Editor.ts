@@ -44,10 +44,10 @@ class Editor {
     public selectableButtons: HTMLButtonElement[] = [];
 
     constructor(public game: Game) {
-        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 100, height: 100 } );
-        this.invisiFloorTM.position.x = 50 - 0.55;
+        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 } );
+        this.invisiFloorTM.position.x = 5 - 0.55;
         this.invisiFloorTM.position.y = - 0.01;
-        this.invisiFloorTM.position.z = 50 - 0.55;
+        this.invisiFloorTM.position.z = 5 - 0.55;
         this.invisiFloorTM.isVisible = false;
 
         this.cursor = Mummu.CreateLineBox("cursor", {
@@ -94,6 +94,7 @@ class Editor {
             this.game.puzzle.w = Math.max(this.game.puzzle.w - 1, 3);
             (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.puzzle.w.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
 
         document.getElementById("width-plus").onclick = () => {
@@ -101,6 +102,7 @@ class Editor {
             this.game.puzzle.w = Math.min(this.game.puzzle.w + 1, 100);
             (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.puzzle.w.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
 
         document.getElementById("height-minus").onclick = () => {
@@ -108,6 +110,7 @@ class Editor {
             this.game.puzzle.h = Math.max(this.game.puzzle.h - 1, 3);
             (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.puzzle.h.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
 
         document.getElementById("height-plus").onclick = () => {
@@ -115,6 +118,7 @@ class Editor {
             this.game.puzzle.h = Math.min(this.game.puzzle.h + 1, 100);
             (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.puzzle.h.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
 
         this.switchTileNorthButton = document.getElementById("switch-north-btn") as HTMLButtonElement;
@@ -242,6 +246,7 @@ class Editor {
             document.getElementById("editor-publish-form").style.display = "";
             document.getElementById("editor-publish-form-edit").style.display = "block";
             document.getElementById("editor-publish-form-success").style.display = "none";
+            document.getElementById("editor-publish-form-failure").style.display = "none";
         };
         
         document.getElementById("publish-confirm-btn").onclick = async () => {
@@ -250,26 +255,39 @@ class Editor {
                 author: (document.querySelector("#author-input") as HTMLInputElement).value,
                 content: this.game.puzzle.saveAsText()
             }
-            console.log(data);
             let dataString = JSON.stringify(data);
-            const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
-                method: "POST",
-                mode: "cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: dataString,
-            });
-            let id = parseInt(await response.text());
-            let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
-            document.querySelector("#publish-generated-url").setAttribute("value", url);
-            document.getElementById("editor-publish-form-edit").style.display = "none";
-            document.getElementById("editor-publish-form-success").style.display = "block";
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: dataString,
+                });
+                let id = parseInt(await response.text());
+                let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
+                document.querySelector("#publish-generated-url").setAttribute("value", url);
+                document.getElementById("editor-publish-form-edit").style.display = "none";
+                document.getElementById("editor-publish-form-success").style.display = "block";
+                document.getElementById("editor-publish-form-failure").style.display = "none";
+            }
+            catch (e) {
+                document.getElementById("editor-publish-form-edit").style.display = "none";
+                document.getElementById("editor-publish-form-success").style.display = "none";
+                document.getElementById("editor-publish-form-failure").style.display = "block";
+            }
         };
         
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
         };
+
+        document.querySelectorAll(".publish-ok-btn").forEach(btn => {
+            (btn as HTMLButtonElement).onclick = () => {
+                document.getElementById("editor-publish-form").style.display = "none";
+            }
+        })
 
         this.clearButton = document.getElementById("clear-btn") as HTMLButtonElement;
         this.doClearButton = document.getElementById("doclear-btn") as HTMLButtonElement;
@@ -289,6 +307,8 @@ class Editor {
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
 
         this.game.camera.attachControl();
+
+        this.updateInvisifloorTM();
 
         this.active = true;
     }
@@ -342,6 +362,14 @@ class Editor {
         this.selectableButtons.forEach(button => {
             button.classList.remove("selected");
         })
+    }
+
+    public updateInvisifloorTM(): void {
+        let w = this.game.puzzle.xMax - this.game.puzzle.xMin;
+        let h = this.game.puzzle.zMax - this.game.puzzle.zMin;
+        BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
+        this.invisiFloorTM.position.x = 0.5 * w;
+        this.invisiFloorTM.position.z = 0.5 * h;
     }
 
     public setCursorSize(size: { w?: number, h?: number, d?: number }): void {
@@ -416,6 +444,7 @@ class Editor {
                     if (tile) {
                         tile.dispose();
                         this.game.puzzle.rebuildFloor();
+                        this.updateInvisifloorTM();
                     }
                     else {
                         let building = this.game.puzzle.buildings.find(build => {
@@ -507,6 +536,7 @@ class Editor {
                         if (tile) {
                             tile.instantiate();
                             this.game.puzzle.rebuildFloor();
+                            this.updateInvisifloorTM();
                         }
                     }
                 }

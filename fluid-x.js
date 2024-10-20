@@ -854,6 +854,7 @@ class Editor {
                         if (tile) {
                             tile.dispose();
                             this.game.puzzle.rebuildFloor();
+                            this.updateInvisifloorTM();
                         }
                         else {
                             let building = this.game.puzzle.buildings.find(build => {
@@ -924,16 +925,17 @@ class Editor {
                             if (tile) {
                                 tile.instantiate();
                                 this.game.puzzle.rebuildFloor();
+                                this.updateInvisifloorTM();
                             }
                         }
                     }
                 }
             }
         };
-        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 100, height: 100 });
-        this.invisiFloorTM.position.x = 50 - 0.55;
+        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 });
+        this.invisiFloorTM.position.x = 5 - 0.55;
         this.invisiFloorTM.position.y = -0.01;
-        this.invisiFloorTM.position.z = 50 - 0.55;
+        this.invisiFloorTM.position.z = 5 - 0.55;
         this.invisiFloorTM.isVisible = false;
         this.cursor = Mummu.CreateLineBox("cursor", {
             width: 1,
@@ -973,24 +975,28 @@ class Editor {
             this.game.puzzle.w = Math.max(this.game.puzzle.w - 1, 3);
             document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
         document.getElementById("width-plus").onclick = () => {
             this.dropClear();
             this.game.puzzle.w = Math.min(this.game.puzzle.w + 1, 100);
             document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
         document.getElementById("height-minus").onclick = () => {
             this.dropClear();
             this.game.puzzle.h = Math.max(this.game.puzzle.h - 1, 3);
             document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
         document.getElementById("height-plus").onclick = () => {
             this.dropClear();
             this.game.puzzle.h = Math.min(this.game.puzzle.h + 1, 100);
             document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
             this.game.puzzle.rebuildFloor();
+            this.updateInvisifloorTM();
         };
         this.switchTileNorthButton = document.getElementById("switch-north-btn");
         this.switchTileEastButton = document.getElementById("switch-east-btn");
@@ -1105,6 +1111,7 @@ class Editor {
             document.getElementById("editor-publish-form").style.display = "";
             document.getElementById("editor-publish-form-edit").style.display = "block";
             document.getElementById("editor-publish-form-success").style.display = "none";
+            document.getElementById("editor-publish-form-failure").style.display = "none";
         };
         document.getElementById("publish-confirm-btn").onclick = async () => {
             let data = {
@@ -1112,25 +1119,37 @@ class Editor {
                 author: document.querySelector("#author-input").value,
                 content: this.game.puzzle.saveAsText()
             };
-            console.log(data);
             let dataString = JSON.stringify(data);
-            const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
-                method: "POST",
-                mode: "cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: dataString,
-            });
-            let id = parseInt(await response.text());
-            let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
-            document.querySelector("#publish-generated-url").setAttribute("value", url);
-            document.getElementById("editor-publish-form-edit").style.display = "none";
-            document.getElementById("editor-publish-form-success").style.display = "block";
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: dataString,
+                });
+                let id = parseInt(await response.text());
+                let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
+                document.querySelector("#publish-generated-url").setAttribute("value", url);
+                document.getElementById("editor-publish-form-edit").style.display = "none";
+                document.getElementById("editor-publish-form-success").style.display = "block";
+                document.getElementById("editor-publish-form-failure").style.display = "none";
+            }
+            catch (e) {
+                document.getElementById("editor-publish-form-edit").style.display = "none";
+                document.getElementById("editor-publish-form-success").style.display = "none";
+                document.getElementById("editor-publish-form-failure").style.display = "block";
+            }
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
         };
+        document.querySelectorAll(".publish-ok-btn").forEach(btn => {
+            btn.onclick = () => {
+                document.getElementById("editor-publish-form").style.display = "none";
+            };
+        });
         this.clearButton = document.getElementById("clear-btn");
         this.doClearButton = document.getElementById("doclear-btn");
         this.clearButton.onclick = () => {
@@ -1145,6 +1164,7 @@ class Editor {
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
         this.game.camera.attachControl();
+        this.updateInvisifloorTM();
         this.active = true;
     }
     deactivate() {
@@ -1185,6 +1205,13 @@ class Editor {
         this.selectableButtons.forEach(button => {
             button.classList.remove("selected");
         });
+    }
+    updateInvisifloorTM() {
+        let w = this.game.puzzle.xMax - this.game.puzzle.xMin;
+        let h = this.game.puzzle.zMax - this.game.puzzle.zMin;
+        BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
+        this.invisiFloorTM.position.x = 0.5 * w;
+        this.invisiFloorTM.position.z = 0.5 * h;
     }
     setCursorSize(size) {
         if (isNaN(size.w)) {
@@ -1672,17 +1699,22 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
-        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-            method: "GET",
-            mode: "cors"
-        });
-        //const response = await fetch("./datas/levels/tiaratum_levels.json", {
-        //    method: "GET",
-        //    mode: "cors"
-        //});
-        let text = await response.text();
-        console.log(text);
-        let data = JSON.parse(text);
+        let storyModePuzzlesContent = "";
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
+                method: "GET",
+                mode: "cors"
+            });
+            storyModePuzzlesContent = await response.text();
+        }
+        catch (e) {
+            const response = await fetch("./datas/levels/tiaratum_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            storyModePuzzlesContent = await response.text();
+        }
+        let data = JSON.parse(storyModePuzzlesContent);
         for (let i = 0; i < data.puzzles.length; i++) {
             if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
                 data.puzzles[i].score = parseInt(data.puzzles[i].score);
@@ -2457,6 +2489,10 @@ class Puzzle {
     }
     async instantiate() {
         this.regenerateHeightMap();
+        for (let i = 0; i < this.tiles.length; i++) {
+            let t = this.tiles[i];
+            t.position.y = this.hMapGet(t.i, t.j);
+        }
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
         }

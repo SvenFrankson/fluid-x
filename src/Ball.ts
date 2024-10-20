@@ -76,19 +76,19 @@ class Ball extends BABYLON.Mesh {
         this.shadow.material = this.game.shadowDiscMaterial;
 
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
-            if (ev.code === "KeyA") {
+            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
             }
-            else if (ev.code === "KeyD") {
+            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
                 this.rightDown = true;
             }
         })
 
         document.addEventListener("keyup", (ev: KeyboardEvent) => {
-            if (ev.code === "KeyA") {
+            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = false;
             }
-            else if (ev.code === "KeyD") {
+            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
                 this.rightDown = false;
             }
         })

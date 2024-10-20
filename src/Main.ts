@@ -310,6 +310,7 @@ class Game {
         }
         
         let data = JSON.parse(storyModePuzzlesContent);
+        CLEAN_IPuzzlesData(data);
         
         for (let i = 0; i < data.puzzles.length; i++) {
             if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
@@ -693,10 +694,62 @@ function DEV_ACTIVATE(): void {
                     },
                     body: dataString,
                 });
+                Game.Instance.puzzle.data.state = state;
+                DEV_UPDATE_STATE_UI();
                 console.log(await response.text());
             }
         }
     }
+
+    (document.querySelector("#dev-story-order") as HTMLDivElement).style.display = "block";
+    let devStoryOrderBtns = document.querySelectorAll("#dev-story-order button");
+    let devStoryOrderMinus = devStoryOrderBtns[0] as HTMLButtonElement;
+    devStoryOrderMinus.onclick = () => {
+        Game.Instance.puzzle.data.story_order--;
+        DEV_UPDATE_STATE_UI();
+    }
+    let devStoryOrderPlus = devStoryOrderBtns[1] as HTMLButtonElement;
+    devStoryOrderPlus.onclick = () => {
+        Game.Instance.puzzle.data.story_order++;
+        DEV_UPDATE_STATE_UI();
+    }
+    let devStoryOrderSend = devStoryOrderBtns[2] as HTMLButtonElement;
+    devStoryOrderSend.onclick = async () => {
+        let id = parseInt(location.hash.replace("#play-community-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                story_order: Game.Instance.puzzle.data.story_order
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_story_order", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+            console.log(await response.text());
+        }
+    }
+}
+
+function DEV_UPDATE_STATE_UI(): void {
+    let devStateBtns: HTMLButtonElement[] = [];
+    for (let i = 0; i <= 5; i++) {
+        let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
+        devStateBtns.push(btn);
+    }
+    devStateBtns.forEach(btn => {
+        btn.classList.remove("selected");
+    })
+    if (devStateBtns[Game.Instance.puzzle.data.state]) {
+        devStateBtns[Game.Instance.puzzle.data.state].classList.add("selected");
+    }
+
+    let storyOrderVal = document.querySelector("#dev-story-order span stroke-text") as StrokeText;
+    storyOrderVal.setContent(isFinite(Game.Instance.puzzle.data.story_order) ? Game.Instance.puzzle.data.story_order.toFixed(0) : "0");
 }
 
 let createAndInit = async () => {

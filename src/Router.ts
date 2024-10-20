@@ -101,8 +101,8 @@ class CarillonRouter extends Nabu.Router {
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameLevels;
-                if (data.puzzles[numLevel]) {
-                    this.game.puzzle.loadFromData(data.puzzles[numLevel]);
+                if (data.puzzles[numLevel - 1]) {
+                    this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
                 }
                 else {
                     location.hash = "#levels";
@@ -133,6 +133,7 @@ class CarillonRouter extends Nabu.Router {
                     headers: headers
                 });
                 let data = await response.json();
+                CLEAN_IPuzzleData(data);
                 this.game.puzzle.loadFromData(data);
             }
             await this.game.puzzle.reset();

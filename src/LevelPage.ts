@@ -140,12 +140,17 @@ class BaseLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.tiaratumGameLevels;
+        CLEAN_IPuzzlesData(data);
+
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-            puzzleData[i] = {
-                data: data.puzzles[i],
-                onclick: () => {
-                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
-                    location.hash = "level-" + (i + 1).toFixed(0);
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        location.hash = "level-" + (n + 1).toFixed(0);
+                    }
                 }
             }
         }
@@ -166,13 +171,9 @@ class CommunityLevelPage extends LevelPage {
 
         if (response.status === 200) {
             let data = await response.json();
-            console.log(data);
+            CLEAN_IPuzzlesData(data);
     
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-                if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
-                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
-                }
-
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
@@ -212,12 +213,9 @@ class DevLevelPage extends LevelPage {
             console.log(text);
             
             let data = JSON.parse(text);
+            CLEAN_IPuzzlesData(data);
     
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-                if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
-                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
-                }
-
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],

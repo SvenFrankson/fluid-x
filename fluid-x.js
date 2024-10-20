@@ -38,18 +38,18 @@ class Ball extends BABYLON.Mesh {
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
         document.addEventListener("keydown", (ev) => {
-            if (ev.code === "KeyA") {
+            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
             }
-            else if (ev.code === "KeyD") {
+            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
                 this.rightDown = true;
             }
         });
         document.addEventListener("keyup", (ev) => {
-            if (ev.code === "KeyA") {
+            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = false;
             }
-            else if (ev.code === "KeyD") {
+            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
                 this.rightDown = false;
             }
         });
@@ -1373,14 +1373,18 @@ class BaseLevelPage extends LevelPage {
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
         let data = this.router.game.tiaratumGameLevels;
+        CLEAN_IPuzzlesData(data);
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-            puzzleData[i] = {
-                data: data.puzzles[i],
-                onclick: () => {
-                    this.router.game.puzzle.loadFromData(data.puzzles[i]);
-                    location.hash = "level-" + (i + 1).toFixed(0);
-                }
-            };
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        location.hash = "level-" + (n + 1).toFixed(0);
+                    }
+                };
+            }
         }
         return puzzleData;
     }
@@ -1394,11 +1398,8 @@ class CommunityLevelPage extends LevelPage {
         });
         if (response.status === 200) {
             let data = await response.json();
-            console.log(data);
+            CLEAN_IPuzzlesData(data);
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-                if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
-                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
-                }
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
@@ -1434,10 +1435,8 @@ class DevLevelPage extends LevelPage {
             let text = await response.text();
             console.log(text);
             let data = JSON.parse(text);
+            CLEAN_IPuzzlesData(data);
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-                if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
-                    data.puzzles[i].score = parseInt(data.puzzles[i].score);
-                }
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
@@ -1715,6 +1714,7 @@ class Game {
             storyModePuzzlesContent = await response.text();
         }
         let data = JSON.parse(storyModePuzzlesContent);
+        CLEAN_IPuzzlesData(data);
         for (let i = 0; i < data.puzzles.length; i++) {
             if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
                 data.puzzles[i].score = parseInt(data.puzzles[i].score);
@@ -2012,10 +2012,59 @@ function DEV_ACTIVATE() {
                     },
                     body: dataString,
                 });
+                Game.Instance.puzzle.data.state = state;
+                DEV_UPDATE_STATE_UI();
                 console.log(await response.text());
             }
         };
     }
+    document.querySelector("#dev-story-order").style.display = "block";
+    let devStoryOrderBtns = document.querySelectorAll("#dev-story-order button");
+    let devStoryOrderMinus = devStoryOrderBtns[0];
+    devStoryOrderMinus.onclick = () => {
+        Game.Instance.puzzle.data.story_order--;
+        DEV_UPDATE_STATE_UI();
+    };
+    let devStoryOrderPlus = devStoryOrderBtns[1];
+    devStoryOrderPlus.onclick = () => {
+        Game.Instance.puzzle.data.story_order++;
+        DEV_UPDATE_STATE_UI();
+    };
+    let devStoryOrderSend = devStoryOrderBtns[2];
+    devStoryOrderSend.onclick = async () => {
+        let id = parseInt(location.hash.replace("#play-community-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                story_order: Game.Instance.puzzle.data.story_order
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_story_order", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+            console.log(await response.text());
+        }
+    };
+}
+function DEV_UPDATE_STATE_UI() {
+    let devStateBtns = [];
+    for (let i = 0; i <= 5; i++) {
+        let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
+        devStateBtns.push(btn);
+    }
+    devStateBtns.forEach(btn => {
+        btn.classList.remove("selected");
+    });
+    if (devStateBtns[Game.Instance.puzzle.data.state]) {
+        devStateBtns[Game.Instance.puzzle.data.state].classList.add("selected");
+    }
+    let storyOrderVal = document.querySelector("#dev-story-order span stroke-text");
+    storyOrderVal.setContent(isFinite(Game.Instance.puzzle.data.story_order) ? Game.Instance.puzzle.data.story_order.toFixed(0) : "0");
 }
 let createAndInit = async () => {
     try {
@@ -2136,6 +2185,30 @@ class PushTile extends Tile {
                     }
                 }
             }
+        }
+    }
+}
+function CLEAN_IPuzzleData(data) {
+    if (data.score != null && typeof (data.score) === "string") {
+        data.score = parseInt(data.score);
+    }
+    if (data.state != null && typeof (data.state) === "string") {
+        data.state = parseInt(data.state);
+    }
+    if (data.story_order != null && typeof (data.story_order) === "string") {
+        data.story_order = parseInt(data.story_order);
+    }
+}
+function CLEAN_IPuzzlesData(data) {
+    for (let i = 0; i < data.puzzles.length; i++) {
+        if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
+            data.puzzles[i].score = parseInt(data.puzzles[i].score);
+        }
+        if (data.puzzles[i].state != null && typeof (data.puzzles[i].state) === "string") {
+            data.puzzles[i].state = parseInt(data.puzzles[i].state);
+        }
+        if (data.puzzles[i].story_order != null && typeof (data.puzzles[i].story_order) === "string") {
+            data.puzzles[i].story_order = parseInt(data.puzzles[i].story_order);
         }
     }
 }
@@ -2288,6 +2361,7 @@ class Puzzle {
             this.buildings[0].dispose();
         }
         this.data = data;
+        DEV_UPDATE_STATE_UI();
         console.log(this.data);
         let content = this.data.content;
         content = content.replaceAll("\r\n", "");
@@ -2842,8 +2916,8 @@ class CarillonRouter extends Nabu.Router {
             this.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameLevels;
-                if (data.puzzles[numLevel]) {
-                    this.game.puzzle.loadFromData(data.puzzles[numLevel]);
+                if (data.puzzles[numLevel - 1]) {
+                    this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
                 }
                 else {
                     location.hash = "#levels";
@@ -2874,6 +2948,7 @@ class CarillonRouter extends Nabu.Router {
                     headers: headers
                 });
                 let data = await response.json();
+                CLEAN_IPuzzleData(data);
                 this.game.puzzle.loadFromData(data);
             }
             await this.game.puzzle.reset();

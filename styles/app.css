@@ -218,7 +218,8 @@ button.green {
 }
 
 button.selected {
-    border: 2px solid rgb(37, 26, 17);
+    border: 2px solid rgb(209, 198, 190);
+    box-shadow: 2px 2px 2px #2b2821ff;
 }
 
 .large-btn {
@@ -411,6 +412,14 @@ input[type="text"] {
     position: fixed;
     top: 410px;
     right: 5px;
+}
+
+#dev-story-order{
+    position: fixed;
+    text-align: right;
+    top: 455px;
+    right: 5px;
+    font-family: Julee;
 }
 
 #dev-back-btn {

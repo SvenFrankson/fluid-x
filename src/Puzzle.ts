@@ -259,6 +259,14 @@ class Puzzle {
                         h: 0
                     });
                 }
+                if (c === "r") {
+                    let hole = new RockTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
                 if (c === "N") {
                     let block = new SwitchTile(this.game, {
                         color: TileColor.North,
@@ -398,6 +406,9 @@ class Puzzle {
             }
             else if (tile instanceof HoleTile) {
                 lines[j][i] = "O";
+            }
+            else if (tile instanceof RockTile) {
+                lines[j][i] = "r";
             }
         });
 

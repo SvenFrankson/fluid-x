@@ -799,9 +799,10 @@ var EditorBrush;
     EditorBrush[EditorBrush["Switch"] = 3] = "Switch";
     EditorBrush[EditorBrush["Push"] = 4] = "Push";
     EditorBrush[EditorBrush["Hole"] = 5] = "Hole";
-    EditorBrush[EditorBrush["Box"] = 6] = "Box";
-    EditorBrush[EditorBrush["Ramp"] = 7] = "Ramp";
-    EditorBrush[EditorBrush["Bridge"] = 8] = "Bridge";
+    EditorBrush[EditorBrush["Rock"] = 6] = "Rock";
+    EditorBrush[EditorBrush["Box"] = 7] = "Box";
+    EditorBrush[EditorBrush["Ramp"] = 8] = "Ramp";
+    EditorBrush[EditorBrush["Bridge"] = 9] = "Bridge";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -896,6 +897,13 @@ class Editor {
                             }
                             else if (this.brush === EditorBrush.Hole) {
                                 tile = new HoleTile(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Rock) {
+                                tile = new RockTile(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ,
                                     color: this.brushColor
@@ -1024,6 +1032,7 @@ class Editor {
         this.blockTileWestButton = document.getElementById("tile-west-btn");
         this.pushTileButton = document.getElementById("push-tile-btn");
         this.holeButton = document.getElementById("hole-btn");
+        this.rockButton = document.getElementById("rock-btn");
         this.boxButton = document.getElementById("box-btn");
         this.rampButton = document.getElementById("ramp-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
@@ -1039,6 +1048,7 @@ class Editor {
             this.blockTileWestButton,
             this.pushTileButton,
             this.holeButton,
+            this.rockButton,
             this.boxButton,
             this.rampButton,
             this.bridgeButton
@@ -1072,6 +1082,7 @@ class Editor {
         makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
+        makeBrushButton(this.rockButton, EditorBrush.Rock);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
@@ -2447,6 +2458,14 @@ class Puzzle {
                         h: 0
                     });
                 }
+                if (c === "r") {
+                    let hole = new RockTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
                 if (c === "N") {
                     let block = new SwitchTile(this.game, {
                         color: TileColor.North,
@@ -2584,6 +2603,9 @@ class Puzzle {
             }
             else if (tile instanceof HoleTile) {
                 lines[j][i] = "O";
+            }
+            else if (tile instanceof RockTile) {
+                lines[j][i] = "r";
             }
         });
         this.buildings.forEach(building => {
@@ -2876,6 +2898,28 @@ class PuzzleMiniatureMaker {
             }
         }
         return canvas;
+    }
+}
+/// <reference path="./Tile.ts"/>
+class RockTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.color = props.color;
+        this.material = this.game.brownMaterial;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.material = this.game.whiteMaterial;
+        this.rock = new BABYLON.Mesh("tile-top");
+        this.rock.rotation.y = Math.random() * Math.PI * 2;
+        this.rock.parent = this;
+        this.rock.material = this.game.whiteMaterial;
+    }
+    async instantiate() {
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/rock-tile.babylon");
+        tileData[0].applyToMesh(this);
+        tileData[1].applyToMesh(this.tileTop);
+        tileData[2].applyToMesh(this.rock);
     }
 }
 class CarillonRouter extends Nabu.Router {

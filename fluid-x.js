@@ -1878,6 +1878,11 @@ class Game {
             setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
         };
         updateCamMenuData();
+        let ambient = new BABYLON.Sound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, undefined, {
+            autoplay: true,
+            loop: true
+        });
+        ambient.setVolume(0.2);
     }
     static ScoreToString(t) {
         t = t / 100;

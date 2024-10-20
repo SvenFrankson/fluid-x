@@ -226,6 +226,7 @@ class Puzzle {
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
         if (ballLine.length > 2) {
             this.game.ball.setColor(parseInt(ballLine[2]));
         }

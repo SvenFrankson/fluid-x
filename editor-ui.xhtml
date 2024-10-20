@@ -87,12 +87,15 @@
         <div class="editor-line">
             <span class="editor-label">author</span><input id="author-input" type="text"/>
         </div>
+        <div class="editor-line" style="text-align: center;">
+            <button id="publish-read-eula-btn" class="medium-btn inline" style="width: 160px"><stroke-text>Read EULA</stroke-text></button>
+        </div>
         <div class="editor-line" style="margin: 10px;">
-            <input id="cgu-input" type="checkbox"/><span>I have read and agree with Carillon CGU.</span>
+            <input id="eula-checkbox" type="checkbox"/><span>I have read and agree with Tiaratum Games EULA.</span>
         </div>
         <div class="editor-line" style="text-align: center;">
             <button id="publish-cancel-btn" class="medium-btn inline"><stroke-text>Cancel</stroke-text></button>
-            <button id="publish-confirm-btn" class="medium-btn inline"><stroke-text>Publish</stroke-text></button>
+            <button id="publish-confirm-btn" class="medium-btn inline locked"><stroke-text>Publish</stroke-text></button>
         </div>
     </div>
     <div id="editor-publish-form-success" style="display: none;">

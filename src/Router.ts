@@ -6,6 +6,7 @@ class CarillonRouter extends Nabu.Router {
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
     public devPage: Nabu.DefaultPage;
+    public eulaPage: Nabu.DefaultPage;
 
     public playBackButton: HTMLButtonElement;
     public successReplayButton: HTMLButtonElement;
@@ -26,6 +27,7 @@ class CarillonRouter extends Nabu.Router {
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
         this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
+        this.eulaPage = document.querySelector("#eula-page") as Nabu.DefaultPage;
 
         this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
         this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;

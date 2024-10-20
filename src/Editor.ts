@@ -267,7 +267,21 @@ class Editor {
             document.getElementById("editor-publish-form-edit").style.display = "block";
             document.getElementById("editor-publish-form-success").style.display = "none";
             document.getElementById("editor-publish-form-failure").style.display = "none";
+            (document.getElementById("eula-checkbox") as HTMLInputElement).checked = false;
+            document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+            document.getElementById("publish-confirm-btn").classList.add("locked");
         };
+
+        (document.getElementById("eula-checkbox") as HTMLInputElement).onchange = () => {
+            if ((document.getElementById("eula-checkbox") as HTMLInputElement).checked) {
+                document.getElementById("publish-confirm-btn").classList.add("lightblue");
+                document.getElementById("publish-confirm-btn").classList.remove("locked");
+            }
+            else {
+                document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+                document.getElementById("publish-confirm-btn").classList.add("locked");
+            }
+        }
         
         document.getElementById("publish-confirm-btn").onclick = async () => {
             let data = {
@@ -297,6 +311,10 @@ class Editor {
                 document.getElementById("editor-publish-form-success").style.display = "none";
                 document.getElementById("editor-publish-form-failure").style.display = "block";
             }
+        };
+        
+        document.getElementById("publish-read-eula-btn").onclick = async () => {
+            this.game.router.eulaPage.show(0);
         };
         
         document.getElementById("publish-cancel-btn").onclick = async () => {

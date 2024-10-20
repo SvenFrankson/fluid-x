@@ -394,6 +394,10 @@ class Game {
             DEV_ACTIVATE();
         }
 
+        (document.querySelector("#eula-back-btn") as HTMLButtonElement).onclick = () => {
+            this.router.eulaPage.hide(0);
+        }
+
         let devSecret = 0;
         let devSecretTimout: number = 0;
         (document.querySelector("#home h1") as HTMLHeadingElement).style.pointerEvents = "auto";
@@ -436,7 +440,6 @@ class Game {
             devSecretTimout = setTimeout(() => {
                 devSecret = 0;
             }, 3000);
-            console.log(devSecret);
         })
 
         let updateCamMenuData = () => {

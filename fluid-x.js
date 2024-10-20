@@ -1129,6 +1129,19 @@ class Editor {
             document.getElementById("editor-publish-form-edit").style.display = "block";
             document.getElementById("editor-publish-form-success").style.display = "none";
             document.getElementById("editor-publish-form-failure").style.display = "none";
+            document.getElementById("eula-checkbox").checked = false;
+            document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+            document.getElementById("publish-confirm-btn").classList.add("locked");
+        };
+        document.getElementById("eula-checkbox").onchange = () => {
+            if (document.getElementById("eula-checkbox").checked) {
+                document.getElementById("publish-confirm-btn").classList.add("lightblue");
+                document.getElementById("publish-confirm-btn").classList.remove("locked");
+            }
+            else {
+                document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+                document.getElementById("publish-confirm-btn").classList.add("locked");
+            }
         };
         document.getElementById("publish-confirm-btn").onclick = async () => {
             let data = {
@@ -1158,6 +1171,9 @@ class Editor {
                 document.getElementById("editor-publish-form-success").style.display = "none";
                 document.getElementById("editor-publish-form-failure").style.display = "block";
             }
+        };
+        document.getElementById("publish-read-eula-btn").onclick = async () => {
+            this.game.router.eulaPage.show(0);
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
@@ -1799,6 +1815,9 @@ class Game {
         document.querySelector("#dev-mode-activate-btn").onclick = () => {
             DEV_ACTIVATE();
         };
+        document.querySelector("#eula-back-btn").onclick = () => {
+            this.router.eulaPage.hide(0);
+        };
         let devSecret = 0;
         let devSecretTimout = 0;
         document.querySelector("#home h1").style.pointerEvents = "auto";
@@ -1840,7 +1859,6 @@ class Game {
             devSecretTimout = setTimeout(() => {
                 devSecret = 0;
             }, 3000);
-            console.log(devSecret);
         });
         let updateCamMenuData = () => {
             this.menuCamAlpha = -Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
@@ -2873,6 +2891,7 @@ class CarillonRouter extends Nabu.Router {
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
         this.devPage = document.querySelector("#dev-page");
+        this.eulaPage = document.querySelector("#eula-page");
         this.playBackButton = document.querySelector("#play-ui .back-btn");
         this.successReplayButton = document.querySelector("#success-replay-btn");
         this.successReplayButton.onclick = () => {

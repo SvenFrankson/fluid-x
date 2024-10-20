@@ -529,6 +529,26 @@ input[type="text"] {
     top: calc((100svh - 450px) * 0.5);
 }
 
+#eula-page {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    width: min(90vw, 90svh);
+    height: 90svh;
+    top: 5svh;
+    left: calc((100vw - min(90vw, 90svh)) * 0.5);
+    text-align: center;
+}
+
+#eula-page .container-frame {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: left;
+    height: calc(90svh - 190px);
+    padding: 10px;
+    margin: 10px;
+    background-color: #ffffff40;
+}
+
 #click-anywhere-screen {
     position: fixed;
     top: 0;

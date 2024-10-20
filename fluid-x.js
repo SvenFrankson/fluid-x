@@ -1103,6 +1103,8 @@ class Editor {
             this.dropClear();
             this.dropBrush();
             document.getElementById("editor-publish-form").style.display = "";
+            document.getElementById("editor-publish-form-edit").style.display = "block";
+            document.getElementById("editor-publish-form-success").style.display = "none";
         };
         document.getElementById("publish-confirm-btn").onclick = async () => {
             let data = {
@@ -1120,9 +1122,11 @@ class Editor {
                 },
                 body: dataString,
             });
-            console.log(await response.text());
-            let url = location.protocol + "//" + location.host + "/#play-community-" + "42";
-            document.querySelector("#publish-generated-url").innerHTML = url;
+            let id = parseInt(await response.text());
+            let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
+            document.querySelector("#publish-generated-url").setAttribute("value", url);
+            document.getElementById("editor-publish-form-edit").style.display = "none";
+            document.getElementById("editor-publish-form-success").style.display = "block";
         };
         document.getElementById("publish-cancel-btn").onclick = async () => {
             document.getElementById("editor-publish-form").style.display = "none";
@@ -1438,7 +1442,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {

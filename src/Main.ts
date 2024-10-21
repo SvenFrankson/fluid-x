@@ -324,13 +324,10 @@ class Game {
             storyModePuzzlesContent = await response.text();
         }
         
-        let data = JSON.parse(storyModePuzzlesContent);
+        let data = JSON.parse(storyModePuzzlesContent) as IPuzzlesData;
         CLEAN_IPuzzlesData(data);
-        
         for (let i = 0; i < data.puzzles.length; i++) {
-            if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
-                data.puzzles[i].score = parseInt(data.puzzles[i].score);
-            }
+            data.puzzles[i].title = (i + 1).toFixed(0) + ". " + data.puzzles[i].title;
         }
 
         this.tiaratumGameLevels = data;

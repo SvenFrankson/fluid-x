@@ -630,7 +630,13 @@ class Puzzle {
             }
         }
         Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
-        Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
+        if (holeDatas.length > 0) {
+            Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
+            this.holeWall.isVisible = true;
+        }
+        else {
+            this.holeWall.isVisible = false;
+        }
     }
 
     public update(dt: number): void {

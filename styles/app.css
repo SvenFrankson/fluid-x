@@ -20,6 +20,14 @@ body {
     margin:0;
 }
 
+body.touchscreen .touchscreen-hide {
+    display: none;
+}
+
+body:not(.touchscreen) .touchscreen-show {
+    display: none;
+}
+
 a:link { 
     text-decoration: none; 
 }
@@ -59,21 +67,6 @@ a:active {
     text-align: center;
 }
 
-.input-button {
-    font-family: Julee;
-    position: fixed;
-    display: block;
-    bottom: 16px;
-    width: 70px;
-    height: 70px;
-    border-radius: 30px;
-    background-color: #5c8b93ff;
-    border: 2px solid #2b2821ff;
-    font-size: 60px;
-    padding: 0;
-    transition: all 0.3s;
-}
-
 .button-frame {
     position: fixed;
     width: 60px;
@@ -82,22 +75,6 @@ a:active {
     background-color: #624c3cff;
     border: 2px solid #2b2821ff;
     transform: rotate(45deg);
-}
-
-#input-left {
-    right: calc((50vw + 25px));
-}
-
-#input-left-frame {
-    right: calc((50vw + 28px));
-}
-
-#input-right {
-    left: calc((50vw + 25px));
-}
-
-#input-right-frame {
-    left: calc((50vw + 28px));
 }
 
 #home {
@@ -300,6 +277,28 @@ button.selected {
     font-weight: 900;
     width: 25px;
     height: 25px;
+}
+
+.input-button {
+    position: fixed;
+    display: block;
+    bottom: 16px;
+    width: 120px;
+    height: 80px;
+    border-radius: 5px;
+    border: 4px solid #2b2821ff;
+    font-size: 40px;
+    padding: 0;
+}
+
+#input-left {
+    right: calc((50vw + 25px));
+    background-color: #b1a58d;
+}
+
+#input-right {
+    left: calc((50vw + 25px));
+    background-color: #624c3c;
 }
 
 .inline {

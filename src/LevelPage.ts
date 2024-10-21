@@ -144,13 +144,24 @@ class BaseLevelPage extends LevelPage {
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let n = i + page * levelsPerPage;
+            let locked = true;
+            if (n === 0) {
+                locked = false;
+            }
+            else if (data.puzzles[n - 1]) {
+                let prevId = data.puzzles[n - 1].id;
+                if (this.router.game.isPuzzleCompleted(prevId)) {
+                    locked = false;
+                }
+            }
             if (data.puzzles[n]) {
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
                         this.router.game.puzzle.loadFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
-                    }
+                    },
+                    locked: locked
                 }
             }
         }

@@ -106,6 +106,8 @@ class Puzzle {
     }
 
     public win(): void {
+        this.game.completePuzzle(this.data.id);
+        
         let score = Math.floor(this.game.ball.playTimer * 100);
         (this.game.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 

@@ -178,6 +178,8 @@ class Game {
     public editor: Editor;
     public mode: GameMode = GameMode.Menu;
 
+    public completedPuzzleIds: number[] = [];
+
     constructor(canvasElement: string) {
         Game.Instance = this;
         
@@ -307,6 +309,13 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
+
+        if (HasLocalStorage) {
+            let dataString = window.localStorage.getItem("completed-puzzles-ids");
+            if (dataString) {
+                this.completedPuzzleIds = JSON.parse(dataString);
+            }
+        }
 
         let storyModePuzzlesContent: string = "";
         try {
@@ -619,6 +628,19 @@ class Game {
 
     public onWheelEvent = (event: WheelEvent) => {
         
+    }
+
+    public completePuzzle(id: number): void {
+        if (this.completedPuzzleIds.indexOf(id) === -1) {
+            this.completedPuzzleIds.push(id);
+            if (HasLocalStorage) {
+                window.localStorage.setItem("completed-puzzles-ids", JSON.stringify(this.completedPuzzleIds));
+            }
+        }
+    }
+
+    public isPuzzleCompleted(id: number): boolean {
+        return this.completedPuzzleIds.indexOf(id) != -1;
     }
 
     private _curtainOpacity: number = 0;

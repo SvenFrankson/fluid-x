@@ -1389,13 +1389,24 @@ class BaseLevelPage extends LevelPage {
         CLEAN_IPuzzlesData(data);
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let n = i + page * levelsPerPage;
+            let locked = true;
+            if (n === 0) {
+                locked = false;
+            }
+            else if (data.puzzles[n - 1]) {
+                let prevId = data.puzzles[n - 1].id;
+                if (this.router.game.isPuzzleCompleted(prevId)) {
+                    locked = false;
+                }
+            }
             if (data.puzzles[n]) {
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
                         this.router.game.puzzle.loadFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
-                    }
+                    },
+                    locked: locked
                 };
             }
         }
@@ -1590,6 +1601,7 @@ class Game {
         this.playCameraMinRadius = 15;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
+        this.completedPuzzleIds = [];
         this.onResize = () => {
             let rect = this.canvas.getBoundingClientRect();
             this.screenRatio = rect.width / rect.height;
@@ -1728,6 +1740,12 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
+        if (HasLocalStorage) {
+            let dataString = window.localStorage.getItem("completed-puzzles-ids");
+            if (dataString) {
+                this.completedPuzzleIds = JSON.parse(dataString);
+            }
+        }
         let storyModePuzzlesContent = "";
         try {
             const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
@@ -1958,6 +1976,17 @@ class Game {
                 this.editor.update(rawDT);
             }
         }
+    }
+    completePuzzle(id) {
+        if (this.completedPuzzleIds.indexOf(id) === -1) {
+            this.completedPuzzleIds.push(id);
+            if (HasLocalStorage) {
+                window.localStorage.setItem("completed-puzzles-ids", JSON.stringify(this.completedPuzzleIds));
+            }
+        }
+    }
+    isPuzzleCompleted(id) {
+        return this.completedPuzzleIds.indexOf(id) != -1;
     }
     get curtainOpacity() {
         return this._curtainOpacity;
@@ -2426,6 +2455,7 @@ class Puzzle {
         return this.h * 1.1 - 0.55;
     }
     win() {
+        this.game.completePuzzle(this.data.id);
         let score = Math.floor(this.game.ball.playTimer * 100);
         this.game.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         setTimeout(() => {

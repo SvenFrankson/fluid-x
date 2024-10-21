@@ -25,6 +25,12 @@ class Editor {
     public brush: EditorBrush = EditorBrush.None;
     public brushColor: TileColor = TileColor.North;
 
+    public originColorInput: NumValueInput;
+    public originIInput: NumValueInput;
+    public originJInput: NumValueInput;
+    public widthInput: NumValueInput;
+    public heightInput: NumValueInput;
+
     public switchTileNorthButton: HTMLButtonElement;
     public switchTileEastButton: HTMLButtonElement;
     public switchTileSouthButton: HTMLButtonElement;
@@ -62,85 +68,50 @@ class Editor {
     }
 
     public initValues(): void {
-        (document.querySelector("#ball-color-value stroke-text") as StrokeText).setContent(TileColorNames[this.game.ball.color]);
-        (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
-        (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
-        (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.puzzle.w.toFixed(0));
-        (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.puzzle.h.toFixed(0));
+        this.originColorInput.setValue(this.game.ball.color);
+        this.originIInput.setValue(this.game.ball.i);
+        this.originJInput.setValue(this.game.ball.j);
+        this.widthInput.setValue(this.game.puzzle.w);
+        this.heightInput.setValue(this.game.puzzle.h);
     }
 
     public activate(): void {
-        this.initValues();
-
-        document.getElementById("ball-color-minus").onclick = () => {
-            this.dropClear();
-            let color = (this.game.ball.color - 1 + 4) % 4;
+        this.originColorInput = document.getElementById("editor-origin-color") as NumValueInput;
+        this.originColorInput.onValueChange = (v: number) => {
+            let color = v;
             this.game.ball.setColor(color);
-            (document.querySelector("#ball-color-value stroke-text") as StrokeText).setContent(TileColorNames[this.game.ball.color]);
-        };
+        }
+        this.originColorInput.valueToString = (v: number) => {
+            return TileColorNames[v];
+        }
 
-        document.getElementById("ball-color-plus").onclick = () => {
+        this.originIInput = document.getElementById("editor-origin-i") as NumValueInput;
+        this.originIInput.onValueChange = (v: number) => {
             this.dropClear();
-            let color = (this.game.ball.color + 1) % 4;
-            this.game.ball.setColor(color);
-            (document.querySelector("#ball-color-value stroke-text") as StrokeText).setContent(TileColorNames[this.game.ball.color]);
-        };
+            this.game.ball.i = Math.min(v, this.game.puzzle.w - 1);
+        }
 
-        document.getElementById("ball-i-minus").onclick = () => {
+        this.originJInput = document.getElementById("editor-origin-j") as NumValueInput;
+        this.originJInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.ball.i = Math.max(this.game.ball.i - 1, 0);
-            (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
-        };
+            this.game.ball.j = Math.min(v, this.game.puzzle.h - 1);
+        }
 
-        document.getElementById("ball-i-plus").onclick = () => {
+        this.widthInput = document.getElementById("editor-width") as NumValueInput;
+        this.widthInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.puzzle.w - 1);
-            (document.querySelector("#ball-i-value stroke-text") as StrokeText).setContent(this.game.ball.i.toFixed(0));
-        };
-        
-        document.getElementById("ball-j-minus").onclick = () => {
-            this.dropClear();
-            this.game.ball.j = Math.max(this.game.ball.j - 1, 0);
-            (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
-        };
-
-        document.getElementById("ball-j-plus").onclick = () => {
-            this.dropClear();
-            this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.puzzle.h - 1);
-            (document.querySelector("#ball-j-value stroke-text") as StrokeText).setContent(this.game.ball.j.toFixed(0));
-        };
-
-        document.getElementById("width-minus").onclick = () => {
-            this.dropClear();
-            this.game.puzzle.w = Math.max(this.game.puzzle.w - 1, 3);
-            (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.puzzle.w.toFixed(0));
+            this.game.puzzle.w = Math.max(v, 3);
             this.game.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
-        };
+        }
 
-        document.getElementById("width-plus").onclick = () => {
+        this.heightInput = document.getElementById("editor-height") as NumValueInput;
+        this.heightInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.puzzle.w = Math.min(this.game.puzzle.w + 1, 100);
-            (document.querySelector("#width-value stroke-text") as StrokeText).setContent(this.game.puzzle.w.toFixed(0));
+            this.game.puzzle.h = Math.max(v, 3);
             this.game.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
-        };
-
-        document.getElementById("height-minus").onclick = () => {
-            this.dropClear();
-            this.game.puzzle.h = Math.max(this.game.puzzle.h - 1, 3);
-            (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.puzzle.h.toFixed(0));
-            this.game.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
-        };
-
-        document.getElementById("height-plus").onclick = () => {
-            this.dropClear();
-            this.game.puzzle.h = Math.min(this.game.puzzle.h + 1, 100);
-            (document.querySelector("#height-value stroke-text") as StrokeText).setContent(this.game.puzzle.h.toFixed(0));
-            this.game.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
-        };
+        }
 
         this.switchTileNorthButton = document.getElementById("switch-north-btn") as HTMLButtonElement;
         this.switchTileEastButton = document.getElementById("switch-east-btn") as HTMLButtonElement;
@@ -353,17 +324,13 @@ class Editor {
         this.game.camera.attachControl();
 
         this.updateInvisifloorTM();
+        this.initValues();
 
         this.active = true;
     }
 
     public deactivate(): void {
         this.active = false;
-
-        document.getElementById("width-minus").onclick = undefined;
-        document.getElementById("width-plus").onclick = undefined;
-        document.getElementById("height-minus").onclick = undefined;
-        document.getElementById("height-plus").onclick = undefined;
 
         document.getElementById("switch-north-btn").onclick = undefined;
         document.getElementById("switch-east-btn").onclick = undefined;

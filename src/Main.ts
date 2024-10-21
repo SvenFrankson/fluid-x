@@ -17,7 +17,7 @@ var HasLocalStorage = false;
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -486,10 +486,12 @@ class Game {
         let sec = Math.floor(t - 60 * min);
         let centi = Math.floor((t - 60 * min - sec) * 100);
 
-        let strokes = this.timerText.querySelectorAll("stroke-text") as NodeListOf<StrokeText>;
-        strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
-        strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
-        strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
+        if (this.timerText) {
+            let strokes = this.timerText.querySelectorAll("stroke-text") as NodeListOf<StrokeText>;
+            strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
+            strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
+            strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
+        }
     }
 
     public onResize = () => {

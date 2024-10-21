@@ -954,71 +954,42 @@ class Editor {
         this.setCursorSize({ w: 1, h: 0, d: 1 });
     }
     initValues() {
-        document.querySelector("#ball-color-value stroke-text").setContent(TileColorNames[this.game.ball.color]);
-        document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
-        document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
-        document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
-        document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
+        this.originColorInput.setValue(this.game.ball.color);
+        this.originIInput.setValue(this.game.ball.i);
+        this.originJInput.setValue(this.game.ball.j);
+        this.widthInput.setValue(this.game.puzzle.w);
+        this.heightInput.setValue(this.game.puzzle.h);
     }
     activate() {
-        this.initValues();
-        document.getElementById("ball-color-minus").onclick = () => {
-            this.dropClear();
-            let color = (this.game.ball.color - 1 + 4) % 4;
+        this.originColorInput = document.getElementById("editor-origin-color");
+        this.originColorInput.onValueChange = (v) => {
+            let color = v;
             this.game.ball.setColor(color);
-            document.querySelector("#ball-color-value stroke-text").setContent(TileColorNames[this.game.ball.color]);
         };
-        document.getElementById("ball-color-plus").onclick = () => {
-            this.dropClear();
-            let color = (this.game.ball.color + 1) % 4;
-            this.game.ball.setColor(color);
-            document.querySelector("#ball-color-value stroke-text").setContent(TileColorNames[this.game.ball.color]);
+        this.originColorInput.valueToString = (v) => {
+            return TileColorNames[v];
         };
-        document.getElementById("ball-i-minus").onclick = () => {
+        this.originIInput = document.getElementById("editor-origin-i");
+        this.originIInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.ball.i = Math.max(this.game.ball.i - 1, 0);
-            document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
+            this.game.ball.i = Math.min(v, this.game.puzzle.w - 1);
         };
-        document.getElementById("ball-i-plus").onclick = () => {
+        this.originJInput = document.getElementById("editor-origin-j");
+        this.originJInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.ball.i = Math.min(this.game.ball.i + 1, this.game.puzzle.w - 1);
-            document.querySelector("#ball-i-value stroke-text").setContent(this.game.ball.i.toFixed(0));
+            this.game.ball.j = Math.min(v, this.game.puzzle.h - 1);
         };
-        document.getElementById("ball-j-minus").onclick = () => {
+        this.widthInput = document.getElementById("editor-width");
+        this.widthInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.ball.j = Math.max(this.game.ball.j - 1, 0);
-            document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
-        };
-        document.getElementById("ball-j-plus").onclick = () => {
-            this.dropClear();
-            this.game.ball.j = Math.min(this.game.ball.j + 1, this.game.puzzle.h - 1);
-            document.querySelector("#ball-j-value stroke-text").setContent(this.game.ball.j.toFixed(0));
-        };
-        document.getElementById("width-minus").onclick = () => {
-            this.dropClear();
-            this.game.puzzle.w = Math.max(this.game.puzzle.w - 1, 3);
-            document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
+            this.game.puzzle.w = Math.max(v, 3);
             this.game.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
         };
-        document.getElementById("width-plus").onclick = () => {
+        this.heightInput = document.getElementById("editor-height");
+        this.heightInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.puzzle.w = Math.min(this.game.puzzle.w + 1, 100);
-            document.querySelector("#width-value stroke-text").setContent(this.game.puzzle.w.toFixed(0));
-            this.game.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
-        };
-        document.getElementById("height-minus").onclick = () => {
-            this.dropClear();
-            this.game.puzzle.h = Math.max(this.game.puzzle.h - 1, 3);
-            document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
-            this.game.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
-        };
-        document.getElementById("height-plus").onclick = () => {
-            this.dropClear();
-            this.game.puzzle.h = Math.min(this.game.puzzle.h + 1, 100);
-            document.querySelector("#height-value stroke-text").setContent(this.game.puzzle.h.toFixed(0));
+            this.game.puzzle.h = Math.max(v, 3);
             this.game.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
         };
@@ -1210,14 +1181,11 @@ class Editor {
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
         this.game.camera.attachControl();
         this.updateInvisifloorTM();
+        this.initValues();
         this.active = true;
     }
     deactivate() {
         this.active = false;
-        document.getElementById("width-minus").onclick = undefined;
-        document.getElementById("width-plus").onclick = undefined;
-        document.getElementById("height-minus").onclick = undefined;
-        document.getElementById("height-plus").onclick = undefined;
         document.getElementById("switch-north-btn").onclick = undefined;
         document.getElementById("switch-east-btn").onclick = undefined;
         document.getElementById("switch-south-btn").onclick = undefined;
@@ -1513,7 +1481,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -1907,10 +1875,12 @@ class Game {
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);
         let centi = Math.floor((t - 60 * min - sec) * 100);
-        let strokes = this.timerText.querySelectorAll("stroke-text");
-        strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
-        strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
-        strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
+        if (this.timerText) {
+            let strokes = this.timerText.querySelectorAll("stroke-text");
+            strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
+            strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
+            strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
+        }
     }
     animate() {
         this.engine.runRenderLoop(() => {
@@ -2154,6 +2124,97 @@ let createAndInit = async () => {
 requestAnimationFrame(() => {
     createAndInit();
 });
+class NumValueInput extends HTMLElement {
+    constructor() {
+        super(...arguments);
+        this.value = 0;
+        this.valueToString = (v) => {
+            return v.toFixed(0);
+        };
+    }
+    static get observedAttributes() {
+        return ["value-width", "min", "max", "wrap"];
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "value-width") {
+            if (this.valueDisplay) {
+                this.valueDisplay.style.width = newValue;
+            }
+        }
+        if (name === "wrap") {
+            if (newValue === "true") {
+                this.wrap = true;
+            }
+            else {
+                this.wrap = false;
+            }
+        }
+        if (name === "min") {
+            this.min = parseInt(newValue);
+        }
+        if (name === "max") {
+            this.max = parseInt(newValue);
+        }
+    }
+    connectedCallback() {
+        this.buttonMinus = document.createElement("button");
+        this.buttonMinus.classList.add("xsmall-btn", "green");
+        this.buttonMinus.innerHTML = "<stroke-text>-</stroke-text>";
+        this.appendChild(this.buttonMinus);
+        this.buttonMinus.onclick = () => {
+            this.setValue(this.value - 1);
+            if (this.onValueChange) {
+                this.onValueChange(this.value);
+            }
+        };
+        this.valueDisplay = document.createElement("span");
+        this.valueDisplay.style.display = "inline-block";
+        if (this.hasAttribute("value-width")) {
+            this.valueDisplay.style.width = this.getAttribute("value-width");
+        }
+        else {
+            this.valueDisplay.style.width = "50px";
+        }
+        this.valueDisplay.style.fontSize = "20px";
+        this.valueDisplay.style.fontWeight = "900";
+        this.valueDisplay.style.textAlign = "center";
+        this.valueDisplayText = document.createElement("stroke-text");
+        this.valueDisplay.appendChild(this.valueDisplayText);
+        this.appendChild(this.valueDisplay);
+        this.buttonPlus = document.createElement("button");
+        this.buttonPlus.classList.add("xsmall-btn", "green");
+        this.buttonPlus.innerHTML = "<stroke-text>+</stroke-text>";
+        this.appendChild(this.buttonPlus);
+        this.buttonPlus.onclick = () => {
+            this.setValue(this.value + 1);
+            if (this.onValueChange) {
+                this.onValueChange(this.value);
+            }
+        };
+    }
+    _updateValueDisplay() {
+        this.valueDisplayText.setContent(this.valueToString(this.value));
+    }
+    setValue(v) {
+        this.value = v;
+        if (this.wrap && isFinite(this.min) && isFinite(this.max)) {
+            if (this.value < this.min) {
+                this.value = this.max;
+            }
+            if (this.value > this.max) {
+                this.value = this.min;
+            }
+        }
+        else if (isFinite(this.min)) {
+            this.value = Math.max(this.value, this.min);
+        }
+        else if (isFinite(this.max)) {
+            this.value = Math.min(this.value, this.max);
+        }
+        this._updateValueDisplay();
+    }
+}
+customElements.define("num-value-input", NumValueInput);
 /// <reference path="./Tile.ts"/>
 class PushTile extends Tile {
     constructor(game, props) {
@@ -2821,7 +2882,13 @@ class Puzzle {
             }
         }
         Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
-        Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
+        if (holeDatas.length > 0) {
+            Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
+            this.holeWall.isVisible = true;
+        }
+        else {
+            this.holeWall.isVisible = false;
+        }
     }
     update(dt) {
         let tiles = this.tiles.filter(t => {
@@ -2949,6 +3016,7 @@ class CarillonRouter extends Nabu.Router {
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
+        this.creditsPage = document.querySelector("#credits-page");
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
         this.devPage = document.querySelector("#dev-page");
@@ -2975,6 +3043,7 @@ class CarillonRouter extends Nabu.Router {
         if (page.startsWith("#options")) {
         }
         else if (page.startsWith("#credits")) {
+            await this.show(this.creditsPage, false, 0);
         }
         else if (page === "#dev") {
             await this.show(this.devPage, false, 0);

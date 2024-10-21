@@ -529,6 +529,13 @@ input[type="text"] {
     top: calc((100svh - 450px) * 0.5);
 }
 
+#credits-page {
+    text-align: center;
+    width: 330px;
+    left: calc((100vw - 358px) * 0.5);
+    top: calc((100svh - 450px) * 0.5);
+}
+
 #eula-page {
     text-align: center;
     margin: 0;

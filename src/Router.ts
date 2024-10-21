@@ -5,6 +5,7 @@ class CarillonRouter extends Nabu.Router {
     public devLevelPage: DevLevelPage;
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
+    public creditsPage: Nabu.DefaultPage;
     public devPage: Nabu.DefaultPage;
     public eulaPage: Nabu.DefaultPage;
 
@@ -24,6 +25,7 @@ class CarillonRouter extends Nabu.Router {
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
+        this.creditsPage = document.querySelector("#credits-page") as Nabu.DefaultPage;
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
         this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
@@ -56,7 +58,7 @@ class CarillonRouter extends Nabu.Router {
             
         }
         else if (page.startsWith("#credits")) {
-            
+            await this.show(this.creditsPage, false, 0);
         }
         else if (page === "#dev") {
             await this.show(this.devPage, false, 0);

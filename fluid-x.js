@@ -2994,6 +2994,39 @@ class PuzzleMiniatureMaker {
         //context.fillRect(2 * m, 2 * m, canvas.width - 4 * m, canvas.height - 4 * m);
         context.fillStyle = "#d9ac8b80";
         context.fillRect(0, 0, canvas.width, canvas.height);
+        let buildColor = "#f9cc9b80";
+        if (lines.length > 3) {
+            for (let j = 0; j < lines.length; j++) {
+                let line = lines[lines.length - 1 - j];
+                for (let i = 0; i < line.length; i++) {
+                    let c = line[i];
+                    let x = i * b;
+                    let y = (h - 1 - j) * b;
+                    let s = b;
+                    if (c === "B") {
+                        let x = (i) * b;
+                        let y = (h - 1 - j - 1) * b;
+                        let s = b;
+                        context.fillStyle = buildColor;
+                        context.fillRect(x, y, 2 * s, 2 * s);
+                    }
+                    if (c === "U") {
+                        let x = (i) * b;
+                        let y = (h - 1 - j - 1) * b;
+                        let s = b;
+                        context.fillStyle = buildColor;
+                        context.fillRect(x, y, 4 * s, 2 * s);
+                    }
+                    if (c === "R") {
+                        let x = (i) * b;
+                        let y = (h - 1 - j - 2) * b;
+                        let s = b;
+                        context.fillStyle = buildColor;
+                        context.fillRect(x, y, 2 * s, 3 * s);
+                    }
+                }
+            }
+        }
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
                 let line = lines[lines.length - 1 - j];
@@ -3003,36 +3036,55 @@ class PuzzleMiniatureMaker {
                     let y = (h - 1 - j) * b + m;
                     let s = b - 2 * m;
                     if (c === "O") {
+                        let x = i * b;
+                        let y = (h - 1 - j) * b;
+                        let s = b;
                         context.fillStyle = "#00000080";
                         context.fillRect(x, y, s, s);
                     }
-                    if (c === "N") {
-                        context.fillStyle = "#b03a4880";
+                    if (c === "p") {
+                        context.fillStyle = "#624c3c80";
                         context.fillRect(x, y, s, s);
+                    }
+                    if (c === "r") {
+                        context.fillStyle = "#5d727580";
+                        context.fillRect(x, y, s, s);
+                    }
+                    if (c === "N") {
+                        context.fillStyle = "#624c3c80";
+                        context.fillRect(x, y, s, s);
+                        context.fillStyle = "#b03a4880";
+                        context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "n") {
                         context.fillStyle = "#b03a4880";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "E") {
-                        context.fillStyle = "#e0c87280";
+                        context.fillStyle = "#624c3c80";
                         context.fillRect(x, y, s, s);
+                        context.fillStyle = "#e0c87280";
+                        context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "e") {
                         context.fillStyle = "#e0c87280";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "S") {
-                        context.fillStyle = "#243d5c80";
+                        context.fillStyle = "#624c3c80";
                         context.fillRect(x, y, s, s);
+                        context.fillStyle = "#243d5c80";
+                        context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "s") {
                         context.fillStyle = "#243d5c80";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "W") {
-                        context.fillStyle = "#3e695880";
+                        context.fillStyle = "#624c3c80";
                         context.fillRect(x, y, s, s);
+                        context.fillStyle = "#3e695880";
+                        context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "w") {
                         context.fillStyle = "#3e695880";

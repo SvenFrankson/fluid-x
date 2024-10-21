@@ -1585,10 +1585,14 @@ class Game {
         this.menuCamAlpha = -Math.PI * 0.75;
         this.menuCamBeta = Math.PI * 0.3;
         this.menuCamRadius = 15;
+        this.playCameraRange = 12;
+        this.playCameraRadius = 20;
+        this.playCameraMinRadius = 15;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
         this.onResize = () => {
-            this.screenRatio = window.innerWidth / window.innerHeight;
+            let rect = this.canvas.getBoundingClientRect();
+            this.screenRatio = rect.width / rect.height;
             if (this.screenRatio < 1) {
                 document.body.classList.add("vertical");
             }
@@ -1596,6 +1600,9 @@ class Game {
                 document.body.classList.remove("vertical");
             }
             this.engine.resize();
+            this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
+            this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
+            this.updatePlayCameraRadius();
         };
         this.movieIdleDir = BABYLON.Vector3.Zero();
         this.factoredTimeSinceGameStart = 0;
@@ -1637,13 +1644,16 @@ class Game {
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
-        this.screenRatio = window.innerWidth / window.innerHeight;
+        let rect = this.canvas.getBoundingClientRect();
+        this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
         }
         else {
             document.body.classList.remove("vertical");
         }
+        this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
         this.timerText = document.querySelector("#play-timer");
         this.puzzleIntro = document.querySelector("#puzzle-intro");
         this.successPanel = document.querySelector("#play-success-panel");
@@ -1652,6 +1662,7 @@ class Game {
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
+        this.updatePlayCameraRadius();
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
         northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
@@ -1894,18 +1905,38 @@ class Game {
     }
     async initialize() {
     }
+    getCameraHorizontalFOV() {
+        return 2 * Math.atan(this.screenRatio * Math.tan(this.camera.fov / 2));
+    }
+    updatePlayCameraRadius() {
+        let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
+        this.playCameraRadius = Math.max(this.playCameraMinRadius, this.playCameraRange / Math.tan(minFov));
+    }
     update() {
         let rawDT = this.scene.deltaTime / 1000;
         if (isFinite(rawDT)) {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.ball.position.clone();
-                targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + 2, this.puzzle.xMax - 2);
-                targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + 2, this.puzzle.zMax - 2);
-                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
-                this.camera.alpha = this.camera.alpha * 0.99 + (-Math.PI * 0.5) * 0.01;
-                this.camera.beta = this.camera.beta * 0.99 + (Math.PI * 0.1) * 0.01;
-                this.camera.radius = this.camera.radius * 0.99 + (15) * 0.01;
+                let margin = 5;
+                if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
+                    targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
+                }
+                else {
+                    targetCameraPos.x = (this.puzzle.xMin + this.puzzle.xMax) * 0.5;
+                }
+                if (this.puzzle.zMax - this.puzzle.zMin > 2 * margin) {
+                    targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + margin * 1.15, this.puzzle.zMax - margin * 0.85);
+                }
+                else {
+                    targetCameraPos.z = (this.puzzle.zMin + this.puzzle.zMax) * 0.5;
+                }
+                let f = Nabu.Easing.smooth1Sec(1 / rawDT);
+                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
+                let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
+                this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
+                this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
+                this.camera.radius = this.camera.radius * f3 + (this.playCameraRadius) * (1 - f3);
                 if (this.ball) {
                     this.ball.update(rawDT);
                 }
@@ -1916,10 +1947,11 @@ class Game {
             else if (this.mode === GameMode.Menu) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = new BABYLON.Vector3(0.5 * (this.puzzle.xMin + this.puzzle.xMax), 0, 0.5 * (this.puzzle.zMin + this.puzzle.zMax));
-                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, 0.01, this.camera.target);
-                this.camera.alpha = this.camera.alpha * 0.998 + this.menuCamAlpha * 0.002;
-                this.camera.beta = this.camera.beta * 0.998 + this.menuCamBeta * 0.002;
-                this.camera.radius = this.camera.radius * 0.998 + this.menuCamRadius * 0.002;
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, 5);
+                BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
+                this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
+                this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);
+                this.camera.radius = this.camera.radius * f3 + this.menuCamRadius * (1 - f3);
             }
             else if (this.mode === GameMode.Editor) {
                 this.camera.target.x = Nabu.MinMax(this.camera.target.x, this.puzzle.xMin, this.puzzle.xMax);

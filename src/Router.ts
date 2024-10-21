@@ -50,6 +50,10 @@ class CarillonRouter extends Nabu.Router {
     protected async onHRefChange(page: string, previousPage: string): Promise<void> {
         console.log("onHRefChange previous " + previousPage + " now " + page);
         //?gdmachineId=1979464530
+
+        for (let i = 0; i < this.pages.length; i++) {
+            await this.pages[i].waitLoaded();
+        }
         
         this.game.mode = GameMode.Menu;
         this.game.editor.deactivate();

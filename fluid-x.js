@@ -1171,7 +1171,7 @@ class Editor {
                     body: dataString,
                 });
                 let id = parseInt(await response.text());
-                let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
+                let url = "https://html-classic.itch.zone/html/11779106/carillion-build/index.html?puzzle=" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 document.getElementById("editor-publish-form-edit").style.display = "none";
                 document.getElementById("editor-publish-form-success").style.display = "block";
@@ -1883,6 +1883,18 @@ class Game {
             loop: true
         });
         ambient.setVolume(0.2);
+        var url = window.location;
+        console.log(url);
+        let puzzleId;
+        if (location.search != "") {
+            let puzzleIdStr = location.search.replace("?puzzle=", "");
+            if (puzzleIdStr) {
+                puzzleId = parseInt(puzzleIdStr);
+                if (puzzleId) {
+                    location.hash = "#play-community-" + puzzleId;
+                }
+            }
+        }
     }
     static ScoreToString(t) {
         t = t / 100;
@@ -3027,15 +3039,15 @@ class CarillonRouter extends Nabu.Router {
             this.successBackButton.parentElement.href = "#community";
             this.successNextButton.parentElement.href = "#community";
             this.gameoverBackButton.parentElement.href = "#community";
-            let id = parseInt(page.replace("#play-community-", ""));
-            if (this.game.puzzle.data.id != id) {
+            let puzzleId = parseInt(page.replace("#play-community-", ""));
+            if (this.game.puzzle.data.id != puzzleId) {
                 let headers = {};
                 if (var1) {
                     headers = {
                         "Authorization": 'Basic ' + btoa("carillon:" + var1)
                     };
                 }
-                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + id.toFixed(0), {
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
                     method: "GET",
                     mode: "cors",
                     headers: headers

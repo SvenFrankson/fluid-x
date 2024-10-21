@@ -456,6 +456,20 @@ class Game {
             loop: true
         });
         ambient.setVolume(0.2);
+
+        var url = window.location;
+        console.log(url);
+
+        let puzzleId: number;
+        if (location.search != "") {
+            let puzzleIdStr = location.search.replace("?puzzle=", "");
+            if (puzzleIdStr) {
+                puzzleId = parseInt(puzzleIdStr);
+                if (puzzleId) {
+                    location.hash = "#play-community-" + puzzleId;
+                }
+            }
+        }
 	}
 
     public static ScoreToString(t: number): string {

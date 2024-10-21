@@ -121,15 +121,15 @@ class CarillonRouter extends Nabu.Router {
             (this.successBackButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
-            let id = parseInt(page.replace("#play-community-", ""));
-            if (this.game.puzzle.data.id != id) {
+            let puzzleId = parseInt(page.replace("#play-community-", ""));
+            if (this.game.puzzle.data.id != puzzleId) {
                 let headers = {};
                 if (var1) {
                     headers = { 
                         "Authorization": 'Basic ' + btoa("carillon:" + var1)
                     };
                 }
-                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + id.toFixed(0), {
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
                     method: "GET",
                     mode: "cors",
                     headers: headers

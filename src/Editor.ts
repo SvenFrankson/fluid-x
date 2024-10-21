@@ -305,7 +305,7 @@ class Editor {
                     body: dataString,
                 });
                 let id = parseInt(await response.text());
-                let url = location.protocol + "//" + location.host + "/#play-community-" + id.toFixed(0);
+                let url = "https://html-classic.itch.zone/html/11779106/carillion-build/index.html?puzzle=" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 document.getElementById("editor-publish-form-edit").style.display = "none";
                 document.getElementById("editor-publish-form-success").style.display = "block";

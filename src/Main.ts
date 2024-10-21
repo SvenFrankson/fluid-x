@@ -35,6 +35,9 @@ async function WaitPlayerInteraction(): Promise<void> {
 }
 
 let onFirstPlayerInteractionTouch = (ev: Event) => {
+    if (!Game.Instance.gameLoaded) {
+        return;
+    }
     console.log("onFirstPlayerInteractionTouch");
     ev.stopPropagation();
     PlayerHasInteracted = true;
@@ -51,9 +54,15 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
+    if (!BABYLON.Engine.audioEngine.unlocked) {
+      BABYLON.Engine.audioEngine.unlock();
+    }
 }
 
 let onFirstPlayerInteractionClic = (ev: Event) => {
+    if (!Game.Instance.gameLoaded) {
+        return;
+    }
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
     PlayerHasInteracted = true;
@@ -69,9 +78,15 @@ let onFirstPlayerInteractionClic = (ev: Event) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
+    if (!BABYLON.Engine.audioEngine.unlocked) {
+      BABYLON.Engine.audioEngine.unlock();
+    }
 }
 
 let onFirstPlayerInteractionKeyboard = (ev: Event) => {
+    if (!Game.Instance.gameLoaded) {
+        return;
+    }
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     PlayerHasInteracted = true;
@@ -86,6 +101,9 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
+    }
+    if (!BABYLON.Engine.audioEngine.unlocked) {
+      BABYLON.Engine.audioEngine.unlock();
     }
 }
 
@@ -179,6 +197,7 @@ class Game {
     public mode: GameMode = GameMode.Menu;
 
     public completedPuzzleIds: number[] = [];
+    public gameLoaded: boolean = false;
 
     constructor(canvasElement: string) {
         Game.Instance = this;
@@ -189,16 +208,6 @@ class Game {
 		this.engine = new BABYLON.Engine(this.canvas, true, undefined, false);
 		BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
-
-        window.addEventListener(
-            "click",
-            () => {
-              if (!BABYLON.Engine.audioEngine.unlocked) {
-                BABYLON.Engine.audioEngine.unlock();
-              }
-            },
-            { once: true },
-        );
 	}
 
     public async createScene(): Promise<void> {
@@ -385,12 +394,6 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
-        
-        document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
-        document.body.addEventListener("click", onFirstPlayerInteractionClic);
-        document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
-        
-        document.getElementById("click-anywhere-screen").style.display = "none";
 
         (document.querySelector("#success-score-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.submitHighscore();
@@ -465,14 +468,18 @@ class Game {
         }
         updateCamMenuData();
 
-        let ambient = new BABYLON.Sound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, undefined, {
-            autoplay: true,
-            loop: true
-        });
-        ambient.setVolume(0.2);
-
-        var url = window.location;
-        console.log(url);
+        let ambient = new BABYLON.Sound(
+            "ambient",
+            "./datas/sounds/zen-ambient.mp3",
+            this.scene,
+            () => {
+                ambient.setVolume(0.2)
+            },
+            {
+                autoplay: true,
+                loop: true
+            }
+        );
 
         let puzzleId: number;
         if (location.search != "") {
@@ -484,6 +491,11 @@ class Game {
                 }
             }
         }
+
+        this.gameLoaded = true;
+        document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
+        document.body.addEventListener("click", onFirstPlayerInteractionClic);
+        document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
 	}
 
     public static ScoreToString(t: number): string {

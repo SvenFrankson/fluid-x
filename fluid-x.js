@@ -16,7 +16,7 @@ class Ball extends BABYLON.Mesh {
         this.leftDown = false;
         this.rightDown = false;
         this.playTimer = 0;
-        this.speed = 3;
+        this.speed = 2;
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
         this.bounceXTimer = 0;
@@ -119,7 +119,7 @@ class Ball extends BABYLON.Mesh {
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
-                this.speed = 3;
+                this.speed = 2.5;
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
@@ -1300,6 +1300,9 @@ class LevelPage {
         while (colCount < 3) {
             colCount++;
         }
+        while (rowCount < 4) {
+            rowCount++;
+        }
         this.levelsPerPage = colCount * (rowCount - 1);
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
         let n = 0;
@@ -1508,6 +1511,9 @@ async function WaitPlayerInteraction() {
     });
 }
 let onFirstPlayerInteractionTouch = (ev) => {
+    if (!Game.Instance.gameLoaded) {
+        return;
+    }
     console.log("onFirstPlayerInteractionTouch");
     ev.stopPropagation();
     PlayerHasInteracted = true;
@@ -1523,8 +1529,14 @@ let onFirstPlayerInteractionTouch = (ev) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
+    if (!BABYLON.Engine.audioEngine.unlocked) {
+        BABYLON.Engine.audioEngine.unlock();
+    }
 };
 let onFirstPlayerInteractionClic = (ev) => {
+    if (!Game.Instance.gameLoaded) {
+        return;
+    }
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
     PlayerHasInteracted = true;
@@ -1539,8 +1551,14 @@ let onFirstPlayerInteractionClic = (ev) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
+    if (!BABYLON.Engine.audioEngine.unlocked) {
+        BABYLON.Engine.audioEngine.unlock();
+    }
 };
 let onFirstPlayerInteractionKeyboard = (ev) => {
+    if (!Game.Instance.gameLoaded) {
+        return;
+    }
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     PlayerHasInteracted = true;
@@ -1554,6 +1572,9 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
+    }
+    if (!BABYLON.Engine.audioEngine.unlocked) {
+        BABYLON.Engine.audioEngine.unlock();
     }
 };
 function addLine(text) {
@@ -1602,6 +1623,7 @@ class Game {
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
         this.completedPuzzleIds = [];
+        this.gameLoaded = false;
         this.onResize = () => {
             let rect = this.canvas.getBoundingClientRect();
             this.screenRatio = rect.width / rect.height;
@@ -1643,11 +1665,6 @@ class Game {
         this.engine = new BABYLON.Engine(this.canvas, true, undefined, false);
         BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
-        window.addEventListener("click", () => {
-            if (!BABYLON.Engine.audioEngine.unlocked) {
-                BABYLON.Engine.audioEngine.unlock();
-            }
-        }, { once: true });
     }
     getScene() {
         return this.scene;
@@ -1805,10 +1822,6 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
-        document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
-        document.body.addEventListener("click", onFirstPlayerInteractionClic);
-        document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
-        document.getElementById("click-anywhere-screen").style.display = "none";
         document.querySelector("#success-score-btn").onclick = () => {
             this.puzzle.submitHighscore();
         };
@@ -1873,13 +1886,12 @@ class Game {
             setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
         };
         updateCamMenuData();
-        let ambient = new BABYLON.Sound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, undefined, {
+        let ambient = new BABYLON.Sound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
+            ambient.setVolume(0.2);
+        }, {
             autoplay: true,
             loop: true
         });
-        ambient.setVolume(0.2);
-        var url = window.location;
-        console.log(url);
         let puzzleId;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
@@ -1890,6 +1902,10 @@ class Game {
                 }
             }
         }
+        this.gameLoaded = true;
+        document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
+        document.body.addEventListener("click", onFirstPlayerInteractionClic);
+        document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
     }
     static ScoreToString(t) {
         t = t / 100;
@@ -3258,39 +3274,12 @@ class CarillonRouter extends Nabu.Router {
 class StrokeText extends HTMLElement {
     connectedCallback() {
         this.style.position = "relative";
-        if (!this.content) {
-            this.content = this.innerText;
-        }
-        this.innerText = "";
-        this.base = document.createElement("span");
-        this.base.innerText = this.content;
-        this.appendChild(this.base);
-        this.fill = document.createElement("span");
-        this.fill.innerText = this.content;
-        this.fill.style.position = "absolute";
-        this.fill.style.top = "0";
-        this.fill.style.left = "0";
-        this.fill.style.zIndex = "1";
-        this.appendChild(this.fill);
-        this.stroke = document.createElement("span");
-        this.stroke.innerText = this.content;
-        this.stroke.style.position = "absolute";
-        this.stroke.style.top = "0";
-        this.stroke.style.left = "0";
-        this.stroke.style.color = "#e3cfb4ff";
-        this.stroke.style.webkitTextStroke = "2px #e3cfb4ff";
-        this.stroke.style.zIndex = "0";
-        this.appendChild(this.stroke);
+        let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
+        o = "1px";
+        this.style.textShadow = o + " " + o + " 0px #e3cfb4ff, -" + o + " " + o + " 0px #e3cfb4ff, -" + o + " -" + o + " 0px #e3cfb4ff, " + o + " -" + o + " 0px #e3cfb4ff";
     }
     setContent(text) {
-        if (this.base && this.fill && this.stroke) {
-            this.base.innerText = text;
-            this.fill.innerText = text;
-            this.stroke.innerText = text;
-        }
-        else {
-            this.content = text;
-        }
+        this.innerText = text;
     }
 }
 customElements.define("stroke-text", StrokeText);

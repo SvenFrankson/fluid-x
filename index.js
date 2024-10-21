@@ -42,21 +42,19 @@ async function loadScript(src) {
     });
 }
 
-async function mainMachineReady() {
+async function gameLoaded() {
     let t0 = performance.now();
     return new Promise((resolve) => {
         let wait = () => {
             if (Game) {
                 if (Game.Instance) {
-                    if (Game.Instance.machine) {
-                        if (Game.Instance.machine.ready) {
-                            let t = performance.now();
-                            let t_wait_this_step = (t - t0);
-                            let t_since_start = (t - THE_ORIGIN_OF_TIME_ms);
-                            console.log("machine ready at " + t_since_start.toFixed(3) + " ms. (in " + t_wait_this_step.toFixed(3) + " ms)");
-                            resolve();
-                            return;
-                        }
+                    if (Game.Instance.gameLoaded) {
+                        let t = performance.now();
+                        let t_wait_this_step = (t - t0);
+                        let t_since_start = (t - THE_ORIGIN_OF_TIME_ms);
+                        console.log("game loaded at " + t_since_start.toFixed(3) + " ms. (in " + t_wait_this_step.toFixed(3) + " ms)");
+                        resolve();
+                        return;
                     }
                 }
             }
@@ -102,17 +100,10 @@ function setProgressIndex(i) {
 
 function loadStep() {
     if (real_progress < 1) {
-        let f = 0.001;
-        if (observed_progress_speed > 0.1) {
-            f = 0.05;
-        }
-        else if (observed_progress_speed > 0.5) {
-            f = 0.1;
-        }
-        displayed_progress = displayed_progress * (1 - f) + next_progress * f;
+        displayed_progress = real_progress;
 
         document.querySelector("#click-anywhere-screen .white-track").style.opacity = displayed_progress;
-        document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "loading... " + (displayed_progress * 100).toFixed(0) + "%";
+        document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "loading... " + (displayed_progress * 100).toFixed(3) + "%";
         requestAnimationFrame(loadStep);
     }
     else {
@@ -124,7 +115,7 @@ function loadStep() {
 
 async function doLoad() {
     let pIndex = 0;
-    let stepsCount = 13;
+    let stepsCount = 9;
     steps = [];
     for (let i = 0; i <= stepsCount; i++) {
         steps[i] = i / stepsCount;
@@ -146,6 +137,9 @@ async function doLoad() {
     await loadScript("./lib/mummu/mummu.js");
     setProgressIndex(pIndex++);
     await loadScript("./fluid-x.js");
+    setProgressIndex(pIndex++);
+    await gameLoaded();
+    setProgressIndex(pIndex++);
     setProgressIndex(pIndex++);
 }
 

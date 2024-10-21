@@ -45,6 +45,9 @@ abstract class LevelPage {
         while (colCount < 3) {
             colCount++;
         }
+        while (rowCount < 4) {
+            rowCount++;
+        }
 
         this.levelsPerPage = colCount * (rowCount - 1);
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);

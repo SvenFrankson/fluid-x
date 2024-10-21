@@ -136,7 +136,7 @@ class Ball extends BABYLON.Mesh {
     }
 
     public playTimer: number = 0;
-    public speed: number = 3;
+    public speed: number = 2;
     public inputSpeed: number = 1000;
     public bounceXValue: number = 0;
     public bounceXTimer: number = 0;
@@ -159,7 +159,7 @@ class Ball extends BABYLON.Mesh {
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
-                this.speed = 3;
+                this.speed = 2.5;
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);

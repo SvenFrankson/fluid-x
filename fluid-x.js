@@ -11,7 +11,6 @@ class Ball extends BABYLON.Mesh {
         this.game = game;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
-        //public trailMesh: BABYLON.Mesh;
         this.vZ = 1;
         this.radius = 0.3;
         this.leftDown = false;
@@ -19,10 +18,13 @@ class Ball extends BABYLON.Mesh {
         this.playTimer = 0;
         this.xForce = 1;
         this.speed = 2;
+        this.moveDir = BABYLON.Vector3.Up();
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
         this.bounceXTimer = 0;
         this.bounceXDelay = 1.09;
+        this.trailTimer = 0;
+        this.trailPoints = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
         this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
@@ -40,8 +42,8 @@ class Ball extends BABYLON.Mesh {
         this.shadow.position.z = -0.015;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
-        //this.trailMesh = new BABYLON.Mesh("trailMesh");
-        //this.trailMesh.material = this.game.whiteMaterial;
+        this.trailMesh = new BABYLON.Mesh("trailMesh");
+        this.trailMesh.material = this.game.whiteMaterial;
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
@@ -110,8 +112,6 @@ class Ball extends BABYLON.Mesh {
         ballDatas[1].applyToMesh(this.ballTop);
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
-    //public trailTimer: number = 0;
-    //public trailPoints: BABYLON.Vector3[] = [];
     update(dt) {
         let vX = 0;
         if (this.leftDown) {
@@ -134,14 +134,13 @@ class Ball extends BABYLON.Mesh {
             return;
         }
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
-            /*
             this.trailTimer += dt;
+            let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.05));
             if (this.trailTimer > 0.07) {
                 this.trailTimer = 0;
-                let p = this.absolutePosition.clone();
-                let last = this.trailPoints[this.trailPoints.length - 1]
+                let last = this.trailPoints[this.trailPoints.length - 1];
                 if (last) {
-                    p.scaleInPlace(0.4).addInPlace(last.scale(0.6));
+                    p.scaleInPlace(0.5).addInPlace(last.scale(0.5));
                 }
                 this.trailPoints.push(p);
                 if (this.trailPoints.length > 35) {
@@ -151,7 +150,7 @@ class Ball extends BABYLON.Mesh {
             if (this.trailPoints.length > 2) {
                 let points = this.trailPoints.map(pt => { return pt.clone(); });
                 Mummu.CatmullRomPathInPlace(points);
-                points.push(this.absolutePosition.clone());
+                points.push(p);
                 let data = Mummu.CreateWireVertexData({
                     path: points,
                     pathUps: points.map(p => { return BABYLON.Axis.Y; }),
@@ -163,7 +162,6 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
-            */
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
             }
@@ -177,8 +175,8 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXTimer -= dt * this.speed;
                 this.xForce = 1;
             }
-            let speed = new BABYLON.Vector3(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ);
-            speed.normalize().scaleInPlace(this.speed);
+            this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
+            let speed = this.moveDir.scale(this.speed);
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
@@ -1385,6 +1383,23 @@ class LevelPage {
                     else {
                         authorText.setContent(puzzleTileData[n].data.author);
                     }
+                    if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
+                        let completedStamp = document.createElement("div");
+                        completedStamp.classList.add("square-btn-stamp");
+                        let stars = document.createElement("div");
+                        completedStamp.appendChild(stars);
+                        squareButton.appendChild(completedStamp);
+                        let score = this.router.game.getPersonalBestScore(puzzleTileData[n].data.id);
+                        let highscore = puzzleTileData[n].data.score;
+                        let ratio = 1;
+                        if (isFinite(highscore)) {
+                            ratio = highscore / score;
+                        }
+                        let s1 = ratio > 0.3 ? "★" : "☆";
+                        let s2 = ratio > 0.6 ? "★" : "☆";
+                        let s3 = ratio > 0.9 ? "★" : "☆";
+                        stars.innerHTML = s1 + "</br>" + s2 + s3;
+                    }
                 }
                 n++;
                 line.appendChild(squareButton);
@@ -1670,7 +1685,7 @@ class Game {
         this.playCameraMinRadius = 15;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
-        this.completedPuzzleIds = [];
+        this.completedPuzzles = [];
         this.gameLoaded = false;
         this.onResize = () => {
             let rect = this.canvas.getBoundingClientRect();
@@ -1805,9 +1820,9 @@ class Game {
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
         if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-ids");
+            let dataString = window.localStorage.getItem("completed-puzzles");
             if (dataString) {
-                this.completedPuzzleIds = JSON.parse(dataString);
+                this.completedPuzzles = JSON.parse(dataString);
             }
         }
         let storyModePuzzlesContent = "";
@@ -2038,16 +2053,28 @@ class Game {
             }
         }
     }
-    completePuzzle(id) {
-        if (this.completedPuzzleIds.indexOf(id) === -1) {
-            this.completedPuzzleIds.push(id);
-            if (HasLocalStorage) {
-                window.localStorage.setItem("completed-puzzles-ids", JSON.stringify(this.completedPuzzleIds));
-            }
+    completePuzzle(id, score) {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+        if (!comp) {
+            comp = { id: id, score: score };
+            this.completedPuzzles.push(comp);
+        }
+        else if (comp.score > score) {
+            comp.score = Math.min(comp.score, score);
+        }
+        if (HasLocalStorage) {
+            window.localStorage.setItem("completed-puzzles", JSON.stringify(this.completedPuzzles));
         }
     }
     isPuzzleCompleted(id) {
-        return this.completedPuzzleIds.indexOf(id) != -1;
+        return this.completedPuzzles.findIndex(comp => { return comp.id === id; }) != -1;
+    }
+    getPersonalBestScore(id) {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+        if (comp) {
+            return comp.score;
+        }
+        return Infinity;
     }
     get curtainOpacity() {
         return this._curtainOpacity;
@@ -2520,8 +2547,8 @@ class Puzzle {
         return this.h * 1.1 - 0.55;
     }
     win() {
-        this.game.completePuzzle(this.data.id);
         let score = Math.floor(this.game.ball.playTimer * 100);
+        this.game.completePuzzle(this.data.id, score);
         this.game.router.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
@@ -2633,8 +2660,8 @@ class Puzzle {
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
         this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        //this.game.ball.trailPoints = [];
-        //this.game.ball.trailMesh.isVisible = false;
+        this.game.ball.trailPoints = [];
+        this.game.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
             this.game.ball.setColor(parseInt(ballLine[2]));
         }

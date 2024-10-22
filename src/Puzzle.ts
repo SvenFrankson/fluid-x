@@ -106,9 +106,9 @@ class Puzzle {
     }
 
     public win(): void {
-        this.game.completePuzzle(this.data.id);
         
         let score = Math.floor(this.game.ball.playTimer * 100);
+        this.game.completePuzzle(this.data.id, score);
         (this.game.router.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
         setTimeout(() => {
@@ -233,8 +233,8 @@ class Puzzle {
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
         this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        //this.game.ball.trailPoints = [];
-        //this.game.ball.trailMesh.isVisible = false;
+        this.game.ball.trailPoints = [];
+        this.game.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
             this.game.ball.setColor(parseInt(ballLine[2]));
         }

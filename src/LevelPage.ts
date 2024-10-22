@@ -2,6 +2,7 @@ interface IPuzzleTileData {
     data: IPuzzleData;
     onclick: () => void;
     locked?: boolean;
+    completed?: boolean;
 }
 
 abstract class LevelPage {
@@ -86,6 +87,25 @@ abstract class LevelPage {
                     }
                     else {
                         authorText.setContent(puzzleTileData[n].data.author);
+                    }
+
+                    if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
+                        let completedStamp = document.createElement("div");
+                        completedStamp.classList.add("square-btn-stamp");
+                        let stars = document.createElement("div");
+                        completedStamp.appendChild(stars);
+                        squareButton.appendChild(completedStamp);
+
+                        let score = this.router.game.getPersonalBestScore(puzzleTileData[n].data.id);
+                        let highscore = puzzleTileData[n].data.score;
+                        let ratio = 1;
+                        if (isFinite(highscore)) {
+                            ratio = highscore / score;
+                        }
+                        let s1 = ratio > 0.3 ? "★" : "☆";
+                        let s2 = ratio > 0.6 ? "★" : "☆";
+                        let s3 = ratio > 0.9 ? "★" : "☆";
+                        stars.innerHTML = s1 + "</br>" + s2 + s3;
                     }
                 }
                 n++;

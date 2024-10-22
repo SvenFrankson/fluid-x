@@ -23,7 +23,7 @@ class Ball extends BABYLON.Mesh {
     public color: TileColor;
     public ballTop: BABYLON.Mesh;
     public shadow: BABYLON.Mesh;
-    //public trailMesh: BABYLON.Mesh;
+    public trailMesh: BABYLON.Mesh;
     
     public vZ: number = 1;
     public radius: number = 0.3;
@@ -78,8 +78,8 @@ class Ball extends BABYLON.Mesh {
 
         this.shadow.material = this.game.shadowDiscMaterial;
 
-        //this.trailMesh = new BABYLON.Mesh("trailMesh");
-        //this.trailMesh.material = this.game.whiteMaterial;
+        this.trailMesh = new BABYLON.Mesh("trailMesh");
+        this.trailMesh.material = this.game.whiteMaterial;
 
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
@@ -144,13 +144,14 @@ class Ball extends BABYLON.Mesh {
     public playTimer: number = 0;
     public xForce: number = 1;
     public speed: number = 2;
+    public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Up();
     public inputSpeed: number = 1000;
     public bounceXValue: number = 0;
     public bounceXTimer: number = 0;
     public bounceXDelay: number = 1.09;
 
-    //public trailTimer: number = 0;
-    //public trailPoints: BABYLON.Vector3[] = [];
+    public trailTimer: number = 0;
+    public trailPoints: BABYLON.Vector3[] = [];
     
     public update(dt: number): void {
         let vX = 0;
@@ -177,14 +178,13 @@ class Ball extends BABYLON.Mesh {
             return;
         }
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
-            /*
             this.trailTimer += dt;
+            let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.05));
             if (this.trailTimer > 0.07) {
                 this.trailTimer = 0;
-                let p = this.absolutePosition.clone();
                 let last = this.trailPoints[this.trailPoints.length - 1]
                 if (last) {
-                    p.scaleInPlace(0.4).addInPlace(last.scale(0.6));
+                    p.scaleInPlace(0.5).addInPlace(last.scale(0.5));
                 }
                 this.trailPoints.push(p);
                 if (this.trailPoints.length > 35) {
@@ -194,7 +194,7 @@ class Ball extends BABYLON.Mesh {
             if (this.trailPoints.length > 2) {
                 let points = this.trailPoints.map(pt => { return pt.clone(); });
                 Mummu.CatmullRomPathInPlace(points);
-                points.push(this.absolutePosition.clone());
+                points.push(p);
                 let data = Mummu.CreateWireVertexData({
                     path: points,
                     pathUps: points.map(p => { return BABYLON.Axis.Y; }),
@@ -206,7 +206,6 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
-            */
 
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
@@ -223,12 +222,12 @@ class Ball extends BABYLON.Mesh {
                 this.xForce = 1;
             }
 
-            let speed = new BABYLON.Vector3(
+            this.moveDir.copyFromFloats(
                 this.xForce * vX * (1.2 - 2 * this.radius) / 0.55,
                 0,
                 this.vZ
-            );
-            speed.normalize().scaleInPlace(this.speed);
+            ).normalize();
+            let speed = this.moveDir.scale(this.speed);
 
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {

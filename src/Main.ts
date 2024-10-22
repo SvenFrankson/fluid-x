@@ -192,7 +192,7 @@ class Game {
     public editor: Editor;
     public mode: GameMode = GameMode.Menu;
 
-    public completedPuzzleIds: number[] = [];
+    public completedPuzzles: { id: number, score: number }[] = [];
     public gameLoaded: boolean = false;
 
     constructor(canvasElement: string) {
@@ -315,9 +315,9 @@ class Game {
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
 
         if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-ids");
+            let dataString = window.localStorage.getItem("completed-puzzles");
             if (dataString) {
-                this.completedPuzzleIds = JSON.parse(dataString);
+                this.completedPuzzles = JSON.parse(dataString);
             }
         }
 
@@ -635,17 +635,31 @@ class Game {
         
     }
 
-    public completePuzzle(id: number): void {
-        if (this.completedPuzzleIds.indexOf(id) === -1) {
-            this.completedPuzzleIds.push(id);
-            if (HasLocalStorage) {
-                window.localStorage.setItem("completed-puzzles-ids", JSON.stringify(this.completedPuzzleIds));
-            }
+    public completePuzzle(id: number, score: number): void {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id });
+        if (!comp) {
+            comp = { id: id, score: score };
+            this.completedPuzzles.push(comp)
+        }
+        else if (comp.score > score) {
+            comp.score = Math.min(comp.score, score);
+        }
+
+        if (HasLocalStorage) {
+            window.localStorage.setItem("completed-puzzles", JSON.stringify(this.completedPuzzles));
         }
     }
 
     public isPuzzleCompleted(id: number): boolean {
-        return this.completedPuzzleIds.indexOf(id) != -1;
+        return this.completedPuzzles.findIndex(comp => { return comp.id === id }) != -1;
+    }
+
+    public getPersonalBestScore(id: number): number {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id });
+        if (comp) {
+            return comp.score;
+        }
+        return Infinity;
     }
 
     private _curtainOpacity: number = 0;

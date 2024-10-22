@@ -375,6 +375,28 @@ button.selected {
     text-align: right;
 }
 
+.square-btn-stamp {
+    display: block;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50px;
+    color: #e0c872;
+    bottom: 50px;
+    right: 5px;
+    z-index: 2;
+    border: 3px double #e0c872;
+    text-align: center;
+    background-color: #00000020;
+}
+
+.square-btn-stamp div {
+    font-size: 23px;
+    line-height: 18px;
+    transform: translateY(6px);
+    font-weight: 100;
+}
+
 input[type="text"] {
     width: 220px;
     font-size: 20px;

@@ -62,7 +62,7 @@ class Border extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
-        if (!this.ghost || true) {
+        if (!this.ghost) {
             let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
             Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
             data.applyToMesh(this);

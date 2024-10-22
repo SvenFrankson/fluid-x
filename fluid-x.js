@@ -11,6 +11,7 @@ class Ball extends BABYLON.Mesh {
         this.game = game;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
+        //public trailMesh: BABYLON.Mesh;
         this.vZ = 1;
         this.radius = 0.3;
         this.leftDown = false;
@@ -22,8 +23,6 @@ class Ball extends BABYLON.Mesh {
         this.bounceXValue = 0;
         this.bounceXTimer = 0;
         this.bounceXDelay = 1.09;
-        this.trailTimer = 0;
-        this.trailPoints = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
         this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
@@ -41,8 +40,8 @@ class Ball extends BABYLON.Mesh {
         this.shadow.position.z = -0.015;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
-        this.trailMesh = new BABYLON.Mesh("trailMesh");
-        this.trailMesh.material = this.game.whiteMaterial;
+        //this.trailMesh = new BABYLON.Mesh("trailMesh");
+        //this.trailMesh.material = this.game.whiteMaterial;
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
@@ -111,6 +110,8 @@ class Ball extends BABYLON.Mesh {
         ballDatas[1].applyToMesh(this.ballTop);
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
     }
+    //public trailTimer: number = 0;
+    //public trailPoints: BABYLON.Vector3[] = [];
     update(dt) {
         let vX = 0;
         if (this.leftDown) {
@@ -133,11 +134,12 @@ class Ball extends BABYLON.Mesh {
             return;
         }
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+            /*
             this.trailTimer += dt;
             if (this.trailTimer > 0.07) {
                 this.trailTimer = 0;
                 let p = this.absolutePosition.clone();
-                let last = this.trailPoints[this.trailPoints.length - 1];
+                let last = this.trailPoints[this.trailPoints.length - 1]
                 if (last) {
                     p.scaleInPlace(0.4).addInPlace(last.scale(0.6));
                 }
@@ -161,6 +163,7 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
+            */
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
             }
@@ -516,7 +519,7 @@ class Border extends BABYLON.Mesh {
         return border;
     }
     async instantiate() {
-        if (!this.ghost || true) {
+        if (!this.ghost) {
             let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
             Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
             data.applyToMesh(this);
@@ -834,9 +837,10 @@ var EditorBrush;
     EditorBrush[EditorBrush["Push"] = 4] = "Push";
     EditorBrush[EditorBrush["Hole"] = 5] = "Hole";
     EditorBrush[EditorBrush["Rock"] = 6] = "Rock";
-    EditorBrush[EditorBrush["Box"] = 7] = "Box";
-    EditorBrush[EditorBrush["Ramp"] = 8] = "Ramp";
-    EditorBrush[EditorBrush["Bridge"] = 9] = "Bridge";
+    EditorBrush[EditorBrush["Wall"] = 7] = "Wall";
+    EditorBrush[EditorBrush["Box"] = 8] = "Box";
+    EditorBrush[EditorBrush["Ramp"] = 9] = "Ramp";
+    EditorBrush[EditorBrush["Bridge"] = 10] = "Bridge";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -943,6 +947,13 @@ class Editor {
                                     color: this.brushColor
                                 });
                             }
+                            else if (this.brush === EditorBrush.Wall) {
+                                tile = new WallTile(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor
+                                });
+                            }
                             else if (this.brush === EditorBrush.Box) {
                                 let box = new Box(this.game, {
                                     i: this.cursorI,
@@ -1038,6 +1049,7 @@ class Editor {
         this.pushTileButton = document.getElementById("push-tile-btn");
         this.holeButton = document.getElementById("hole-btn");
         this.rockButton = document.getElementById("rock-btn");
+        this.wallButton = document.getElementById("wall-btn");
         this.boxButton = document.getElementById("box-btn");
         this.rampButton = document.getElementById("ramp-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
@@ -1054,6 +1066,7 @@ class Editor {
             this.pushTileButton,
             this.holeButton,
             this.rockButton,
+            this.wallButton,
             this.boxButton,
             this.rampButton,
             this.bridgeButton
@@ -1088,6 +1101,7 @@ class Editor {
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.rockButton, EditorBrush.Rock);
+        makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
@@ -1717,15 +1731,14 @@ class Game {
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
-        this.timerText = document.querySelector("#play-timer");
-        this.puzzleIntro = document.querySelector("#puzzle-intro");
-        this.successPanel = document.querySelector("#play-success-panel");
-        this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
+        this.router = new CarillonRouter(this);
+        this.router.initialize();
+        await this.router.waitForAllPagesLoaded();
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
         northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
@@ -1859,8 +1872,6 @@ class Game {
         document.querySelector("#success-score-btn").onclick = () => {
             this.puzzle.submitHighscore();
         };
-        this.router = new CarillonRouter(this);
-        this.router.initialize();
         this.router.start();
         document.querySelector("#reset-btn").onclick = () => {
             this.puzzle.reset();
@@ -1921,7 +1932,7 @@ class Game {
         };
         updateCamMenuData();
         let ambient = new BABYLON.Sound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
-            ambient.setVolume(0.2);
+            ambient.setVolume(0.3);
         }, {
             autoplay: true,
             loop: true
@@ -1952,8 +1963,8 @@ class Game {
         let min = Math.floor(t / 60);
         let sec = Math.floor(t - 60 * min);
         let centi = Math.floor((t - 60 * min - sec) * 100);
-        if (this.timerText) {
-            let strokes = this.timerText.querySelectorAll("stroke-text");
+        if (this.router && this.router.timerText) {
+            let strokes = this.router && this.router.timerText.querySelectorAll("stroke-text");
             strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
             strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
             strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
@@ -2052,42 +2063,46 @@ class Game {
         }
     }
     async fadeInIntro(duration = 1) {
-        this.puzzleIntro.style.opacity = "0";
-        let t0 = performance.now();
-        let step = () => {
-            if (this.fadeIntroDir < 0) {
-                return;
-            }
-            let f = (performance.now() - t0) / 1000 / duration;
-            if (f < 1) {
-                this.puzzleIntro.style.opacity = f.toFixed(2);
-                requestAnimationFrame(step);
-            }
-            else {
-                this.puzzleIntro.style.opacity = "1";
-            }
-        };
-        this.fadeIntroDir = 1;
-        step();
+        if (this.router.puzzleIntro) {
+            this.router.puzzleIntro.style.opacity = "0";
+            let t0 = performance.now();
+            let step = () => {
+                if (this.fadeIntroDir < 0) {
+                    return;
+                }
+                let f = (performance.now() - t0) / 1000 / duration;
+                if (f < 1) {
+                    this.router.puzzleIntro.style.opacity = f.toFixed(2);
+                    requestAnimationFrame(step);
+                }
+                else {
+                    this.router.puzzleIntro.style.opacity = "1";
+                }
+            };
+            this.fadeIntroDir = 1;
+            step();
+        }
     }
     async fadeOutIntro(duration = 1) {
-        this.puzzleIntro.style.opacity = "1";
-        let t0 = performance.now();
-        let step = () => {
-            if (this.fadeIntroDir > 0) {
-                return;
-            }
-            let f = (performance.now() - t0) / 1000 / duration;
-            if (f < 1) {
-                this.puzzleIntro.style.opacity = (1 - f).toFixed(2);
-                requestAnimationFrame(step);
-            }
-            else {
-                this.puzzleIntro.style.opacity = "0";
-            }
-        };
-        this.fadeIntroDir = -1;
-        step();
+        if (this.router.puzzleIntro) {
+            this.router.puzzleIntro.style.opacity = "1";
+            let t0 = performance.now();
+            let step = () => {
+                if (this.fadeIntroDir > 0) {
+                    return;
+                }
+                let f = (performance.now() - t0) / 1000 / duration;
+                if (f < 1) {
+                    this.router.puzzleIntro.style.opacity = (1 - f).toFixed(2);
+                    requestAnimationFrame(step);
+                }
+                else {
+                    this.router.puzzleIntro.style.opacity = "0";
+                }
+            };
+            this.fadeIntroDir = -1;
+            step();
+        }
     }
 }
 function DEBUG_LOG_MESHES_NAMES() {
@@ -2507,11 +2522,11 @@ class Puzzle {
     win() {
         this.game.completePuzzle(this.data.id);
         let score = Math.floor(this.game.ball.playTimer * 100);
-        this.game.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
+        this.game.router.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.successPanel.style.display = "";
-                this.game.gameoverPanel.style.display = "none";
+                this.game.router.successPanel.style.display = "";
+                this.game.router.gameoverPanel.style.display = "none";
                 if (this.data.score === null || score < this.data.score) {
                     this.setHighscoreState(1);
                 }
@@ -2524,8 +2539,8 @@ class Puzzle {
     lose() {
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.successPanel.style.display = "none";
-                this.game.gameoverPanel.style.display = "";
+                this.game.router.successPanel.style.display = "none";
+                this.game.router.gameoverPanel.style.display = "";
             }
         }, 1000);
     }
@@ -2578,8 +2593,12 @@ class Puzzle {
             this.loadFromData(this.data);
             await this.instantiate();
         }
-        this.game.successPanel.style.display = "none";
-        this.game.gameoverPanel.style.display = "none";
+        if (this.game.router.successPanel) {
+            this.game.router.successPanel.style.display = "none";
+        }
+        if (this.game.router.gameoverPanel) {
+            this.game.router.gameoverPanel.style.display = "none";
+        }
         document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
         document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
         this.game.fadeInIntro();
@@ -2614,8 +2633,8 @@ class Puzzle {
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
         this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        this.game.ball.trailPoints = [];
-        this.game.ball.trailMesh.isVisible = false;
+        //this.game.ball.trailPoints = [];
+        //this.game.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
             this.game.ball.setColor(parseInt(ballLine[2]));
         }
@@ -2649,7 +2668,15 @@ class Puzzle {
                     });
                 }
                 if (c === "r") {
-                    let hole = new RockTile(this.game, {
+                    let rock = new RockTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "a") {
+                    let wall = new WallTile(this.game, {
                         color: TileColor.North,
                         i: i,
                         j: j,
@@ -2796,6 +2823,9 @@ class Puzzle {
             }
             else if (tile instanceof RockTile) {
                 lines[j][i] = "r";
+            }
+            else if (tile instanceof WallTile) {
+                lines[j][i] = "a";
             }
         });
         this.buildings.forEach(building => {
@@ -3170,6 +3200,19 @@ class RockTile extends Tile {
         tileData[2].applyToMesh(this.rock);
     }
 }
+class WallTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.color = props.color;
+        this.material = this.game.blackMaterial;
+    }
+    async instantiate() {
+        await super.instantiate();
+        let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.2, depth: 1.1 });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.1, 0));
+        data.applyToMesh(this);
+    }
+}
 class CarillonRouter extends Nabu.Router {
     constructor(game) {
         super();
@@ -3197,6 +3240,10 @@ class CarillonRouter extends Nabu.Router {
         this.gameoverReplayButton.onclick = () => {
             this.game.puzzle.reset();
         };
+        this.timerText = document.querySelector("#play-timer");
+        this.puzzleIntro = document.querySelector("#puzzle-intro");
+        this.successPanel = document.querySelector("#play-success-panel");
+        this.gameoverPanel = document.querySelector("#play-gameover-panel");
     }
     onUpdate() { }
     async onHRefChange(page, previousPage) {

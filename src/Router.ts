@@ -9,6 +9,11 @@ class CarillonRouter extends Nabu.Router {
     public devPage: Nabu.DefaultPage;
     public eulaPage: Nabu.DefaultPage;
 
+    public timerText: HTMLDivElement;
+    public puzzleIntro: HTMLDivElement;
+    public successPanel: HTMLDivElement;
+    public gameoverPanel: HTMLDivElement;
+    
     public playBackButton: HTMLButtonElement;
     public successReplayButton: HTMLButtonElement;
     public successBackButton: HTMLButtonElement;
@@ -43,6 +48,11 @@ class CarillonRouter extends Nabu.Router {
         this.gameoverReplayButton.onclick = () => {
             this.game.puzzle.reset();
         }
+        
+        this.timerText = document.querySelector("#play-timer");
+        this.puzzleIntro = document.querySelector("#puzzle-intro");
+        this.successPanel = document.querySelector("#play-success-panel");
+        this.gameoverPanel = document.querySelector("#play-gameover-panel");
     }
 
     protected onUpdate(): void {}

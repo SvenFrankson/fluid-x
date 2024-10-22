@@ -23,7 +23,7 @@ class Ball extends BABYLON.Mesh {
     public color: TileColor;
     public ballTop: BABYLON.Mesh;
     public shadow: BABYLON.Mesh;
-    public trailMesh: BABYLON.Mesh;
+    //public trailMesh: BABYLON.Mesh;
     
     public vZ: number = 1;
     public radius: number = 0.3;
@@ -78,8 +78,8 @@ class Ball extends BABYLON.Mesh {
 
         this.shadow.material = this.game.shadowDiscMaterial;
 
-        this.trailMesh = new BABYLON.Mesh("trailMesh");
-        this.trailMesh.material = this.game.whiteMaterial;
+        //this.trailMesh = new BABYLON.Mesh("trailMesh");
+        //this.trailMesh.material = this.game.whiteMaterial;
 
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
@@ -149,8 +149,8 @@ class Ball extends BABYLON.Mesh {
     public bounceXTimer: number = 0;
     public bounceXDelay: number = 1.09;
 
-    public trailTimer: number = 0;
-    public trailPoints: BABYLON.Vector3[] = [];
+    //public trailTimer: number = 0;
+    //public trailPoints: BABYLON.Vector3[] = [];
     
     public update(dt: number): void {
         let vX = 0;
@@ -177,6 +177,7 @@ class Ball extends BABYLON.Mesh {
             return;
         }
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+            /*
             this.trailTimer += dt;
             if (this.trailTimer > 0.07) {
                 this.trailTimer = 0;
@@ -205,6 +206,7 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
+            */
 
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;

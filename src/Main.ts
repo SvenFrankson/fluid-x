@@ -189,10 +189,6 @@ class Game {
 
     public tiaratumGameLevels: IPuzzlesData;
     public router: CarillonRouter;
-    public timerText: HTMLDivElement;
-    public puzzleIntro: HTMLDivElement;
-    public successPanel: HTMLDivElement;
-    public gameoverPanel: HTMLDivElement;
     public editor: Editor;
     public mode: GameMode = GameMode.Menu;
 
@@ -227,17 +223,16 @@ class Game {
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
 
-        this.timerText = document.querySelector("#play-timer");
-        this.puzzleIntro = document.querySelector("#puzzle-intro");
-        this.successPanel = document.querySelector("#play-success-panel");
-        this.gameoverPanel = document.querySelector("#play-gameover-panel");
-
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
 
         this.camera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
+
+        this.router = new CarillonRouter(this);
+        this.router.initialize();
+        await this.router.waitForAllPagesLoaded();
 
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -399,8 +394,6 @@ class Game {
             this.puzzle.submitHighscore();
         }
 
-        this.router = new CarillonRouter(this);
-        this.router.initialize();
         this.router.start();
 
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
@@ -473,7 +466,7 @@ class Game {
             "./datas/sounds/zen-ambient.mp3",
             this.scene,
             () => {
-                ambient.setVolume(0.2)
+                ambient.setVolume(0.3)
             },
             {
                 autoplay: true,
@@ -512,8 +505,8 @@ class Game {
         let sec = Math.floor(t - 60 * min);
         let centi = Math.floor((t - 60 * min - sec) * 100);
 
-        if (this.timerText) {
-            let strokes = this.timerText.querySelectorAll("stroke-text") as NodeListOf<StrokeText>;
+        if (this.router && this.router.timerText) {
+            let strokes = this.router && this.router.timerText.querySelectorAll("stroke-text") as NodeListOf<StrokeText>;
             strokes[0].setContent(min.toFixed(0).padStart(2, "0") + ":");
             strokes[1].setContent(sec.toFixed(0).padStart(2, "0") + ":");
             strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
@@ -673,45 +666,49 @@ class Game {
     public fadeIntroDir: number = 0;
 
     public async fadeInIntro(duration: number = 1): Promise<void> {
-        this.puzzleIntro.style.opacity = "0";
-
-        let t0 = performance.now();
-        let step = () => {
-            if (this.fadeIntroDir < 0) {
-                return;
+        if (this.router.puzzleIntro) {
+            this.router.puzzleIntro.style.opacity = "0";
+    
+            let t0 = performance.now();
+            let step = () => {
+                if (this.fadeIntroDir < 0) {
+                    return;
+                }
+                let f = (performance.now() - t0) / 1000 / duration;
+                if (f < 1) {
+                    this.router.puzzleIntro.style.opacity = f.toFixed(2);
+                    requestAnimationFrame(step);
+                }
+                else {
+                    this.router.puzzleIntro.style.opacity = "1";
+                }
             }
-            let f = (performance.now() - t0) / 1000 / duration;
-            if (f < 1) {
-                this.puzzleIntro.style.opacity = f.toFixed(2);
-                requestAnimationFrame(step);
-            }
-            else {
-                this.puzzleIntro.style.opacity = "1";
-            }
+            this.fadeIntroDir = 1;
+            step();
         }
-        this.fadeIntroDir = 1;
-        step();
     }
 
     public async fadeOutIntro(duration: number = 1): Promise<void> {
-        this.puzzleIntro.style.opacity = "1";
-
-        let t0 = performance.now();
-        let step = () => {
-            if (this.fadeIntroDir > 0) {
-                return;
+        if (this.router.puzzleIntro) {
+            this.router.puzzleIntro.style.opacity = "1";
+    
+            let t0 = performance.now();
+            let step = () => {
+                if (this.fadeIntroDir > 0) {
+                    return;
+                }
+                let f = (performance.now() - t0) / 1000 / duration;
+                if (f < 1) {
+                    this.router.puzzleIntro.style.opacity = (1 - f).toFixed(2);
+                    requestAnimationFrame(step);
+                }
+                else {
+                    this.router.puzzleIntro.style.opacity = "0";
+                }
             }
-            let f = (performance.now() - t0) / 1000 / duration;
-            if (f < 1) {
-                this.puzzleIntro.style.opacity = (1 - f).toFixed(2);
-                requestAnimationFrame(step);
-            }
-            else {
-                this.puzzleIntro.style.opacity = "0";
-            }
+            this.fadeIntroDir = -1;
+            step();
         }
-        this.fadeIntroDir = -1;
-        step();
     }
 }
 

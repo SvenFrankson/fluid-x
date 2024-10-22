@@ -109,12 +109,12 @@ class Puzzle {
         this.game.completePuzzle(this.data.id);
         
         let score = Math.floor(this.game.ball.playTimer * 100);
-        (this.game.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
+        (this.game.router.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.successPanel.style.display = "";
-                this.game.gameoverPanel.style.display = "none";
+                this.game.router.successPanel.style.display = "";
+                this.game.router.gameoverPanel.style.display = "none";
                 if (this.data.score === null || score < this.data.score) {
                     this.setHighscoreState(1);
                 }
@@ -128,8 +128,8 @@ class Puzzle {
     public lose(): void {
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.successPanel.style.display = "none";
-                this.game.gameoverPanel.style.display = "";
+                this.game.router.successPanel.style.display = "none";
+                this.game.router.gameoverPanel.style.display = "";
             }
         }, 1000);
     }
@@ -188,8 +188,12 @@ class Puzzle {
             this.loadFromData(this.data);
             await this.instantiate();
         }
-        this.game.successPanel.style.display = "none";
-        this.game.gameoverPanel.style.display = "none";
+        if (this.game.router.successPanel) {
+            this.game.router.successPanel.style.display = "none";
+        }
+        if (this.game.router.gameoverPanel) {
+            this.game.router.gameoverPanel.style.display = "none";
+        }
         (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
         (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
         this.game.fadeInIntro();
@@ -229,8 +233,8 @@ class Puzzle {
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
         this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        this.game.ball.trailPoints = [];
-        this.game.ball.trailMesh.isVisible = false;
+        //this.game.ball.trailPoints = [];
+        //this.game.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
             this.game.ball.setColor(parseInt(ballLine[2]));
         }
@@ -264,7 +268,15 @@ class Puzzle {
                     });
                 }
                 if (c === "r") {
-                    let hole = new RockTile(this.game, {
+                    let rock = new RockTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "a") {
+                    let wall = new WallTile(this.game, {
                         color: TileColor.North,
                         i: i,
                         j: j,
@@ -413,6 +425,9 @@ class Puzzle {
             }
             else if (tile instanceof RockTile) {
                 lines[j][i] = "r";
+            }
+            else if (tile instanceof WallTile) {
+                lines[j][i] = "a";
             }
         });
 

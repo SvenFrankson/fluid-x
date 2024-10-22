@@ -6,6 +6,7 @@ enum EditorBrush {
     Push,
     Hole,
     Rock,
+    Wall,
     Box,
     Ramp,
     Bridge
@@ -42,6 +43,7 @@ class Editor {
     public pushTileButton: HTMLButtonElement;
     public holeButton: HTMLButtonElement;
     public rockButton: HTMLButtonElement;
+    public wallButton: HTMLButtonElement;
     public boxButton: HTMLButtonElement;
     public rampButton: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
@@ -124,6 +126,7 @@ class Editor {
         this.pushTileButton = document.getElementById("push-tile-btn") as HTMLButtonElement;
         this.holeButton = document.getElementById("hole-btn") as HTMLButtonElement;
         this.rockButton = document.getElementById("rock-btn") as HTMLButtonElement;
+        this.wallButton = document.getElementById("wall-btn") as HTMLButtonElement;
         this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
         this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
@@ -141,6 +144,7 @@ class Editor {
             this.pushTileButton,
             this.holeButton,
             this.rockButton,
+            this.wallButton,
             this.boxButton,
             this.rampButton,
             this.bridgeButton
@@ -179,6 +183,7 @@ class Editor {
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.rockButton, EditorBrush.Rock);
+        makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
@@ -516,6 +521,16 @@ class Editor {
                         }
                         else if (this.brush === EditorBrush.Rock) {
                             tile = new RockTile(
+                                this.game,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Wall) {
+                            tile = new WallTile(
                                 this.game,
                                 {
                                     i: this.cursorI,

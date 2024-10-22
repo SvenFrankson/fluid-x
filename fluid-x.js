@@ -1950,7 +1950,7 @@ class Game {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.ball.position.clone();
-                let margin = 5;
+                let margin = 4;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -1961,7 +1961,7 @@ class Game {
                     targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + margin * 1.15, this.puzzle.zMax - margin * 0.85);
                 }
                 else {
-                    targetCameraPos.z = (this.puzzle.zMin + this.puzzle.zMax) * 0.5;
+                    targetCameraPos.z = (this.puzzle.zMin * 1.15 + this.puzzle.zMax * 0.85) * 0.5;
                 }
                 let f = Nabu.Easing.smooth1Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);

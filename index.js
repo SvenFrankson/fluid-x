@@ -103,7 +103,7 @@ function loadStep() {
         displayed_progress = real_progress;
 
         document.querySelector("#click-anywhere-screen .white-track").style.opacity = displayed_progress;
-        document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "loading... " + (displayed_progress * 100).toFixed(3) + "%";
+        document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "loading... " + (displayed_progress * 100).toFixed(0) + "%";
         requestAnimationFrame(loadStep);
     }
     else {

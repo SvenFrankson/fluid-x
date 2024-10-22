@@ -16,13 +16,17 @@ class Ball extends BABYLON.Mesh {
         this.leftDown = false;
         this.rightDown = false;
         this.playTimer = 0;
+        this.xForce = 1;
         this.speed = 2;
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
         this.bounceXTimer = 0;
-        this.bounceXDelay = 0.84;
+        this.bounceXDelay = 1.09;
+        this.trailTimer = 0;
+        this.trailPoints = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
+        this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
         this.ballTop = new BABYLON.Mesh("ball-top");
         this.ballTop.parent = this;
         let boxMaterial = new BABYLON.StandardMaterial("box-material");
@@ -37,6 +41,8 @@ class Ball extends BABYLON.Mesh {
         this.shadow.position.z = -0.015;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
+        this.trailMesh = new BABYLON.Mesh("trailMesh");
+        this.trailMesh.material = this.game.whiteMaterial;
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
@@ -127,6 +133,34 @@ class Ball extends BABYLON.Mesh {
             return;
         }
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+            this.trailTimer += dt;
+            if (this.trailTimer > 0.07) {
+                this.trailTimer = 0;
+                let p = this.absolutePosition.clone();
+                let last = this.trailPoints[this.trailPoints.length - 1];
+                if (last) {
+                    p.scaleInPlace(0.4).addInPlace(last.scale(0.6));
+                }
+                this.trailPoints.push(p);
+                if (this.trailPoints.length > 35) {
+                    this.trailPoints.splice(0, 1);
+                }
+            }
+            if (this.trailPoints.length > 2) {
+                let points = this.trailPoints.map(pt => { return pt.clone(); });
+                Mummu.CatmullRomPathInPlace(points);
+                points.push(this.absolutePosition.clone());
+                let data = Mummu.CreateWireVertexData({
+                    path: points,
+                    pathUps: points.map(p => { return BABYLON.Axis.Y; }),
+                    radiusFunc: (f) => {
+                        return 0.08 * f;
+                    },
+                    color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
+                });
+                data.applyToMesh(this.trailMesh);
+                this.trailMesh.isVisible = true;
+            }
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
             }
@@ -134,11 +168,13 @@ class Ball extends BABYLON.Mesh {
                 this.playTimer += dt;
                 this.game.setPlayTimer(this.playTimer);
             }
+            this.xForce = 2;
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
                 this.bounceXTimer -= dt * this.speed;
+                this.xForce = 1;
             }
-            let speed = new BABYLON.Vector3(vX * 13 / 11, 0, this.vZ);
+            let speed = new BABYLON.Vector3(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ);
             speed.normalize().scaleInPlace(this.speed);
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
@@ -175,12 +211,10 @@ class Ball extends BABYLON.Mesh {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
                         if (dir.x > 0) {
-                            this.position.x = impact.x + this.radius;
                             this.bounceXValue = 1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
                         else {
-                            this.position.x = impact.x - this.radius;
                             this.bounceXValue = -1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
@@ -435,7 +469,7 @@ class Border extends BABYLON.Mesh {
         super("tile");
         this.game = game;
         this.ghost = ghost;
-        this.w = 0.1;
+        this.w = 0;
         this.d = 1;
         this.material = this.game.blackMaterial;
         let index = this.game.puzzle.borders.indexOf(this);
@@ -448,8 +482,8 @@ class Border extends BABYLON.Mesh {
     }
     set vertical(v) {
         this.rotation.y = v ? 0 : Math.PI * 0.5;
-        this.w = v ? 0.1 : 1;
-        this.d = v ? 1 : 0.1;
+        this.w = v ? 0 : 1;
+        this.d = v ? 1 : 0;
     }
     static BorderLeft(game, i, j, y = 0, ghost = false) {
         let border = new Border(game, ghost);
@@ -482,7 +516,7 @@ class Border extends BABYLON.Mesh {
         return border;
     }
     async instantiate() {
-        if (!this.ghost) {
+        if (!this.ghost || true) {
             let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
             Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
             data.applyToMesh(this);
@@ -511,13 +545,13 @@ class Border extends BABYLON.Mesh {
         if (ball.position.z - ball.radius > this.position.z + 0.5 * this.d) {
             return false;
         }
-        let dx = ball.position.x - Nabu.MinMax(ball.position.x, this.position.x - this.w, this.position.x + this.w);
-        let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - this.d, this.position.z + this.d);
+        let dx = ball.position.x - Nabu.MinMax(ball.position.x, this.position.x - 0.5 * this.w, this.position.x + 0.5 * this.w);
+        let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - 0.5 * this.d, this.position.z + 0.5 * this.d);
         let dd = dx * dx + dz * dz;
         if (dd < ball.radius * ball.radius) {
-            impact.x = Nabu.MinMax(ball.position.x, this.position.x - this.w, this.position.x + this.w);
+            impact.x = Nabu.MinMax(ball.position.x, this.position.x - 0.5 * this.w, this.position.x + 0.5 * this.w);
             impact.y = ball.position.y;
-            impact.z = Nabu.MinMax(ball.position.z, this.position.z - this.d, this.position.z + this.d);
+            impact.z = Nabu.MinMax(ball.position.z, this.position.z - 0.5 * this.d, this.position.z + 0.5 * this.d);
             return true;
         }
         return false;
@@ -2580,6 +2614,8 @@ class Puzzle {
         this.game.ball.position.y = 0;
         this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
         this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.game.ball.trailPoints = [];
+        this.game.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
             this.game.ball.setColor(parseInt(ballLine[2]));
         }

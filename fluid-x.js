@@ -1495,7 +1495,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {

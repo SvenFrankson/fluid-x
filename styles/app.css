@@ -575,7 +575,7 @@ input[type="text"] {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #0f0f0fe0;
+    background-color: #0f0f0ff0;
     z-index: 10;
     color: white;
 }
@@ -599,22 +599,21 @@ input[type="text"] {
 
 #click-anywhere-screen .message-description {
     position: absolute;
-    top: 28%;
+    top: 3%;
     left: 0;
     width: 100%;
     z-index: 2;
     text-align: center;
-    font-family: Roboto, Arial, Helvetica, sans-serif;
-    font-size: min(3svh, 3vw);
+    font-family: Julee;
+    font-size: 60px;
     color: white;
-    font-weight: 100;
 }
 
 #click-anywhere-screen .white-track {
     position: absolute;
-    top: 35%;
-    left: 10%;
-    width: 80%;
+    top: 25%;
+    left: 25%;
+    width: 50%;
     z-index: 2;
 }
 
@@ -625,7 +624,7 @@ input[type="text"] {
     width: 100%;
     z-index: 2;
     text-align: center;
-    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
     font-size: min(3svh, 3vw);
     color: white;
     font-weight: 100;
@@ -638,9 +637,9 @@ input[type="text"] {
     width: 100%;
     z-index: 2;
     text-align: center;
-    font-family: Roboto, Arial, Helvetica, sans-serif;
     font-size: min(5svh, 5vw);
     color: white;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
     font-weight: 100;
 }
 

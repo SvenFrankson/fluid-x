@@ -6,11 +6,11 @@ class Border extends BABYLON.Mesh {
     }
     public set vertical(v: boolean) {
         this.rotation.y = v ? 0 : Math.PI * 0.5;
-        this.w = v ? 0.1 : 1;
-        this.d = v ? 1 : 0.1;
+        this.w = v ? 0 : 1;
+        this.d = v ? 1 : 0;
     }
 
-    public w: number = 0.1;
+    public w: number = 0;
     public d: number = 1;
 
     public static BorderLeft(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
@@ -62,7 +62,7 @@ class Border extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
-        if (!this.ghost) {
+        if (!this.ghost || true) {
             let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
             Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
             data.applyToMesh(this);
@@ -95,14 +95,14 @@ class Border extends BABYLON.Mesh {
             return false;
         }
 
-        let dx = ball.position.x - Nabu.MinMax(ball.position.x, this.position.x - this.w, this.position.x + this.w);
-        let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - this.d, this.position.z + this.d);
+        let dx = ball.position.x - Nabu.MinMax(ball.position.x, this.position.x - 0.5 * this.w, this.position.x + 0.5 * this.w);
+        let dz = ball.position.z - Nabu.MinMax(ball.position.z, this.position.z - 0.5 * this.d, this.position.z + 0.5 * this.d);
 
         let dd = dx * dx + dz * dz;
         if (dd < ball.radius * ball.radius) {
-            impact.x = Nabu.MinMax(ball.position.x, this.position.x - this.w, this.position.x + this.w);
+            impact.x = Nabu.MinMax(ball.position.x, this.position.x - 0.5 * this.w, this.position.x + 0.5 * this.w);
             impact.y = ball.position.y;
-            impact.z = Nabu.MinMax(ball.position.z, this.position.z - this.d, this.position.z + this.d);
+            impact.z = Nabu.MinMax(ball.position.z, this.position.z - 0.5 * this.d, this.position.z + 0.5 * this.d);
             return true;
         }
 

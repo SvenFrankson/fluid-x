@@ -86,7 +86,7 @@ abstract class LevelPage {
                         authorText.setContent(val);
                     }
                     else {
-                        authorText.setContent(puzzleTileData[n].data.author);
+                        authorText.setContent("by " + puzzleTileData[n].data.author);
                     }
 
                     if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {

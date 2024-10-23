@@ -45,8 +45,8 @@ class Ball extends BABYLON.Mesh {
         this.shadow.material = this.game.shadowDiscMaterial;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
         this.trailMesh.material = this.game.whiteMaterial;
-        this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false });
-        this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
+        this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
         this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         document.addEventListener("keydown", (ev) => {
@@ -3398,29 +3398,40 @@ class CarillonRouter extends Nabu.Router {
     }
 }
 class MySound {
-    constructor(_name, _urlOrArrayBuffer, _scene, _readyToPlayCallback, _options) {
+    constructor(_name, _urlOrArrayBuffer, _scene, _readyToPlayCallback, _options, instancesCount = 1) {
         this._name = _name;
         this._urlOrArrayBuffer = _urlOrArrayBuffer;
         this._scene = _scene;
         this._readyToPlayCallback = _readyToPlayCallback;
         this._options = _options;
+        this.instancesCount = instancesCount;
         this._loaded = false;
+        this._sounds = [];
     }
     load() {
         if (this._loaded) {
             return;
         }
-        this.sound = new BABYLON.Sound(this._name, this._urlOrArrayBuffer, this._scene, this._readyToPlayCallback, this._options);
+        for (let i = 0; i < this.instancesCount; i++) {
+            this._sounds[i] = new BABYLON.Sound(this._name, this._urlOrArrayBuffer, this._scene, this._readyToPlayCallback, this._options);
+        }
         this._loaded = true;
     }
     play(time, offset, length) {
         if (this._loaded) {
-            this.sound.play(time, offset, length);
+            for (let i = 0; i < this.instancesCount; i++) {
+                if (!this._sounds[i].isPlaying) {
+                    this._sounds[i].play(time, offset, length);
+                    return;
+                }
+            }
         }
     }
     setVolume(newVolume, time) {
         if (this._loaded) {
-            this.sound.setVolume(newVolume, time);
+            for (let i = 0; i < this.instancesCount; i++) {
+                this._sounds[i].setVolume(newVolume, time);
+            }
         }
     }
 }
@@ -3428,8 +3439,8 @@ class SoundManager {
     constructor() {
         this.managedSounds = [];
     }
-    createSound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options) {
-        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options);
+    createSound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount = 1) {
+        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
         if (BABYLON.Engine.audioEngine.unlocked) {
             mySound.load();
         }

@@ -1,14 +1,15 @@
 class MySound {
 
     private _loaded: boolean = false;
-    public sound: BABYLON.Sound;
+    private _sounds: BABYLON.Sound[] = [];
 
     constructor(
         private _name: string,
         private _urlOrArrayBuffer: any,
         private _scene?: BABYLON.Scene,
         private _readyToPlayCallback?: () => void,
-        private _options?: BABYLON.ISoundOptions
+        private _options?: BABYLON.ISoundOptions,
+        public instancesCount: number = 1
     ) {
 
     }
@@ -17,25 +18,34 @@ class MySound {
         if (this._loaded) {
             return;
         }
-        this.sound = new BABYLON.Sound(
-            this._name,
-            this._urlOrArrayBuffer,
-            this._scene,
-            this._readyToPlayCallback,
-            this._options
-        );
+        for (let i = 0; i < this.instancesCount; i++) {
+            this._sounds[i] = new BABYLON.Sound(
+                this._name,
+                this._urlOrArrayBuffer,
+                this._scene,
+                this._readyToPlayCallback,
+                this._options
+            );
+        }
         this._loaded = true;
     }
 
     public play(time?: number, offset?: number, length?: number): void {
         if (this._loaded) {
-            this.sound.play(time, offset, length);
+            for (let i = 0; i < this.instancesCount; i++) {
+                if (!this._sounds[i].isPlaying) {
+                    this._sounds[i].play(time, offset, length);
+                    return;
+                }
+            }
         }
     }
 
     public setVolume(newVolume: number, time?: number): void {
         if (this._loaded) {
-            this.sound.setVolume(newVolume, time);
+            for (let i = 0; i < this.instancesCount; i++) {
+                this._sounds[i].setVolume(newVolume, time);
+            }
         }
     }
 }
@@ -50,9 +60,10 @@ class SoundManager {
         urlOrArrayBuffer: any,
         scene?: BABYLON.Scene,
         readyToPlayCallback?: () => void,
-        options?: BABYLON.ISoundOptions
+        options?: BABYLON.ISoundOptions,
+        instancesCount: number = 1
     ): MySound {
-        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options);
+        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
         if (BABYLON.Engine.audioEngine.unlocked) {
             mySound.load();
         }

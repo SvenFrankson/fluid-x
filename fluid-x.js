@@ -1392,7 +1392,7 @@ class LevelPage {
                         let score = this.router.game.getPersonalBestScore(puzzleTileData[n].data.id);
                         let highscore = puzzleTileData[n].data.score;
                         let ratio = 1;
-                        if (isFinite(highscore)) {
+                        if (highscore != null) {
                             ratio = highscore / score;
                         }
                         let s1 = ratio > 0.3 ? "★" : "☆";

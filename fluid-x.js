@@ -1385,7 +1385,7 @@ class LevelPage {
                     }
                     if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
                         let completedStamp = document.createElement("div");
-                        completedStamp.classList.add("square-btn-stamp");
+                        completedStamp.classList.add("stamp");
                         let stars = document.createElement("div");
                         completedStamp.appendChild(stars);
                         squareButton.appendChild(completedStamp);
@@ -2550,6 +2550,15 @@ class Puzzle {
         let score = Math.floor(this.game.ball.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
         this.game.router.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
+        let highscore = this.data.score;
+        let ratio = 1;
+        if (highscore != null) {
+            ratio = highscore / score;
+        }
+        let s1 = ratio > 0.3 ? "★" : "☆";
+        let s2 = ratio > 0.6 ? "★" : "☆";
+        let s3 = ratio > 0.9 ? "★" : "☆";
+        this.game.router.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
                 this.game.router.successPanel.style.display = "";

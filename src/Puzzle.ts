@@ -111,6 +111,16 @@ class Puzzle {
         this.game.completePuzzle(this.data.id, score);
         (this.game.router.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
+        let highscore = this.data.score;
+        let ratio = 1;
+        if (highscore != null) {
+            ratio = highscore / score;
+        }
+        let s1 = ratio > 0.3 ? "★" : "☆";
+        let s2 = ratio > 0.6 ? "★" : "☆";
+        let s3 = ratio > 0.9 ? "★" : "☆";
+        this.game.router.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
+
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
                 this.game.router.successPanel.style.display = "";

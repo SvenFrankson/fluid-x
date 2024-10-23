@@ -91,7 +91,7 @@ abstract class LevelPage {
 
                     if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
                         let completedStamp = document.createElement("div");
-                        completedStamp.classList.add("square-btn-stamp");
+                        completedStamp.classList.add("stamp");
                         let stars = document.createElement("div");
                         completedStamp.appendChild(stars);
                         squareButton.appendChild(completedStamp);

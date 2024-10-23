@@ -15,6 +15,7 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.3;
         this.leftDown = false;
         this.rightDown = false;
+        this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
         this.playTimer = 0;
         this.xForce = 1;
         this.speed = 2;
@@ -47,6 +48,7 @@ class Ball extends BABYLON.Mesh {
         this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false });
         this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false });
         this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
@@ -117,12 +119,27 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready) {
             this.trailTimer += dt;
-            let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.05));
-            if (this.trailTimer > 0.07) {
+            let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.04));
+            if (this.trailTimer > 0.05) {
                 this.trailTimer = 0;
                 let last = this.trailPoints[this.trailPoints.length - 1];
                 if (last) {
-                    p.scaleInPlace(0.5).addInPlace(last.scale(0.5));
+                    p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+                }
+                if (this.trailPoints.length >= 2) {
+                    let last = this.trailPoints[this.trailPoints.length - 1];
+                    let anteLast = this.trailPoints[this.trailPoints.length - 2];
+                    let lastDir = last.subtract(anteLast);
+                    let pDir = p.subtract(last);
+                    let a = Mummu.AngleFromToAround(lastDir, pDir, BABYLON.Axis.Y);
+                    if (a > Math.PI * 0.3) {
+                        Mummu.RotateInPlace(pDir, BABYLON.Axis.Y, -(a - Math.PI * 0.3));
+                        p.copyFrom(pDir).addInPlace(last);
+                    }
+                    if (a < -Math.PI * 0.3) {
+                        Mummu.RotateInPlace(pDir, BABYLON.Axis.Y, -(a + Math.PI * 0.3));
+                        p.copyFrom(pDir).addInPlace(last);
+                    }
                 }
                 this.trailPoints.push(p);
                 if (this.trailPoints.length > 25) {
@@ -139,7 +156,7 @@ class Ball extends BABYLON.Mesh {
                     radiusFunc: (f) => {
                         return 0.08 * f;
                     },
-                    color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
+                    color: new BABYLON.Color4(0.4, 0.4, 0.4, 1)
                 });
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
@@ -150,7 +167,8 @@ class Ball extends BABYLON.Mesh {
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
-                this.speed = 2.5;
+                this.speed = 0;
+                this.animateSpeed(2.5, 0.2, Nabu.Easing.easeInCubic);
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);

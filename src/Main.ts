@@ -17,7 +17,7 @@ var HasLocalStorage = false;
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -489,6 +489,10 @@ class Game {
         document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
         document.body.addEventListener("click", onFirstPlayerInteractionClic);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
+        
+        if (location.host.startsWith("127.0.0.1")) {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+        }
 	}
 
     public static ScoreToString(t: number): string {

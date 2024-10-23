@@ -15,6 +15,7 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.3;
         this.leftDown = false;
         this.rightDown = false;
+        this._soundInitialized = false;
         this.playTimer = 0;
         this.xForce = 1;
         this.speed = 2;
@@ -78,15 +79,6 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = false;
             });
         }
-        this.woodChocSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc.wav");
-        this.woodChocSound.autoplay = false;
-        this.woodChocSound.loop = false;
-        this.woodChocSound2 = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav");
-        this.woodChocSound2.autoplay = false;
-        this.woodChocSound2.loop = false;
-        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpact.autoplay = false;
-        this.fallImpact.loop = false;
     }
     setColor(color) {
         this.color = color;
@@ -106,6 +98,21 @@ class Ball extends BABYLON.Mesh {
     set j(v) {
         this.position.z = v * 1.1;
     }
+    initSounds() {
+        if (this._soundInitialized) {
+            return;
+        }
+        this.woodChocSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc.wav");
+        this.woodChocSound.autoplay = false;
+        this.woodChocSound.loop = false;
+        this.woodChocSound2 = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav");
+        this.woodChocSound2.autoplay = false;
+        this.woodChocSound2.loop = false;
+        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpactSound.autoplay = false;
+        this.fallImpactSound.loop = false;
+        this._soundInitialized = true;
+    }
     async instantiate() {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         ballDatas[0].applyToMesh(this);
@@ -121,19 +128,7 @@ class Ball extends BABYLON.Mesh {
             vX += 1;
         }
         vX = Nabu.MinMax(vX, -1, 1);
-        if (this.ballState === BallState.Ready) {
-            if (this.leftDown || this.rightDown) {
-                this.ballState = BallState.Move;
-                this.bounceXValue = 0;
-                this.bounceXTimer = 0;
-                this.speed = 2.5;
-                this.game.fadeOutIntro(0.5);
-                this.playTimer = 0;
-                this.game.setPlayTimer(this.playTimer);
-            }
-            return;
-        }
-        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+        if (this.ballState != BallState.Ready) {
             this.trailTimer += dt;
             let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.05));
             if (this.trailTimer > 0.07) {
@@ -143,7 +138,7 @@ class Ball extends BABYLON.Mesh {
                     p.scaleInPlace(0.5).addInPlace(last.scale(0.5));
                 }
                 this.trailPoints.push(p);
-                if (this.trailPoints.length > 35) {
+                if (this.trailPoints.length > 25) {
                     this.trailPoints.splice(0, 1);
                 }
             }
@@ -162,6 +157,21 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
+        }
+        if (this.ballState === BallState.Ready) {
+            if (this.leftDown || this.rightDown) {
+                this.initSounds();
+                this.ballState = BallState.Move;
+                this.bounceXValue = 0;
+                this.bounceXTimer = 0;
+                this.speed = 2.5;
+                this.game.fadeOutIntro(0.5);
+                this.playTimer = 0;
+                this.game.setPlayTimer(this.playTimer);
+            }
+            return;
+        }
+        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
             }
@@ -180,13 +190,13 @@ class Ball extends BABYLON.Mesh {
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
             else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
@@ -194,14 +204,14 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
             else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
@@ -228,7 +238,7 @@ class Ball extends BABYLON.Mesh {
                             this.vZ = -1;
                         }
                     }
-                    if (!this.woodChocSound2.isPlaying) {
+                    if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                         this.woodChocSound2.play();
                     }
                     break;
@@ -259,7 +269,7 @@ class Ball extends BABYLON.Mesh {
                                     this.bounceXValue = -1;
                                     this.bounceXTimer = this.bounceXDelay;
                                 }
-                                if (!this.woodChocSound.isPlaying) {
+                                if (this.woodChocSound && !this.woodChocSound.isPlaying) {
                                     this.woodChocSound.play();
                                 }
                             }
@@ -270,7 +280,7 @@ class Ball extends BABYLON.Mesh {
                                 else {
                                     this.vZ = -1;
                                 }
-                                if (!this.woodChocSound.isPlaying) {
+                                if (this.woodChocSound && !this.woodChocSound.isPlaying) {
                                     this.woodChocSound.play();
                                 }
                             }
@@ -316,7 +326,9 @@ class Ball extends BABYLON.Mesh {
             }
             this.fallTimer += dt;
             if (this.fallTimer > 1) {
-                this.fallImpact.play();
+                if (this.fallImpactSound) {
+                    this.fallImpactSound.play();
+                }
                 let explosionCloud = new Explosion(this.game);
                 let p = this.position.clone();
                 p.y = -1;
@@ -1188,8 +1200,10 @@ class Editor {
                     body: dataString,
                 });
                 let id = parseInt(await response.text());
-                let url = "https://html-classic.itch.zone/html/11779106/carillion-build/index.html?puzzle=" + id.toFixed(0);
+                let url = "https://carillion.tiaratum.com/#play-community-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
+                document.querySelector("#publish-generated-url-go").parentElement.href = url;
+                document.querySelector("#publish-generated-url-copy").onclick = () => { navigator.clipboard.writeText(url); };
                 document.getElementById("editor-publish-form-edit").style.display = "none";
                 document.getElementById("editor-publish-form-success").style.display = "block";
                 document.getElementById("editor-publish-form-failure").style.display = "none";
@@ -1381,7 +1395,7 @@ class LevelPage {
                         authorText.setContent(val);
                     }
                     else {
-                        authorText.setContent(puzzleTileData[n].data.author);
+                        authorText.setContent("by " + puzzleTileData[n].data.author);
                     }
                     if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
                         let completedStamp = document.createElement("div");
@@ -1558,7 +1572,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -1966,6 +1980,9 @@ class Game {
         document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
         document.body.addEventListener("click", onFirstPlayerInteractionClic);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
+        if (location.host.startsWith("127.0.0.1")) {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+        }
     }
     static ScoreToString(t) {
         t = t / 100;
@@ -2390,9 +2407,9 @@ class PushTile extends Tile {
         this.pushSound.setVolume(0.8);
         this.pushSound.autoplay = false;
         this.pushSound.loop = false;
-        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpact.autoplay = false;
-        this.fallImpact.loop = false;
+        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpactSound.autoplay = false;
+        this.fallImpactSound.loop = false;
     }
     async instantiate() {
         await super.instantiate();
@@ -2451,7 +2468,7 @@ class PushTile extends Tile {
                         explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
                         explosionCloud.tZero = 0.9;
                         explosionCloud.boom();
-                        this.fallImpact.play();
+                        this.fallImpactSound.play();
                         this.dispose();
                     }
                     else if (tileAtDestination) {

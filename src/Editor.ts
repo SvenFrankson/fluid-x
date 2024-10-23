@@ -281,8 +281,10 @@ class Editor {
                     body: dataString,
                 });
                 let id = parseInt(await response.text());
-                let url = "https://html-classic.itch.zone/html/11779106/carillion-build/index.html?puzzle=" + id.toFixed(0);
+                let url = "https://carillion.tiaratum.com/#play-community-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
+                (document.querySelector("#publish-generated-url-go").parentElement as HTMLAnchorElement).href = url;
+                (document.querySelector("#publish-generated-url-copy") as HTMLButtonElement).onclick = () => { navigator.clipboard.writeText(url); };
                 document.getElementById("editor-publish-form-edit").style.display = "none";
                 document.getElementById("editor-publish-form-success").style.display = "block";
                 document.getElementById("editor-publish-form-failure").style.display = "none";

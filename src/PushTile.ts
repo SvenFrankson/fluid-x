@@ -3,7 +3,7 @@
 class PushTile extends Tile {
 
     public pushSound: BABYLON.Sound;
-    public fallImpact: BABYLON.Sound;
+    public fallImpactSound: BABYLON.Sound;
 
     public tileTop: BABYLON.Mesh;
     public animatePosition = Mummu.AnimationFactory.EmptyVector3Callback;
@@ -36,9 +36,9 @@ class PushTile extends Tile {
         this.pushSound.autoplay = false;
         this.pushSound.loop = false;
 
-        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpact.autoplay = false;
-        this.fallImpact.loop = false;
+        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpactSound.autoplay = false;
+        this.fallImpactSound.loop = false;
     }
 
     public async instantiate(): Promise<void> {
@@ -105,7 +105,7 @@ class PushTile extends Tile {
                         explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
                         explosionCloud.tZero = 0.9;
                         explosionCloud.boom();
-                        this.fallImpact.play();
+                        this.fallImpactSound.play();
                         this.dispose();
                     }
                     else if (tileAtDestination) {

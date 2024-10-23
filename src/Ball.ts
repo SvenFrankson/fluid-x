@@ -13,7 +13,7 @@ class Ball extends BABYLON.Mesh {
 
     public woodChocSound: BABYLON.Sound;
     public woodChocSound2: BABYLON.Sound;
-    public fallImpact: BABYLON.Sound;
+    public fallImpactSound: BABYLON.Sound;
 
     public ballState: BallState = BallState.Ready;
     public fallOriginPos: BABYLON.Vector3;
@@ -118,7 +118,13 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = false;
             })
         }
+    }
 
+    private _soundInitialized: boolean = false;
+    public initSounds(): void {
+        if (this._soundInitialized) {
+            return;
+        }
         this.woodChocSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc.wav");
         this.woodChocSound.autoplay = false;
         this.woodChocSound.loop = false;
@@ -127,9 +133,11 @@ class Ball extends BABYLON.Mesh {
         this.woodChocSound2.autoplay = false;
         this.woodChocSound2.loop = false;
 
-        this.fallImpact = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpact.autoplay = false;
-        this.fallImpact.loop = false;
+        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
+        this.fallImpactSound.autoplay = false;
+        this.fallImpactSound.loop = false;
+
+        this._soundInitialized = true;
     }
 
     public async instantiate(): Promise<void> {
@@ -165,19 +173,7 @@ class Ball extends BABYLON.Mesh {
 
         vX = Nabu.MinMax(vX, -1, 1);
 
-        if (this.ballState === BallState.Ready) {
-            if (this.leftDown || this.rightDown) {
-                this.ballState = BallState.Move;
-                this.bounceXValue = 0;
-                this.bounceXTimer = 0;
-                this.speed = 2.5;
-                this.game.fadeOutIntro(0.5);
-                this.playTimer = 0;
-                this.game.setPlayTimer(this.playTimer);
-            }
-            return;
-        }
-        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+        if (this.ballState != BallState.Ready) {
             this.trailTimer += dt;
             let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.05));
             if (this.trailTimer > 0.07) {
@@ -187,7 +183,7 @@ class Ball extends BABYLON.Mesh {
                     p.scaleInPlace(0.5).addInPlace(last.scale(0.5));
                 }
                 this.trailPoints.push(p);
-                if (this.trailPoints.length > 35) {
+                if (this.trailPoints.length > 25) {
                     this.trailPoints.splice(0, 1);
                 }
             }
@@ -206,7 +202,22 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
+        }
 
+        if (this.ballState === BallState.Ready) {
+            if (this.leftDown || this.rightDown) {
+                this.initSounds();
+                this.ballState = BallState.Move;
+                this.bounceXValue = 0;
+                this.bounceXTimer = 0;
+                this.speed = 2.5;
+                this.game.fadeOutIntro(0.5);
+                this.playTimer = 0;
+                this.game.setPlayTimer(this.playTimer);
+            }
+            return;
+        }
+        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
             }
@@ -232,13 +243,13 @@ class Ball extends BABYLON.Mesh {
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
             else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
@@ -247,14 +258,14 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = - 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
             else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
-                if (!this.woodChocSound2.isPlaying) {
+                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                     this.woodChocSound2.play();
                 }
             }
@@ -282,7 +293,7 @@ class Ball extends BABYLON.Mesh {
                             this.vZ = - 1;
                         }
                     }
-                    if (!this.woodChocSound2.isPlaying) {
+                    if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
                         this.woodChocSound2.play();
                     }
                     break;
@@ -314,7 +325,7 @@ class Ball extends BABYLON.Mesh {
                                     this.bounceXValue = - 1;
                                     this.bounceXTimer = this.bounceXDelay;
                                 }
-                                if (!this.woodChocSound.isPlaying) {
+                                if (this.woodChocSound && !this.woodChocSound.isPlaying) {
                                     this.woodChocSound.play();
                                 }
                             }
@@ -325,7 +336,7 @@ class Ball extends BABYLON.Mesh {
                                 else {
                                     this.vZ = -1;
                                 }
-                                if (!this.woodChocSound.isPlaying) {
+                                if (this.woodChocSound && !this.woodChocSound.isPlaying) {
                                     this.woodChocSound.play();
                                 }
                             }
@@ -377,7 +388,9 @@ class Ball extends BABYLON.Mesh {
             this.fallTimer += dt;
 
             if (this.fallTimer > 1) {
-                this.fallImpact.play();
+                if (this.fallImpactSound) {
+                    this.fallImpactSound.play();
+                }
                 let explosionCloud = new Explosion(this.game);
                 let p = this.position.clone();
                 p.y = -1;

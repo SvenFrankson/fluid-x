@@ -15,7 +15,6 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.3;
         this.leftDown = false;
         this.rightDown = false;
-        this._soundInitialized = false;
         this.playTimer = 0;
         this.xForce = 1;
         this.speed = 2;
@@ -45,6 +44,9 @@ class Ball extends BABYLON.Mesh {
         this.shadow.material = this.game.shadowDiscMaterial;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
         this.trailMesh.material = this.game.whiteMaterial;
+        this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
                 this.leftDown = true;
@@ -98,21 +100,6 @@ class Ball extends BABYLON.Mesh {
     set j(v) {
         this.position.z = v * 1.1;
     }
-    initSounds() {
-        if (this._soundInitialized) {
-            return;
-        }
-        this.woodChocSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc.wav");
-        this.woodChocSound.autoplay = false;
-        this.woodChocSound.loop = false;
-        this.woodChocSound2 = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav");
-        this.woodChocSound2.autoplay = false;
-        this.woodChocSound2.loop = false;
-        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpactSound.autoplay = false;
-        this.fallImpactSound.loop = false;
-        this._soundInitialized = true;
-    }
     async instantiate() {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         ballDatas[0].applyToMesh(this);
@@ -160,7 +147,6 @@ class Ball extends BABYLON.Mesh {
         }
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
-                this.initSounds();
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
@@ -190,30 +176,22 @@ class Ball extends BABYLON.Mesh {
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.game.puzzle.zMax) {
                 this.vZ = -1;
-                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
-                    this.woodChocSound2.play();
-                }
+                this.woodChocSound2.play();
             }
             else if (this.position.z - this.radius < this.game.puzzle.zMin) {
                 this.vZ = 1;
-                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
-                    this.woodChocSound2.play();
-                }
+                this.woodChocSound2.play();
             }
             if (this.position.x + this.radius > this.game.puzzle.xMax) {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
-                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
-                    this.woodChocSound2.play();
-                }
+                this.woodChocSound2.play();
             }
             else if (this.position.x - this.radius < this.game.puzzle.xMin) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
-                if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
-                    this.woodChocSound2.play();
-                }
+                this.woodChocSound2.play();
             }
             let impact = BABYLON.Vector3.Zero();
             for (let i = 0; i < this.game.puzzle.borders.length; i++) {
@@ -238,9 +216,7 @@ class Ball extends BABYLON.Mesh {
                             this.vZ = -1;
                         }
                     }
-                    if (this.woodChocSound2 && !this.woodChocSound2.isPlaying) {
-                        this.woodChocSound2.play();
-                    }
+                    this.woodChocSound2.play();
                     break;
                 }
             }
@@ -269,9 +245,7 @@ class Ball extends BABYLON.Mesh {
                                     this.bounceXValue = -1;
                                     this.bounceXTimer = this.bounceXDelay;
                                 }
-                                if (this.woodChocSound && !this.woodChocSound.isPlaying) {
-                                    this.woodChocSound.play();
-                                }
+                                this.woodChocSound.play();
                             }
                             else {
                                 if (dir.z > 0) {
@@ -280,9 +254,7 @@ class Ball extends BABYLON.Mesh {
                                 else {
                                     this.vZ = -1;
                                 }
-                                if (this.woodChocSound && !this.woodChocSound.isPlaying) {
-                                    this.woodChocSound.play();
-                                }
+                                this.woodChocSound.play();
                             }
                             if (this.ballState === BallState.Move) {
                                 if (tile instanceof SwitchTile) {
@@ -1572,7 +1544,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -1606,9 +1578,7 @@ let onFirstPlayerInteractionTouch = (ev) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    if (!BABYLON.Engine.audioEngine.unlocked) {
-        BABYLON.Engine.audioEngine.unlock();
-    }
+    Game.Instance.soundManager.unlockEngine();
 };
 let onFirstPlayerInteractionClic = (ev) => {
     if (!Game.Instance.gameLoaded) {
@@ -1628,9 +1598,7 @@ let onFirstPlayerInteractionClic = (ev) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    if (!BABYLON.Engine.audioEngine.unlocked) {
-        BABYLON.Engine.audioEngine.unlock();
-    }
+    Game.Instance.soundManager.unlockEngine();
 };
 let onFirstPlayerInteractionKeyboard = (ev) => {
     if (!Game.Instance.gameLoaded) {
@@ -1650,9 +1618,7 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    if (!BABYLON.Engine.audioEngine.unlocked) {
-        BABYLON.Engine.audioEngine.unlock();
-    }
+    Game.Instance.soundManager.unlockEngine();
 };
 function addLine(text) {
     let e = document.createElement("div");
@@ -1742,6 +1708,7 @@ class Game {
         this.engine = new BABYLON.Engine(this.canvas, true, undefined, false);
         BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+        this.soundManager = new SoundManager();
     }
     getScene() {
         return this.scene;
@@ -1960,7 +1927,7 @@ class Game {
             setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
         };
         updateCamMenuData();
-        let ambient = new BABYLON.Sound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
+        let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
             ambient.setVolume(0.3);
         }, {
             autoplay: true,
@@ -1981,7 +1948,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClic);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
         }
     }
     static ScoreToString(t) {
@@ -2403,13 +2370,8 @@ class PushTile extends Tile {
         pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
         pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
         this.tileTop.material = pushTileTopMaterial;
-        this.pushSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-drag.wav");
-        this.pushSound.setVolume(0.8);
-        this.pushSound.autoplay = false;
-        this.pushSound.loop = false;
-        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpactSound.autoplay = false;
-        this.fallImpactSound.loop = false;
+        this.pushSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
+        this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
     }
     async instantiate() {
         await super.instantiate();
@@ -3127,9 +3089,9 @@ class PuzzleMiniatureMaker {
         let context = canvas.getContext("2d");
         //context.fillStyle = "#2b2821";
         //context.fillRect(2 * m, 2 * m, canvas.width - 4 * m, canvas.height - 4 * m);
-        context.fillStyle = "#d9ac8b80";
+        context.fillStyle = "#d9ac8b";
         context.fillRect(0, 0, canvas.width, canvas.height);
-        let buildColor = "#f9cc9b80";
+        let buildColor = "#f9dcAb";
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
                 let line = lines[lines.length - 1 - j];
@@ -3174,55 +3136,62 @@ class PuzzleMiniatureMaker {
                         let x = i * b;
                         let y = (h - 1 - j) * b;
                         let s = b;
-                        context.fillStyle = "#00000080";
+                        context.fillStyle = "#2d4245";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "p") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "r") {
-                        context.fillStyle = "#5d727580";
+                        context.fillStyle = "#5d7275";
+                        context.fillRect(x, y, s, s);
+                    }
+                    if (c === "a") {
+                        let x = i * b;
+                        let y = (h - 1 - j) * b;
+                        let s = b;
+                        context.fillStyle = "#1b1811";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "N") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#b03a4880";
+                        context.fillStyle = "#b03a48";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "n") {
-                        context.fillStyle = "#b03a4880";
+                        context.fillStyle = "#b03a48";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "E") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#e0c87280";
+                        context.fillStyle = "#e0c872";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "e") {
-                        context.fillStyle = "#e0c87280";
+                        context.fillStyle = "#e0c872";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "S") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#243d5c80";
+                        context.fillStyle = "#243d5c";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "s") {
-                        context.fillStyle = "#243d5c80";
+                        context.fillStyle = "#243d5c";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "W") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#3e695880";
+                        context.fillStyle = "#3e6958";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "w") {
-                        context.fillStyle = "#3e695880";
+                        context.fillStyle = "#3e6958";
                         context.fillRect(x, y, s, s);
                     }
                 }
@@ -3407,6 +3376,54 @@ class CarillonRouter extends Nabu.Router {
         else {
             location.hash = "#home";
             return;
+        }
+    }
+}
+class MySound {
+    constructor(_name, _urlOrArrayBuffer, _scene, _readyToPlayCallback, _options) {
+        this._name = _name;
+        this._urlOrArrayBuffer = _urlOrArrayBuffer;
+        this._scene = _scene;
+        this._readyToPlayCallback = _readyToPlayCallback;
+        this._options = _options;
+        this._loaded = false;
+    }
+    load() {
+        if (this._loaded) {
+            return;
+        }
+        this.sound = new BABYLON.Sound(this._name, this._urlOrArrayBuffer, this._scene, this._readyToPlayCallback, this._options);
+        this._loaded = true;
+    }
+    play(time, offset, length) {
+        if (this._loaded) {
+            this.sound.play(time, offset, length);
+        }
+    }
+    setVolume(newVolume, time) {
+        if (this._loaded) {
+            this.sound.setVolume(newVolume, time);
+        }
+    }
+}
+class SoundManager {
+    constructor() {
+        this.managedSounds = [];
+    }
+    createSound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options) {
+        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options);
+        if (BABYLON.Engine.audioEngine.unlocked) {
+            mySound.load();
+        }
+        return mySound;
+    }
+    unlockEngine() {
+        if (BABYLON.Engine.audioEngine.unlocked) {
+            console.log("unlock audioEngine");
+            BABYLON.Engine.audioEngine.unlock();
+        }
+        for (let i = 0; i < this.managedSounds.length; i++) {
+            this.managedSounds[i].load();
         }
     }
 }

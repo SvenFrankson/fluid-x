@@ -2,8 +2,8 @@
 
 class PushTile extends Tile {
 
-    public pushSound: BABYLON.Sound;
-    public fallImpactSound: BABYLON.Sound;
+    public pushSound: MySound;
+    public fallImpactSound: MySound;
 
     public tileTop: BABYLON.Mesh;
     public animatePosition = Mummu.AnimationFactory.EmptyVector3Callback;
@@ -31,14 +31,8 @@ class PushTile extends Tile {
 
         this.tileTop.material = pushTileTopMaterial;
 
-        this.pushSound = new BABYLON.Sound("wood-choc", "./datas/sounds/wood-wood-drag.wav");
-        this.pushSound.setVolume(0.8);
-        this.pushSound.autoplay = false;
-        this.pushSound.loop = false;
-
-        this.fallImpactSound = new BABYLON.Sound("wood-choc", "./datas/sounds/fall-impact.wav");
-        this.fallImpactSound.autoplay = false;
-        this.fallImpactSound.loop = false;
+        this.pushSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
+        this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
     }
 
     public async instantiate(): Promise<void> {

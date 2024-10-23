@@ -17,7 +17,7 @@ var HasLocalStorage = false;
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -54,9 +54,7 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    if (!BABYLON.Engine.audioEngine.unlocked) {
-      BABYLON.Engine.audioEngine.unlock();
-    }
+    Game.Instance.soundManager.unlockEngine();
 }
 
 let onFirstPlayerInteractionClic = (ev: Event) => {
@@ -78,9 +76,7 @@ let onFirstPlayerInteractionClic = (ev: Event) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    if (!BABYLON.Engine.audioEngine.unlocked) {
-      BABYLON.Engine.audioEngine.unlock();
-    }
+    Game.Instance.soundManager.unlockEngine();
 }
 
 let onFirstPlayerInteractionKeyboard = (ev: Event) => {
@@ -102,9 +98,7 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    if (!BABYLON.Engine.audioEngine.unlocked) {
-      BABYLON.Engine.audioEngine.unlock();
-    }
+    Game.Instance.soundManager.unlockEngine();
 }
 
 function addLine(text: string): void {
@@ -156,6 +150,7 @@ class Game {
     public getScene(): BABYLON.Scene {
         return this.scene;
     }
+    public soundManager: SoundManager;
     public screenRatio: number = 1;
 
     public camera: BABYLON.ArcRotateCamera;
@@ -204,6 +199,7 @@ class Game {
 		this.engine = new BABYLON.Engine(this.canvas, true, undefined, false);
 		BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+        this.soundManager = new SoundManager();
 	}
 
     public async createScene(): Promise<void> {
@@ -461,7 +457,7 @@ class Game {
         }
         updateCamMenuData();
 
-        let ambient = new BABYLON.Sound(
+        let ambient = this.soundManager.createSound(
             "ambient",
             "./datas/sounds/zen-ambient.mp3",
             this.scene,
@@ -491,7 +487,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
         }
 	}
 

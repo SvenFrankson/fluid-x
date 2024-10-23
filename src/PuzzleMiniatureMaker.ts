@@ -36,10 +36,10 @@ class PuzzleMiniatureMaker {
         //context.fillStyle = "#2b2821";
         //context.fillRect(2 * m, 2 * m, canvas.width - 4 * m, canvas.height - 4 * m);
 
-        context.fillStyle = "#d9ac8b80";
+        context.fillStyle = "#d9ac8b";
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        let buildColor = "#f9cc9b80";
+        let buildColor = "#f9dcAb";
 
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
@@ -85,55 +85,62 @@ class PuzzleMiniatureMaker {
                         let x = i * b;
                         let y = (h - 1 - j) * b;
                         let s = b;
-                        context.fillStyle = "#00000080";
+                        context.fillStyle = "#2d4245";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "p") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "r") {
-                        context.fillStyle = "#5d727580";
+                        context.fillStyle = "#5d7275";
+                        context.fillRect(x, y, s, s);
+                    }
+                    if (c === "a") {
+                        let x = i * b;
+                        let y = (h - 1 - j) * b;
+                        let s = b;
+                        context.fillStyle = "#1b1811";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "N") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#b03a4880";
+                        context.fillStyle = "#b03a48";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "n") {
-                        context.fillStyle = "#b03a4880";
+                        context.fillStyle = "#b03a48";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "E") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#e0c87280";
+                        context.fillStyle = "#e0c872";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "e") {
-                        context.fillStyle = "#e0c87280";
+                        context.fillStyle = "#e0c872";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "S") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#243d5c80";
+                        context.fillStyle = "#243d5c";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "s") {
-                        context.fillStyle = "#243d5c80";
+                        context.fillStyle = "#243d5c";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "W") {
-                        context.fillStyle = "#624c3c80";
+                        context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
-                        context.fillStyle = "#3e695880";
+                        context.fillStyle = "#3e6958";
                         context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     if (c === "w") {
-                        context.fillStyle = "#3e695880";
+                        context.fillStyle = "#3e6958";
                         context.fillRect(x, y, s, s);
                     }
                 }

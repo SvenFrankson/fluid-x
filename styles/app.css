@@ -10,14 +10,20 @@ body {
     --main-ui-bg1: #125185B0;
     --main-ui-bg-btn: #164c79;
     --main-ui-bg-btn-active: #2b72ac;
-    /*background-image: url("../datas/textures/background.jpg");*/
-    background-color: #5c8b93;
-    background-size: cover;
-    background-repeat: no-repeat;
+    background-size: 50px;
     background-position: center;
     width: 100vw;
     height: 100vh;
     margin:0;
+    transition: background-color 1s;
+}
+
+.cube-pattern {
+    background-image: url("../datas/textures/cube_pattern.png");
+}
+
+.rainbow-pattern {
+    background-image: url("../datas/textures/rainbow_pattern.png");
 }
 
 body.touchscreen .touchscreen-hide {
@@ -150,47 +156,47 @@ button.locked {
     border-color: rgb(53, 47, 43);
 }
 
-button.black {
+.black {
     background-color: #2b2821;
 }
 
-button.brown {
+.brown {
     background-color: #624c3c;
 }
 
-button.salmon {
+.salmon {
     background-color: #d9ac8b;
 }
 
-button.blue {
+.blue {
     background-color: #243d5c;
 }
 
-button.bluegrey {
+.bluegrey {
     background-color: #5d7275;
 }
 
-button.lightblue {
+.lightblue {
     background-color: #5c8b93;
 }
 
-button.beige {
+.beige {
     background-color: #b1a58d;
 }
 
-button.red {
+.red {
     background-color: #b03a48;
 }
 
-button.orange {
+.orange {
     background-color: #d4804d;
 }
 
-button.yellow {
+.yellow {
     background-color: #e0c872;
 }
 
-button.green {
+.green {
     background-color: #3e6958;
 }
 

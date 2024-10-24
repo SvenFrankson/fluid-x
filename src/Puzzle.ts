@@ -264,6 +264,11 @@ class Puzzle {
         this.data = data;
         DEV_UPDATE_STATE_UI();
 
+        if (isFinite(data.id)) {
+            this.game.bodyColorIndex = 5;
+            this.game.bodyPatternIndex = Math.floor(Math.random() * 2);
+        }
+
         console.log(this.data);
 
         let content = this.data.content;

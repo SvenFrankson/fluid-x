@@ -1625,7 +1625,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -1733,6 +1733,36 @@ var GameMode;
     GameMode[GameMode["Play"] = 1] = "Play";
     GameMode[GameMode["Editor"] = 2] = "Editor";
 })(GameMode || (GameMode = {}));
+var cssColors = [
+    "black",
+    "brown",
+    "salmon",
+    "blue",
+    "bluegrey",
+    "lightblue",
+    "beige",
+    "red",
+    "orange",
+    "yellow",
+    "green"
+];
+var hexColors = [
+    "#2b2821",
+    "#624c3c",
+    "#d9ac8b",
+    "#243d5c",
+    "#5d7275",
+    "#5c8b93",
+    "#b1a58d",
+    "#b03a48",
+    "#d4804d",
+    "#e0c872",
+    "#3e6958"
+];
+var cssPatterns = [
+    "cube-pattern",
+    "rainbow-pattern"
+];
 class Game {
     constructor(canvasElement) {
         this.DEBUG_MODE = true;
@@ -1748,6 +1778,8 @@ class Game {
         this.mode = GameMode.Menu;
         this.completedPuzzles = [];
         this.gameLoaded = false;
+        this._bodyColorIndex = 0;
+        this._bodyPatternIndex = 0;
         this.onResize = () => {
             let rect = this.canvas.getBoundingClientRect();
             this.screenRatio = rect.width / rect.height;
@@ -1794,6 +1826,31 @@ class Game {
     getScene() {
         return this.scene;
     }
+    get bodyColorIndex() {
+        return this._bodyColorIndex;
+    }
+    set bodyColorIndex(v) {
+        document.body.classList.remove(cssColors[this._bodyColorIndex]);
+        this._bodyColorIndex = v;
+        document.body.classList.add(cssColors[this._bodyColorIndex]);
+        this.bottom.material.diffuseColor = BABYLON.Color3.FromHexString(hexColors[this._bodyColorIndex]);
+    }
+    get bodyPatternIndex() {
+        return this._bodyPatternIndex;
+    }
+    set bodyPatternIndex(v) {
+        //document.body.classList.remove(cssPatterns[this._bodyPatternIndex]);
+        this._bodyPatternIndex = v;
+        //document.body.classList.add(cssPatterns[this._bodyPatternIndex]);
+        if (v === 0) {
+            this.bottom.material.emissiveTexture = new BABYLON.Texture("./datas/textures/cube_pattern_emissive.png");
+            this.bottom.scaling.copyFromFloats(1.12, 1.95, 1);
+        }
+        else {
+            this.bottom.material.emissiveTexture = new BABYLON.Texture("./datas/textures/rainbow_pattern_emissive.png");
+            this.bottom.scaling.copyFromFloats(0.98, 1.11, 1);
+        }
+    }
     async createScene() {
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
@@ -1826,6 +1883,14 @@ class Game {
         skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.75);
         this.skybox.material = skyboxMaterial;
         */
+        this.bottom = Mummu.CreateQuad("bottom", { width: 100, height: 100, uvInWorldSpace: true });
+        this.bottom.rotation.x = Math.PI * 0.5;
+        this.bottom.position.y = -5.1;
+        let bottomMaterial = new BABYLON.StandardMaterial("bottom-material");
+        bottomMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.bottom.material = bottomMaterial;
+        this.bodyColorIndex = 5;
+        this.bodyPatternIndex = 0;
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
@@ -2119,7 +2184,7 @@ class Game {
                 else {
                     targetCameraPos.z = (this.puzzle.zMin * 1.15 + this.puzzle.zMax * 0.85) * 0.5;
                 }
-                let f = Nabu.Easing.smooth1Sec(1 / rawDT);
+                let f = Nabu.Easing.smooth2Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
                 let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
@@ -2778,6 +2843,10 @@ class Puzzle {
         }
         this.data = data;
         DEV_UPDATE_STATE_UI();
+        if (isFinite(data.id)) {
+            this.game.bodyColorIndex = 5;
+            this.game.bodyPatternIndex = Math.floor(Math.random() * 2);
+        }
         console.log(this.data);
         let content = this.data.content;
         content = content.replaceAll("\r\n", "");

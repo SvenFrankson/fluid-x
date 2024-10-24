@@ -48,10 +48,48 @@ class Editor {
     public rampButton: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
     public deleteButton: HTMLButtonElement;
+
+    public selectableButtons: HTMLButtonElement[] = [];
+
     public doClearButton: HTMLButtonElement;
     public clearButton: HTMLButtonElement;
 
-    public selectableButtons: HTMLButtonElement[] = [];
+    public publishForm: HTMLDivElement;
+    public publishFormEdit: HTMLDivElement;
+    public publishFormSuccess: HTMLDivElement;
+    public publishFormFailure: HTMLDivElement;
+
+    public publishCancelButton: HTMLButtonElement;
+    public publishConfirmButton: HTMLButtonElement;
+    public publishPendingButton: HTMLButtonElement;
+
+    public titleInput: HTMLInputElement;
+    public get title(): string {
+        if (this.titleInput) {
+            return this.titleInput.value;
+        }
+        return "";
+    }
+    public authorInput: HTMLInputElement;
+    public get author(): string {
+        if (this.authorInput) {
+            return this.authorInput.value;
+        }
+        return "";
+    }
+    public eulaCheckbox: HTMLInputElement;
+    public get eulaAccepted(): boolean {
+        if (this.eulaCheckbox) {
+            return this.eulaCheckbox.checked;
+        }
+        return false;
+    }
+
+    public getScene(): BABYLON.Scene {
+        return this.game.scene;
+    }
+
+    private _pendingPublish: boolean = false;
 
     constructor(public game: Game) {
         this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 } );
@@ -188,8 +226,7 @@ class Editor {
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
 
-        makeBrushButton(this.deleteButton, EditorBrush.Delete);
-        
+        makeBrushButton(this.deleteButton, EditorBrush.Delete);        
         
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
@@ -241,37 +278,47 @@ class Editor {
             document.getElementById("load-file-input").style.display = "none";
         };
         
+        this.publishForm = document.getElementById("editor-publish-form") as HTMLDivElement;
+        this.publishFormEdit = document.getElementById("editor-publish-form-edit") as HTMLDivElement;
+        this.publishFormSuccess = document.getElementById("editor-publish-form-success") as HTMLDivElement;
+        this.publishFormFailure = document.getElementById("editor-publish-form-failure") as HTMLDivElement;
+
+        this.publishCancelButton = document.querySelector("#publish-cancel-btn") as HTMLButtonElement;
+        this.publishConfirmButton = document.querySelector("#publish-confirm-btn") as HTMLButtonElement;
+        this.publishPendingButton = document.querySelector("#publish-pending-btn") as HTMLButtonElement;
+
+        this.titleInput = document.querySelector("#title-input") as HTMLInputElement;
+        this.authorInput = document.querySelector("#author-input") as HTMLInputElement;
+        this.eulaCheckbox = document.querySelector("#eula-checkbox") as HTMLInputElement;
+
         document.getElementById("publish-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
-            document.getElementById("editor-publish-form").style.display = "";
-            document.getElementById("editor-publish-form-edit").style.display = "block";
-            document.getElementById("editor-publish-form-success").style.display = "none";
-            document.getElementById("editor-publish-form-failure").style.display = "none";
-            (document.getElementById("eula-checkbox") as HTMLInputElement).checked = false;
-            document.getElementById("publish-confirm-btn").classList.remove("lightblue");
-            document.getElementById("publish-confirm-btn").classList.add("locked");
+            this.setPublishState(0);
+
+            this.eulaCheckbox.checked = false;
+            this.updatePublishBtn();
         };
 
-        (document.getElementById("eula-checkbox") as HTMLInputElement).onchange = () => {
-            if ((document.getElementById("eula-checkbox") as HTMLInputElement).checked) {
-                document.getElementById("publish-confirm-btn").classList.add("lightblue");
-                document.getElementById("publish-confirm-btn").classList.remove("locked");
-            }
-            else {
-                document.getElementById("publish-confirm-btn").classList.remove("lightblue");
-                document.getElementById("publish-confirm-btn").classList.add("locked");
-            }
-        }
+        this.titleInput.onchange = this.updatePublishBtn;
+        this.authorInput.onchange = this.updatePublishBtn;
+        this.eulaCheckbox.onchange = this.updatePublishBtn;
         
-        document.getElementById("publish-confirm-btn").onclick = async () => {
-            let data = {
-                title: (document.querySelector("#title-input") as HTMLInputElement).value,
-                author: (document.querySelector("#author-input") as HTMLInputElement).value,
-                content: this.game.puzzle.saveAsText()
+        this.publishConfirmButton.onclick = async () => {
+            if (this._pendingPublish) {
+                return;
             }
-            let dataString = JSON.stringify(data);
+            this._pendingPublish = true;
+            this.setPublishState(1);
+            await Mummu.AnimationFactory.CreateWait(this)(1);
             try {
+                let data = {
+                    title: this.title,
+                    author: this.author,
+                    content: this.game.puzzle.saveAsText()
+                }
+                let dataString = JSON.stringify(data);
+                
                 const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
                     method: "POST",
                     mode: "cors",
@@ -285,14 +332,12 @@ class Editor {
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 (document.querySelector("#publish-generated-url-go").parentElement as HTMLAnchorElement).href = url;
                 (document.querySelector("#publish-generated-url-copy") as HTMLButtonElement).onclick = () => { navigator.clipboard.writeText(url); };
-                document.getElementById("editor-publish-form-edit").style.display = "none";
-                document.getElementById("editor-publish-form-success").style.display = "block";
-                document.getElementById("editor-publish-form-failure").style.display = "none";
+                this.setPublishState(2);
+                this._pendingPublish = false;
             }
             catch (e) {
-                document.getElementById("editor-publish-form-edit").style.display = "none";
-                document.getElementById("editor-publish-form-success").style.display = "none";
-                document.getElementById("editor-publish-form-failure").style.display = "block";
+                this.setPublishState(3);
+                this._pendingPublish = false;
             }
         };
         
@@ -300,13 +345,13 @@ class Editor {
             this.game.router.eulaPage.show(0);
         };
         
-        document.getElementById("publish-cancel-btn").onclick = async () => {
-            document.getElementById("editor-publish-form").style.display = "none";
+        this.publishCancelButton.onclick = async () => {
+            this.publishForm.style.display = "none";
         };
 
         document.querySelectorAll(".publish-ok-btn").forEach(btn => {
             (btn as HTMLButtonElement).onclick = () => {
-                document.getElementById("editor-publish-form").style.display = "none";
+                this.publishForm.style.display = "none";
             }
         })
 
@@ -388,6 +433,50 @@ class Editor {
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = 0.5 * w;
         this.invisiFloorTM.position.z = 0.5 * h;
+    }
+
+    public updatePublishBtn = () => {
+        if (this.title.length > 2 && this.author.length > 2 && this.eulaAccepted) {
+            document.getElementById("publish-confirm-btn").classList.add("lightblue");
+            document.getElementById("publish-confirm-btn").classList.remove("locked");
+        }
+        else {
+            document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+            document.getElementById("publish-confirm-btn").classList.add("locked");
+        }
+    }
+
+    public setPublishState(state: number): void {
+        this.publishForm.style.display = "";
+
+        this.publishCancelButton.style.display = "inline-block";
+        this.publishConfirmButton.style.display = "inline-block";
+        this.publishPendingButton.style.display = "none";
+
+        this.publishFormEdit.style.display = "none";
+        this.publishFormSuccess.style.display = "none";
+        this.publishFormFailure.style.display = "none";
+
+        if (state === 0) {
+            // Waiting for player action.
+            this.publishFormEdit.style.display = "block";
+        }
+        else if (state === 1) {
+            // Sending Puzzle.
+            this.publishCancelButton.style.display = "none";
+            this.publishConfirmButton.style.display = "none";
+            this.publishPendingButton.style.display = "inline-block";
+
+            this.publishFormEdit.style.display = "block";
+        }
+        else if (state === 2) {
+            // Success.
+            this.publishFormSuccess.style.display = "block";
+        }
+        else if (state === 3) {
+            // Failure.
+            this.publishFormFailure.style.display = "block";
+        }
     }
 
     public setCursorSize(size: { w?: number, h?: number, d?: number }): void {

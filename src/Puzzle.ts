@@ -56,6 +56,10 @@ class Puzzle {
     public borders: Border[] = [];
     public buildings: Build[] = [];
 
+    public getScene(): BABYLON.Scene {
+        return this.game.scene;
+    }
+
     public w: number = 10;
     public h: number = 10;
     public heightMap: number[][];
@@ -96,6 +100,8 @@ class Puzzle {
     public get zMax(): number {
         return this.h * 1.1 - 0.55;
     }
+
+    private _pendingPublish: boolean = false;
 
     constructor(public game: Game) {
         this.floor = new BABYLON.Mesh("floor");
@@ -145,28 +151,43 @@ class Puzzle {
     }
 
     public setHighscoreState(state: number): void {
-        console.log("setHighscoreState " + state)
+        (document.querySelector("#success-score-fail-message") as HTMLDivElement).style.display = "none";
         if (state === 0) {
-            (document.querySelector("#yes-highscore-container") as HTMLDivElement).style.display = "none";
-            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "block";
+            // Not enough for Highscore
+            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "none";
         }
         else if (state === 1) {
-            (document.querySelector("#yes-highscore-container") as HTMLDivElement).style.display = "block";
-            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
+            // Enough for Highscore, waiting for player action.
+            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "block";
 
-            (document.querySelector("#success-score-btn") as HTMLButtonElement).style.display = "inline-block";
+            (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).style.display = "inline-block";
+            (document.querySelector("#success-score-pending-btn") as HTMLButtonElement).style.display = "none";
             (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "none";
         }
         else if (state === 2) {
-            (document.querySelector("#yes-highscore-container") as HTMLDivElement).style.display = "block";
-            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
+            // Sending Highscore.
+            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "block";
 
-            (document.querySelector("#success-score-btn") as HTMLButtonElement).style.display = "none";
+            (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).style.display = "none";
+            (document.querySelector("#success-score-pending-btn") as HTMLButtonElement).style.display = "inline-block";
+            (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "none";
+        }
+        else if (state === 3) {
+            // Highscore sent with success.
+            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "block";
+
+            (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).style.display = "none";
+            (document.querySelector("#success-score-pending-btn") as HTMLButtonElement).style.display = "none";
             (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "inline-block";
         }
     }
 
     public async submitHighscore(): Promise<void> {
+        if (this._pendingPublish) {
+            return;
+        }
+        this._pendingPublish = true;
+
         let score = Math.round(this.game.ball.playTimer * 100);
         let puzzleId = this.data.id;
         let player = (document.querySelector("#score-player-input") as HTMLInputElement).value;
@@ -180,16 +201,28 @@ class Puzzle {
         }
         if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
-            const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
-                method: "POST",
-                mode: "cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: dataString,
-            });
-            console.log(await response.text());
             this.setHighscoreState(2);
+            await Mummu.AnimationFactory.CreateWait(this)(1);
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: dataString,
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                this.setHighscoreState(3);
+                this._pendingPublish = false;
+            }
+            catch (e) {
+                this.setHighscoreState(1);
+                (document.querySelector("#success-score-fail-message") as HTMLDivElement).style.display = "block";
+                this._pendingPublish = false;
+            }
         }
     }
 

@@ -88,11 +88,12 @@
         <div class="editor-line" style="text-align: center;">
             <button id="publish-cancel-btn" class="medium-btn inline"><stroke-text>Cancel</stroke-text></button>
             <button id="publish-confirm-btn" class="medium-btn inline locked"><stroke-text>Publish</stroke-text></button>
+            <button id="publish-pending-btn" class="medium-btn inline bluegrey" style="width: 220px; display: none;"><stroke-text>Sending...</stroke-text></button>
         </div>
     </div>
     <div id="editor-publish-form-success" style="display: none;">
         <div class="editor-line">
-            <span>Your can now play and share your Puzzle !</span>
+            <span style="font-weight: 900;">Your can now play and share your Puzzle !</span>
         </div>
         <div class="editor-line">
             <input id="publish-generated-url" type="text" readonly/>
@@ -100,10 +101,10 @@
             <a href="" target="_blank"><button id="publish-generated-url-go" class="xsmall-btn"><stroke-text>G</stroke-text></button></a>
         </div>
         <div class="editor-line">
-            <span>Your Puzzle will be visible in the Community Puzzle listing after its validation by Tiaratum Games.</span>
+            <span style="font-weight: 900;">Your Puzzle will be visible in the Community Puzzle listing after its validation by Tiaratum Games.</span>
         </div>
         <div class="editor-line" style="margin-top: 10px;">
-            <span>Thanks for your contribution !</span>
+            <span style="font-weight: 900;">Thanks for your contribution !</span>
         </div>
         <div class="editor-line" style="text-align: right; margin-bottom: 10px; margin-right: 50px;">
             <span>- Sven</span>
@@ -114,16 +115,16 @@
     </div>
     <div id="editor-publish-form-failure" style="display: none;">
         <div class="editor-line">
-            <span>Can't reach server.</span>
-        </div>
-        <div class="editor-line">
-            <span>Your Puzzle has not been published.</span>
-        </div>
-        <div class="editor-line">
-            <span>You can save your Puzzle with a file using SAVE button to avoid loosing your work.</span>
+            <div style="color: #b03a48; font-weight: 900;"><stroke-text>Error - Server not found</stroke-text></div>
         </div>
         <div class="editor-line" style="margin-top: 10px;">
-            <span>Sorry !</span>
+            <span style="font-weight: 900;">Your Puzzle has NOT been published.</span>
+        </div>
+        <div class="editor-line">
+            <span style="font-weight: 900;">You can save your Puzzle on your device with a file using the SAVE button to avoid loosing your work.</span>
+        </div>
+        <div class="editor-line" style="margin-top: 10px;">
+            <span style="font-weight: 900;">Sorry !</span>
         </div>
         <div class="editor-line" style="text-align: right; margin-bottom: 10px; margin-right: 50px;">
             <span>- Sven</span>

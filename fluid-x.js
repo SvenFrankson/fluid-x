@@ -168,7 +168,7 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
                 this.speed = 0;
-                this.animateSpeed(2.5, 0.2, Nabu.Easing.easeInCubic);
+                this.animateSpeed(2.2, 0.2, Nabu.Easing.easeInCubic);
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
@@ -853,6 +853,17 @@ class Editor {
         this.brush = EditorBrush.None;
         this.brushColor = TileColor.North;
         this.selectableButtons = [];
+        this._pendingPublish = false;
+        this.updatePublishBtn = () => {
+            if (this.title.length > 2 && this.author.length > 2 && this.eulaAccepted) {
+                document.getElementById("publish-confirm-btn").classList.add("lightblue");
+                document.getElementById("publish-confirm-btn").classList.remove("locked");
+            }
+            else {
+                document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+                document.getElementById("publish-confirm-btn").classList.add("locked");
+            }
+        };
         this._pointerX = 0;
         this._pointerY = 0;
         this.update = (dt) => {
@@ -997,6 +1008,27 @@ class Editor {
             color: new BABYLON.Color4(0, 1, 0, 1)
         });
         this.setCursorSize({ w: 1, h: 0, d: 1 });
+    }
+    get title() {
+        if (this.titleInput) {
+            return this.titleInput.value;
+        }
+        return "";
+    }
+    get author() {
+        if (this.authorInput) {
+            return this.authorInput.value;
+        }
+        return "";
+    }
+    get eulaAccepted() {
+        if (this.eulaCheckbox) {
+            return this.eulaCheckbox.checked;
+        }
+        return false;
+    }
+    getScene() {
+        return this.game.scene;
     }
     initValues() {
         this.originColorInput.setValue(this.game.ball.color);
@@ -1152,35 +1184,40 @@ class Editor {
             document.getElementById("load-btn").style.display = "";
             document.getElementById("load-file-input").style.display = "none";
         };
+        this.publishForm = document.getElementById("editor-publish-form");
+        this.publishFormEdit = document.getElementById("editor-publish-form-edit");
+        this.publishFormSuccess = document.getElementById("editor-publish-form-success");
+        this.publishFormFailure = document.getElementById("editor-publish-form-failure");
+        this.publishCancelButton = document.querySelector("#publish-cancel-btn");
+        this.publishConfirmButton = document.querySelector("#publish-confirm-btn");
+        this.publishPendingButton = document.querySelector("#publish-pending-btn");
+        this.titleInput = document.querySelector("#title-input");
+        this.authorInput = document.querySelector("#author-input");
+        this.eulaCheckbox = document.querySelector("#eula-checkbox");
         document.getElementById("publish-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
-            document.getElementById("editor-publish-form").style.display = "";
-            document.getElementById("editor-publish-form-edit").style.display = "block";
-            document.getElementById("editor-publish-form-success").style.display = "none";
-            document.getElementById("editor-publish-form-failure").style.display = "none";
-            document.getElementById("eula-checkbox").checked = false;
-            document.getElementById("publish-confirm-btn").classList.remove("lightblue");
-            document.getElementById("publish-confirm-btn").classList.add("locked");
+            this.setPublishState(0);
+            this.eulaCheckbox.checked = false;
+            this.updatePublishBtn();
         };
-        document.getElementById("eula-checkbox").onchange = () => {
-            if (document.getElementById("eula-checkbox").checked) {
-                document.getElementById("publish-confirm-btn").classList.add("lightblue");
-                document.getElementById("publish-confirm-btn").classList.remove("locked");
+        this.titleInput.onchange = this.updatePublishBtn;
+        this.authorInput.onchange = this.updatePublishBtn;
+        this.eulaCheckbox.onchange = this.updatePublishBtn;
+        this.publishConfirmButton.onclick = async () => {
+            if (this._pendingPublish) {
+                return;
             }
-            else {
-                document.getElementById("publish-confirm-btn").classList.remove("lightblue");
-                document.getElementById("publish-confirm-btn").classList.add("locked");
-            }
-        };
-        document.getElementById("publish-confirm-btn").onclick = async () => {
-            let data = {
-                title: document.querySelector("#title-input").value,
-                author: document.querySelector("#author-input").value,
-                content: this.game.puzzle.saveAsText()
-            };
-            let dataString = JSON.stringify(data);
+            this._pendingPublish = true;
+            this.setPublishState(1);
+            await Mummu.AnimationFactory.CreateWait(this)(1);
             try {
+                let data = {
+                    title: this.title,
+                    author: this.author,
+                    content: this.game.puzzle.saveAsText()
+                };
+                let dataString = JSON.stringify(data);
                 const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
                     method: "POST",
                     mode: "cors",
@@ -1194,25 +1231,23 @@ class Editor {
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 document.querySelector("#publish-generated-url-go").parentElement.href = url;
                 document.querySelector("#publish-generated-url-copy").onclick = () => { navigator.clipboard.writeText(url); };
-                document.getElementById("editor-publish-form-edit").style.display = "none";
-                document.getElementById("editor-publish-form-success").style.display = "block";
-                document.getElementById("editor-publish-form-failure").style.display = "none";
+                this.setPublishState(2);
+                this._pendingPublish = false;
             }
             catch (e) {
-                document.getElementById("editor-publish-form-edit").style.display = "none";
-                document.getElementById("editor-publish-form-success").style.display = "none";
-                document.getElementById("editor-publish-form-failure").style.display = "block";
+                this.setPublishState(3);
+                this._pendingPublish = false;
             }
         };
         document.getElementById("publish-read-eula-btn").onclick = async () => {
             this.game.router.eulaPage.show(0);
         };
-        document.getElementById("publish-cancel-btn").onclick = async () => {
-            document.getElementById("editor-publish-form").style.display = "none";
+        this.publishCancelButton.onclick = async () => {
+            this.publishForm.style.display = "none";
         };
         document.querySelectorAll(".publish-ok-btn").forEach(btn => {
             btn.onclick = () => {
-                document.getElementById("editor-publish-form").style.display = "none";
+                this.publishForm.style.display = "none";
             };
         });
         this.clearButton = document.getElementById("clear-btn");
@@ -1275,6 +1310,34 @@ class Editor {
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = 0.5 * w;
         this.invisiFloorTM.position.z = 0.5 * h;
+    }
+    setPublishState(state) {
+        this.publishForm.style.display = "";
+        this.publishCancelButton.style.display = "inline-block";
+        this.publishConfirmButton.style.display = "inline-block";
+        this.publishPendingButton.style.display = "none";
+        this.publishFormEdit.style.display = "none";
+        this.publishFormSuccess.style.display = "none";
+        this.publishFormFailure.style.display = "none";
+        if (state === 0) {
+            // Waiting for player action.
+            this.publishFormEdit.style.display = "block";
+        }
+        else if (state === 1) {
+            // Sending Puzzle.
+            this.publishCancelButton.style.display = "none";
+            this.publishConfirmButton.style.display = "none";
+            this.publishPendingButton.style.display = "inline-block";
+            this.publishFormEdit.style.display = "block";
+        }
+        else if (state === 2) {
+            // Success.
+            this.publishFormSuccess.style.display = "block";
+        }
+        else if (state === 3) {
+            // Failure.
+            this.publishFormFailure.style.display = "block";
+        }
     }
     setCursorSize(size) {
         if (isNaN(size.w)) {
@@ -1747,6 +1810,22 @@ class Game {
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
+        /*
+        this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
+        this.skybox.rotation.x = Math.PI * 0.3;
+        let skyboxMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+        skyboxMaterial.backFaceCulling = false;
+        let skyTexture = new BABYLON.CubeTexture(
+            "./datas/skyboxes/cloud",
+            this.scene,
+            ["-px.jpg", "-py.jpg", "-pz.jpg", "-nx.jpg", "-ny.jpg", "-nz.jpg"]);
+        skyboxMaterial.reflectionTexture = skyTexture;
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.75);
+        this.skybox.material = skyboxMaterial;
+        */
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
@@ -1824,27 +1903,31 @@ class Game {
                 this.completedPuzzles = JSON.parse(dataString);
             }
         }
-        let storyModePuzzlesContent = "";
+        let storyModePuzzles;
         try {
             const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
                 method: "GET",
                 mode: "cors"
             });
-            storyModePuzzlesContent = await response.text();
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            storyModePuzzles = await response.json();
+            CLEAN_IPuzzlesData(storyModePuzzles);
         }
         catch (e) {
+            console.error(e);
             const response = await fetch("./datas/levels/tiaratum_levels.json", {
                 method: "GET",
                 mode: "cors"
             });
-            storyModePuzzlesContent = await response.text();
+            storyModePuzzles = await response.json();
+            CLEAN_IPuzzlesData(storyModePuzzles);
         }
-        let data = JSON.parse(storyModePuzzlesContent);
-        CLEAN_IPuzzlesData(data);
-        for (let i = 0; i < data.puzzles.length; i++) {
-            data.puzzles[i].title = (i + 1).toFixed(0) + ". " + data.puzzles[i].title;
+        for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
+            storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
         }
-        this.tiaratumGameLevels = data;
+        this.tiaratumGameLevels = storyModePuzzles;
         for (let i = 0; i < this.tiaratumGameLevels.puzzles.length; i++) {
             this.tiaratumGameLevels.puzzles[i].numLevel = (i + 1);
         }
@@ -1883,7 +1966,18 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
-        document.querySelector("#success-score-btn").onclick = () => {
+        document.querySelector("#score-player-input").onchange = () => {
+            let v = document.querySelector("#score-player-input").value;
+            if (v.length > 2) {
+                document.querySelector("#success-score-submit-btn").classList.remove("locked");
+                document.querySelector("#success-score-submit-btn").classList.add("orange");
+            }
+            else {
+                document.querySelector("#success-score-submit-btn").classList.remove("orange");
+                document.querySelector("#success-score-submit-btn").classList.add("locked");
+            }
+        };
+        document.querySelector("#success-score-submit-btn").onclick = () => {
             this.puzzle.submitHighscore();
         };
         this.router.start();
@@ -2505,10 +2599,14 @@ class Puzzle {
         this.buildings = [];
         this.w = 10;
         this.h = 10;
+        this._pendingPublish = false;
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
+    }
+    getScene() {
+        return this.game.scene;
     }
     hMapGet(i, j) {
         if (i >= 0 && i < this.heightMap.length) {
@@ -2578,25 +2676,38 @@ class Puzzle {
         }, 1000);
     }
     setHighscoreState(state) {
-        console.log("setHighscoreState " + state);
+        document.querySelector("#success-score-fail-message").style.display = "none";
         if (state === 0) {
-            document.querySelector("#yes-highscore-container").style.display = "none";
-            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "block";
+            // Not enough for Highscore
+            document.querySelector("#success-highscore-container").style.display = "none";
         }
         else if (state === 1) {
-            document.querySelector("#yes-highscore-container").style.display = "block";
-            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
-            document.querySelector("#success-score-btn").style.display = "inline-block";
+            // Enough for Highscore, waiting for player action.
+            document.querySelector("#success-highscore-container").style.display = "block";
+            document.querySelector("#success-score-submit-btn").style.display = "inline-block";
+            document.querySelector("#success-score-pending-btn").style.display = "none";
             document.querySelector("#success-score-done-btn").style.display = "none";
         }
         else if (state === 2) {
-            document.querySelector("#yes-highscore-container").style.display = "block";
-            //(document.querySelector("#no-highscore-container") as HTMLDivElement).style.display = "none";
-            document.querySelector("#success-score-btn").style.display = "none";
+            // Sending Highscore.
+            document.querySelector("#success-highscore-container").style.display = "block";
+            document.querySelector("#success-score-submit-btn").style.display = "none";
+            document.querySelector("#success-score-pending-btn").style.display = "inline-block";
+            document.querySelector("#success-score-done-btn").style.display = "none";
+        }
+        else if (state === 3) {
+            // Highscore sent with success.
+            document.querySelector("#success-highscore-container").style.display = "block";
+            document.querySelector("#success-score-submit-btn").style.display = "none";
+            document.querySelector("#success-score-pending-btn").style.display = "none";
             document.querySelector("#success-score-done-btn").style.display = "inline-block";
         }
     }
     async submitHighscore() {
+        if (this._pendingPublish) {
+            return;
+        }
+        this._pendingPublish = true;
         let score = Math.round(this.game.ball.playTimer * 100);
         let puzzleId = this.data.id;
         let player = document.querySelector("#score-player-input").value;
@@ -2609,16 +2720,28 @@ class Puzzle {
         };
         if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
-            const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
-                method: "POST",
-                mode: "cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: dataString,
-            });
-            console.log(await response.text());
             this.setHighscoreState(2);
+            await Mummu.AnimationFactory.CreateWait(this)(1);
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: dataString,
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                this.setHighscoreState(3);
+                this._pendingPublish = false;
+            }
+            catch (e) {
+                this.setHighscoreState(1);
+                document.querySelector("#success-score-fail-message").style.display = "block";
+                this._pendingPublish = false;
+            }
         }
     }
     async reset() {

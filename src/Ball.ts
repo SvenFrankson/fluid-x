@@ -213,7 +213,7 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
                 this.speed = 0;
-                this.animateSpeed(2.5, 0.2, Nabu.Easing.easeInCubic);
+                this.animateSpeed(2.2, 0.2, Nabu.Easing.easeInCubic);
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);

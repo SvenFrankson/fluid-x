@@ -30,18 +30,19 @@
 <div id="play-success-panel" class="panel" style="display: none;">
     <h2><stroke-text>SUCCESS !</stroke-text></h2>
     <h2 id="success-timer"><stroke-text>00:42:00</stroke-text><div class="stamp" style="margin-left: 20px"><div>☆<br>☆☆</div></div></h2>
-    <div id="no-highscore-container" class="editor-line" style="display: none;">
-        <span>Need time below 00:00:42 to enter leaderboard.</span>
-    </div>
-    <div id="yes-highscore-container">
+    
+    <div id="success-highscore-container">
         <div class="editor-line">
             <span class="editor-label">player</span><input id="score-player-input" type="text"/>
         </div>
         <div class="editor-line">
-            <button id="success-score-btn" class="medium-btn inline orange" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
+            <button id="success-score-submit-btn" class="medium-btn inline locked" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
+            <button id="success-score-pending-btn" class="medium-btn inline bluegrey" style="width: 220px"><stroke-text>Sending...</stroke-text></button>
             <button id="success-score-done-btn" class="medium-btn inline green" style="width: 220px;"><stroke-text>Well Played !</stroke-text></button>
+            <div id="success-score-fail-message" style="color: #b03a48; font-weight: 900; display: none;"><stroke-text>Error - Server not found</stroke-text></div>
         </div>
     </div>
+
     <div class="editor-line">
         <button id="success-replay-btn" class="medium-btn inline red" style="width: 220px"><stroke-text>Replay</stroke-text></button>
     </div>

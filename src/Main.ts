@@ -165,6 +165,7 @@ class Game {
 
     public light: BABYLON.HemisphericLight;
     public shadowGenerator: BABYLON.ShadowGenerator;
+    public skybox: BABYLON.Mesh;
 
     public noiseTexture: BABYLON.RawTexture3D;
     public vertexDataLoader: Mummu.VertexDataLoader;
@@ -221,6 +222,23 @@ class Game {
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
+
+        /*
+        this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
+        this.skybox.rotation.x = Math.PI * 0.3;
+        let skyboxMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+        skyboxMaterial.backFaceCulling = false;
+        let skyTexture = new BABYLON.CubeTexture(
+            "./datas/skyboxes/cloud",
+            this.scene,
+            ["-px.jpg", "-py.jpg", "-pz.jpg", "-nx.jpg", "-ny.jpg", "-nz.jpg"]);
+        skyboxMaterial.reflectionTexture = skyTexture;
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.75);
+        this.skybox.material = skyboxMaterial;
+        */
 
         this.camera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
@@ -317,29 +335,33 @@ class Game {
             }
         }
 
-        let storyModePuzzlesContent: string = "";
+        let storyModePuzzles: IPuzzlesData;
         try {
             const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
                 method: "GET",
                 mode: "cors"
             });
-            storyModePuzzlesContent = await response.text();
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            storyModePuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(storyModePuzzles);
         }
         catch (e) {
+            console.error(e);
             const response = await fetch("./datas/levels/tiaratum_levels.json", {
                 method: "GET",
                 mode: "cors"
             });
-            storyModePuzzlesContent = await response.text();
+            storyModePuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(storyModePuzzles);
         }
         
-        let data = JSON.parse(storyModePuzzlesContent) as IPuzzlesData;
-        CLEAN_IPuzzlesData(data);
-        for (let i = 0; i < data.puzzles.length; i++) {
-            data.puzzles[i].title = (i + 1).toFixed(0) + ". " + data.puzzles[i].title;
+        for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
+            storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
         }
 
-        this.tiaratumGameLevels = data;
+        this.tiaratumGameLevels = storyModePuzzles;
         for (let i = 0; i < this.tiaratumGameLevels.puzzles.length; i++) {
             this.tiaratumGameLevels.puzzles[i].numLevel = (i + 1);
         }
@@ -386,7 +408,19 @@ class Game {
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
 
-        (document.querySelector("#success-score-btn") as HTMLButtonElement).onclick = () => {
+        (document.querySelector("#score-player-input") as HTMLInputElement).onchange = () => {
+            let v = (document.querySelector("#score-player-input") as HTMLInputElement).value;
+            if (v.length > 2) {
+                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("locked");
+                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("orange");
+            }
+            else {
+                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("orange");
+                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("locked");
+            }
+        }
+
+        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.submitHighscore();
         }
 

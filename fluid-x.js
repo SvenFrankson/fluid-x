@@ -1721,15 +1721,20 @@ class LevelPage {
         };
         this._inputEnter = () => {
             if (!this.shown) {
+                console.log("A");
                 return;
             }
             if (this.buttons.length === 0) {
+                console.log("B");
                 return;
             }
             let btn = this.buttons[this._hoveredButtonIndex];
             if (btn && btn.onclick) {
                 btn.onclick(undefined);
+                console.log("C");
+                return;
             }
+            console.log("D");
         };
         this._inputBack = () => {
             if (!this.shown) {
@@ -1785,7 +1790,7 @@ class LevelPage {
             for (let j = 0; j < this.colCount; j++) {
                 let squareButton = document.createElement("button");
                 this.buttons.push(squareButton);
-                squareButton.classList.add("square-btn-panel");
+                squareButton.classList.add("square-btn-panel", "bluegrey");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
@@ -1840,7 +1845,7 @@ class LevelPage {
         container.appendChild(line);
         let prevButton = document.createElement("button");
         this.buttons.push(prevButton);
-        prevButton.classList.add("square-btn");
+        prevButton.classList.add("square-btn", "bluegrey");
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
             prevButton.onclick = () => {
@@ -1864,7 +1869,7 @@ class LevelPage {
         }
         let nextButton = document.createElement("button");
         this.buttons.push(nextButton);
-        nextButton.classList.add("square-btn");
+        nextButton.classList.add("square-btn", "bluegrey");
         if (puzzleTileData.length === this.levelsPerPage) {
             nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
             nextButton.onclick = () => {
@@ -2318,10 +2323,10 @@ class Game {
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
-        this.uiInputManager.initialize();
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.waitForAllPagesLoaded();
+        this.uiInputManager.initialize();
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
         northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
@@ -3805,8 +3810,113 @@ class PuzzleMiniatureMaker {
 class PuzzleUI {
     constructor(puzzle) {
         this.puzzle = puzzle;
+        this._inputUp = () => {
+            if (this.successPanel.style.display === "") {
+                if (this.hoveredElement === undefined) {
+                    this.setHoveredElement(this.successNextButton);
+                }
+                else if (this.hoveredElement === this.successBackButton || this.hoveredElement === this.successNextButton) {
+                    this.setHoveredElement(this.successReplayButton);
+                }
+                else if (this.hoveredElement === this.successReplayButton) {
+                    if (this.highscoreContainer.style.display === "block") {
+                        if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
+                            this.setHoveredElement(this.scoreSubmitBtn);
+                        }
+                        else {
+                            this.setHoveredElement(this.highscorePlayerLine);
+                        }
+                    }
+                }
+                else if (this.hoveredElement === this.scoreSubmitBtn) {
+                    this.setHoveredElement(this.highscorePlayerLine);
+                }
+                else if (this.hoveredElement === this.highscorePlayerLine) {
+                    this.setHoveredElement(this.successNextButton);
+                }
+            }
+            else if (this.gameoverPanel.style.display === "") {
+            }
+        };
+        this._inputLat = () => {
+            if (this.successPanel.style.display === "") {
+                if (this.hoveredElement === undefined) {
+                    this.setHoveredElement(this.successNextButton);
+                }
+                else if (this.hoveredElement === this.successBackButton) {
+                    this.setHoveredElement(this.successNextButton);
+                }
+                else if (this.hoveredElement === this.successNextButton) {
+                    this.setHoveredElement(this.successBackButton);
+                }
+            }
+            else if (this.gameoverPanel.style.display === "") {
+                if (this.hoveredElement === undefined) {
+                    this.setHoveredElement(this.gameoverReplayButton);
+                }
+                else if (this.hoveredElement === this.gameoverBackButton) {
+                    this.setHoveredElement(this.gameoverReplayButton);
+                }
+                else if (this.hoveredElement === this.gameoverReplayButton) {
+                    this.setHoveredElement(this.gameoverBackButton);
+                }
+            }
+        };
+        this._inputDown = () => {
+            if (this.successPanel.style.display === "") {
+                if (this.hoveredElement === undefined) {
+                    this.setHoveredElement(this.successNextButton);
+                }
+                else if (this.hoveredElement === this.highscorePlayerLine) {
+                    if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
+                        this.setHoveredElement(this.scoreSubmitBtn);
+                    }
+                    else {
+                        this.setHoveredElement(this.successReplayButton);
+                    }
+                }
+                else if (this.hoveredElement === this.scoreSubmitBtn) {
+                    this.setHoveredElement(this.successReplayButton);
+                }
+                else if (this.hoveredElement === this.successReplayButton) {
+                    this.setHoveredElement(this.successNextButton);
+                }
+                else if (this.hoveredElement === this.successBackButton || this.hoveredElement === this.successNextButton) {
+                    if (this.highscoreContainer.style.display === "block") {
+                        this.setHoveredElement(this.highscorePlayerLine);
+                    }
+                }
+            }
+            else if (this.gameoverPanel.style.display === "") {
+            }
+        };
+        this._inputEnter = () => {
+            if (this.successPanel.style.display === "" || this.gameoverPanel.style.display === "") {
+                if (this.hoveredElement instanceof HTMLButtonElement) {
+                    if (this.hoveredElement.parentElement instanceof HTMLAnchorElement) {
+                        location.hash = this.hoveredElement.parentElement.href.split("/").pop();
+                    }
+                    else if (this.hoveredElement.onclick) {
+                        this.hoveredElement.onclick(undefined);
+                    }
+                }
+                else if (this.hoveredElement === this.highscorePlayerLine) {
+                    document.querySelector("#score-player-input").focus();
+                }
+            }
+        };
+        this._inputBack = () => {
+            if (this.successPanel.style.display === "") {
+            }
+            else if (this.gameoverPanel.style.display === "") {
+            }
+        };
+        this._inputDropControl = () => {
+            this.setHoveredElement(undefined);
+        };
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
+        this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement;
         this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
@@ -3823,14 +3933,37 @@ class PuzzleUI {
         };
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
+        this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
+        this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
+    }
+    get hoveredElement() {
+        return this._hoveredElement;
+    }
+    setHoveredElement(e) {
+        if (this.hoveredElement) {
+            this.hoveredElement.classList.remove("hovered");
+        }
+        this._hoveredElement = e;
+        if (this.hoveredElement) {
+            this.hoveredElement.classList.add("hovered");
+        }
+    }
+    get game() {
+        return this.puzzle.game;
     }
     win() {
         this.successPanel.style.display = "";
         this.gameoverPanel.style.display = "none";
+        if (this.game.uiInputManager.inControl) {
+            this.setHoveredElement(this.successNextButton);
+        }
     }
     lose() {
         this.successPanel.style.display = "none";
         this.gameoverPanel.style.display = "";
+        if (this.game.uiInputManager.inControl) {
+            this.setHoveredElement(this.gameoverReplayButton);
+        }
     }
     reset() {
         if (this.successPanel) {
@@ -3866,7 +3999,28 @@ class PuzzleUI {
             this.scoreSubmitBtn.style.display = "none";
             this.scorePendingBtn.style.display = "none";
             this.scoreDoneBtn.style.display = "inline-block";
+            if (this.game.uiInputManager.inControl) {
+                this.setHoveredElement(this.successNextButton);
+            }
         }
+    }
+    _registerToInputManager() {
+        this.game.uiInputManager.onUpCallbacks.push(this._inputUp);
+        this.game.uiInputManager.onLeftCallbacks.push(this._inputLat);
+        this.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.game.uiInputManager.onRightCallbacks.push(this._inputLat);
+        this.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
+        this.game.uiInputManager.onBackCallbacks.push(this._inputBack);
+        this.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
+    }
+    _unregisterFromInputManager() {
+        this.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
+        this.game.uiInputManager.onLeftCallbacks.remove(this._inputLat);
+        this.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.game.uiInputManager.onRightCallbacks.remove(this._inputLat);
+        this.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
+        this.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
+        this.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
 }
 /// <reference path="./Tile.ts"/>
@@ -4031,6 +4185,12 @@ class UserInterfaceInputManager {
             }
         });
         window.addEventListener("keydown", (ev) => {
+            if (document.activeElement instanceof HTMLInputElement) {
+                if (ev.code === "Enter") {
+                    this.game.canvas.focus();
+                }
+                return;
+            }
             this.inControl = true;
             if (ev.code === "KeyW" || ev.code === "ArrowUp") {
                 this.onUpCallbacks.forEach(cb => {

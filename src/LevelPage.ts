@@ -67,7 +67,7 @@ abstract class LevelPage {
             for (let j = 0; j < this.colCount; j++) {
                 let squareButton = document.createElement("button");
                 this.buttons.push(squareButton);
-                squareButton.classList.add("square-btn-panel");
+                squareButton.classList.add("square-btn-panel", "bluegrey");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
                 }
@@ -130,7 +130,7 @@ abstract class LevelPage {
 
         let prevButton = document.createElement("button");
         this.buttons.push(prevButton);
-        prevButton.classList.add("square-btn");
+        prevButton.classList.add("square-btn", "bluegrey");
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
             prevButton.onclick = () => {
@@ -154,7 +154,7 @@ abstract class LevelPage {
         }
         let nextButton = document.createElement("button");
         this.buttons.push(nextButton);
-        nextButton.classList.add("square-btn");
+        nextButton.classList.add("square-btn", "bluegrey");
         if (puzzleTileData.length === this.levelsPerPage) {
             nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
             nextButton.onclick = () => {
@@ -305,15 +305,20 @@ abstract class LevelPage {
 
     private _inputEnter = () => {
         if (!this.shown) {
+            console.log("A");
             return;
         }
         if (this.buttons.length === 0) {
+            console.log("B");
             return;
         }
         let btn = this.buttons[this._hoveredButtonIndex];
         if (btn && btn.onclick) {
             btn.onclick(undefined);
+            console.log("C");
+            return;
         }
+        console.log("D");
     }
 
     private _inputBack = () => {

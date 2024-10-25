@@ -324,12 +324,12 @@ class Game {
         this.camera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
-
-        this.uiInputManager.initialize();
         
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.waitForAllPagesLoaded();
+
+        this.uiInputManager.initialize();
 
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);

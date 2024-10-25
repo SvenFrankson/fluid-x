@@ -35,6 +35,12 @@ class UserInterfaceInputManager {
         })
 
         window.addEventListener("keydown", (ev: KeyboardEvent) => {
+            if (document.activeElement instanceof HTMLInputElement) {
+                if (ev.code === "Enter") {
+                    this.game.canvas.focus();
+                }
+                return;
+            }
             this.inControl = true;
             if (ev.code === "KeyW" || ev.code === "ArrowUp") {
                 this.onUpCallbacks.forEach(cb => {

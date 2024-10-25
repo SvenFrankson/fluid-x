@@ -139,11 +139,11 @@ h3 {
 button {
     position: relative;
     display: block;
-    background-color: #5d7275;
     background-image: url("../datas/textures/rainbow_pattern.png");
     background-size: 40px;
     font-family: Julee;
     font-weight: 900;
+    border-radius: 4px;
     color: #2b2821;
     cursor: pointer;
     pointer-events: all;
@@ -160,44 +160,88 @@ button.locked {
     background-color: #2b2821;
 }
 
+.black:hover, .black.hovered {
+    background-color: color-mix(in srgb, #2b2821 85%, white 15%);
+}
+
 .brown {
     background-color: #624c3c;
+}
+
+.brown:hover, .brown.hovered {
+    background-color: color-mix(in srgb, #624c3c 85%, white 15%);
 }
 
 .salmon {
     background-color: #d9ac8b;
 }
 
+.salmon:hover, .salmon.hovered {
+    background-color: color-mix(in srgb, #d9ac8b 85%, white 15%);
+}
+
 .blue {
     background-color: #243d5c;
+}
+
+.blue:hover, .blue.hovered {
+    background-color: color-mix(in srgb, #243d5c 85%, white 15%);
 }
 
 .bluegrey {
     background-color: #5d7275;
 }
 
+.bluegrey:hover, .bluegrey.hovered {
+    background-color: color-mix(in srgb, #5d7275 85%, white 15%);
+}
+
 .lightblue {
     background-color: #5c8b93;
+}
+
+.lightblue:hover, .lightblue.hovered {
+    background-color: color-mix(in srgb, #5c8b93 85%, white 15%);
 }
 
 .beige {
     background-color: #b1a58d;
 }
 
+.beige:hover, .beige.hovered {
+    background-color: color-mix(in srgb, #b1a58d 85%, white 15%);
+}
+
 .red {
     background-color: #b03a48;
+}
+
+.red:hover, .red.hovered {
+    background-color: color-mix(in srgb, #b03a48 85%, white 15%);
 }
 
 .orange {
     background-color: #d4804d;
 }
 
+.orange:hover, .orange.hovered {
+    background-color: color-mix(in srgb, #d4804d 85%, white 15%);
+}
+
 .yellow {
     background-color: #e0c872;
 }
 
+.yellow:hover, .yellow.hovered {
+    background-color: color-mix(in srgb, #e0c872 85%, white 15%);
+}
+
 .green {
     background-color: #3e6958;
+}
+
+.green:hover, .green.hovered {
+    background-color: color-mix(in srgb, #3e6958 85%, white 15%);
 }
 
 button.selected {
@@ -205,23 +249,8 @@ button.selected {
     box-shadow: 2px 2px 2px #2b2821ff;
 }
 
-button:hover, button.hovered {
-    border-color: rgb(168, 150, 137);
-    outline: 1px solid white;
-}
-
-button:hover::after, button.hovered::after  {
-    content: "";
-    background-image: url("../datas/icons/selector.svg");
-    background-size: contain;
-    background-repeat: no-repeat;
-    position: absolute;
-    margin: 0;
-    width: 100%;
-    height: 50%;
-    margin: 0;
-    top: 25%;
-    left: 0;
+button:hover, .hovered {
+    outline: 2px solid white;
 }
 
 .large-btn {
@@ -257,13 +286,6 @@ button:hover::after, button.hovered::after  {
     height: 70px;
 }
 
-button.medium-square-btn:hover::after, button.medium-square-btn.hovered::after {
-    width: 20%;
-    height: 100%;
-    top: 37.5%;
-    left: 0;
-}
-
 .square-btn-panel {
     display: flex;
     text-align: left;
@@ -275,13 +297,6 @@ button.medium-square-btn:hover::after, button.medium-square-btn.hovered::after {
     margin: 3px;
 }
 
-button.square-btn-panel:hover::after, button.square-btn-panel.hovered::after {
-    width: 20%;
-    height: 100%;
-    top: 37.5%;
-    left: 0;
-}
-
 .square-btn {
     display: flex;
     font-size: 30px;
@@ -291,13 +306,6 @@ button.square-btn-panel:hover::after, button.square-btn-panel.hovered::after {
     font-weight: 900;
     margin: 3px;
     padding: 15px;
-}
-
-button.square-btn:hover::after, button.square-btn.hovered::after {
-    width: 20%;
-    height: 100%;
-    top: 37.5%;
-    left: 0;
 }
 
 .small-btn {
@@ -574,9 +582,23 @@ input[type="text"] {
 
 .editor-line {
     position: relative;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
     display: block;
     font-family: Julee;
     margin-bottom: 4px;
+}
+
+.editor-line.hoverable {
+    padding: 5px;
+}
+
+.editor-line.hovered {
+    border-radius: 4px;
+    border: 2px solid #624c3c;
+    outline: 1px solid white;
+    padding: 3px;
 }
 
 .editor-label {

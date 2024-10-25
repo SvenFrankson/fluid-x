@@ -216,6 +216,7 @@ class Game {
     public puzzle: Puzzle;
     public ball: Ball;
     public bottom: BABYLON.Mesh;
+    public stamp: StampEffect;
 
     public tiaratumGameLevels: IPuzzlesData;
     public router: CarillonRouter;
@@ -312,6 +313,8 @@ class Game {
         let bottomMaterial = new BABYLON.StandardMaterial("bottom-material");
         bottomMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.bottom.material = bottomMaterial;
+
+        this.stamp = new StampEffect(this);
 
         this.bodyColorIndex = 5;
         this.bodyPatternIndex = 0;
@@ -572,7 +575,7 @@ class Game {
             "./datas/sounds/zen-ambient.mp3",
             this.scene,
             () => {
-                ambient.setVolume(0.3)
+                ambient.setVolume(0.2)
             },
             {
                 autoplay: true,

@@ -1889,6 +1889,7 @@ class Game {
         let bottomMaterial = new BABYLON.StandardMaterial("bottom-material");
         bottomMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.bottom.material = bottomMaterial;
+        this.stamp = new StampEffect(this);
         this.bodyColorIndex = 5;
         this.bodyPatternIndex = 0;
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
@@ -2105,7 +2106,7 @@ class Game {
         };
         updateCamMenuData();
         let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
-            ambient.setVolume(0.3);
+            ambient.setVolume(0.2);
         }, {
             autoplay: true,
             loop: true
@@ -2721,6 +2722,7 @@ class Puzzle {
         this.game.router.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
+                this.game.stamp.play(this.game.router.successPanel.querySelector(".stamp"));
                 this.game.router.successPanel.style.display = "";
                 this.game.router.gameoverPanel.style.display = "none";
                 if (this.data.score === null || score < this.data.score) {
@@ -4115,5 +4117,27 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     }
     updateSpecularPower() {
         this.setFloat("specularPower", this._specularPower);
+    }
+}
+class StampEffect {
+    constructor(game) {
+        this.game = game;
+        this.sound = game.soundManager.createSound("stamp-sound", "./datas/sounds/stamp.mp3");
+    }
+    getScene() {
+        return this.game.scene;
+    }
+    async play(div) {
+        div.style.visibility = "hidden";
+        await Mummu.AnimationFactory.CreateWait(this)(0.2);
+        this.sound.play();
+        div.style.transform = "scale(0.1)";
+        div.style.transition = "all 0.2s";
+        div.style.visibility = "";
+        div.style.transform = "scale(1.3)";
+        await Mummu.AnimationFactory.CreateWait(this)(0.2);
+        div.style.transform = "scale(1)";
+        await Mummu.AnimationFactory.CreateWait(this)(0.2);
+        div.style.transition = "";
     }
 }

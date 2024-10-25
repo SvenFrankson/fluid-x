@@ -129,6 +129,8 @@ class Puzzle {
 
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
+
+                this.game.stamp.play(this.game.router.successPanel.querySelector(".stamp"));
                 this.game.router.successPanel.style.display = "";
                 this.game.router.gameoverPanel.style.display = "none";
                 if (this.data.score === null || score < this.data.score) {

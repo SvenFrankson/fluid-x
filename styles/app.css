@@ -205,6 +205,25 @@ button.selected {
     box-shadow: 2px 2px 2px #2b2821ff;
 }
 
+button:hover, button.hovered {
+    border-color: rgb(168, 150, 137);
+    outline: 1px solid white;
+}
+
+button:hover::after, button.hovered::after  {
+    content: "";
+    background-image: url("../datas/icons/selector.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    margin: 0;
+    width: 100%;
+    height: 50%;
+    margin: 0;
+    top: 25%;
+    left: 0;
+}
+
 .large-btn {
     display: block;
     border: 4px solid #624c3cff;
@@ -238,6 +257,13 @@ button.selected {
     height: 70px;
 }
 
+button.medium-square-btn:hover::after, button.medium-square-btn.hovered::after {
+    width: 20%;
+    height: 100%;
+    top: 37.5%;
+    left: 0;
+}
+
 .square-btn-panel {
     display: flex;
     text-align: left;
@@ -247,7 +273,13 @@ button.selected {
     box-shadow: 2px 2px 2px #2b2821ff;
     font-weight: 900;
     margin: 3px;
-    padding: 5px 5px 5px 5px;
+}
+
+button.square-btn-panel:hover::after, button.square-btn-panel.hovered::after {
+    width: 20%;
+    height: 100%;
+    top: 37.5%;
+    left: 0;
 }
 
 .square-btn {
@@ -259,6 +291,13 @@ button.selected {
     font-weight: 900;
     margin: 3px;
     padding: 15px;
+}
+
+button.square-btn:hover::after, button.square-btn.hovered::after {
+    width: 20%;
+    height: 100%;
+    top: 37.5%;
+    left: 0;
 }
 
 .small-btn {

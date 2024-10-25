@@ -1,5 +1,5 @@
 class CarillonRouter extends Nabu.Router {
-    public homeMenu: Nabu.DefaultPage;
+    public homeMenu: HomePage;
     public baseLevelPage: BaseLevelPage;
     public communityLevelPage: CommunityLevelPage;
     public devLevelPage: DevLevelPage;
@@ -11,22 +11,16 @@ class CarillonRouter extends Nabu.Router {
 
     public timerText: HTMLDivElement;
     public puzzleIntro: HTMLDivElement;
-    public successPanel: HTMLDivElement;
-    public gameoverPanel: HTMLDivElement;
     
     public playBackButton: HTMLButtonElement;
-    public successReplayButton: HTMLButtonElement;
-    public successBackButton: HTMLButtonElement;
-    public successNextButton: HTMLButtonElement;
-    public gameoverBackButton: HTMLButtonElement;
-    public gameoverReplayButton: HTMLButtonElement;
 
     constructor(public game: Game) {
         super();
     }
 
     protected onFindAllPages(): void {
-        this.homeMenu = document.querySelector("#home-menu") as Nabu.DefaultPage;
+        console.log("onFindAllPages");
+        this.homeMenu = new HomePage("#home-menu", this);
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
@@ -35,24 +29,10 @@ class CarillonRouter extends Nabu.Router {
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
         this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
         this.eulaPage = document.querySelector("#eula-page") as Nabu.DefaultPage;
-
-        this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
-        this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;
-        this.successReplayButton.onclick = () => {
-            this.game.puzzle.reset();
-        }
-        this.successBackButton = document.querySelector("#success-back-btn") as HTMLButtonElement;
-        this.successNextButton = document.querySelector("#success-next-btn") as HTMLButtonElement;
-        this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
-        this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
-        this.gameoverReplayButton.onclick = () => {
-            this.game.puzzle.reset();
-        }
         
+        this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
         this.timerText = document.querySelector("#play-timer");
         this.puzzleIntro = document.querySelector("#puzzle-intro");
-        this.successPanel = document.querySelector("#play-success-panel");
-        this.gameoverPanel = document.querySelector("#play-gameover-panel");
     }
 
     protected onUpdate(): void {}
@@ -97,9 +77,9 @@ class CarillonRouter extends Nabu.Router {
             this.devLevelPage.redraw();
         }
         else if (page.startsWith("#editor-preview")) {
-            (this.successBackButton.parentElement as HTMLAnchorElement).href = "#editor";
-            (this.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
-            (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#editor";
+            (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#editor";
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
+            (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
             await this.game.puzzle.reset();
@@ -113,10 +93,10 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             (this.playBackButton.parentElement as HTMLAnchorElement).href = "#levels";
-            (this.successBackButton.parentElement as HTMLAnchorElement).href = "#levels";
-            (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
+            (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#levels";
+            (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
-            (this.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameLevels;
                 if (data.puzzles[numLevel - 1]) {
@@ -134,9 +114,9 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#play-community-")) {
             (this.playBackButton.parentElement as HTMLAnchorElement).href = "#community";
-            (this.successBackButton.parentElement as HTMLAnchorElement).href = "#community";
-            (this.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
-            (this.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
+            (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#community";
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
+            (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
             let puzzleId = parseInt(page.replace("#play-community-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
                 let headers = {};
@@ -164,7 +144,7 @@ class CarillonRouter extends Nabu.Router {
             this.baseLevelPage.redraw();
         }
         else if (page.startsWith("#home")) {
-            await this.show(this.homeMenu, false, 0);
+            await this.show(this.homeMenu.nabuPage, false, 0);
         }
         else {
             location.hash = "#home";

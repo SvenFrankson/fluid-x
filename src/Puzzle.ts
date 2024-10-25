@@ -101,6 +101,7 @@ class Puzzle {
         return this.h * 1.1 - 0.55;
     }
 
+    public puzzleUI: PuzzleUI;
     private _pendingPublish: boolean = false;
 
     constructor(public game: Game) {
@@ -109,13 +110,15 @@ class Puzzle {
 
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
+
+        this.puzzleUI = new PuzzleUI(this);
     }
 
     public win(): void {
         
         let score = Math.floor(this.game.ball.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
-        (this.game.router.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
+        (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
         let highscore = this.data.score;
         let ratio = 1;
@@ -125,19 +128,18 @@ class Puzzle {
         let s1 = ratio > 0.3 ? "★" : "☆";
         let s2 = ratio > 0.6 ? "★" : "☆";
         let s3 = ratio > 0.9 ? "★" : "☆";
-        this.game.router.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
+        this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
 
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
 
-                this.game.stamp.play(this.game.router.successPanel.querySelector(".stamp"));
-                this.game.router.successPanel.style.display = "";
-                this.game.router.gameoverPanel.style.display = "none";
+                this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
+                this.puzzleUI.win();
                 if (this.data.score === null || score < this.data.score) {
-                    this.setHighscoreState(1);
+                    this.puzzleUI.setHighscoreState(1);
                 }
                 else {
-                    this.setHighscoreState(0);
+                    this.puzzleUI.setHighscoreState(0);
                 }
             }
         }, 1000);
@@ -146,42 +148,9 @@ class Puzzle {
     public lose(): void {
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.router.successPanel.style.display = "none";
-                this.game.router.gameoverPanel.style.display = "";
+                this.puzzleUI.lose();
             }
         }, 1000);
-    }
-
-    public setHighscoreState(state: number): void {
-        (document.querySelector("#success-score-fail-message") as HTMLDivElement).style.display = "none";
-        if (state === 0) {
-            // Not enough for Highscore
-            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "none";
-        }
-        else if (state === 1) {
-            // Enough for Highscore, waiting for player action.
-            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "block";
-
-            (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).style.display = "inline-block";
-            (document.querySelector("#success-score-pending-btn") as HTMLButtonElement).style.display = "none";
-            (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "none";
-        }
-        else if (state === 2) {
-            // Sending Highscore.
-            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "block";
-
-            (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).style.display = "none";
-            (document.querySelector("#success-score-pending-btn") as HTMLButtonElement).style.display = "inline-block";
-            (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "none";
-        }
-        else if (state === 3) {
-            // Highscore sent with success.
-            (document.querySelector("#success-highscore-container") as HTMLDivElement).style.display = "block";
-
-            (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).style.display = "none";
-            (document.querySelector("#success-score-pending-btn") as HTMLButtonElement).style.display = "none";
-            (document.querySelector("#success-score-done-btn") as HTMLButtonElement).style.display = "inline-block";
-        }
     }
 
     public async submitHighscore(): Promise<void> {
@@ -203,7 +172,7 @@ class Puzzle {
         }
         if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
-            this.setHighscoreState(2);
+            this.puzzleUI.setHighscoreState(2);
             await Mummu.AnimationFactory.CreateWait(this)(1);
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
@@ -217,11 +186,11 @@ class Puzzle {
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
                 }
-                this.setHighscoreState(3);
+                this.puzzleUI.setHighscoreState(3);
                 this._pendingPublish = false;
             }
             catch (e) {
-                this.setHighscoreState(1);
+                this.puzzleUI.setHighscoreState(1);
                 (document.querySelector("#success-score-fail-message") as HTMLDivElement).style.display = "block";
                 this._pendingPublish = false;
             }
@@ -233,12 +202,7 @@ class Puzzle {
             this.loadFromData(this.data);
             await this.instantiate();
         }
-        if (this.game.router.successPanel) {
-            this.game.router.successPanel.style.display = "none";
-        }
-        if (this.game.router.gameoverPanel) {
-            this.game.router.gameoverPanel.style.display = "none";
-        }
+        this.puzzleUI.reset();
         (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
         (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
         this.game.fadeInIntro();

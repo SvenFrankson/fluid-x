@@ -828,6 +828,138 @@ class Bridge extends Build {
         shadowData.applyToMesh(this.shadow);
     }
 }
+class CarillonRouter extends Nabu.Router {
+    constructor(game) {
+        super();
+        this.game = game;
+    }
+    onFindAllPages() {
+        console.log("onFindAllPages");
+        this.homeMenu = new HomePage("#home-menu", this);
+        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
+        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
+        this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
+        this.creditsPage = document.querySelector("#credits-page");
+        this.playUI = document.querySelector("#play-ui");
+        this.editorUI = document.querySelector("#editor-ui");
+        this.devPage = document.querySelector("#dev-page");
+        this.eulaPage = document.querySelector("#eula-page");
+        this.playBackButton = document.querySelector("#play-ui .back-btn");
+        this.timerText = document.querySelector("#play-timer");
+        this.puzzleIntro = document.querySelector("#puzzle-intro");
+    }
+    onUpdate() { }
+    async onHRefChange(page, previousPage) {
+        console.log("onHRefChange previous " + previousPage + " now " + page);
+        //?gdmachineId=1979464530
+        for (let i = 0; i < this.pages.length; i++) {
+            await this.pages[i].waitLoaded();
+        }
+        this.game.mode = GameMode.Menu;
+        this.game.editor.deactivate();
+        if (page.startsWith("#options")) {
+        }
+        else if (page.startsWith("#credits")) {
+            await this.show(this.creditsPage, false, 0);
+        }
+        else if (page === "#dev") {
+            await this.show(this.devPage, false, 0);
+        }
+        else if (page.startsWith("#community")) {
+            await this.show(this.communityLevelPage.nabuPage, false, 0);
+            this.communityLevelPage.redraw();
+        }
+        else if (page.startsWith("#dev-levels")) {
+            if (!DEV_MODE_ACTIVATED) {
+                location.hash = "#dev";
+                return;
+            }
+            await this.show(this.devLevelPage.nabuPage, false, 0);
+            if (page.indexOf("#dev-levels-") != -1) {
+                let state = parseInt(page.replace("#dev-levels-", ""));
+                this.devLevelPage.levelStateToFetch = state;
+            }
+            else {
+                this.devLevelPage.levelStateToFetch = 0;
+            }
+            this.devLevelPage.redraw();
+        }
+        else if (page.startsWith("#editor-preview")) {
+            this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#editor";
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#editor";
+            this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#editor";
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "";
+            await this.game.puzzle.reset();
+            this.game.mode = GameMode.Play;
+        }
+        else if (page.startsWith("#editor")) {
+            await this.show(this.editorUI, false, 0);
+            await this.game.puzzle.reset();
+            this.game.editor.activate();
+            this.game.mode = GameMode.Editor;
+        }
+        else if (page.startsWith("#level-")) {
+            this.playBackButton.parentElement.href = "#levels";
+            this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#levels";
+            this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#levels";
+            let numLevel = parseInt(page.replace("#level-", ""));
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
+            if (this.game.puzzle.data.numLevel != numLevel) {
+                let data = this.game.tiaratumGameLevels;
+                if (data.puzzles[numLevel - 1]) {
+                    this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
+                }
+                else {
+                    location.hash = "#levels";
+                    return;
+                }
+            }
+            await this.game.puzzle.reset();
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "none";
+            this.game.mode = GameMode.Play;
+        }
+        else if (page.startsWith("#play-community-")) {
+            this.playBackButton.parentElement.href = "#community";
+            this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#community";
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community";
+            this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#community";
+            let puzzleId = parseInt(page.replace("#play-community-", ""));
+            if (this.game.puzzle.data.id != puzzleId) {
+                let headers = {};
+                if (var1) {
+                    headers = {
+                        "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                    };
+                }
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
+                    method: "GET",
+                    mode: "cors",
+                    headers: headers
+                });
+                let data = await response.json();
+                CLEAN_IPuzzleData(data);
+                this.game.puzzle.loadFromData(data);
+            }
+            await this.game.puzzle.reset();
+            await this.show(this.playUI, false, 0);
+            document.querySelector("#editor-btn").style.display = "none";
+            this.game.mode = GameMode.Play;
+        }
+        else if (page.startsWith("#levels")) {
+            await this.show(this.baseLevelPage.nabuPage, false, 0);
+            this.baseLevelPage.redraw();
+        }
+        else if (page.startsWith("#home")) {
+            await this.show(this.homeMenu.nabuPage, false, 0);
+        }
+        else {
+            location.hash = "#home";
+            return;
+        }
+    }
+}
 var EditorBrush;
 (function (EditorBrush) {
     EditorBrush[EditorBrush["None"] = 0] = "None";
@@ -1385,13 +1517,239 @@ class HoleTile extends Tile {
         return true;
     }
 }
+class HomePage {
+    constructor(queryString, router) {
+        this.router = router;
+        this.buttons = [];
+        this.rowCount = 3;
+        this._hoveredButtonIndex = 0;
+        this._filter = (btn) => {
+            return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+        };
+        this._inputUp = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonIndex === 0) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + (this.rowCount - 1), this._filter)) {
+                    this._inputUp();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                    this._inputUp();
+                }
+            }
+        };
+        this._inputDown = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonIndex === this.rowCount - 1) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - (this.rowCount - 1), this._filter)) {
+                    this._inputDown();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                    this._inputDown();
+                }
+            }
+        };
+        this._inputEnter = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            let btn = this.buttons[this._hoveredButtonIndex];
+            if (btn && btn.onpointerup) {
+                btn.onpointerup(undefined);
+            }
+        };
+        this._inputDropControl = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            this.buttons.forEach(btn => {
+                btn.classList.remove("hovered");
+            });
+        };
+        this.nabuPage = document.querySelector(queryString);
+        this.buttons = [...this.nabuPage.querySelectorAll("button")];
+        this.rowCount = this.buttons.length;
+        this._registerToInputManager();
+    }
+    get shown() {
+        return this.nabuPage.shown;
+    }
+    async show(duration) {
+        return this.nabuPage.show(duration);
+    }
+    async hide(duration) {
+        return this.nabuPage.hide(duration);
+    }
+    get hoveredButtonIndex() {
+        return this._hoveredButtonIndex;
+    }
+    setHoveredButtonIndex(v, filter) {
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn) {
+            btn.classList.remove("hovered");
+        }
+        this._hoveredButtonIndex = v;
+        btn = this.buttons[this._hoveredButtonIndex];
+        if (!btn) {
+            return true;
+        }
+        else if ((!filter || filter(btn))) {
+            if (btn) {
+                btn.classList.add("hovered");
+            }
+            return true;
+        }
+        return false;
+    }
+    _registerToInputManager() {
+        this.router.game.uiInputManager.onUpCallbacks.push(this._inputUp);
+        this.router.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.router.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
+        this.router.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
+    }
+    _unregisterFromInputManager() {
+        this.router.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
+        this.router.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
+        this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
+    }
+}
 class LevelPage {
     constructor(queryString, router) {
         this.router = router;
+        this.className = "LevelPage";
         this.page = 0;
         this.levelsPerPage = 9;
         this.levelCount = 0;
+        this.buttons = [];
+        this.rowCount = 3;
+        this.colCount = 3;
+        this._hoveredButtonIndex = 0;
+        this._filter = (btn) => {
+            return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+        };
+        this._inputUp = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonRowIndex === 0) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount * (this.rowCount - 1), this._filter)) {
+                    this._inputUp();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount, this._filter)) {
+                    this._inputUp();
+                }
+            }
+        };
+        this._inputLeft = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonColIndex === 0) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount - 1, this._filter)) {
+                    this._inputLeft();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                    this._inputLeft();
+                }
+            }
+        };
+        this._inputDown = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonRowIndex === this.rowCount - 1) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount * (this.rowCount - 1), this._filter)) {
+                    this._inputDown();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount, this._filter)) {
+                    this._inputDown();
+                }
+            }
+        };
+        this._inputRight = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonColIndex === this.colCount - 1) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount + 1, this._filter)) {
+                    this._inputRight();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                    this._inputRight();
+                }
+            }
+        };
+        this._inputEnter = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            let btn = this.buttons[this._hoveredButtonIndex];
+            if (btn && btn.onclick) {
+                btn.onclick(undefined);
+            }
+        };
+        this._inputBack = () => {
+            if (!this.shown) {
+                return;
+            }
+            location.hash = "#home";
+        };
+        this._inputDropControl = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this.buttons.length === 0) {
+                return;
+            }
+            this.buttons.forEach(btn => {
+                btn.classList.remove("hovered");
+            });
+        };
         this.nabuPage = document.querySelector(queryString);
+        this._registerToInputManager();
     }
     get shown() {
         return this.nabuPage.shown;
@@ -1405,26 +1763,28 @@ class LevelPage {
     setSquareButtonOnClick(squareButton, n) {
     }
     async redraw() {
+        this.buttons = [];
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
         let rect = container.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 150);
-        let rowCount = Math.floor(rect.height / 150);
-        while (colCount < 3) {
-            colCount++;
+        this.colCount = Math.floor(rect.width / 150);
+        this.rowCount = Math.floor(rect.height / 150);
+        while (this.colCount < 3) {
+            this.colCount++;
         }
-        while (rowCount < 4) {
-            rowCount++;
+        while (this.rowCount < 4) {
+            this.rowCount++;
         }
-        this.levelsPerPage = colCount * (rowCount - 1);
+        this.levelsPerPage = this.colCount * (this.rowCount - 1);
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
         let n = 0;
-        for (let i = 0; i < rowCount - 1; i++) {
+        for (let i = 0; i < this.rowCount - 1; i++) {
             let line = document.createElement("div");
             line.classList.add("square-btn-container-line");
             container.appendChild(line);
-            for (let j = 0; j < colCount; j++) {
+            for (let j = 0; j < this.colCount; j++) {
                 let squareButton = document.createElement("button");
+                this.buttons.push(squareButton);
                 squareButton.classList.add("square-btn-panel");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
@@ -1479,6 +1839,7 @@ class LevelPage {
         line.classList.add("square-btn-container-halfline");
         container.appendChild(line);
         let prevButton = document.createElement("button");
+        this.buttons.push(prevButton);
         prevButton.classList.add("square-btn");
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
@@ -1494,13 +1855,15 @@ class LevelPage {
             };
         }
         line.appendChild(prevButton);
-        for (let j = 1; j < colCount - 1; j++) {
+        for (let j = 1; j < this.colCount - 1; j++) {
             let squareButton = document.createElement("button");
+            this.buttons.push(squareButton);
             squareButton.classList.add("square-btn");
             squareButton.style.visibility = "hidden";
             line.appendChild(squareButton);
         }
         let nextButton = document.createElement("button");
+        this.buttons.push(nextButton);
         nextButton.classList.add("square-btn");
         if (puzzleTileData.length === this.levelsPerPage) {
             nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
@@ -1513,9 +1876,63 @@ class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
+        if (this.router.game.uiInputManager.inControl) {
+            this.setHoveredButtonIndex(this.hoveredButtonIndex);
+        }
+    }
+    get hoveredButtonIndex() {
+        return this._hoveredButtonIndex;
+    }
+    get hoveredButtonColIndex() {
+        return this._hoveredButtonIndex % this.colCount;
+    }
+    get hoveredButtonRowIndex() {
+        return Math.floor(this._hoveredButtonIndex / this.colCount);
+    }
+    setHoveredButtonIndex(v, filter) {
+        console.log(this.className + ".setHoveredButtonIndex " + v);
+        console.log(this.buttons);
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn) {
+            btn.classList.remove("hovered");
+        }
+        this._hoveredButtonIndex = v;
+        btn = this.buttons[this._hoveredButtonIndex];
+        if (!btn) {
+            return true;
+        }
+        else if ((!filter || filter(btn))) {
+            if (btn) {
+                btn.classList.add("hovered");
+            }
+            return true;
+        }
+        return false;
+    }
+    _registerToInputManager() {
+        this.router.game.uiInputManager.onUpCallbacks.push(this._inputUp);
+        this.router.game.uiInputManager.onLeftCallbacks.push(this._inputLeft);
+        this.router.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.router.game.uiInputManager.onRightCallbacks.push(this._inputRight);
+        this.router.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
+        this.router.game.uiInputManager.onBackCallbacks.push(this._inputBack);
+        this.router.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
+    }
+    _unregisterFromInputManager() {
+        this.router.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
+        this.router.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
+        this.router.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.router.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
+        this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
+        this.router.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
+        this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
 }
 class BaseLevelPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.className = "BaseLevelPage";
+    }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
         let data = this.router.game.tiaratumGameLevels;
@@ -1547,6 +1964,10 @@ class BaseLevelPage extends LevelPage {
     }
 }
 class CommunityLevelPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.className = "CommunityLevelPage";
+    }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
         const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
@@ -1574,9 +1995,10 @@ class CommunityLevelPage extends LevelPage {
     }
 }
 class DevLevelPage extends LevelPage {
-    constructor() {
-        super(...arguments);
+    constructor(queryString, router) {
+        super(queryString, router);
         this.levelStateToFetch = 0;
+        this.className = "DevLevelPage";
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
@@ -1822,6 +2244,7 @@ class Game {
         BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
         this.soundManager = new SoundManager();
+        this.uiInputManager = new UserInterfaceInputManager(this);
     }
     getScene() {
         return this.scene;
@@ -1895,6 +2318,7 @@ class Game {
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
+        this.uiInputManager.initialize();
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.waitForAllPagesLoaded();
@@ -2670,6 +3094,7 @@ class Puzzle {
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
+        this.puzzleUI = new PuzzleUI(this);
     }
     getScene() {
         return this.game.scene;
@@ -2710,7 +3135,7 @@ class Puzzle {
     win() {
         let score = Math.floor(this.game.ball.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
-        this.game.router.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
+        this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         let highscore = this.data.score;
         let ratio = 1;
         if (highscore != null) {
@@ -2719,17 +3144,16 @@ class Puzzle {
         let s1 = ratio > 0.3 ? "★" : "☆";
         let s2 = ratio > 0.6 ? "★" : "☆";
         let s3 = ratio > 0.9 ? "★" : "☆";
-        this.game.router.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
+        this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.stamp.play(this.game.router.successPanel.querySelector(".stamp"));
-                this.game.router.successPanel.style.display = "";
-                this.game.router.gameoverPanel.style.display = "none";
+                this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
+                this.puzzleUI.win();
                 if (this.data.score === null || score < this.data.score) {
-                    this.setHighscoreState(1);
+                    this.puzzleUI.setHighscoreState(1);
                 }
                 else {
-                    this.setHighscoreState(0);
+                    this.puzzleUI.setHighscoreState(0);
                 }
             }
         }, 1000);
@@ -2737,38 +3161,9 @@ class Puzzle {
     lose() {
         setTimeout(() => {
             if (this.game.ball.ballState === BallState.Done) {
-                this.game.router.successPanel.style.display = "none";
-                this.game.router.gameoverPanel.style.display = "";
+                this.puzzleUI.lose();
             }
         }, 1000);
-    }
-    setHighscoreState(state) {
-        document.querySelector("#success-score-fail-message").style.display = "none";
-        if (state === 0) {
-            // Not enough for Highscore
-            document.querySelector("#success-highscore-container").style.display = "none";
-        }
-        else if (state === 1) {
-            // Enough for Highscore, waiting for player action.
-            document.querySelector("#success-highscore-container").style.display = "block";
-            document.querySelector("#success-score-submit-btn").style.display = "inline-block";
-            document.querySelector("#success-score-pending-btn").style.display = "none";
-            document.querySelector("#success-score-done-btn").style.display = "none";
-        }
-        else if (state === 2) {
-            // Sending Highscore.
-            document.querySelector("#success-highscore-container").style.display = "block";
-            document.querySelector("#success-score-submit-btn").style.display = "none";
-            document.querySelector("#success-score-pending-btn").style.display = "inline-block";
-            document.querySelector("#success-score-done-btn").style.display = "none";
-        }
-        else if (state === 3) {
-            // Highscore sent with success.
-            document.querySelector("#success-highscore-container").style.display = "block";
-            document.querySelector("#success-score-submit-btn").style.display = "none";
-            document.querySelector("#success-score-pending-btn").style.display = "none";
-            document.querySelector("#success-score-done-btn").style.display = "inline-block";
-        }
     }
     async submitHighscore() {
         if (this._pendingPublish) {
@@ -2787,7 +3182,7 @@ class Puzzle {
         };
         if (data.player.length > 3) {
             let dataString = JSON.stringify(data);
-            this.setHighscoreState(2);
+            this.puzzleUI.setHighscoreState(2);
             await Mummu.AnimationFactory.CreateWait(this)(1);
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "publish_score", {
@@ -2801,11 +3196,11 @@ class Puzzle {
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
                 }
-                this.setHighscoreState(3);
+                this.puzzleUI.setHighscoreState(3);
                 this._pendingPublish = false;
             }
             catch (e) {
-                this.setHighscoreState(1);
+                this.puzzleUI.setHighscoreState(1);
                 document.querySelector("#success-score-fail-message").style.display = "block";
                 this._pendingPublish = false;
             }
@@ -2816,12 +3211,7 @@ class Puzzle {
             this.loadFromData(this.data);
             await this.instantiate();
         }
-        if (this.game.router.successPanel) {
-            this.game.router.successPanel.style.display = "none";
-        }
-        if (this.game.router.gameoverPanel) {
-            this.game.router.gameoverPanel.style.display = "none";
-        }
+        this.puzzleUI.reset();
         document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
         document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
         this.game.fadeInIntro();
@@ -3412,6 +3802,73 @@ class PuzzleMiniatureMaker {
         return canvas;
     }
 }
+class PuzzleUI {
+    constructor(puzzle) {
+        this.puzzle = puzzle;
+        this.failMessage = document.querySelector("#success-score-fail-message");
+        this.highscoreContainer = document.querySelector("#success-highscore-container");
+        this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
+        this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
+        this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
+        this.successReplayButton = document.querySelector("#success-replay-btn");
+        this.successReplayButton.onclick = () => {
+            this.puzzle.reset();
+        };
+        this.successBackButton = document.querySelector("#success-back-btn");
+        this.successNextButton = document.querySelector("#success-next-btn");
+        this.gameoverBackButton = document.querySelector("#gameover-back-btn");
+        this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
+        this.gameoverReplayButton.onclick = () => {
+            this.puzzle.reset();
+        };
+        this.successPanel = document.querySelector("#play-success-panel");
+        this.gameoverPanel = document.querySelector("#play-gameover-panel");
+    }
+    win() {
+        this.successPanel.style.display = "";
+        this.gameoverPanel.style.display = "none";
+    }
+    lose() {
+        this.successPanel.style.display = "none";
+        this.gameoverPanel.style.display = "";
+    }
+    reset() {
+        if (this.successPanel) {
+            this.successPanel.style.display = "none";
+        }
+        if (this.gameoverPanel) {
+            this.gameoverPanel.style.display = "none";
+        }
+    }
+    setHighscoreState(state) {
+        this.failMessage.style.display = "none";
+        if (state === 0) {
+            // Not enough for Highscore
+            this.highscoreContainer.style.display = "none";
+        }
+        else if (state === 1) {
+            // Enough for Highscore, waiting for player action.
+            this.highscoreContainer.style.display = "block";
+            this.scoreSubmitBtn.style.display = "inline-block";
+            this.scorePendingBtn.style.display = "none";
+            this.scoreDoneBtn.style.display = "none";
+        }
+        else if (state === 2) {
+            // Sending Highscore.
+            this.highscoreContainer.style.display = "block";
+            this.scoreSubmitBtn.style.display = "none";
+            this.scorePendingBtn.style.display = "inline-block";
+            this.scoreDoneBtn.style.display = "none";
+        }
+        else if (state === 3) {
+            // Highscore sent with success.
+            this.highscoreContainer.style.display = "block";
+            this.scoreSubmitBtn.style.display = "none";
+            this.scorePendingBtn.style.display = "none";
+            this.scoreDoneBtn.style.display = "inline-block";
+        }
+    }
+}
 /// <reference path="./Tile.ts"/>
 class RockTile extends Tile {
     constructor(game, props) {
@@ -3445,150 +3902,6 @@ class WallTile extends Tile {
         let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.2, depth: 1.1 });
         Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.1, 0));
         data.applyToMesh(this);
-    }
-}
-class CarillonRouter extends Nabu.Router {
-    constructor(game) {
-        super();
-        this.game = game;
-    }
-    onFindAllPages() {
-        this.homeMenu = document.querySelector("#home-menu");
-        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
-        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
-        this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
-        this.creditsPage = document.querySelector("#credits-page");
-        this.playUI = document.querySelector("#play-ui");
-        this.editorUI = document.querySelector("#editor-ui");
-        this.devPage = document.querySelector("#dev-page");
-        this.eulaPage = document.querySelector("#eula-page");
-        this.playBackButton = document.querySelector("#play-ui .back-btn");
-        this.successReplayButton = document.querySelector("#success-replay-btn");
-        this.successReplayButton.onclick = () => {
-            this.game.puzzle.reset();
-        };
-        this.successBackButton = document.querySelector("#success-back-btn");
-        this.successNextButton = document.querySelector("#success-next-btn");
-        this.gameoverBackButton = document.querySelector("#gameover-back-btn");
-        this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
-        this.gameoverReplayButton.onclick = () => {
-            this.game.puzzle.reset();
-        };
-        this.timerText = document.querySelector("#play-timer");
-        this.puzzleIntro = document.querySelector("#puzzle-intro");
-        this.successPanel = document.querySelector("#play-success-panel");
-        this.gameoverPanel = document.querySelector("#play-gameover-panel");
-    }
-    onUpdate() { }
-    async onHRefChange(page, previousPage) {
-        console.log("onHRefChange previous " + previousPage + " now " + page);
-        //?gdmachineId=1979464530
-        for (let i = 0; i < this.pages.length; i++) {
-            await this.pages[i].waitLoaded();
-        }
-        this.game.mode = GameMode.Menu;
-        this.game.editor.deactivate();
-        if (page.startsWith("#options")) {
-        }
-        else if (page.startsWith("#credits")) {
-            await this.show(this.creditsPage, false, 0);
-        }
-        else if (page === "#dev") {
-            await this.show(this.devPage, false, 0);
-        }
-        else if (page.startsWith("#community")) {
-            await this.show(this.communityLevelPage.nabuPage, false, 0);
-            this.communityLevelPage.redraw();
-        }
-        else if (page.startsWith("#dev-levels")) {
-            if (!DEV_MODE_ACTIVATED) {
-                location.hash = "#dev";
-                return;
-            }
-            await this.show(this.devLevelPage.nabuPage, false, 0);
-            if (page.indexOf("#dev-levels-") != -1) {
-                let state = parseInt(page.replace("#dev-levels-", ""));
-                this.devLevelPage.levelStateToFetch = state;
-            }
-            else {
-                this.devLevelPage.levelStateToFetch = 0;
-            }
-            this.devLevelPage.redraw();
-        }
-        else if (page.startsWith("#editor-preview")) {
-            this.successBackButton.parentElement.href = "#editor";
-            this.successNextButton.parentElement.href = "#editor";
-            this.gameoverBackButton.parentElement.href = "#editor";
-            await this.show(this.playUI, false, 0);
-            document.querySelector("#editor-btn").style.display = "";
-            await this.game.puzzle.reset();
-            this.game.mode = GameMode.Play;
-        }
-        else if (page.startsWith("#editor")) {
-            await this.show(this.editorUI, false, 0);
-            await this.game.puzzle.reset();
-            this.game.editor.activate();
-            this.game.mode = GameMode.Editor;
-        }
-        else if (page.startsWith("#level-")) {
-            this.playBackButton.parentElement.href = "#levels";
-            this.successBackButton.parentElement.href = "#levels";
-            this.gameoverBackButton.parentElement.href = "#levels";
-            let numLevel = parseInt(page.replace("#level-", ""));
-            this.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
-            if (this.game.puzzle.data.numLevel != numLevel) {
-                let data = this.game.tiaratumGameLevels;
-                if (data.puzzles[numLevel - 1]) {
-                    this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
-                }
-                else {
-                    location.hash = "#levels";
-                    return;
-                }
-            }
-            await this.game.puzzle.reset();
-            await this.show(this.playUI, false, 0);
-            document.querySelector("#editor-btn").style.display = "none";
-            this.game.mode = GameMode.Play;
-        }
-        else if (page.startsWith("#play-community-")) {
-            this.playBackButton.parentElement.href = "#community";
-            this.successBackButton.parentElement.href = "#community";
-            this.successNextButton.parentElement.href = "#community";
-            this.gameoverBackButton.parentElement.href = "#community";
-            let puzzleId = parseInt(page.replace("#play-community-", ""));
-            if (this.game.puzzle.data.id != puzzleId) {
-                let headers = {};
-                if (var1) {
-                    headers = {
-                        "Authorization": 'Basic ' + btoa("carillon:" + var1)
-                    };
-                }
-                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
-                    method: "GET",
-                    mode: "cors",
-                    headers: headers
-                });
-                let data = await response.json();
-                CLEAN_IPuzzleData(data);
-                this.game.puzzle.loadFromData(data);
-            }
-            await this.game.puzzle.reset();
-            await this.show(this.playUI, false, 0);
-            document.querySelector("#editor-btn").style.display = "none";
-            this.game.mode = GameMode.Play;
-        }
-        else if (page.startsWith("#levels")) {
-            await this.show(this.baseLevelPage.nabuPage, false, 0);
-            this.baseLevelPage.redraw();
-        }
-        else if (page.startsWith("#home")) {
-            await this.show(this.homeMenu, false, 0);
-        }
-        else {
-            location.hash = "#home";
-            return;
-        }
     }
 }
 class MySound {
@@ -3684,6 +3997,72 @@ class SwitchTile extends Tile {
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);
         tileData[3].applyToMesh(this.tileBottom);
+    }
+}
+class UserInterfaceInputManager {
+    constructor(game) {
+        this.game = game;
+        this.inControl = false;
+        this.onUpCallbacks = new Nabu.UniqueList();
+        this.onLeftCallbacks = new Nabu.UniqueList();
+        this.onDownCallbacks = new Nabu.UniqueList();
+        this.onRightCallbacks = new Nabu.UniqueList();
+        this.onEnterCallbacks = new Nabu.UniqueList();
+        this.onBackCallbacks = new Nabu.UniqueList();
+        this.onPrevCallbacks = new Nabu.UniqueList();
+        this.onNextCallbacks = new Nabu.UniqueList();
+        this.onDropControlCallbacks = new Nabu.UniqueList();
+    }
+    initialize() {
+        window.addEventListener("pointerdown", () => {
+            if (this.inControl) {
+                this.inControl = false;
+                this.onDropControlCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+        });
+        window.addEventListener("pointermove", () => {
+            if (this.inControl) {
+                this.inControl = false;
+                this.onDropControlCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+        });
+        window.addEventListener("keydown", (ev) => {
+            this.inControl = true;
+            if (ev.code === "KeyW" || ev.code === "ArrowUp") {
+                this.onUpCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
+                this.onLeftCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+            if (ev.code === "KeyS" || ev.code === "ArrowDown") {
+                this.onDownCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+            if (ev.code === "KeyD" || ev.code === "ArrowRight") {
+                this.onRightCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+            if (ev.code === "Enter" || ev.code === "Space" || ev.code === "KeyE") {
+                this.onEnterCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+            if (ev.code === "Backspace" || ev.code === "KeyX") {
+                this.onBackCallbacks.forEach(cb => {
+                    cb();
+                });
+            }
+        });
     }
 }
 class CubicNoiseTexture {

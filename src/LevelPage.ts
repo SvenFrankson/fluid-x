@@ -7,14 +7,19 @@ interface IPuzzleTileData {
 
 abstract class LevelPage {
 
+    public className: string = "LevelPage";
     public page: number = 0;
     public levelsPerPage: number = 9;
     public levelCount: number = 0;
 
     public nabuPage: Nabu.DefaultPage;
+    public buttons: HTMLButtonElement[] = [];
+    public rowCount: number = 3;
+    public colCount: number = 3;
 
     constructor(queryString: string, public router: CarillonRouter) {
         this.nabuPage = document.querySelector(queryString);
+        this._registerToInputManager();
     }
 
     public get shown(): boolean {
@@ -36,30 +41,32 @@ abstract class LevelPage {
     protected abstract getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]>;
 
     public async redraw(): Promise<void> {
+        this.buttons = [];
 
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
 
         let rect = container.getBoundingClientRect();
-        let colCount = Math.floor(rect.width / 150);
-        let rowCount = Math.floor(rect.height / 150);
-        while (colCount < 3) {
-            colCount++;
+        this.colCount = Math.floor(rect.width / 150);
+        this.rowCount = Math.floor(rect.height / 150);
+        while (this.colCount < 3) {
+            this.colCount++;
         }
-        while (rowCount < 4) {
-            rowCount++;
+        while (this.rowCount < 4) {
+            this.rowCount++;
         }
 
-        this.levelsPerPage = colCount * (rowCount - 1);
+        this.levelsPerPage = this.colCount * (this.rowCount - 1);
         let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
 
         let n = 0;
-        for (let i = 0; i < rowCount - 1; i++) {
+        for (let i = 0; i < this.rowCount - 1; i++) {
             let line = document.createElement("div");
             line.classList.add("square-btn-container-line");
             container.appendChild(line);
-            for (let j = 0; j < colCount; j++) {
+            for (let j = 0; j < this.colCount; j++) {
                 let squareButton = document.createElement("button");
+                this.buttons.push(squareButton);
                 squareButton.classList.add("square-btn-panel");
                 if (n >= puzzleTileData.length) {
                     squareButton.style.visibility = "hidden";
@@ -122,6 +129,7 @@ abstract class LevelPage {
         container.appendChild(line);
 
         let prevButton = document.createElement("button");
+        this.buttons.push(prevButton);
         prevButton.classList.add("square-btn");
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
@@ -137,13 +145,15 @@ abstract class LevelPage {
             }
         }
         line.appendChild(prevButton);
-        for (let j = 1; j < colCount - 1; j++) {
+        for (let j = 1; j < this.colCount - 1; j++) {
             let squareButton = document.createElement("button");
+            this.buttons.push(squareButton);
             squareButton.classList.add("square-btn");
             squareButton.style.visibility = "hidden";
             line.appendChild(squareButton);
         }
         let nextButton = document.createElement("button");
+        this.buttons.push(nextButton);
         nextButton.classList.add("square-btn");
         if (puzzleTileData.length === this.levelsPerPage) {
             nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
@@ -156,10 +166,183 @@ abstract class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
+
+        if (this.router.game.uiInputManager.inControl) {
+            this.setHoveredButtonIndex(this.hoveredButtonIndex);
+        }
+    }
+
+    private _hoveredButtonIndex: number = 0;
+    public get hoveredButtonIndex(): number {
+        return this._hoveredButtonIndex;
+    }
+    public get hoveredButtonColIndex(): number {
+        return this._hoveredButtonIndex % this.colCount;
+    }
+    public get hoveredButtonRowIndex(): number {
+        return Math.floor(this._hoveredButtonIndex / this.colCount);
+    }
+    public setHoveredButtonIndex(v: number, filter?: (btn: HTMLButtonElement) => boolean): boolean {
+        console.log(this.className + ".setHoveredButtonIndex " + v);
+        console.log(this.buttons);
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn) {
+            btn.classList.remove("hovered");
+        }
+        this._hoveredButtonIndex = v;
+        btn = this.buttons[this._hoveredButtonIndex];
+        if (!btn) {
+            return true;
+        }
+        else if ((!filter || filter(btn))) {
+            if (btn) {
+                btn.classList.add("hovered");
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private _registerToInputManager(): void {
+        this.router.game.uiInputManager.onUpCallbacks.push(this._inputUp);
+        this.router.game.uiInputManager.onLeftCallbacks.push(this._inputLeft);
+        this.router.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.router.game.uiInputManager.onRightCallbacks.push(this._inputRight);
+        this.router.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
+        this.router.game.uiInputManager.onBackCallbacks.push(this._inputBack);
+        this.router.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
+    }
+
+    private _unregisterFromInputManager(): void {
+        this.router.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
+        this.router.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
+        this.router.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.router.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
+        this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
+        this.router.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
+        this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
+    }
+
+    private _filter = (btn: HTMLButtonElement) => {
+        return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+    }
+
+    private _inputUp = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonRowIndex === 0) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount * (this.rowCount - 1), this._filter)) {
+                this._inputUp();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount, this._filter)) {
+                this._inputUp();
+            }
+        }
+    }
+
+    private _inputLeft = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonColIndex === 0) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount - 1, this._filter)) {
+                this._inputLeft();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                this._inputLeft();
+            }
+        }
+    }
+
+    private _inputDown = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonRowIndex === this.rowCount - 1) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount * (this.rowCount - 1), this._filter)) {
+                this._inputDown();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount, this._filter)) {
+                this._inputDown();
+            }
+        }
+    }
+
+    private _inputRight = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonColIndex === this.colCount - 1) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount + 1, this._filter)) {
+                this._inputRight();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                this._inputRight();
+            }
+        }
+    }
+
+    private _inputEnter = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn && btn.onclick) {
+            btn.onclick(undefined);
+        }
+    }
+
+    private _inputBack = () => {
+        if (!this.shown) {
+            return;
+        }
+        location.hash = "#home";
+    }
+
+    private _inputDropControl = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        this.buttons.forEach(btn => {
+            btn.classList.remove("hovered");
+        });
     }
 }
 
 class BaseLevelPage extends LevelPage {
+    
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.className = "BaseLevelPage";
+    }
+
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.tiaratumGameLevels;
@@ -195,6 +378,11 @@ class BaseLevelPage extends LevelPage {
 
 class CommunityLevelPage extends LevelPage {
     
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.className = "CommunityLevelPage";
+    }
+    
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
@@ -227,6 +415,11 @@ class CommunityLevelPage extends LevelPage {
 }
 
 class DevLevelPage extends LevelPage {
+    
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.className = "DevLevelPage";
+    }
 
     public levelStateToFetch: number = 0;
     

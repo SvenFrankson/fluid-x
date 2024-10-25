@@ -184,6 +184,7 @@ class Game {
         return this.scene;
     }
     public soundManager: SoundManager;
+    public uiInputManager: UserInterfaceInputManager;
     public screenRatio: number = 1;
 
     public camera: BABYLON.ArcRotateCamera;
@@ -267,6 +268,7 @@ class Game {
 		BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
         this.soundManager = new SoundManager();
+        this.uiInputManager = new UserInterfaceInputManager(this);
 	}
 
     public async createScene(): Promise<void> {
@@ -323,6 +325,8 @@ class Game {
         this.camera.wheelPrecision *= 10;
         this.updatePlayCameraRadius();
 
+        this.uiInputManager.initialize();
+        
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.waitForAllPagesLoaded();

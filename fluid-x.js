@@ -192,21 +192,21 @@ class Ball extends BABYLON.Mesh {
             this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
             let speed = this.moveDir.scale(this.speed);
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.game.puzzle.zMax) {
+            if (this.position.z + this.radius > this.game.puzzle.zMax + 0.05) {
                 this.vZ = -1;
                 this.woodChocSound2.play();
             }
-            else if (this.position.z - this.radius < this.game.puzzle.zMin) {
+            else if (this.position.z - this.radius < this.game.puzzle.zMin - 0.05) {
                 this.vZ = 1;
                 this.woodChocSound2.play();
             }
-            if (this.position.x + this.radius > this.game.puzzle.xMax) {
+            if (this.position.x + this.radius > this.game.puzzle.xMax + 0.05) {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
                 this.woodChocSound2.play();
             }
-            else if (this.position.x - this.radius < this.game.puzzle.xMin) {
+            else if (this.position.x - this.radius < this.game.puzzle.xMin - 0.05) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
@@ -1489,6 +1489,60 @@ class Editor {
         this.cursorOffset.z = 0 + (size.d - 1) * 1.1 * 0.5;
     }
 }
+class Haiku extends BABYLON.Mesh {
+    constructor(game, title, text1, text2, text3) {
+        super("haiku");
+        this.game = game;
+        this.title = title;
+        this.text1 = text1;
+        this.text2 = text2;
+        this.text3 = text3;
+        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.inRange = false;
+        BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 1000, height: 1000 });
+        this.dynamicTexture.hasAlpha = true;
+        haikuMaterial.diffuseTexture = this.dynamicTexture;
+        haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        this.material = haikuMaterial;
+        let context = this.dynamicTexture.getContext();
+        context.fillStyle = "#00000010";
+        context.fillRect(0, 0, 1000, 1000);
+        context.fillStyle = "#2b2821FF";
+        context.font = "900 130px Shalimar";
+        context.fillText(this.title, 100, 150);
+        context.fillText(this.text1, 30, 450);
+        context.fillText(this.text2, 30, 600);
+        context.fillText(this.text3, 30, 750);
+        this.dynamicTexture.update();
+        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+    update(dt) {
+        if (this.game.ball.ballState === BallState.Move) {
+            let dx = Math.abs(this.position.x - this.game.ball.position.x);
+            if (!this.inRange) {
+                if (dx < 3) {
+                    this.inRange = true;
+                    this.animateVisibility(1, 2, Nabu.Easing.easeInOutSine);
+                }
+                return;
+            }
+            else if (this.inRange) {
+                if (dx > 3.5) {
+                    this.inRange = false;
+                    this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
+                }
+                return;
+            }
+        }
+        if (this.inRange) {
+            this.inRange = false;
+            this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
+        }
+    }
+}
 /// <reference path="./Tile.ts"/>
 class HoleTile extends Tile {
     constructor(game, props) {
@@ -1502,16 +1556,16 @@ class HoleTile extends Tile {
         this.tileDark.material = this.game.grayMaterial;
     }
     fallsIn(ball) {
-        if (ball.position.x < this.position.x - 0.5) {
+        if (ball.position.x < this.position.x - 0.55) {
             return false;
         }
-        if (ball.position.x > this.position.x + 0.5) {
+        if (ball.position.x > this.position.x + 0.55) {
             return false;
         }
-        if (ball.position.z < this.position.z - 0.5) {
+        if (ball.position.z < this.position.z - 0.55) {
             return false;
         }
-        if (ball.position.z > this.position.z + 0.5) {
+        if (ball.position.z > this.position.z + 0.55) {
             return false;
         }
         return true;
@@ -2052,7 +2106,7 @@ var IsMobile = -1;
 var HasLocalStorage = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -3057,6 +3111,9 @@ class PushTile extends Tile {
     }
 }
 function CLEAN_IPuzzleData(data) {
+    if (data.id != null && typeof (data.id) === "string") {
+        data.id = parseInt(data.id);
+    }
     if (data.score != null && typeof (data.score) === "string") {
         data.score = parseInt(data.score);
     }
@@ -3069,6 +3126,9 @@ function CLEAN_IPuzzleData(data) {
 }
 function CLEAN_IPuzzlesData(data) {
     for (let i = 0; i < data.puzzles.length; i++) {
+        if (data.puzzles[i].id != null && typeof (data.puzzles[i].id) === "string") {
+            data.puzzles[i].id = parseInt(data.puzzles[i].id);
+        }
         if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
             data.puzzles[i].score = parseInt(data.puzzles[i].score);
         }
@@ -3095,6 +3155,7 @@ class Puzzle {
         this.w = 10;
         this.h = 10;
         this._pendingPublish = false;
+        this.haikus = [];
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
@@ -3237,6 +3298,9 @@ class Puzzle {
         }
         while (this.buildings.length > 0) {
             this.buildings[0].dispose();
+        }
+        while (this.haikus.length > 0) {
+            this.haikus.pop().dispose();
         }
         this.data = data;
         DEV_UPDATE_STATE_UI();
@@ -3396,6 +3460,16 @@ class Puzzle {
                     });
                 }
             }
+        }
+        if (this.data.id === 57) {
+            let testHaiku = new Haiku(this.game, "1. Control", "Left -west- to right -east-", "One may decide where he goes.", "Unless walls oppose.");
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
+            testHaiku.visibility = 0;
+            this.haikus.push(testHaiku);
+            let testHaiku2 = new Haiku(this.game, "2. Bounce", "Up -north- and down -south-", "Some cycle one can't decide.", "A Vertical tide.");
+            testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
+            testHaiku2.visibility = 0;
+            this.haikus.push(testHaiku2);
         }
     }
     saveAsText() {
@@ -3661,6 +3735,9 @@ class Puzzle {
         if (tiles.length === 0 && this.game.ball.ballState != BallState.Done) {
             this.game.ball.ballState = BallState.Done;
             this.win();
+        }
+        for (let i = 0; i < this.haikus.length; i++) {
+            this.haikus[i].update(dt);
         }
     }
 }
@@ -4108,10 +4185,7 @@ class SoundManager {
         return mySound;
     }
     unlockEngine() {
-        if (BABYLON.Engine.audioEngine.unlocked) {
-            console.log("unlock audioEngine");
-            BABYLON.Engine.audioEngine.unlock();
-        }
+        BABYLON.Engine.audioEngine.unlock();
         for (let i = 0; i < this.managedSounds.length; i++) {
             this.managedSounds[i].load();
         }

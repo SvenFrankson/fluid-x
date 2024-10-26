@@ -11,6 +11,9 @@ interface IPuzzleData {
 }
 
 function CLEAN_IPuzzleData(data: any): any {
+    if (data.id != null && typeof(data.id) === "string") {
+        data.id = parseInt(data.id);
+    }
     if (data.score != null && typeof(data.score) === "string") {
         data.score = parseInt(data.score);
     }
@@ -28,6 +31,9 @@ interface IPuzzlesData {
 
 function CLEAN_IPuzzlesData(data: any): any {
     for (let i = 0; i < data.puzzles.length; i++) {
+        if (data.puzzles[i].id != null && typeof(data.puzzles[i].id) === "string") {
+            data.puzzles[i].id = parseInt(data.puzzles[i].id);
+        }
         if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
             data.puzzles[i].score = parseInt(data.puzzles[i].score);
         }
@@ -103,6 +109,7 @@ class Puzzle {
 
     public puzzleUI: PuzzleUI;
     private _pendingPublish: boolean = false;
+    public haikus: Haiku[] = [];
 
     constructor(public game: Game) {
         this.floor = new BABYLON.Mesh("floor");
@@ -225,6 +232,9 @@ class Puzzle {
         }
         while (this.buildings.length > 0) {
             this.buildings[0].dispose();
+        }
+        while (this.haikus.length > 0) {
+            this.haikus.pop().dispose();
         }
 
         this.data = data;
@@ -388,6 +398,30 @@ class Puzzle {
                     });
                 }
             }
+        }
+
+        if (this.data.id === 57) {
+            let testHaiku = new Haiku(
+                this.game,
+                "1. Control",
+                "Left -west- to right -east-",
+                "One may decide where he goes.",
+                "Unless walls oppose."
+            );
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
+            testHaiku.visibility = 0;
+            this.haikus.push(testHaiku);
+    
+            let testHaiku2 = new Haiku(
+                this.game,
+                "2. Bounce",
+                "Up -north- and down -south-",
+                "Some cycle one can't decide.",
+                "A Vertical tide."
+            );
+            testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
+            testHaiku2.visibility = 0;
+            this.haikus.push(testHaiku2);
         }
     }
 
@@ -679,6 +713,9 @@ class Puzzle {
         if (tiles.length === 0 && this.game.ball.ballState != BallState.Done) {
             this.game.ball.ballState = BallState.Done;
             this.win();
+        }
+        for (let i = 0; i < this.haikus.length; i++) {
+            this.haikus[i].update(dt);
         }
     }
 }

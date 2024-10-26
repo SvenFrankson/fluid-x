@@ -71,10 +71,7 @@ class SoundManager {
     }
 
     public unlockEngine(): void {
-        if (BABYLON.Engine.audioEngine.unlocked) {
-            console.log("unlock audioEngine");
-            BABYLON.Engine.audioEngine.unlock();
-        }
+        BABYLON.Engine.audioEngine.unlock();
         for (let i = 0; i < this.managedSounds.length; i++) {
             this.managedSounds[i].load();
         }

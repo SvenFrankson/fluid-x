@@ -19,16 +19,16 @@ class HoleTile extends Tile {
     }
 
     public fallsIn(ball: Ball): boolean {
-        if (ball.position.x < this.position.x - 0.5) {
+        if (ball.position.x < this.position.x - 0.55) {
             return false;
         }
-        if (ball.position.x > this.position.x + 0.5) {
+        if (ball.position.x > this.position.x + 0.55) {
             return false;
         }
-        if (ball.position.z < this.position.z - 0.5) {
+        if (ball.position.z < this.position.z - 0.55) {
             return false;
         }
-        if (ball.position.z > this.position.z + 0.5) {
+        if (ball.position.z > this.position.z + 0.55) {
             return false;
         }
         return true;

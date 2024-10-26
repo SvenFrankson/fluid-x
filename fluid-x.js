@@ -1489,6 +1489,32 @@ class Editor {
         this.cursorOffset.z = 0 + (size.d - 1) * 1.1 * 0.5;
     }
 }
+class HaikuMaker {
+    static MakeHaiku(puzzle) {
+        if (puzzle.data.id === 58 && puzzle.data.state === 2) {
+            // First Level Haikus
+            let testHaiku = new Haiku(puzzle.game, "- Control -", "Left -west- to right -east-", "One may decide where he goes.", "Unless walls oppose.");
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+            let testHaiku2 = new Haiku(puzzle.game, "- Bounce -", "Up -north- and down -south-", "Some cycle one can't decide.", "A Vertical tide.");
+            testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
+            testHaiku2.visibility = 0;
+            puzzle.haikus.push(testHaiku2);
+            let testHaiku3 = new Haiku(puzzle.game, "- Complete -", "Find all colored tile", "Scattered around the area.", "Time is no limit.");
+            testHaiku3.position.copyFromFloats(1.1 * 14, 0.1, 1.1 * 2.5);
+            testHaiku3.visibility = 0;
+            puzzle.haikus.push(testHaiku3);
+        }
+        if (puzzle.data.id === 59 && puzzle.data.state === 2) {
+            // First Level Haikus
+            let testHaiku = new Haiku(puzzle.game, "- Color -", "Four colors for tiles", "Use the right one to collide.", "Or else be bounced back.");
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+    }
+}
 class Haiku extends BABYLON.Mesh {
     constructor(game, title, text1, text2, text3) {
         super("haiku");
@@ -1508,14 +1534,14 @@ class Haiku extends BABYLON.Mesh {
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         this.material = haikuMaterial;
         let context = this.dynamicTexture.getContext();
-        context.fillStyle = "#00000010";
+        context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
-        context.fillStyle = "#2b2821FF";
+        context.fillStyle = "#473a2fFF";
         context.font = "900 130px Shalimar";
         context.fillText(this.title, 100, 150);
-        context.fillText(this.text1, 30, 450);
-        context.fillText(this.text2, 30, 600);
-        context.fillText(this.text3, 30, 750);
+        context.fillText(this.text1, 30, 550);
+        context.fillText(this.text2, 30, 700);
+        context.fillText(this.text3, 30, 850);
         this.dynamicTexture.update();
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
@@ -3461,16 +3487,7 @@ class Puzzle {
                 }
             }
         }
-        if (this.data.id === 57) {
-            let testHaiku = new Haiku(this.game, "1. Control", "Left -west- to right -east-", "One may decide where he goes.", "Unless walls oppose.");
-            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
-            testHaiku.visibility = 0;
-            this.haikus.push(testHaiku);
-            let testHaiku2 = new Haiku(this.game, "2. Bounce", "Up -north- and down -south-", "Some cycle one can't decide.", "A Vertical tide.");
-            testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
-            testHaiku2.visibility = 0;
-            this.haikus.push(testHaiku2);
-        }
+        HaikuMaker.MakeHaiku(this);
     }
     saveAsText() {
         let lines = [];

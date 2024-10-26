@@ -400,29 +400,7 @@ class Puzzle {
             }
         }
 
-        if (this.data.id === 57) {
-            let testHaiku = new Haiku(
-                this.game,
-                "1. Control",
-                "Left -west- to right -east-",
-                "One may decide where he goes.",
-                "Unless walls oppose."
-            );
-            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
-            testHaiku.visibility = 0;
-            this.haikus.push(testHaiku);
-    
-            let testHaiku2 = new Haiku(
-                this.game,
-                "2. Bounce",
-                "Up -north- and down -south-",
-                "Some cycle one can't decide.",
-                "A Vertical tide."
-            );
-            testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
-            testHaiku2.visibility = 0;
-            this.haikus.push(testHaiku2);
-        }
+        HaikuMaker.MakeHaiku(this);
     }
 
     public saveAsText(): string {

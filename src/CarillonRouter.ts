@@ -98,7 +98,7 @@ class CarillonRouter extends Nabu.Router {
             let numLevel = parseInt(page.replace("#level-", ""));
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
-                let data = this.game.tiaratumGameLevels;
+                let data = this.game.tiaratumGameTutorialLevels;
                 if (data.puzzles[numLevel - 1]) {
                     this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
                 }
@@ -109,7 +109,7 @@ class CarillonRouter extends Nabu.Router {
             }
             await this.game.puzzle.reset();
             await this.show(this.playUI, false, 0);
-            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
+            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#play-community-")) {
@@ -136,7 +136,7 @@ class CarillonRouter extends Nabu.Router {
             }
             await this.game.puzzle.reset();
             await this.show(this.playUI, false, 0);
-            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "none";
+            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {

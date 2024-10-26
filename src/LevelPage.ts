@@ -350,7 +350,7 @@ class BaseLevelPage extends LevelPage {
 
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
-        let data = this.router.game.tiaratumGameLevels;
+        let data = this.router.game.tiaratumGameTutorialLevels;
         CLEAN_IPuzzlesData(data);
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
@@ -389,6 +389,9 @@ class CommunityLevelPage extends LevelPage {
     }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        if (OFFLINE_MODE) {
+            return this.getPuzzlesDataOffline(page, levelsPerPage);
+        }
         let puzzleData: IPuzzleTileData[] = [];
 
         const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0), {
@@ -413,6 +416,26 @@ class CommunityLevelPage extends LevelPage {
         }
         else {
             console.error(await response.text());
+        }
+
+        return puzzleData;
+    }
+
+    protected async getPuzzlesDataOffline(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+        let data = this.router.game.tiaratumGameOfflinePuzzleLevels;
+
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onclick: () => {
+                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        location.hash = "play-community-" + data.puzzles[n].id;
+                    }
+                }
+            }
         }
 
         return puzzleData;

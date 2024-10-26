@@ -186,7 +186,7 @@ class Ball extends BABYLON.Mesh {
                 }
 
                 this.trailPoints.push(p);
-                if (this.trailPoints.length > 25) {
+                if (this.trailPoints.length > 15) {
                     this.trailPoints.splice(0, 1);
                 }
             }
@@ -217,6 +217,9 @@ class Ball extends BABYLON.Mesh {
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
+                if (USE_POKI_SDK) {
+                    PokiGameplayStart();
+                }
             }
             return;
         }

@@ -2,19 +2,50 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var MRS_VERSION: number = 3;
-var MRS_VERSION2: number = 3;
-var MRS_VERSION3: number = 8;
+var MRS_VERSION: number = 0;
+var MRS_VERSION2: number = 0;
+var MRS_VERSION3: number = 3;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 
 var observed_progress_speed_percent_second;
+var USE_POKI_SDK: boolean = true;
+var PokiSDK: any;
+
+var PokiSDKPlaying: boolean = false;
+function PokiGameplayStart(): void {
+    if (!PokiSDKPlaying) {
+        console.log("PokiSDK.gameplayStart");
+        PokiSDK.gameplayStart();
+        PokiSDKPlaying = true;
+    }
+}
+var CanStartCommercialBreak: boolean = false;
+async function PokiCommercialBreak(): Promise<void> {
+    if (!CanStartCommercialBreak) {
+        return;
+    }
+    if (location.host.startsWith("127.0.0.1")) {
+        return;
+    }
+    let prevMainVolume = BABYLON.Engine.audioEngine.getGlobalVolume();
+    BABYLON.Engine.audioEngine.setGlobalVolume(0);
+    await PokiSDK.commercialBreak();
+    BABYLON.Engine.audioEngine.setGlobalVolume(prevMainVolume);
+}
+function PokiGameplayStop(): void {
+    if (PokiSDKPlaying) {
+        PokiSDK.gameplayStop();
+        PokiSDKPlaying = false;
+    }
+}
 
 var PlayerHasInteracted = false;
 var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -42,10 +73,12 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
-    document.body.removeEventListener("click", onFirstPlayerInteractionClic);
+    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
-    document.getElementById("click-anywhere-screen").style.display = "none";
+    setTimeout(() => {
+        document.getElementById("click-anywhere-screen").style.display = "none";
+    }, 500);
     Game.Instance.onResize();
 
     IsTouchScreen = 1;
@@ -55,17 +88,19 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
+    if (Game.Instance.completedPuzzles.length === 0) {
+        location.hash = "#level-1";
+    }
 }
 
-let onFirstPlayerInteractionClic = (ev: Event) => {
+let onFirstPlayerInteractionClick = (ev: Event) => {
     if (!Game.Instance.gameLoaded) {
         return;
     }
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
     PlayerHasInteracted = true;
-    document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
-    document.body.removeEventListener("click", onFirstPlayerInteractionClic);
+    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Clic");
     document.getElementById("click-anywhere-screen").style.display = "none";
@@ -77,6 +112,9 @@ let onFirstPlayerInteractionClic = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
+    if (Game.Instance.completedPuzzles.length === 0) {
+        location.hash = "#level-1";
+    }
 }
 
 let onFirstPlayerInteractionKeyboard = (ev: Event) => {
@@ -86,8 +124,7 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     PlayerHasInteracted = true;
-    document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
-    document.body.removeEventListener("click", onFirstPlayerInteractionClic);
+    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
     document.getElementById("click-anywhere-screen").style.display = "none";
@@ -99,6 +136,9 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
+    if (Game.Instance.completedPuzzles.length === 0) {
+        location.hash = "#level-1";
+    }
 }
 
 function addLine(text: string): void {
@@ -219,7 +259,8 @@ class Game {
     public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
 
-    public tiaratumGameLevels: IPuzzlesData;
+    public tiaratumGameTutorialLevels: IPuzzlesData;
+    public tiaratumGameOfflinePuzzleLevels: IPuzzlesData;
     public router: CarillonRouter;
     public editor: Editor;
     public mode: GameMode = GameMode.Menu;
@@ -412,41 +453,70 @@ class Game {
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
 
         if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles");
+            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
             if (dataString) {
                 this.completedPuzzles = JSON.parse(dataString);
             }
         }
 
-        let storyModePuzzles: IPuzzlesData;
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
+        let tutorialPuzzles: IPuzzlesData;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
                 method: "GET",
                 mode: "cors"
             });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            storyModePuzzles = await response.json() as IPuzzlesData;
-            CLEAN_IPuzzlesData(storyModePuzzles);
+            tutorialPuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(tutorialPuzzles);
         }
-        catch (e) {
-            console.error(e);
-            const response = await fetch("./datas/levels/tiaratum_levels.json", {
-                method: "GET",
-                mode: "cors"
-            });
-            storyModePuzzles = await response.json() as IPuzzlesData;
-            CLEAN_IPuzzlesData(storyModePuzzles);
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                tutorialPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(tutorialPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                tutorialPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(tutorialPuzzles);
+            }
         }
         
-        for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
-            storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
+        for (let i = 0; i < tutorialPuzzles.puzzles.length; i++) {
+            tutorialPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + tutorialPuzzles.puzzles[i].title;
         }
 
-        this.tiaratumGameLevels = storyModePuzzles;
-        for (let i = 0; i < this.tiaratumGameLevels.puzzles.length; i++) {
-            this.tiaratumGameLevels.puzzles[i].numLevel = (i + 1);
+        this.tiaratumGameTutorialLevels = tutorialPuzzles;
+        for (let i = 0; i < this.tiaratumGameTutorialLevels.puzzles.length; i++) {
+            this.tiaratumGameTutorialLevels.puzzles[i].numLevel = (i + 1);
+        }
+
+        if (OFFLINE_MODE) {
+            let offlinePuzzles: IPuzzlesData;
+            const response = await fetch("./datas/levels/tiaratum_offline_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            offlinePuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(offlinePuzzles);
+            
+            for (let i = 0; i < offlinePuzzles.puzzles.length; i++) {
+                offlinePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + offlinePuzzles.puzzles[i].title;
+            }
+    
+            this.tiaratumGameOfflinePuzzleLevels = offlinePuzzles;
+            for (let i = 0; i < this.tiaratumGameOfflinePuzzleLevels.puzzles.length; i++) {
+                this.tiaratumGameOfflinePuzzleLevels.puzzles[i].numLevel = (i + 1);
+            }
         }
 
         this.ball = new Ball(this, { color: TileColor.North });
@@ -587,24 +657,29 @@ class Game {
             }
         );
 
+        if (this.completedPuzzles.length > 0) {
+            //page = "#home";
+        }
         let puzzleId: number;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
             if (puzzleIdStr) {
                 puzzleId = parseInt(puzzleIdStr);
                 if (puzzleId) {
-                    location.hash = "#play-community-" + puzzleId;
+                    
                 }
             }
         }
 
         this.gameLoaded = true;
         document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
-        document.body.addEventListener("click", onFirstPlayerInteractionClic);
+        document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
             //document.getElementById("click-anywhere-screen").style.display = "none";
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            DEV_ACTIVATE();
         }
 	}
 
@@ -763,7 +838,7 @@ class Game {
         }
 
         if (HasLocalStorage) {
-            window.localStorage.setItem("completed-puzzles", JSON.stringify(this.completedPuzzles));
+            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
         }
     }
 
@@ -859,7 +934,7 @@ function DEBUG_LOG_MESHES_NAMES(): void {
     console.log(countedMeshNames);
 }
 
-async function DEV_GENERATE_STORYMODE_LEVEL_FILE(): Promise<void> {
+async function DEV_GENERATE_TUTORIAL_LEVEL_FILE(): Promise<void> {
     const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         method: "GET",
         mode: "cors"
@@ -867,7 +942,22 @@ async function DEV_GENERATE_STORYMODE_LEVEL_FILE(): Promise<void> {
 
     if (response.status === 200) {
         let data = await response.json();
-        Nabu.download("tiaratum_levels.json", JSON.stringify(data));
+        Nabu.download("tiaratum_tutorial_levels.json", JSON.stringify(data));
+    }
+    else {
+        console.error(await response.text());
+    }
+}
+
+async function DEV_GENERATE_PUZZLE_LEVEL_FILE(): Promise<void> {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/40/1", {
+        method: "GET",
+        mode: "cors"
+    });
+
+    if (response.status === 200) {
+        let data = await response.json();
+        Nabu.download("tiaratum_offline_levels.json", JSON.stringify(data));
     }
     else {
         console.error(await response.text());
@@ -995,5 +1085,12 @@ let createAndInit = async () => {
 }
 
 requestAnimationFrame(() => {
-    createAndInit();
+    if (USE_POKI_SDK) {
+        PokiSDK.init().then(() => {
+            createAndInit();
+        })
+    }
+    else {
+        createAndInit();
+    }
 });

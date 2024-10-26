@@ -1,9 +1,0 @@
-{
-    "puzzles": [
-        { "id": "19", "title": "Simple Movement", "author": "StoryMode", "content": "2u0u0xooonoxoooooxoooooxoooooxooooo", "player": null, "score": null },
-        { "id": "20", "title": "Bounce Back", "author": "StoryMode", "content": "2u0u0xooonoxoooooxoooooxoooooxoooon", "player": "Coolos", "score": "247" },
-        { "id": "21", "title": "Change your Color", "author": "StoryMode", "content": "2u0u0xosoeoxoooooxoooooxoooooxSoooE", "player": "Paco", "score": "574" },
-        { "id": "22", "title": "Avoid the Hole", "author": "StoryMode", "content": "3u3u0xOOoNoOOxonooowoxoooooooxOoooooOxOoooooOxoooooooxowooonoxOOoWoOO", "player": "Jackson", "score": "822" },
-        { "id": "23", "title": "Push the Crate", "author": "StoryMode", "content": "2u1u0xonoSoxoooooxoooooxoooooxOOpOOxoooooxoooooxoooooxsoooN", "player": "Sven", "score": "1206" }
-    ]
-}

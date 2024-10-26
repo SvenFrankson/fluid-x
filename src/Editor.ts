@@ -231,12 +231,6 @@ class Editor {
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
-            this.game.puzzle.data = {
-                id: -1,
-                title: "Custom Machine",
-                author: "Editor",
-                content: this.game.puzzle.saveAsText()
-            };
             this.game.puzzle.reset();
             location.hash = "#editor-preview";
         };
@@ -315,19 +309,32 @@ class Editor {
                 let data = {
                     title: this.title,
                     author: this.author,
-                    content: this.game.puzzle.saveAsText()
+                    content: this.game.puzzle.saveAsText(),
+                    id: null
+                }
+                let headers: any = {
+                    "Content-Type": "application/json",
+                };
+                if (DEV_MODE_ACTIVATED && this.game.puzzle.data.id != null) {
+                    data.id = this.game.puzzle.data.id;
+                    if (var1) {
+                        headers = {
+                            "Content-Type": "application/json",
+                            "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                        };
+                    }
                 }
                 let dataString = JSON.stringify(data);
                 
                 const response = await fetch(SHARE_SERVICE_PATH + "publish_puzzle", {
                     method: "POST",
                     mode: "cors",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: headers,
                     body: dataString,
                 });
-                let id = parseInt(await response.text());
+                let text = await response.text();
+                console.log(text);
+                let id = parseInt(text);
                 let url = "https://carillion.tiaratum.com/#play-community-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 (document.querySelector("#publish-generated-url-go").parentElement as HTMLAnchorElement).href = url;
@@ -368,6 +375,7 @@ class Editor {
             await this.game.puzzle.loadFromFile("./datas/levels/min.txt");
             await this.game.puzzle.instantiate();
             this.initValues();
+            this.updatePublishText();
         }
 
         this.game.canvas.addEventListener("pointerdown", this.pointerDown);
@@ -375,6 +383,7 @@ class Editor {
 
         this.game.camera.attachControl();
 
+        this.updatePublishText();
         this.updateInvisifloorTM();
         this.initValues();
 
@@ -425,6 +434,19 @@ class Editor {
         this.selectableButtons.forEach(button => {
             button.classList.remove("selected");
         })
+    }
+
+    public updatePublishText(): void {
+        if (DEV_MODE_ACTIVATED && this.game.puzzle.data.id != null) {
+            document.querySelector("#publish-btn stroke-text").innerHTML = "Update";
+            this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Update";
+            this.titleInput.value = this.game.puzzle.data.title;
+            this.authorInput.value = this.game.puzzle.data.author;
+        }
+        else {
+            document.querySelector("#publish-btn stroke-text").innerHTML = "Publish";
+            this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Publish";
+        }
     }
 
     public updateInvisifloorTM(): void {

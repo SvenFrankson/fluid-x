@@ -51,8 +51,6 @@ class MySound {
 }
 
 class SoundManager {
-
-    
     public managedSounds: MySound[] = [];
 
     public createSound(        

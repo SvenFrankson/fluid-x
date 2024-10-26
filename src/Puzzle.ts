@@ -121,8 +121,7 @@ class Puzzle {
         this.puzzleUI = new PuzzleUI(this);
     }
 
-    public win(): void {
-        
+    public win(): void {        
         let score = Math.floor(this.game.ball.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
@@ -142,7 +141,7 @@ class Puzzle {
 
                 this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
                 this.puzzleUI.win();
-                if (this.data.score === null || score < this.data.score) {
+                if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                     this.puzzleUI.setHighscoreState(1);
                 }
                 else {
@@ -219,7 +218,7 @@ class Puzzle {
         let file = await fetch(path);
         let content = await file.text();
         this.loadFromData({
-            id: 42,
+            id: null,
             title: "No Title",
             author: "No Author",
             content: content

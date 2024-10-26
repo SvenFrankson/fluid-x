@@ -115,7 +115,7 @@ function loadStep() {
 
 async function doLoad() {
     let pIndex = 0;
-    let stepsCount = 9;
+    let stepsCount = 10;
     steps = [];
     for (let i = 0; i <= stepsCount; i++) {
         steps[i] = i / stepsCount;
@@ -127,6 +127,8 @@ async function doLoad() {
     await loadCSS("./styles/fonts.css");
     setProgressIndex(pIndex++);
     await loadCSS("./styles/app.css");
+    setProgressIndex(pIndex++);
+    await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
     setProgressIndex(pIndex++);
     await loadScript("./lib/babylon.js");
     setProgressIndex(pIndex++);

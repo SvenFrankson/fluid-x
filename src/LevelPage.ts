@@ -96,7 +96,7 @@ abstract class LevelPage {
                         authorText.setContent("by " + puzzleTileData[n].data.author);
                     }
 
-                    if (this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
+                    if (puzzleTileData[n].data.id != null && this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
                         let completedStamp = document.createElement("div");
                         completedStamp.classList.add("stamp");
                         let stars = document.createElement("div");
@@ -347,19 +347,19 @@ class BaseLevelPage extends LevelPage {
         let data = this.router.game.tiaratumGameTutorialLevels;
         CLEAN_IPuzzlesData(data);
 
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
             let n = i + page * levelsPerPage;
-            let locked = true;
-            if (n === 0) {
-                locked = false;
-            }
-            else if (data.puzzles[n - 1]) {
-                let prevId = data.puzzles[n - 1].id;
-                if (this.router.game.isPuzzleCompleted(prevId)) {
+            if (data.puzzles[n]) {
+                let locked = true;
+                if (n === 0) {
                     locked = false;
                 }
-            }
-            if (data.puzzles[n]) {
+                else if (data.puzzles[n - 1]) {
+                    let prevId = data.puzzles[n - 1].id;
+                    if (this.router.game.isPuzzleCompleted(prevId)) {
+                        locked = false;
+                    }
+                }
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
@@ -367,6 +367,19 @@ class BaseLevelPage extends LevelPage {
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
                     locked: locked
+                }
+            }
+            else if (n === data.puzzles.length) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "More Puzzles and Challenges Here !",
+                        author: "Tiaratum Games & Community",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa"
+                    },
+                    onclick: () => {
+                        location.hash = "#community"
+                    }
                 }
             }
         }

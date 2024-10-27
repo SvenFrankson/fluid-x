@@ -19,7 +19,15 @@ class BlockTile extends Tile {
     public async instantiate(): Promise<void> {
         await super.instantiate();
         
-        let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
+        let tileData = CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.35,
+            thickness: 0.05,
+            flatShading: true,
+            topCap: false,
+            bottomCap: true,
+        })
         tileData.applyToMesh(this);
 
         this.tileTop.position.y = 0.3;

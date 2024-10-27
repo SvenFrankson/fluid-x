@@ -373,8 +373,8 @@ class BaseLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "More Puzzles and Challenges Here !",
-                        author: "Tiaratum Games & Community",
+                        title: "Puzzles and Challenges !",
+                        author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa"
                     },
                     onclick: () => {

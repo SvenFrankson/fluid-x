@@ -277,6 +277,17 @@ button:hover, .hovered {
     height: 40px;
 }
 
+.medium-btn.plussize {
+    font-size: 40px;
+    border-radius: 4px;
+    border: 2px solid #624c3cff;
+    box-shadow: 2px 2px 2px #2b2821ff;
+    margin: 5px;
+    width: 130px;
+    height: 60px;
+    font-weight: 900;
+}
+
 .medium-square-btn {
     font-size: 24px;
     border-radius: 4px;
@@ -438,26 +449,29 @@ button:hover, .hovered {
 .square-btn-panel .stamp {
     display: block;
     position: absolute;
-    bottom: 50px;
+    bottom: 30px;
     right: 5px;
     z-index: 2;
+    transform-origin: bottom right;
+    transform: scale(0.8);
 }
 
 .stamp {
     display: inline-block;
-    width: 50px;
-    height: 50px;
-    border-radius: 50px;
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border-radius: 70px;
     color: #e0c872;
-    border: 3px double #e0c872;
+    border: 6px double #e0c872;
     text-align: center;
     background-color: #00000020;
 }
 
 .stamp div {
-    font-size: 23px;
-    line-height: 18px;
-    transform: translateY(6px);
+    font-size: 35px;
+    line-height: 22px;
+    transform: translateY(10px);
     font-weight: 100;
 }
 
@@ -559,7 +573,7 @@ input[type="text"] {
 #play-success-panel {
     width: 310px;
     left: calc((100vw - 338px) * 0.5);
-    top: calc((100svh - 278px) * 0.5);
+    top: calc((100svh - 350px) * 0.5);
     text-align: center;
 }
 

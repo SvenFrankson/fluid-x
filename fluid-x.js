@@ -2072,8 +2072,8 @@ class BaseLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "More Puzzles and Challenges Here !",
-                        author: "Tiaratum Games & Community",
+                        title: "Puzzles and Challenges !",
+                        author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa"
                     },
                     onclick: () => {
@@ -2177,7 +2177,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 5;
+var MRS_VERSION3 = 6;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2214,10 +2214,13 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
+}
+if (location.host.indexOf("poki.com") != -1 || location.host.indexOf("poki.dev") != -1) {
+    OFFLINE_MODE = true;
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {

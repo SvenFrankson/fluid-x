@@ -231,6 +231,7 @@ class Editor {
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
+            this.game.puzzle.data.content = this.game.puzzle.saveAsText()
             this.game.puzzle.reset();
             location.hash = "#editor-preview";
         };
@@ -256,7 +257,6 @@ class Editor {
                 const reader = new FileReader();
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result as string;
-                    console.log(content);
                     this.game.puzzle.loadFromData({
                         id: 42,
                         title: "Custom Machine",
@@ -333,7 +333,6 @@ class Editor {
                     body: dataString,
                 });
                 let text = await response.text();
-                console.log(text);
                 let id = parseInt(text);
                 let url = "https://carillion.tiaratum.com/#play-community-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);

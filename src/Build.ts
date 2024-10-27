@@ -224,8 +224,6 @@ class Box extends Build {
         data[6].applyToMesh(this);
         data[7].applyToMesh(this.floor);
 
-        console.log(this.props);
-
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
             width: 2 + 2 * m,

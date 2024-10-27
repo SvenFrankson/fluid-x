@@ -135,7 +135,6 @@ class CubicNoiseTexture {
             }
         }
 
-        console.log(min + " " + max);
         let tex = new BABYLON.RawTexture3D(data, this.size, this.size, this.size, BABYLON.Constants.TEXTUREFORMAT_R, this.scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, BABYLON.Engine.TEXTURETYPE_UNSIGNED_BYTE);
         tex.wrapU = 1;
         tex.wrapV = 1;

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="50mm"
+   viewBox="0 0 210 50"
+   version="1.1"
+   id="svg8"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\textures\tiaratum-logo-yellow.png"
+   inkscape:export-xdpi="104.94659"
+   inkscape:export-ydpi="104.94659"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="tiaratum-logo-yellow.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="416.1038"
+     inkscape:cy="186.00745"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#e0c872;fill-opacity:1;stroke:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:34.0158;paint-order:stroke fill markers"
+       id="rect837"
+       width="189.02377"
+       height="24.187893"
+       x="10.488113"
+       y="12.906054" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:17.4236px;line-height:1.25;font-family:Xolonium;-inkscape-font-specification:'Xolonium Bold';letter-spacing:-0.669718px;fill:#2b2821;fill-opacity:1;stroke-width:0.264583;"
+       x="16.921066"
+       y="30.749788"
+       id="text835"><tspan
+         sodipodi:role="line"
+         id="tspan833"
+         x="16.921066"
+         y="30.749788"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Xolonium;-inkscape-font-specification:'Xolonium Bold';fill:#2b2821;fill-opacity:1;stroke-width:0.264583;">TIARATUM GAMES</tspan></text>
+  </g>
+</svg>

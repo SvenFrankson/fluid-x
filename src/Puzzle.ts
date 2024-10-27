@@ -1,3 +1,41 @@
+function CreatePlaqueVertexData(w: number, h: number, m: number): BABYLON.VertexData {
+    let plaqueData = new BABYLON.VertexData();
+    let positions = [];
+    let indices = [];
+    let uvs = [];
+    let xs = [0, m, w - m, w];
+    let zs = [0, m, h - m, h];
+    for (let j = 0; j < 4; j++) {
+        for (let i = 0; i < 4; i++) {
+            let l = positions.length / 3;
+            let y = 0;
+            if (i > 0 && i < 3 && j > 0 && j < 3) {
+                y = m;
+            }
+            positions.push(xs[i], y, zs[j]);
+            if (i < 3 && j < 3) {
+                if (i === 0 && j === 2 || i === 2 && j === 0) {
+                    indices.push(l, l + 1, l + 4);
+                    indices.push(l + 4, l + 1, l + 1 + 4);
+                }
+                else {
+                    indices.push(l, l + 1, l + 1 + 4);
+                    indices.push(l, l + 1 + 4, l + 4);
+                }
+            }
+            uvs.push(xs[i] / w, zs[j] / h);
+        }
+    }
+    plaqueData.positions = positions;
+    plaqueData.indices = indices;
+    plaqueData.uvs = uvs;
+    let normals = [];
+    BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+    plaqueData.normals = normals;
+    Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(- w * 0.5, 0, - h * 0.5));
+    return plaqueData;
+}
+
 interface IPuzzleData {
     id: number;
     title: string;
@@ -62,6 +100,9 @@ class Puzzle {
     public borders: Border[] = [];
     public buildings: Build[] = [];
 
+    public fpsMaterial: BABYLON.StandardMaterial;
+    public fpsTexture: BABYLON.DynamicTexture;
+
     public getScene(): BABYLON.Scene {
         return this.game.scene;
     }
@@ -119,6 +160,13 @@ class Puzzle {
         this.holeWall.material = this.game.grayMaterial;
 
         this.puzzleUI = new PuzzleUI(this);
+
+        this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
+        this.fpsTexture.hasAlpha = true;
+        this.fpsMaterial.diffuseTexture = this.fpsTexture;
+        this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
+        this.fpsMaterial.useAlphaFromDiffuseTexture = true;
     }
 
     public win(): void {        
@@ -244,13 +292,10 @@ class Puzzle {
             this.game.bodyPatternIndex = Math.floor(Math.random() * 2);
         }
 
-        console.log(this.data);
-
         let content = this.data.content;
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
-        console.log(lines);
         let ballLine = lines.splice(0, 1)[0].split("u");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.y = 0;
@@ -269,7 +314,6 @@ class Puzzle {
         this.game.ball.vZ = 1;
         this.h = lines.length;
         this.w = lines[0].length;
-        console.log(this.w + " " + this.h);
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {
@@ -562,6 +606,39 @@ class Puzzle {
         bottom.position.z = this.zMin - 0.25;
         bottom.material = this.game.blackMaterial;
         bottom.parent = this.border;
+
+        let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
+        
+        let tiaratumLogo = BABYLON.MeshBuilder.CreateGround("tiaratum-logo", { width: 2.5, height: 0.2 });
+        plaqueData.applyToMesh(tiaratumLogo);
+        tiaratumLogo.parent = bottom;
+        tiaratumLogo.position.copyFromFloats((this.xMax - this.xMin) * 0.5 + 0.5 - 1.25 - 0.1, 0.10, 0);
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        haikuMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/tiaratum-logo-yellow.png");
+        haikuMaterial.diffuseTexture.hasAlpha = true;
+        haikuMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        tiaratumLogo.material = haikuMaterial;
+        
+        let tiaratumLogo2 = BABYLON.MeshBuilder.CreateGround("tiaratum-logo", { width: 2.5, height: 0.2 });
+        plaqueData.applyToMesh(tiaratumLogo2);
+        tiaratumLogo2.parent = top;
+        tiaratumLogo2.position.copyFromFloats(- (this.xMax - this.xMin) * 0.5 - 0.5 + 1.25 + 0.1, 0.10, 0);
+        tiaratumLogo2.material = haikuMaterial;
+        
+        let fpsPlaqueData = CreatePlaqueVertexData(0.32 * 6, 0.32, 0.03);
+
+        let fpsPlaque = BABYLON.MeshBuilder.CreateGround("tiaratum-fps", { width: 2.5, height: 0.2 });
+        fpsPlaqueData.applyToMesh(fpsPlaque);
+        fpsPlaque.parent = bottom;
+        fpsPlaque.position.copyFromFloats(- (this.xMax - this.xMin) * 0.5 - 0.5 + 0.32 * 6 * 0.5 + 0.1, 0.10, 0);
+        fpsPlaque.material = this.fpsMaterial;
+        
+        let fpsPlaque2 = BABYLON.MeshBuilder.CreateGround("tiaratum-fps", { width: 2.5, height: 0.2 });
+        fpsPlaqueData.applyToMesh(fpsPlaque2);
+        fpsPlaque2.parent = top;
+        fpsPlaque2.position.copyFromFloats((this.xMax - this.xMin) * 0.5 + 0.5 - 0.32 * 6 * 0.5 - 0.1, 0.10, 0);
+        fpsPlaque2.material = this.fpsMaterial;
         
         let bottomPanel = BABYLON.MeshBuilder.CreateGround("bottom-panel", { width: this.xMax - this.xMin + 1, height: 5.5});
         bottomPanel.position.x = 0.5 * (this.xMin + this.xMax);
@@ -683,6 +760,9 @@ class Puzzle {
         }
     }
 
+    private _timer: number = 0;
+    private _globalTime: number = 0;
+    private _smoothedFPS: number = 30;
     public update(dt: number): void {
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
@@ -693,6 +773,27 @@ class Puzzle {
         }
         for (let i = 0; i < this.haikus.length; i++) {
             this.haikus[i].update(dt);
+        }
+
+        this._globalTime += dt;
+        this._timer += dt;
+        if (this._timer > 0.25) {
+            this._timer = 0;
+            let fps = this.game.engine.getFps();
+            if (isFinite(fps)) {
+                this._smoothedFPS = 0.9 * this._smoothedFPS + 0.1 * fps;
+            }
+            let context = this.fpsTexture.getContext();
+            context.fillStyle = "#e0c872ff";
+            context.fillRect(0, 0, 800, 100);
+    
+            context.fillStyle = "#473a2fFF";
+            context.font = "900 90px Julee";
+            context.fillText(this._smoothedFPS.toFixed(0).padStart(3, " "), 30, 77);
+            context.fillText("fps", 170, 77);
+            context.fillText(this._globalTime.toFixed(0) + "s", 350, 77);
+    
+            this.fpsTexture.update();
         }
     }
 }

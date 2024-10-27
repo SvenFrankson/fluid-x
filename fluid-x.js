@@ -733,7 +733,6 @@ class Box extends Build {
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         data[6].applyToMesh(this);
         data[7].applyToMesh(this.floor);
-        console.log(this.props);
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
             width: 2 + 2 * m,
@@ -1276,6 +1275,7 @@ class Editor {
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
+            this.game.puzzle.data.content = this.game.puzzle.saveAsText();
             this.game.puzzle.reset();
             location.hash = "#editor-preview";
         };
@@ -1298,7 +1298,6 @@ class Editor {
                 const reader = new FileReader();
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
-                    console.log(content);
                     this.game.puzzle.loadFromData({
                         id: 42,
                         title: "Custom Machine",
@@ -1367,7 +1366,6 @@ class Editor {
                     body: dataString,
                 });
                 let text = await response.text();
-                console.log(text);
                 let id = parseInt(text);
                 let url = "https://carillion.tiaratum.com/#play-community-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
@@ -1825,20 +1823,16 @@ class LevelPage {
         };
         this._inputEnter = () => {
             if (!this.shown) {
-                console.log("A");
                 return;
             }
             if (this.buttons.length === 0) {
-                console.log("B");
                 return;
             }
             let btn = this.buttons[this._hoveredButtonIndex];
             if (btn && btn.onclick) {
                 btn.onclick(undefined);
-                console.log("C");
                 return;
             }
-            console.log("D");
         };
         this._inputBack = () => {
             if (!this.shown) {
@@ -1999,8 +1993,6 @@ class LevelPage {
         return Math.floor(this._hoveredButtonIndex / this.colCount);
     }
     setHoveredButtonIndex(v, filter) {
-        console.log(this.className + ".setHoveredButtonIndex " + v);
-        console.log(this.buttons);
         let btn = this.buttons[this._hoveredButtonIndex];
         if (btn) {
             btn.classList.remove("hovered");
@@ -2131,7 +2123,6 @@ class DevLevelPage extends LevelPage {
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        console.log(var1);
         const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
             mode: "cors",
@@ -2141,7 +2132,6 @@ class DevLevelPage extends LevelPage {
         });
         if (response.status === 200) {
             let text = await response.text();
-            console.log(text);
             let data = JSON.parse(text);
             CLEAN_IPuzzlesData(data);
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
@@ -2166,7 +2156,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 3;
+var MRS_VERSION3 = 5;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2203,7 +2193,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2584,6 +2574,7 @@ class Game {
             }
             catch (e) {
                 console.error(e);
+                OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
                     method: "GET",
                     mode: "cors"
@@ -3002,7 +2993,6 @@ function DEV_ACTIVATE() {
                 });
                 Game.Instance.puzzle.data.state = state;
                 DEV_UPDATE_STATE_UI();
-                console.log(await response.text());
             }
         };
     }
@@ -3035,7 +3025,6 @@ function DEV_ACTIVATE() {
                 },
                 body: dataString,
             });
-            console.log(await response.text());
         }
     };
 }
@@ -3269,6 +3258,43 @@ class PushTile extends Tile {
         }
     }
 }
+function CreatePlaqueVertexData(w, h, m) {
+    let plaqueData = new BABYLON.VertexData();
+    let positions = [];
+    let indices = [];
+    let uvs = [];
+    let xs = [0, m, w - m, w];
+    let zs = [0, m, h - m, h];
+    for (let j = 0; j < 4; j++) {
+        for (let i = 0; i < 4; i++) {
+            let l = positions.length / 3;
+            let y = 0;
+            if (i > 0 && i < 3 && j > 0 && j < 3) {
+                y = m;
+            }
+            positions.push(xs[i], y, zs[j]);
+            if (i < 3 && j < 3) {
+                if (i === 0 && j === 2 || i === 2 && j === 0) {
+                    indices.push(l, l + 1, l + 4);
+                    indices.push(l + 4, l + 1, l + 1 + 4);
+                }
+                else {
+                    indices.push(l, l + 1, l + 1 + 4);
+                    indices.push(l, l + 1 + 4, l + 4);
+                }
+            }
+            uvs.push(xs[i] / w, zs[j] / h);
+        }
+    }
+    plaqueData.positions = positions;
+    plaqueData.indices = indices;
+    plaqueData.uvs = uvs;
+    let normals = [];
+    BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+    plaqueData.normals = normals;
+    Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-w * 0.5, 0, -h * 0.5));
+    return plaqueData;
+}
 function CLEAN_IPuzzleData(data) {
     if (data.id != null && typeof (data.id) === "string") {
         data.id = parseInt(data.id);
@@ -3315,11 +3341,20 @@ class Puzzle {
         this.h = 10;
         this._pendingPublish = false;
         this.haikus = [];
+        this._timer = 0;
+        this._globalTime = 0;
+        this._smoothedFPS = 30;
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
         this.puzzleUI = new PuzzleUI(this);
+        this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
+        this.fpsTexture.hasAlpha = true;
+        this.fpsMaterial.diffuseTexture = this.fpsTexture;
+        this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
+        this.fpsMaterial.useAlphaFromDiffuseTexture = true;
     }
     getScene() {
         return this.game.scene;
@@ -3467,12 +3502,10 @@ class Puzzle {
             this.game.bodyColorIndex = 5;
             this.game.bodyPatternIndex = Math.floor(Math.random() * 2);
         }
-        console.log(this.data);
         let content = this.data.content;
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
-        console.log(lines);
         let ballLine = lines.splice(0, 1)[0].split("u");
         this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.game.ball.position.y = 0;
@@ -3491,7 +3524,6 @@ class Puzzle {
         this.game.ball.vZ = 1;
         this.h = lines.length;
         this.w = lines[0].length;
-        console.log(this.w + " " + this.h);
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {
@@ -3763,6 +3795,33 @@ class Puzzle {
         bottom.position.z = this.zMin - 0.25;
         bottom.material = this.game.blackMaterial;
         bottom.parent = this.border;
+        let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
+        let tiaratumLogo = BABYLON.MeshBuilder.CreateGround("tiaratum-logo", { width: 2.5, height: 0.2 });
+        plaqueData.applyToMesh(tiaratumLogo);
+        tiaratumLogo.parent = bottom;
+        tiaratumLogo.position.copyFromFloats((this.xMax - this.xMin) * 0.5 + 0.5 - 1.25 - 0.1, 0.10, 0);
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        haikuMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/tiaratum-logo-yellow.png");
+        haikuMaterial.diffuseTexture.hasAlpha = true;
+        haikuMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        tiaratumLogo.material = haikuMaterial;
+        let tiaratumLogo2 = BABYLON.MeshBuilder.CreateGround("tiaratum-logo", { width: 2.5, height: 0.2 });
+        plaqueData.applyToMesh(tiaratumLogo2);
+        tiaratumLogo2.parent = top;
+        tiaratumLogo2.position.copyFromFloats(-(this.xMax - this.xMin) * 0.5 - 0.5 + 1.25 + 0.1, 0.10, 0);
+        tiaratumLogo2.material = haikuMaterial;
+        let fpsPlaqueData = CreatePlaqueVertexData(0.32 * 6, 0.32, 0.03);
+        let fpsPlaque = BABYLON.MeshBuilder.CreateGround("tiaratum-fps", { width: 2.5, height: 0.2 });
+        fpsPlaqueData.applyToMesh(fpsPlaque);
+        fpsPlaque.parent = bottom;
+        fpsPlaque.position.copyFromFloats(-(this.xMax - this.xMin) * 0.5 - 0.5 + 0.32 * 6 * 0.5 + 0.1, 0.10, 0);
+        fpsPlaque.material = this.fpsMaterial;
+        let fpsPlaque2 = BABYLON.MeshBuilder.CreateGround("tiaratum-fps", { width: 2.5, height: 0.2 });
+        fpsPlaqueData.applyToMesh(fpsPlaque2);
+        fpsPlaque2.parent = top;
+        fpsPlaque2.position.copyFromFloats((this.xMax - this.xMin) * 0.5 + 0.5 - 0.32 * 6 * 0.5 - 0.1, 0.10, 0);
+        fpsPlaque2.material = this.fpsMaterial;
         let bottomPanel = BABYLON.MeshBuilder.CreateGround("bottom-panel", { width: this.xMax - this.xMin + 1, height: 5.5 });
         bottomPanel.position.x = 0.5 * (this.xMin + this.xMax);
         bottomPanel.position.y = -5.5 * 0.5;
@@ -3888,6 +3947,24 @@ class Puzzle {
         }
         for (let i = 0; i < this.haikus.length; i++) {
             this.haikus[i].update(dt);
+        }
+        this._globalTime += dt;
+        this._timer += dt;
+        if (this._timer > 0.25) {
+            this._timer = 0;
+            let fps = this.game.engine.getFps();
+            if (isFinite(fps)) {
+                this._smoothedFPS = 0.9 * this._smoothedFPS + 0.1 * fps;
+            }
+            let context = this.fpsTexture.getContext();
+            context.fillStyle = "#e0c872ff";
+            context.fillRect(0, 0, 800, 100);
+            context.fillStyle = "#473a2fFF";
+            context.font = "900 90px Julee";
+            context.fillText(this._smoothedFPS.toFixed(0).padStart(3, " "), 30, 77);
+            context.fillText("fps", 170, 77);
+            context.fillText(this._globalTime.toFixed(0) + "s", 350, 77);
+            this.fpsTexture.update();
         }
     }
 }
@@ -4571,7 +4648,6 @@ class CubicNoiseTexture {
                 }
             }
         }
-        console.log(min + " " + max);
         let tex = new BABYLON.RawTexture3D(data, this.size, this.size, this.size, BABYLON.Constants.TEXTUREFORMAT_R, this.scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, BABYLON.Engine.TEXTURETYPE_UNSIGNED_BYTE);
         tex.wrapU = 1;
         tex.wrapV = 1;

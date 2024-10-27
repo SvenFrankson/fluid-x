@@ -4,7 +4,7 @@
 
 var MRS_VERSION: number = 0;
 var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 3;
+var MRS_VERSION3: number = 5;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -482,6 +482,7 @@ class Game {
             }
             catch (e) {
                 console.error(e);
+                OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
                     method: "GET",
                     mode: "cors"
@@ -1012,7 +1013,6 @@ function DEV_ACTIVATE(): void {
                 });
                 Game.Instance.puzzle.data.state = state;
                 DEV_UPDATE_STATE_UI();
-                console.log(await response.text());
             }
         }
     }
@@ -1046,7 +1046,6 @@ function DEV_ACTIVATE(): void {
                 },
                 body: dataString,
             });
-            console.log(await response.text());
         }
     }
 }

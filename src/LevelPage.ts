@@ -183,8 +183,6 @@ abstract class LevelPage {
         return Math.floor(this._hoveredButtonIndex / this.colCount);
     }
     public setHoveredButtonIndex(v: number, filter?: (btn: HTMLButtonElement) => boolean): boolean {
-        console.log(this.className + ".setHoveredButtonIndex " + v);
-        console.log(this.buttons);
         let btn = this.buttons[this._hoveredButtonIndex];
         if (btn) {
             btn.classList.remove("hovered");
@@ -305,20 +303,16 @@ abstract class LevelPage {
 
     private _inputEnter = () => {
         if (!this.shown) {
-            console.log("A");
             return;
         }
         if (this.buttons.length === 0) {
-            console.log("B");
             return;
         }
         let btn = this.buttons[this._hoveredButtonIndex];
         if (btn && btn.onclick) {
             btn.onclick(undefined);
-            console.log("C");
             return;
         }
-        console.log("D");
     }
 
     private _inputBack = () => {
@@ -454,7 +448,6 @@ class DevLevelPage extends LevelPage {
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
 
-        console.log(var1);
         const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
             mode: "cors",
@@ -465,7 +458,6 @@ class DevLevelPage extends LevelPage {
 
         if (response.status === 200) {
             let text = await response.text();
-            console.log(text);
             
             let data = JSON.parse(text);
             CLEAN_IPuzzlesData(data);

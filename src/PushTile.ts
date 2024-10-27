@@ -113,6 +113,7 @@ class PushTile extends Tile {
                         this.tileState = TileState.Moving;
                         this.pushSound.play();
                         await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
+                        this.game.puzzle.updateGriddedStack(this);
                         this.tileState = TileState.Active;
                     }
                 }

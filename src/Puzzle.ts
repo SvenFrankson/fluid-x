@@ -59,11 +59,50 @@ class Puzzle {
     public floor: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
-    public getTiles(x: number, z: number): Tile[] {
-        return this.tiles.filter(t => {
-            return Math.abs(t.position.x - x) < 2 && Math.abs(t.position.z - z) < 2;
-        })
+    public griddedTiles: Nabu.UniqueList<Tile>[][] = [];
+    private _getOrCreateGriddedStack(i: number, j: number): Nabu.UniqueList<Tile> {
+        if (!this.griddedTiles[i]) {
+            this.griddedTiles[i] = [];
+        }
+        if (!this.griddedTiles[i][j]) {
+            this.griddedTiles[i][j] = new Nabu.UniqueList<Tile>();
+        }
+        return this.griddedTiles[i][j];
     }
+    public getGriddedStack(i: number, j: number): Nabu.UniqueList<Tile> {
+        if (this.griddedTiles[i]) {
+            return this.griddedTiles[i][j];
+        }
+    }
+    public updateGriddedStack(t: Tile, skipSafetyCheck?: boolean): void {
+        if (!skipSafetyCheck) {
+            this.griddedTiles.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+        this._getOrCreateGriddedStack(t.i, t.j).push(t);
+    }
+    public removeFromGriddedStack(t: Tile): void {
+        let expected = this.getGriddedStack(t.i, t.j);
+        if (expected && expected.contains(t)) {
+            expected.remove(t);
+        }
+        else {
+            console.warn("Removing a Tile that is not in its expected stack.");
+            this.griddedTiles.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+    }
+
     public borders: Border[] = [];
     public getBorders(x: number, z: number): Border[] {
         return this.borders.filter(b => {
@@ -255,6 +294,7 @@ class Puzzle {
         while (this.haikus.length > 0) {
             this.haikus.pop().dispose();
         }
+        this.griddedTiles = [];
 
         this.data = data;
         DEV_UPDATE_STATE_UI();

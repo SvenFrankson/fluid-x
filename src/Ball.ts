@@ -297,60 +297,70 @@ class Ball extends BABYLON.Mesh {
                 }
             }
 
-            let tiles = this.game.puzzle.getTiles(this.position.x, this.position.z);
-            for (let i = 0; i < tiles.length; i++) {
-                let tile = tiles[i];
-                if (this.ballState === BallState.Move && tile instanceof HoleTile) {
-                    if (tile.fallsIn(this)) {
-                        this.ballState = BallState.Fall;
-                        this.fallTimer = 0;
-                        this.hole = tile;
-                        return;
-                    }
-                }
-                else {
-                    if (tile.tileState === TileState.Active) {
-                        if (tile.collide(this, impact)) {
-                            let dir = this.position.subtract(impact);
-                            if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                                if (dir.x > 0) {
-                                    this.position.x = impact.x + this.radius;
-                                    this.bounceXValue = 1;
-                                    this.bounceXTimer = this.bounceXDelay;
+            for (let ii = -1; ii <= 1; ii++) {
+                for (let jj = -1; jj <= 1; jj++) {
+                    let stack = this.game.puzzle.getGriddedStack(this.i + ii, this.j + jj);
+                    if (stack) {
+                        let tiles = stack.array;
+                        for (let i = 0; i < tiles.length; i++) {
+                            let tile = tiles[i];
+                            if (this.ballState === BallState.Move && tile instanceof HoleTile) {
+                                if (tile.fallsIn(this)) {
+                                    this.ballState = BallState.Fall;
+                                    this.fallTimer = 0;
+                                    this.hole = tile;
+                                    return;
                                 }
-                                else {
-                                    this.position.x = impact.x - this.radius;
-                                    this.bounceXValue = - 1;
-                                    this.bounceXTimer = this.bounceXDelay;
-                                }
-                                this.woodChocSound.play();
                             }
                             else {
-                                if (dir.z > 0) {
-                                    this.vZ = 1;
-                                }
-                                else {
-                                    this.vZ = -1;
-                                }
-                                this.woodChocSound.play();
-                            }
-                            if (this.ballState === BallState.Move) {
-                                if (tile instanceof SwitchTile) {
-                                    tile.bump();
-                                    this.setColor(tile.color);
-                                }
-                                else if (tile instanceof BlockTile) {
-                                    if (tile.color === this.color) {
-                                        tile.tileState = TileState.Dying;
-                                        tile.shrink().then(() => {
-                                            tile.dispose();
-                                        });
+                                if (tile.tileState === TileState.Active) {
+                                    if (tile.collide(this, impact)) {
+                                        let dir = this.position.subtract(impact);
+                                        if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                                            if (dir.x > 0) {
+                                                this.position.x = impact.x + this.radius;
+                                                this.bounceXValue = 1;
+                                                this.bounceXTimer = this.bounceXDelay;
+                                            }
+                                            else {
+                                                this.position.x = impact.x - this.radius;
+                                                this.bounceXValue = - 1;
+                                                this.bounceXTimer = this.bounceXDelay;
+                                            }
+                                            this.woodChocSound.play();
+                                        }
+                                        else {
+                                            if (dir.z > 0) {
+                                                this.vZ = 1;
+                                            }
+                                            else {
+                                                this.vZ = -1;
+                                            }
+                                            this.woodChocSound.play();
+                                        }
+                                        if (this.ballState === BallState.Move) {
+                                            if (tile instanceof SwitchTile) {
+                                                tile.bump();
+                                                this.setColor(tile.color);
+                                            }
+                                            else if (tile instanceof BlockTile) {
+                                                if (tile.color === this.color) {
+                                                    tile.tileState = TileState.Dying;
+                                                    tile.shrink().then(() => {
+                                                        tile.dispose();
+                                                    });
+                                                }
+                                            }
+                                            else if (tile instanceof PushTile) {
+                                                tile.push(dir.scale(-1));
+                                            }
+                                            ii = Infinity;
+                                            jj = Infinity;
+                                            i = Infinity;
+                                            break;
+                                        }
                                     }
                                 }
-                                else if (tile instanceof PushTile) {
-                                    tile.push(dir.scale(-1));
-                                }
-                                break;
                             }
                         }
                     }

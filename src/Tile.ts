@@ -42,7 +42,6 @@ abstract class Tile extends BABYLON.Mesh {
 
     constructor(public game: Game, public props: TileProps) {
         super("tile");
-        this.game.puzzle.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
@@ -53,6 +52,8 @@ abstract class Tile extends BABYLON.Mesh {
         if (isFinite(props.h)) {
             this.position.y = props.h;
         }
+        this.game.puzzle.tiles.push(this);
+        this.game.puzzle.updateGriddedStack(this, true);
 
         if (props.noShadow != true) {
             this.shadow = new BABYLON.Mesh("shadow");
@@ -95,6 +96,7 @@ abstract class Tile extends BABYLON.Mesh {
         if (index != -1) {
             this.game.puzzle.tiles.splice(index, 1);
         }
+        this.game.puzzle.removeFromGriddedStack(this);
         super.dispose();
     }
 

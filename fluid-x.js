@@ -215,8 +215,9 @@ class Ball extends BABYLON.Mesh {
                 this.woodChocSound2.play();
             }
             let impact = BABYLON.Vector3.Zero();
-            for (let i = 0; i < this.game.puzzle.borders.length; i++) {
-                let border = this.game.puzzle.borders[i];
+            let borders = this.game.puzzle.getBorders(this.position.x, this.position.z);
+            for (let i = 0; i < borders.length; i++) {
+                let border = borders[i];
                 if (border.collide(this, impact)) {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
@@ -241,8 +242,9 @@ class Ball extends BABYLON.Mesh {
                     break;
                 }
             }
-            for (let i = 0; i < this.game.puzzle.tiles.length; i++) {
-                let tile = this.game.puzzle.tiles[i];
+            let tiles = this.game.puzzle.getTiles(this.position.x, this.position.z);
+            for (let i = 0; i < tiles.length; i++) {
+                let tile = tiles[i];
                 if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;
@@ -3342,6 +3344,16 @@ class Puzzle {
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
+    }
+    getTiles(x, z) {
+        return this.tiles.filter(t => {
+            return Math.abs(t.position.x - x) < 2 && Math.abs(t.position.z - z) < 2;
+        });
+    }
+    getBorders(x, z) {
+        return this.borders.filter(b => {
+            return Math.abs(b.position.x - x) < 2 && Math.abs(b.position.z - z) < 2;
+        });
     }
     getScene() {
         return this.game.scene;

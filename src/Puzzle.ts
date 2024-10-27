@@ -59,7 +59,17 @@ class Puzzle {
     public floor: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
+    public getTiles(x: number, z: number): Tile[] {
+        return this.tiles.filter(t => {
+            return Math.abs(t.position.x - x) < 2 && Math.abs(t.position.z - z) < 2;
+        })
+    }
     public borders: Border[] = [];
+    public getBorders(x: number, z: number): Border[] {
+        return this.borders.filter(b => {
+            return Math.abs(b.position.x - x) < 2 && Math.abs(b.position.z - z) < 2;
+        })
+    }
     public buildings: Build[] = [];
 
     public fpsMaterial: BABYLON.StandardMaterial;

@@ -269,8 +269,9 @@ class Ball extends BABYLON.Mesh {
             }
 
             let impact = BABYLON.Vector3.Zero();
-            for (let i = 0; i < this.game.puzzle.borders.length; i++) {
-                let border = this.game.puzzle.borders[i];
+            let borders = this.game.puzzle.getBorders(this.position.x, this.position.z);
+            for (let i = 0; i < borders.length; i++) {
+                let border = borders[i];
                 if (border.collide(this, impact)) {
                     let dir = this.position.subtract(impact);
                     if (Math.abs(dir.x) > Math.abs(dir.z)) {
@@ -296,8 +297,9 @@ class Ball extends BABYLON.Mesh {
                 }
             }
 
-            for (let i = 0; i < this.game.puzzle.tiles.length; i++) {
-                let tile = this.game.puzzle.tiles[i];
+            let tiles = this.game.puzzle.getTiles(this.position.x, this.position.z);
+            for (let i = 0; i < tiles.length; i++) {
+                let tile = tiles[i];
                 if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                     if (tile.fallsIn(this)) {
                         this.ballState = BallState.Fall;

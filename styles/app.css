@@ -363,9 +363,18 @@ button:hover, .hovered {
     user-select: none;
 }
 
+.input-button:hover {
+    outline: none;
+}
+
 .input-button stroke-text {
     font-size: 70px;
     top: 0px;
+    pointer-events: none;
+}
+
+.input-button img {
+    width: 95px;
     pointer-events: none;
 }
 
@@ -373,7 +382,7 @@ button:hover, .hovered {
     right: calc((50vw + 0px));
     background-color: #b1a58d;
     border-top-left-radius: 30px;
-    border-bottom-left-radius: 5px;
+    border-bottom-left-radius: 30px;
     border-right: none;
 }
 
@@ -381,7 +390,7 @@ button:hover, .hovered {
     left: calc((50vw + 0px));
     background-color: #624c3c;
     border-top-right-radius: 30px;
-    border-bottom-right-radius: 5px;
+    border-bottom-right-radius: 30px;
     border-left: none;
 }
 
@@ -583,8 +592,7 @@ input[type="text"] {
 
 #play-gameover-panel {
     width: 310px;
-    height: 120px;
-    left: calc((100vw - 338px) * 0.5);
+    left: calc((100vw - 360px) * 0.5);
     top: calc((100svh - 148px) * 0.5);
     text-align: center;
 }

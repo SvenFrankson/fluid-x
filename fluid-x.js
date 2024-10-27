@@ -242,60 +242,70 @@ class Ball extends BABYLON.Mesh {
                     break;
                 }
             }
-            let tiles = this.game.puzzle.getTiles(this.position.x, this.position.z);
-            for (let i = 0; i < tiles.length; i++) {
-                let tile = tiles[i];
-                if (this.ballState === BallState.Move && tile instanceof HoleTile) {
-                    if (tile.fallsIn(this)) {
-                        this.ballState = BallState.Fall;
-                        this.fallTimer = 0;
-                        this.hole = tile;
-                        return;
-                    }
-                }
-                else {
-                    if (tile.tileState === TileState.Active) {
-                        if (tile.collide(this, impact)) {
-                            let dir = this.position.subtract(impact);
-                            if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                                if (dir.x > 0) {
-                                    this.position.x = impact.x + this.radius;
-                                    this.bounceXValue = 1;
-                                    this.bounceXTimer = this.bounceXDelay;
+            for (let ii = -1; ii <= 1; ii++) {
+                for (let jj = -1; jj <= 1; jj++) {
+                    let stack = this.game.puzzle.getGriddedStack(this.i + ii, this.j + jj);
+                    if (stack) {
+                        let tiles = stack.array;
+                        for (let i = 0; i < tiles.length; i++) {
+                            let tile = tiles[i];
+                            if (this.ballState === BallState.Move && tile instanceof HoleTile) {
+                                if (tile.fallsIn(this)) {
+                                    this.ballState = BallState.Fall;
+                                    this.fallTimer = 0;
+                                    this.hole = tile;
+                                    return;
                                 }
-                                else {
-                                    this.position.x = impact.x - this.radius;
-                                    this.bounceXValue = -1;
-                                    this.bounceXTimer = this.bounceXDelay;
-                                }
-                                this.woodChocSound.play();
                             }
                             else {
-                                if (dir.z > 0) {
-                                    this.vZ = 1;
-                                }
-                                else {
-                                    this.vZ = -1;
-                                }
-                                this.woodChocSound.play();
-                            }
-                            if (this.ballState === BallState.Move) {
-                                if (tile instanceof SwitchTile) {
-                                    tile.bump();
-                                    this.setColor(tile.color);
-                                }
-                                else if (tile instanceof BlockTile) {
-                                    if (tile.color === this.color) {
-                                        tile.tileState = TileState.Dying;
-                                        tile.shrink().then(() => {
-                                            tile.dispose();
-                                        });
+                                if (tile.tileState === TileState.Active) {
+                                    if (tile.collide(this, impact)) {
+                                        let dir = this.position.subtract(impact);
+                                        if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                                            if (dir.x > 0) {
+                                                this.position.x = impact.x + this.radius;
+                                                this.bounceXValue = 1;
+                                                this.bounceXTimer = this.bounceXDelay;
+                                            }
+                                            else {
+                                                this.position.x = impact.x - this.radius;
+                                                this.bounceXValue = -1;
+                                                this.bounceXTimer = this.bounceXDelay;
+                                            }
+                                            this.woodChocSound.play();
+                                        }
+                                        else {
+                                            if (dir.z > 0) {
+                                                this.vZ = 1;
+                                            }
+                                            else {
+                                                this.vZ = -1;
+                                            }
+                                            this.woodChocSound.play();
+                                        }
+                                        if (this.ballState === BallState.Move) {
+                                            if (tile instanceof SwitchTile) {
+                                                tile.bump();
+                                                this.setColor(tile.color);
+                                            }
+                                            else if (tile instanceof BlockTile) {
+                                                if (tile.color === this.color) {
+                                                    tile.tileState = TileState.Dying;
+                                                    tile.shrink().then(() => {
+                                                        tile.dispose();
+                                                    });
+                                                }
+                                            }
+                                            else if (tile instanceof PushTile) {
+                                                tile.push(dir.scale(-1));
+                                            }
+                                            ii = Infinity;
+                                            jj = Infinity;
+                                            i = Infinity;
+                                            break;
+                                        }
                                     }
                                 }
-                                else if (tile instanceof PushTile) {
-                                    tile.push(dir.scale(-1));
-                                }
-                                break;
                             }
                         }
                     }
@@ -360,7 +370,6 @@ class Tile extends BABYLON.Mesh {
         this.props = props;
         this.tileState = TileState.Active;
         this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.game.puzzle.tiles.push(this);
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
@@ -371,6 +380,8 @@ class Tile extends BABYLON.Mesh {
         if (isFinite(props.h)) {
             this.position.y = props.h;
         }
+        this.game.puzzle.tiles.push(this);
+        this.game.puzzle.updateGriddedStack(this, true);
         if (props.noShadow != true) {
             this.shadow = new BABYLON.Mesh("shadow");
             this.shadow.position.x = -0.015;
@@ -424,6 +435,7 @@ class Tile extends BABYLON.Mesh {
         if (index != -1) {
             this.game.puzzle.tiles.splice(index, 1);
         }
+        this.game.puzzle.removeFromGriddedStack(this);
         super.dispose();
     }
     collide(ball, impact) {
@@ -862,8 +874,9 @@ class CarillonRouter extends Nabu.Router {
     }
     onUpdate() { }
     async onHRefChange(page, previousPage) {
-        console.log("onHRefChange previous " + previousPage + " now " + page);
+        console.log("onHRefChange from " + previousPage + " to " + page);
         //?gdmachineId=1979464530
+        let showTime = 0.5;
         for (let i = 0; i < this.pages.length; i++) {
             await this.pages[i].waitLoaded();
         }
@@ -872,21 +885,23 @@ class CarillonRouter extends Nabu.Router {
         if (page.startsWith("#options")) {
         }
         else if (page.startsWith("#credits")) {
-            await this.show(this.creditsPage, false, 0);
+            await this.show(this.creditsPage, false, showTime);
         }
         else if (page === "#dev") {
-            await this.show(this.devPage, false, 0);
+            await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#community")) {
-            await this.show(this.communityLevelPage.nabuPage, false, 0);
-            this.communityLevelPage.redraw();
+            this.show(this.communityLevelPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.communityLevelPage.redraw();
+            });
         }
         else if (page.startsWith("#dev-levels")) {
             if (!DEV_MODE_ACTIVATED) {
                 location.hash = "#dev";
                 return;
             }
-            await this.show(this.devLevelPage.nabuPage, false, 0);
+            this.show(this.devLevelPage.nabuPage, false, showTime);
             if (page.indexOf("#dev-levels-") != -1) {
                 let state = parseInt(page.replace("#dev-levels-", ""));
                 this.devLevelPage.levelStateToFetch = state;
@@ -894,19 +909,21 @@ class CarillonRouter extends Nabu.Router {
             else {
                 this.devLevelPage.levelStateToFetch = 0;
             }
-            this.devLevelPage.redraw();
+            requestAnimationFrame(() => {
+                this.devLevelPage.redraw();
+            });
         }
         else if (page.startsWith("#editor-preview")) {
             this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#editor";
             this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#editor";
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#editor";
-            await this.show(this.playUI, false, 0);
+            this.show(this.playUI, false, showTime);
             document.querySelector("#editor-btn").style.display = "";
             await this.game.puzzle.reset();
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#editor")) {
-            await this.show(this.editorUI, false, 0);
+            this.show(this.editorUI, false, showTime);
             await this.game.puzzle.reset();
             this.game.editor.activate();
             this.game.mode = GameMode.Editor;
@@ -927,8 +944,8 @@ class CarillonRouter extends Nabu.Router {
                     return;
                 }
             }
+            this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
-            await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Play;
         }
@@ -954,17 +971,19 @@ class CarillonRouter extends Nabu.Router {
                 CLEAN_IPuzzleData(data);
                 this.game.puzzle.loadFromData(data);
             }
+            this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
-            await this.show(this.playUI, false, 0);
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {
-            await this.show(this.baseLevelPage.nabuPage, false, 0);
-            this.baseLevelPage.redraw();
+            this.show(this.baseLevelPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.baseLevelPage.redraw();
+            });
         }
         else if (page.startsWith("#home")) {
-            await this.show(this.homeMenu.nabuPage, false, 0);
+            await this.show(this.homeMenu.nabuPage, false, showTime);
         }
         else {
             location.hash = "#home";
@@ -1900,11 +1919,15 @@ class LevelPage {
                 this.buttons.push(squareButton);
                 squareButton.classList.add("square-btn-panel", "bluegrey");
                 if (n >= puzzleTileData.length) {
-                    squareButton.style.visibility = "hidden";
+                    squareButton.classList.add("locked");
+                    squareButton.style.opacity = "0.2";
                 }
                 else {
                     if (puzzleTileData[n].locked) {
                         squareButton.classList.add("locked");
+                    }
+                    if (puzzleTileData[n].classList) {
+                        squareButton.classList.add(...puzzleTileData[n].classList);
                     }
                     squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].data.title + "</stroke-text>";
                     squareButton.onclick = puzzleTileData[n].onclick;
@@ -1948,12 +1971,10 @@ class LevelPage {
         let line = document.createElement("div");
         line.classList.add("square-btn-container-halfline");
         container.appendChild(line);
-        line = document.createElement("div");
-        line.classList.add("square-btn-container-halfline");
-        container.appendChild(line);
         let prevButton = document.createElement("button");
         this.buttons.push(prevButton);
         prevButton.classList.add("square-btn", "bluegrey");
+        prevButton.style.margin = "10px";
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
             prevButton.onclick = () => {
@@ -1970,12 +1991,14 @@ class LevelPage {
         line.appendChild(prevButton);
         for (let j = 1; j < this.colCount - 1; j++) {
             let squareButton = document.createElement("button");
+            squareButton.style.margin = "10px";
             this.buttons.push(squareButton);
             squareButton.classList.add("square-btn");
             squareButton.style.visibility = "hidden";
             line.appendChild(squareButton);
         }
         let nextButton = document.createElement("button");
+        nextButton.style.margin = "10px";
         this.buttons.push(nextButton);
         nextButton.classList.add("square-btn", "bluegrey");
         if (puzzleTileData.length === this.levelsPerPage) {
@@ -1989,6 +2012,9 @@ class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
+        line = document.createElement("div");
+        line.classList.add("square-btn-container-halfline");
+        container.appendChild(line);
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
         }
@@ -2076,7 +2102,7 @@ class BaseLevelPage extends LevelPage {
                         id: null,
                         title: "Puzzles and Challenges !",
                         author: "Tiaratum Games",
-                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa"
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
                         location.hash = "#community";
@@ -2179,7 +2205,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 6;
+var MRS_VERSION3 = 7;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2216,7 +2242,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2764,8 +2790,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             //document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -3277,6 +3303,7 @@ class PushTile extends Tile {
                         this.tileState = TileState.Moving;
                         this.pushSound.play();
                         await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
+                        this.game.puzzle.updateGriddedStack(this);
                         this.tileState = TileState.Active;
                     }
                 }
@@ -3324,6 +3351,7 @@ class Puzzle {
             content: ""
         };
         this.tiles = [];
+        this.griddedTiles = [];
         this.borders = [];
         this.buildings = [];
         this.w = 10;
@@ -3345,10 +3373,47 @@ class Puzzle {
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
     }
-    getTiles(x, z) {
-        return this.tiles.filter(t => {
-            return Math.abs(t.position.x - x) < 2 && Math.abs(t.position.z - z) < 2;
-        });
+    _getOrCreateGriddedStack(i, j) {
+        if (!this.griddedTiles[i]) {
+            this.griddedTiles[i] = [];
+        }
+        if (!this.griddedTiles[i][j]) {
+            this.griddedTiles[i][j] = new Nabu.UniqueList();
+        }
+        return this.griddedTiles[i][j];
+    }
+    getGriddedStack(i, j) {
+        if (this.griddedTiles[i]) {
+            return this.griddedTiles[i][j];
+        }
+    }
+    updateGriddedStack(t, skipSafetyCheck) {
+        if (!skipSafetyCheck) {
+            this.griddedTiles.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+        this._getOrCreateGriddedStack(t.i, t.j).push(t);
+    }
+    removeFromGriddedStack(t) {
+        let expected = this.getGriddedStack(t.i, t.j);
+        if (expected && expected.contains(t)) {
+            expected.remove(t);
+        }
+        else {
+            console.warn("Removing a Tile that is not in its expected stack.");
+            this.griddedTiles.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
     }
     getBorders(x, z) {
         return this.borders.filter(b => {
@@ -3495,6 +3560,7 @@ class Puzzle {
         while (this.haikus.length > 0) {
             this.haikus.pop().dispose();
         }
+        this.griddedTiles = [];
         this.data = data;
         DEV_UPDATE_STATE_UI();
         if (isFinite(data.id)) {

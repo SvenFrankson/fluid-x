@@ -3,6 +3,7 @@ interface IPuzzleTileData {
     onclick: () => void;
     locked?: boolean;
     completed?: boolean;
+    classList?: string[];
 }
 
 abstract class LevelPage {
@@ -69,11 +70,15 @@ abstract class LevelPage {
                 this.buttons.push(squareButton);
                 squareButton.classList.add("square-btn-panel", "bluegrey");
                 if (n >= puzzleTileData.length) {
-                    squareButton.style.visibility = "hidden";
+                    squareButton.classList.add("locked");
+                    squareButton.style.opacity = "0.2";
                 }
                 else {
                     if (puzzleTileData[n].locked) {
                         squareButton.classList.add("locked");
+                    }
+                    if (puzzleTileData[n].classList) {
+                        squareButton.classList.add(...puzzleTileData[n].classList);
                     }
 
                     squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].data.title + "</stroke-text>";
@@ -124,13 +129,10 @@ abstract class LevelPage {
         line.classList.add("square-btn-container-halfline");
         container.appendChild(line);
 
-        line = document.createElement("div");
-        line.classList.add("square-btn-container-halfline");
-        container.appendChild(line);
-
         let prevButton = document.createElement("button");
         this.buttons.push(prevButton);
         prevButton.classList.add("square-btn", "bluegrey");
+        prevButton.style.margin = "10px";
         if (this.page === 0) {
             prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
             prevButton.onclick = () => {
@@ -145,14 +147,18 @@ abstract class LevelPage {
             }
         }
         line.appendChild(prevButton);
+        
         for (let j = 1; j < this.colCount - 1; j++) {
             let squareButton = document.createElement("button");
+            squareButton.style.margin = "10px";
             this.buttons.push(squareButton);
             squareButton.classList.add("square-btn");
             squareButton.style.visibility = "hidden";
             line.appendChild(squareButton);
         }
+
         let nextButton = document.createElement("button");
+        nextButton.style.margin = "10px";
         this.buttons.push(nextButton);
         nextButton.classList.add("square-btn", "bluegrey");
         if (puzzleTileData.length === this.levelsPerPage) {
@@ -166,6 +172,10 @@ abstract class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
+
+        line = document.createElement("div");
+        line.classList.add("square-btn-container-halfline");
+        container.appendChild(line);
 
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
@@ -375,7 +385,7 @@ class BaseLevelPage extends LevelPage {
                         id: null,
                         title: "Puzzles and Challenges !",
                         author: "Tiaratum Games",
-                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa"
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
                         location.hash = "#community"

@@ -38,9 +38,10 @@ class CarillonRouter extends Nabu.Router {
     protected onUpdate(): void {}
 
     protected async onHRefChange(page: string, previousPage: string): Promise<void> {
-        console.log("onHRefChange previous " + previousPage + " now " + page);
+        console.log("onHRefChange from " + previousPage + " to " + page);
         //?gdmachineId=1979464530
 
+        let showTime = 0.5;
         for (let i = 0; i < this.pages.length; i++) {
             await this.pages[i].waitLoaded();
         }
@@ -52,21 +53,23 @@ class CarillonRouter extends Nabu.Router {
             
         }
         else if (page.startsWith("#credits")) {
-            await this.show(this.creditsPage, false, 0);
+            await this.show(this.creditsPage, false, showTime);
         }
         else if (page === "#dev") {
-            await this.show(this.devPage, false, 0);
+            await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#community")) {
-            await this.show(this.communityLevelPage.nabuPage, false, 0);
-            this.communityLevelPage.redraw();
+            this.show(this.communityLevelPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.communityLevelPage.redraw();
+            })
         }
         else if (page.startsWith("#dev-levels")) {
             if (!DEV_MODE_ACTIVATED) {
                 location.hash = "#dev";
                 return;
             }
-            await this.show(this.devLevelPage.nabuPage, false, 0);
+            this.show(this.devLevelPage.nabuPage, false, showTime);
             if (page.indexOf("#dev-levels-") != -1) {
                 let state = parseInt(page.replace("#dev-levels-", ""));
                 this.devLevelPage.levelStateToFetch = state;
@@ -74,19 +77,21 @@ class CarillonRouter extends Nabu.Router {
             else {
                 this.devLevelPage.levelStateToFetch = 0;
             }
-            this.devLevelPage.redraw();
+            requestAnimationFrame(() => {
+                this.devLevelPage.redraw();
+            })
         }
         else if (page.startsWith("#editor-preview")) {
             (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#editor";
-            await this.show(this.playUI, false, 0);
+            this.show(this.playUI, false, showTime);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
             await this.game.puzzle.reset();
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#editor")) {
-            await this.show(this.editorUI, false, 0);
+            this.show(this.editorUI, false, showTime);
             await this.game.puzzle.reset();
             this.game.editor.activate();
             this.game.mode = GameMode.Editor;
@@ -107,8 +112,8 @@ class CarillonRouter extends Nabu.Router {
                     return;
                 }
             }
+            this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
-            await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Play;
         }
@@ -134,17 +139,19 @@ class CarillonRouter extends Nabu.Router {
                 CLEAN_IPuzzleData(data);
                 this.game.puzzle.loadFromData(data);
             }
+            this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
-            await this.show(this.playUI, false, 0);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {
-            await this.show(this.baseLevelPage.nabuPage, false, 0);
-            this.baseLevelPage.redraw();
+            this.show(this.baseLevelPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.baseLevelPage.redraw();
+            })
         }
         else if (page.startsWith("#home")) {
-            await this.show(this.homeMenu.nabuPage, false, 0);
+            await this.show(this.homeMenu.nabuPage, false, showTime);
         }
         else {
             location.hash = "#home";

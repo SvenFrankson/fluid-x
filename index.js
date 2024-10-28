@@ -107,7 +107,6 @@ function loadStep() {
         requestAnimationFrame(loadStep);
     }
     else {
-        console.log("there there")
         document.querySelector("#click-anywhere-screen .white-track").style.opacity = "1";
         document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "Click or press anywhere to Enter";
     }

@@ -65,11 +65,14 @@ function CreatePlaqueVertexData(w: number, h: number, m: number): BABYLON.Vertex
 
 interface IBoxFrameVertexDataProps {
     w?: number,
+    wBase?: number,
     h?: number,
     d?: number,
+    dBase?: number,
     thickness?: number,
     innerHeight?: number,
     topCap?: boolean,
+    topCapColor?: BABYLON.Color4,
     bottomCap?: boolean,
     flatShading?: boolean
 }
@@ -79,11 +82,17 @@ function CreateBoxFrameVertexData(
     if (!isFinite(props.w)) {
         props.w = 1;
     }
+    if (!isFinite(props.wBase)) {
+        props.wBase = props.w;
+    }
     if (!isFinite(props.h)) {
         props.h = props.w;
     }
     if (!isFinite(props.d)) {
         props.d = 1;
+    }
+    if (!isFinite(props.dBase)) {
+        props.dBase = props.d;
     }
     if (!isFinite(props.thickness)) {
         props.thickness = props.w * 0.1;
@@ -93,16 +102,18 @@ function CreateBoxFrameVertexData(
     }
 
     let w2 = props.w / 2;
+    let wBase2 = props.wBase / 2;
     let d2 = props.d / 2;
+    let dBase2 = props.dBase / 2;
     let h = props.h;
     let t = props.thickness;
     let hh = props.innerHeight;
 
     let positions = [
-        - w2, 0, - d2,
-        w2, 0, - d2,
-        w2, 0, d2,
-        - w2, 0, d2,
+        - wBase2, 0, - dBase2,
+        wBase2, 0, - dBase2,
+        wBase2, 0, dBase2,
+        - wBase2, 0, dBase2,
         
         - w2, h, - d2,
         w2, h, - d2,
@@ -187,10 +198,22 @@ function CreateBoxFrameVertexData(
         BABYLON.VertexData.ComputeNormals(positions, indices, normals);
     }
 
+    let colors: number[] = [];
+    for (let i = 0; i < positions.length / 3; i++) {
+        let y = positions[3 * i + 1];
+        if (props.topCapColor && y === props.h - props.innerHeight) {
+            colors.push(...props.topCapColor.asArray());
+        }
+        else {
+            colors.push(1, 1, 1, 1);
+        }
+    }
+
     let vertexData = new BABYLON.VertexData();
     vertexData.positions = positions;
     vertexData.indices = indices;
     vertexData.normals = normals;
+    vertexData.colors = colors;
 
     return vertexData;
 }

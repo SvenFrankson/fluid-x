@@ -36,7 +36,7 @@ class Ball extends BABYLON.Mesh {
         boxMaterial.specularColor.copyFromFloats(0, 0, 0);
         //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         this.material = boxMaterial;
-        this.ballTop.material = this.game.colorMaterials[this.color];
+        this.ballTop.material = this.game.tileColorMaterials[this.color];
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = -0.015;
         this.shadow.position.y = 0.1;
@@ -87,7 +87,7 @@ class Ball extends BABYLON.Mesh {
     setColor(color) {
         this.color = color;
         if (this.ballTop) {
-            this.ballTop.material = this.game.colorMaterials[this.color];
+            this.ballTop.material = this.game.tileColorMaterials[this.color];
         }
     }
     get i() {
@@ -292,6 +292,7 @@ class Ball extends BABYLON.Mesh {
                                                 if (tile.color === this.color) {
                                                     tile.tileState = TileState.Dying;
                                                     tile.shrink().then(() => {
+                                                        tile.shootStar();
                                                         tile.dispose();
                                                     });
                                                 }
@@ -428,7 +429,7 @@ class Tile extends BABYLON.Mesh {
     }
     async shrink() {
         await this.animateSize(1.1, 0.1);
-        await this.animateSize(0.01, 0.3);
+        await this.animateSize(0.01, 0.4);
     }
     dispose() {
         let index = this.game.puzzle.tiles.indexOf(this);
@@ -465,6 +466,89 @@ class Tile extends BABYLON.Mesh {
         }
         return false;
     }
+    getWinPath(dest) {
+        let origin = this.position.clone();
+        let dir = dest.subtract(origin).normalize();
+        let c = (t) => {
+            let p = BABYLON.Vector3.Lerp(origin, dest, t);
+            p.y += 2 * Math.sin(t * Math.PI);
+            return p;
+        };
+        let spireCount = (Math.floor(Math.random() * 2) + 1) * 2;
+        let a = (t) => {
+            return t * spireCount * Math.PI;
+        };
+        let r = (t) => {
+            return Math.sin(t * Math.PI);
+        };
+        let p = (t) => {
+            let p = dir.scale(r(t));
+            Mummu.RotateInPlace(p, BABYLON.Axis.Y, a(t));
+            p.addInPlace(c(t));
+            return p;
+        };
+        let path = [];
+        for (let i = 0; i <= 100; i++) {
+            path[i] = p(i / 100);
+        }
+        return path;
+    }
+    shootStar() {
+        let dest = this.game.puzzle.fetchWinSlotPos(this.color);
+        let path = this.getWinPath(dest);
+        let star = BABYLON.MeshBuilder.CreateBox("star", { size: 0.4 });
+        let tileData = CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.35,
+            thickness: 0.05,
+            flatShading: true,
+            topCap: false,
+            bottomCap: true,
+        });
+        tileData.applyToMesh(star);
+        star.material = this.material;
+        star.position.copyFrom(this.position);
+        let starTop = BABYLON.CreateGround("startop", { width: 0.9, height: 0.9 });
+        starTop.position.y = 0.3;
+        starTop.parent = star;
+        starTop.material = this.game.tileColorMaterials[this.color];
+        star.scaling.copyFromFloats(0.4, 0.4, 0.4);
+        let tail = new BABYLON.Mesh("tail");
+        tail.visibility = 0.6;
+        tail.material = this.game.colorMaterials[this.color];
+        let tailPoints = [path[0]];
+        let n = 0;
+        let step = () => {
+            let d = BABYLON.Vector3.Distance(star.position, path[n]);
+            if (d < 0.4) {
+                n++;
+                if (!path[n]) {
+                    tail.dispose();
+                    star.setParent(this.game.puzzle.border);
+                    return;
+                }
+                tailPoints.push(path[n]);
+                if (tailPoints.length > 20) {
+                    tailPoints.splice(0, 1);
+                }
+            }
+            Mummu.StepToRef(star.position, path[n], 0.4, star.position);
+            if (tailPoints.length > 2) {
+                let data = Mummu.CreateWireVertexData({
+                    path: [...tailPoints, star.position],
+                    pathUps: [...tailPoints.map(p => { return BABYLON.Axis.Y; }), BABYLON.Axis.Y],
+                    radiusFunc: (f) => {
+                        return 0.1 * f + 0.01;
+                    },
+                    color: new BABYLON.Color4(1, 0.4, 0.4, 1)
+                });
+                data.applyToMesh(tail);
+            }
+            requestAnimationFrame(step);
+        };
+        step();
+    }
 }
 /// <reference path="./Tile.ts"/>
 class BlockTile extends Tile {
@@ -474,7 +558,7 @@ class BlockTile extends Tile {
         this.material = this.game.brownMaterial;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.colorMaterials[this.color];
+        this.tileTop.material = this.game.tileColorMaterials[this.color];
     }
     async instantiate() {
         await super.instantiate();
@@ -1964,12 +2048,12 @@ class LevelPage {
         let container = this.nabuPage.querySelector(".square-btn-container");
         container.innerHTML = "";
         let rect = container.getBoundingClientRect();
-        this.colCount = Math.floor(rect.width / 150);
-        this.rowCount = Math.floor(rect.height / 150);
+        this.colCount = Math.round(rect.width / 140);
+        this.rowCount = Math.round((Math.round(rect.height / (140 / 3))) / 3);
         while (this.colCount < 2) {
             this.colCount++;
         }
-        while (this.rowCount < 2) {
+        while (this.rowCount < 3) {
             this.rowCount++;
         }
         this.levelsPerPage = this.colCount * (this.rowCount - 1);
@@ -2041,13 +2125,13 @@ class LevelPage {
         prevButton.classList.add("square-btn", "bluegrey");
         prevButton.style.margin = "10px";
         if (this.page === 0) {
-            prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
+            prevButton.innerHTML = "<stroke-text>MENU</stroke-text>";
             prevButton.onclick = () => {
                 location.hash = "#home";
             };
         }
         else {
-            prevButton.innerHTML = "<stroke-text>PREV</stroke-text>";
+            prevButton.innerHTML = "<stroke-text>&lt; PAGE " + (this.page - 1 + 1).toFixed(0) + "</stroke-text>";
             prevButton.onclick = () => {
                 this.page--;
                 this.redraw();
@@ -2067,7 +2151,7 @@ class LevelPage {
         this.buttons.push(nextButton);
         nextButton.classList.add("square-btn", "bluegrey");
         if (puzzleTileData.length === this.levelsPerPage) {
-            nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
+            nextButton.innerHTML = "<stroke-text>PAGE " + (this.page + 1 + 1).toFixed(0) + " &gt;</stroke-text>";
             nextButton.onclick = () => {
                 this.page++;
                 this.redraw();
@@ -2267,7 +2351,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 10;
+var MRS_VERSION3 = 11;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2304,7 +2388,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2464,7 +2548,7 @@ class Game {
         this.menuCamAlpha = -Math.PI * 0.75;
         this.menuCamBeta = Math.PI * 0.3;
         this.menuCamRadius = 15;
-        this.playCameraRange = 10;
+        this.playCameraRange = 15;
         this.playCameraRadius = 20;
         this.playCameraMinRadius = 10;
         this.cameraOrtho = false;
@@ -2627,26 +2711,44 @@ class Game {
         this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
         this.shadowDiscMaterial.alpha = 0.4;
         this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.colorMaterials = [];
-        this.colorMaterials[TileColor.North] = northMaterial;
-        this.colorMaterials[TileColor.South] = southMaterial;
-        this.colorMaterials[TileColor.East] = eastMaterial;
-        this.colorMaterials[TileColor.West] = westMaterial;
+        this.tileColorMaterials = [];
+        this.tileColorMaterials[TileColor.North] = northMaterial;
+        this.tileColorMaterials[TileColor.South] = southMaterial;
+        this.tileColorMaterials[TileColor.East] = eastMaterial;
+        this.tileColorMaterials[TileColor.West] = westMaterial;
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
-        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
-        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
-        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
         this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d7275");
         this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
+        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
+        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.blueMaterial = new BABYLON.StandardMaterial("blue-material");
+        this.blueMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
+        this.blueMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.redMaterial = new BABYLON.StandardMaterial("red-material");
+        this.redMaterial.diffuseColor = BABYLON.Color3.FromHexString("#b03a48");
+        this.redMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.yellowMaterial = new BABYLON.StandardMaterial("yellow-material");
+        this.yellowMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e0c872");
+        this.yellowMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.greenMaterial = new BABYLON.StandardMaterial("green-material");
+        this.greenMaterial.diffuseColor = BABYLON.Color3.FromHexString("#3e6958");
+        this.greenMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.colorMaterials = [
+            this.redMaterial,
+            this.yellowMaterial,
+            this.blueMaterial,
+            this.greenMaterial
+        ];
         let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
         cubicNoiseTexture.double();
         cubicNoiseTexture.double();
@@ -2775,8 +2877,8 @@ class Game {
         };
         let devSecret = 0;
         let devSecretTimout = 0;
-        document.querySelector("#home h1").style.pointerEvents = "auto";
-        document.querySelector("#home h1").onclick = () => {
+        document.querySelector("#home-menu h1").style.pointerEvents = "auto";
+        document.querySelector("#home-menu h1").onclick = () => {
             if (devSecret < 6) {
                 devSecret++;
             }
@@ -2845,7 +2947,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -2893,7 +2995,7 @@ class Game {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.puzzle.ball.position.clone();
-                let margin = 4;
+                let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -2901,10 +3003,10 @@ class Game {
                     targetCameraPos.x = (this.puzzle.xMin + this.puzzle.xMax) * 0.5;
                 }
                 if (this.puzzle.zMax - this.puzzle.zMin > 2 * margin) {
-                    targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + margin * 1.15, this.puzzle.zMax - margin * 0.85);
+                    targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + margin * 0.85, this.puzzle.zMax - margin * 1.15);
                 }
                 else {
-                    targetCameraPos.z = (this.puzzle.zMin * 1.15 + this.puzzle.zMax * 0.85) * 0.5;
+                    targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
                 let f = Nabu.Easing.smooth2Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
@@ -3450,7 +3552,7 @@ class SwitchTile extends Tile {
         this.tileFrame.material = this.game.blackMaterial;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.colorMaterials[this.color];
+        this.tileTop.material = this.game.tileColorMaterials[this.color];
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
         this.tileBottom.material = this.game.salmonMaterial;
@@ -4013,6 +4115,8 @@ class Puzzle {
             author: "No Author",
             content: ""
         };
+        this.winSlots = [];
+        this.winSlotsIndexes = [0, 0, 0, 0];
         this.tiles = [];
         this.griddedTiles = [];
         this.borders = [];
@@ -4431,52 +4535,106 @@ class Puzzle {
         if (this.border) {
             this.border.dispose();
         }
+        while (this.winSlots.length > 0) {
+            this.winSlots.pop().dispose();
+        }
         this.border = new BABYLON.Mesh("border");
+        let bHeight = 0.3;
+        let bThickness = 0.8;
         let width = this.xMax - this.xMin;
         let depth = this.zMax - this.zMin;
         let data = CreateBoxFrameVertexData({
-            w: width + 1,
-            d: depth + 1,
-            h: 5.7,
-            thickness: 0.5,
-            innerHeight: 0.2,
+            w: width + 2 * bThickness,
+            d: depth + 2 * bThickness,
+            h: 5.5 + bHeight,
+            thickness: bThickness,
+            innerHeight: bHeight,
             flatShading: true
         });
         Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, -5.5, 0));
         this.border.position.copyFromFloats((this.xMax + this.xMin) * 0.5, 0, (this.zMax + this.zMin) * 0.5);
         this.border.material = this.game.blackMaterial;
         data.applyToMesh(this.border);
+        /*
         let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
         Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-1.25, 0, 0.16));
+        
         let tiaratumLogo = new BABYLON.Mesh("tiaratum-logo");
         plaqueData.applyToMesh(tiaratumLogo);
         tiaratumLogo.parent = this.border;
-        tiaratumLogo.position.copyFromFloats(width * 0.5 + 0.4, 0.21, -depth * 0.5 - 0.4);
+        tiaratumLogo.position.copyFromFloats(width * 0.5 + 0.4, 0.21, - depth * 0.5 - 0.4);
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
         haikuMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/tiaratum-logo-yellow.png");
         haikuMaterial.diffuseTexture.hasAlpha = true;
         haikuMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         tiaratumLogo.material = haikuMaterial;
+        
         Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-1.25, 0, 0.16).scale(-2));
         let tiaratumLogo2 = new BABYLON.Mesh("tiaratum-logo-2");
         plaqueData.applyToMesh(tiaratumLogo2);
         tiaratumLogo2.parent = this.border;
-        tiaratumLogo2.position.copyFromFloats(-width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
+        tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
+        
         let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
         Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
+
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
         fpsPlaque.parent = this.border;
-        fpsPlaque.position.copyFromFloats(-width * 0.5 - 0.4, 0.21, -depth * 0.5 - 0.4);
+        fpsPlaque.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, - depth * 0.5 - 0.4);
         fpsPlaque.material = this.fpsMaterial;
+        
         Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
         fpsPlaque2.position.copyFromFloats(width * 0.5 + 0.4, 0.21, depth * 0.5 + 0.4);
         fpsPlaque2.material = this.fpsMaterial;
+        */
+        this.winSlotsIndexes = [0, 0, 0, 0];
+        for (let color = TileColor.North; color <= TileColor.West; color++) {
+            this.winSlots[color] = new BABYLON.Mesh("winslots-south");
+            this.winSlots[color].material = this.game.blackMaterial;
+            let count = this.tiles.filter((tile) => {
+                return tile instanceof BlockTile && tile.color === color;
+            }).length;
+            if (count > 0) {
+                let datas = [];
+                for (let i = 0; i < count; i++) {
+                    let data = CreateBoxFrameVertexData({
+                        w: 0.5,
+                        wBase: 0.6,
+                        d: 0.5,
+                        dBase: 0.6,
+                        h: 0.1,
+                        thickness: 0.05,
+                        innerHeight: 0.09,
+                        topCap: true,
+                        topCapColor: new BABYLON.Color4(0.7, 0.7, 0.7, 1),
+                        flatShading: true
+                    });
+                    Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(i * 0.7, 0, 0));
+                    datas.push(data);
+                }
+                Mummu.MergeVertexDatas(...datas).applyToMesh(this.winSlots[color]);
+                this.winSlots[color].parent = this.border;
+                if (color === TileColor.North) {
+                    this.winSlots[color].position.copyFromFloats(-(count - 1) * 0.7 * 0.5, bHeight, depth * 0.5 + bThickness * 0.5);
+                }
+                else if (color === TileColor.East) {
+                    this.winSlots[color].position.copyFromFloats(width * 0.5 + bThickness * 0.5, bHeight, (count - 1) * 0.7 * 0.5);
+                }
+                else if (color === TileColor.South) {
+                    this.winSlots[color].position.copyFromFloats((count - 1) * 0.7 * 0.5, bHeight, -depth * 0.5 - bThickness * 0.5);
+                }
+                else if (color === TileColor.West) {
+                    this.winSlots[color].position.copyFromFloats(-width * 0.5 - bThickness * 0.5, bHeight, -(count - 1) * 0.7 * 0.5);
+                }
+                this.winSlots[color].rotation.y = Math.PI * 0.5 * color;
+            }
+        }
         let holes = [];
         let floorDatas = [];
         let holeDatas = [];
@@ -4571,6 +4729,17 @@ class Puzzle {
         else {
             this.holeWall.isVisible = false;
         }
+    }
+    fetchWinSlot(color) {
+        let s = this.winSlotsIndexes[color];
+        this.winSlotsIndexes[color]++;
+        return s;
+    }
+    fetchWinSlotPos(color) {
+        let s = this.fetchWinSlot(color);
+        let d = new BABYLON.Vector3(s * 0.7, 0, 0);
+        let winSlotMesh = this.winSlots[color];
+        return BABYLON.Vector3.TransformCoordinates(d, winSlotMesh.getWorldMatrix());
     }
     update(dt) {
         this.ball.update(dt);
@@ -4951,6 +5120,7 @@ class PuzzleUI {
         this._inputDropControl = () => {
             this.setHoveredElement(undefined);
         };
+        this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement;
@@ -4990,6 +5160,7 @@ class PuzzleUI {
     win() {
         this.successPanel.style.display = "";
         this.gameoverPanel.style.display = "none";
+        this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
@@ -4997,6 +5168,7 @@ class PuzzleUI {
     lose() {
         this.successPanel.style.display = "none";
         this.gameoverPanel.style.display = "";
+        this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
@@ -5007,6 +5179,9 @@ class PuzzleUI {
         }
         if (this.gameoverPanel) {
             this.gameoverPanel.style.display = "none";
+        }
+        if (this.ingameTimer) {
+            this.ingameTimer.style.display = "";
         }
     }
     setHighscoreState(state) {
@@ -5124,11 +5299,17 @@ function CreateBoxFrameVertexData(props) {
     if (!isFinite(props.w)) {
         props.w = 1;
     }
+    if (!isFinite(props.wBase)) {
+        props.wBase = props.w;
+    }
     if (!isFinite(props.h)) {
         props.h = props.w;
     }
     if (!isFinite(props.d)) {
         props.d = 1;
+    }
+    if (!isFinite(props.dBase)) {
+        props.dBase = props.d;
     }
     if (!isFinite(props.thickness)) {
         props.thickness = props.w * 0.1;
@@ -5137,15 +5318,17 @@ function CreateBoxFrameVertexData(props) {
         props.innerHeight = props.h * 0.25;
     }
     let w2 = props.w / 2;
+    let wBase2 = props.wBase / 2;
     let d2 = props.d / 2;
+    let dBase2 = props.dBase / 2;
     let h = props.h;
     let t = props.thickness;
     let hh = props.innerHeight;
     let positions = [
-        -w2, 0, -d2,
-        w2, 0, -d2,
-        w2, 0, d2,
-        -w2, 0, d2,
+        -wBase2, 0, -dBase2,
+        wBase2, 0, -dBase2,
+        wBase2, 0, dBase2,
+        -wBase2, 0, dBase2,
         -w2, h, -d2,
         w2, h, -d2,
         w2, h, d2,
@@ -5213,9 +5396,20 @@ function CreateBoxFrameVertexData(props) {
         normals = [];
         BABYLON.VertexData.ComputeNormals(positions, indices, normals);
     }
+    let colors = [];
+    for (let i = 0; i < positions.length / 3; i++) {
+        let y = positions[3 * i + 1];
+        if (props.topCapColor && y === props.h - props.innerHeight) {
+            colors.push(...props.topCapColor.asArray());
+        }
+        else {
+            colors.push(1, 1, 1, 1);
+        }
+    }
     let vertexData = new BABYLON.VertexData();
     vertexData.positions = positions;
     vertexData.indices = indices;
     vertexData.normals = normals;
+    vertexData.colors = colors;
     return vertexData;
 }

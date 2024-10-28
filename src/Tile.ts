@@ -88,7 +88,7 @@ abstract class Tile extends BABYLON.Mesh {
 
     public async shrink(): Promise<void> {
         await this.animateSize(1.1, 0.1);
-        await this.animateSize(0.01, 0.3);
+        await this.animateSize(0.01, 0.4);
     }
 
     public dispose(): void {
@@ -129,5 +129,101 @@ abstract class Tile extends BABYLON.Mesh {
         }
 
         return false;
+    }
+
+    public getWinPath(dest: BABYLON.Vector3): BABYLON.Vector3 [] {
+
+        let origin = this.position.clone();
+        let dir = dest.subtract(origin).normalize();
+        let c = (t: number) => {
+            let p = BABYLON.Vector3.Lerp(origin, dest, t);
+            p.y += 2 * Math.sin(t * Math.PI)
+            return p;
+        }
+        let spireCount = (Math.floor(Math.random() * 2) + 1) * 2;
+        let a = (t: number) => {
+            return t * spireCount * Math.PI;
+        }
+        let r = (t: number) => {
+            return Math.sin(t * Math.PI);
+        }
+
+        let p = (t: number) => {
+            let p = dir.scale(r(t));
+            Mummu.RotateInPlace(p, BABYLON.Axis.Y, a(t));
+            p.addInPlace(c(t));
+            return p;
+        }
+
+        let path: BABYLON.Vector3[] = [];
+        for (let i = 0; i <= 100; i++) {
+            path[i] = p(i / 100);
+        }
+
+        return path;
+    }
+
+    public shootStar(): void {
+
+        let dest = this.game.puzzle.fetchWinSlotPos(this.color);
+        let path = this.getWinPath(dest);
+
+        let star = BABYLON.MeshBuilder.CreateBox("star", { size: 0.4 });
+        let tileData = CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.35,
+            thickness: 0.05,
+            flatShading: true,
+            topCap: false,
+            bottomCap: true,
+        })
+        tileData.applyToMesh(star);
+        star.material = this.material;
+        star.position.copyFrom(this.position);
+
+        let starTop = BABYLON.CreateGround("startop", { width: 0.9, height: 0.9 });
+        starTop.position.y = 0.3;
+        starTop.parent = star;
+        starTop.material = this.game.tileColorMaterials[this.color];
+
+        star.scaling.copyFromFloats(0.4, 0.4, 0.4);
+
+
+        let tail = new BABYLON.Mesh("tail");
+        tail.visibility = 0.6;
+        tail.material = this.game.colorMaterials[this.color];
+        let tailPoints: BABYLON.Vector3[] = [path[0]];
+
+        let n = 0;
+        let step = () => {
+            let d = BABYLON.Vector3.Distance(star.position, path[n]);
+            if (d < 0.4) {
+                n++;
+                if (!path[n]) {
+                    tail.dispose();
+                    star.setParent(this.game.puzzle.border);
+                    return;
+                }
+                tailPoints.push(path[n]);
+                if (tailPoints.length > 20) {
+                    tailPoints.splice(0, 1);
+                }
+            }
+            Mummu.StepToRef(star.position, path[n], 0.4, star.position);
+            if (tailPoints.length > 2) {
+                let data = Mummu.CreateWireVertexData({
+                    path: [...tailPoints, star.position],
+                    pathUps: [...tailPoints.map(p => { return BABYLON.Axis.Y; }), BABYLON.Axis.Y],
+                    radiusFunc: (f) => {
+                        return 0.1 * f + 0.01;
+                    },
+                    color: new BABYLON.Color4(1, 0.4, 0.4, 1)
+                });
+                data.applyToMesh(tail);
+            }
+            requestAnimationFrame(step);
+        }
+        step();
     }
 }

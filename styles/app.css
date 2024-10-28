@@ -84,14 +84,27 @@ a:active {
     transform: rotate(45deg);
 }
 
-#home {
+#home-menu {
     position: fixed;
-    top: 0;
+    top: calc((100svh - 540px) * 0.5);
     left: calc((100vw - min(100vw, 700px)) * 0.5);
     width: min(100vw, 700px);
-    height: 100%;
     pointer-events: none;
     text-align: center;
+}
+
+@media (max-height: 540px) {
+    #home-menu {
+        top: calc((100svh - 310px) * 0.5);
+    }
+
+    #home-menu div {
+        display: inline-block;
+        margin-left: 5px;
+        margin-right: 5px;
+        padding: 0;
+        vertical-align: top;
+    }
 }
 
 h1 {
@@ -269,11 +282,13 @@ button:hover, .hovered {
 }
 
 .large-btn {
-    display: inline-block;
+    display: block;
     border: 4px solid #624c3cff;
     font-size: 40px;
     border-radius: 4px;
-    margin: 5px;
+    margin: 10px;
+    margin-left: auto;
+    margin-right: auto;
     width: 300px;
     height: 65px;
     padding: 0;
@@ -434,6 +449,16 @@ body:not(.vertical) #input-right {
     height: calc(100svh - 90px);
 }
 
+@media (max-height: 540px) {
+    .levels h1 {
+        display: none;
+    }
+
+    .square-btn-container {
+        height: 100svh;
+    }
+}
+
 .square-btn-container-line {
     display: flex;
     flex: 3;
@@ -590,8 +615,8 @@ input[type="text"] {
 #play-timer {
     display: block;
     position: fixed;
-    top: 10px;
-    right: 150px;
+    top: 8px;
+    right: 130px;
     font-size: 40px;
     font-family: Julee;
     font-weight: 900;
@@ -682,16 +707,17 @@ input[type="text"] {
 
 #dev-page {
     text-align: center;
-    width: 310px;
-    left: calc((100vw - 338px) * 0.5);
+    width: 300px;
+    left: calc((100vw - 328px) * 0.5);
     top: calc((100svh - 450px) * 0.5);
 }
 
 #credits-page {
     text-align: center;
-    width: 330px;
-    left: calc((100vw - 358px) * 0.5);
-    top: calc((100svh - 450px) * 0.5);
+    width: 300px;
+    left: calc((100vw - 328px) * 0.5);
+    top: calc((100svh - 320px) * 0.5);
+    line-height: 30px;
 }
 
 #eula-page {

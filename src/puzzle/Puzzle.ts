@@ -7,6 +7,9 @@ class Puzzle {
         content: ""
     };
 
+    public winSlots: BABYLON.Mesh[] = [];
+    public winSlotsIndexes: number[] = [0, 0, 0, 0];
+
     public ball: Ball;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
@@ -468,17 +471,22 @@ class Puzzle {
         if (this.border) {
             this.border.dispose();
         }
+        while (this.winSlots.length > 0) {
+            this.winSlots.pop().dispose();
+        }
         this.border = new BABYLON.Mesh("border");
 
+        let bHeight = 0.3;
+        let bThickness = 0.8;
         let width = this.xMax - this.xMin;
         let depth = this.zMax - this.zMin;
 
         let data = CreateBoxFrameVertexData({
-            w: width + 1,
-            d: depth + 1,
-            h: 5.7,
-            thickness: 0.5,
-            innerHeight: 0.2,
+            w: width + 2 * bThickness,
+            d: depth + 2 * bThickness,
+            h: 5.5 + bHeight,
+            thickness: bThickness,
+            innerHeight: bHeight,
             flatShading: true
         })
 
@@ -488,6 +496,7 @@ class Puzzle {
         this.border.material = this.game.blackMaterial;
         data.applyToMesh(this.border);
 
+        /*
         let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
         Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-1.25, 0, 0.16));
         
@@ -524,6 +533,50 @@ class Puzzle {
         fpsPlaque2.parent = this.border;
         fpsPlaque2.position.copyFromFloats(width * 0.5 + 0.4, 0.21, depth * 0.5 + 0.4);
         fpsPlaque2.material = this.fpsMaterial;
+        */
+
+        this.winSlotsIndexes = [0, 0, 0, 0];
+        for (let color = TileColor.North; color <= TileColor.West; color++) {
+            this.winSlots[color] = new BABYLON.Mesh("winslots-south");
+            this.winSlots[color].material = this.game.blackMaterial;
+            let count = this.tiles.filter((tile) => {
+                return tile instanceof BlockTile && tile.color === color;
+            }).length;
+            if (count > 0) {
+                let datas: BABYLON.VertexData[] = [];
+                for (let i = 0; i < count; i++) {
+                    let data = CreateBoxFrameVertexData({
+                        w: 0.5,
+                        wBase: 0.6,
+                        d: 0.5,
+                        dBase: 0.6,
+                        h: 0.1,
+                        thickness: 0.05,
+                        innerHeight: 0.09,
+                        topCap: true,
+                        topCapColor: new BABYLON.Color4(0.7, 0.7, 0.7, 1),
+                        flatShading: true
+                    });
+                    Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(i * 0.7, 0, 0));
+                    datas.push(data);
+                }
+                Mummu.MergeVertexDatas(...datas).applyToMesh(this.winSlots[color]);
+                this.winSlots[color].parent = this.border;
+                if (color === TileColor.North) {
+                    this.winSlots[color].position.copyFromFloats(- (count - 1) * 0.7 * 0.5, bHeight, depth * 0.5 + bThickness * 0.5);
+                }
+                else if (color === TileColor.East) {
+                    this.winSlots[color].position.copyFromFloats(width * 0.5 + bThickness * 0.5, bHeight, (count - 1) * 0.7 * 0.5);
+                }
+                else if (color === TileColor.South) {
+                    this.winSlots[color].position.copyFromFloats((count - 1) * 0.7 * 0.5, bHeight, - depth * 0.5 - bThickness * 0.5);
+                }
+                else if (color === TileColor.West) {
+                    this.winSlots[color].position.copyFromFloats(- width * 0.5 - bThickness * 0.5, bHeight, - (count - 1) * 0.7 * 0.5);
+                }
+                this.winSlots[color].rotation.y = Math.PI * 0.5 * color;
+            }
+        }
         
         let holes = [];
         let floorDatas = [];
@@ -620,6 +673,19 @@ class Puzzle {
         else {
             this.holeWall.isVisible = false;
         }
+    }
+
+    public fetchWinSlot(color: number): number {
+        let s = this.winSlotsIndexes[color];
+        this.winSlotsIndexes[color]++;
+        return s;
+    }
+
+    public fetchWinSlotPos(color: number): BABYLON.Vector3 {
+        let s = this.fetchWinSlot(color);
+        let d = new BABYLON.Vector3(s * 0.7, 0, 0);
+        let winSlotMesh = this.winSlots[color];
+        return BABYLON.Vector3.TransformCoordinates(d, winSlotMesh.getWorldMatrix());
     }
 
     private _timer: number = 0;

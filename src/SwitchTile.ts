@@ -19,7 +19,7 @@ class SwitchTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         
-        this.tileTop.material = this.game.colorMaterials[this.color];
+        this.tileTop.material = this.game.tileColorMaterials[this.color];
 
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;

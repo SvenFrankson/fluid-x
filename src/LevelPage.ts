@@ -48,12 +48,12 @@ abstract class LevelPage {
         container.innerHTML = "";
 
         let rect = container.getBoundingClientRect();
-        this.colCount = Math.floor(rect.width / 150);
-        this.rowCount = Math.floor(rect.height / 150);
+        this.colCount = Math.round(rect.width / 140);
+        this.rowCount = Math.round((Math.round(rect.height / (140 / 3))) / 3);
         while (this.colCount < 2) {
             this.colCount++;
         }
-        while (this.rowCount < 2) {
+        while (this.rowCount < 3) {
             this.rowCount++;
         }
 
@@ -134,13 +134,13 @@ abstract class LevelPage {
         prevButton.classList.add("square-btn", "bluegrey");
         prevButton.style.margin = "10px";
         if (this.page === 0) {
-            prevButton.innerHTML = "<stroke-text>BACK</stroke-text>";
+            prevButton.innerHTML = "<stroke-text>MENU</stroke-text>";
             prevButton.onclick = () => {
                 location.hash = "#home";
             }
         }
         else {
-            prevButton.innerHTML = "<stroke-text>PREV</stroke-text>";
+            prevButton.innerHTML = "<stroke-text>&lt; PAGE " + (this.page - 1 + 1).toFixed(0) + "</stroke-text>";
             prevButton.onclick = () => {
                 this.page--;
                 this.redraw();
@@ -162,7 +162,7 @@ abstract class LevelPage {
         this.buttons.push(nextButton);
         nextButton.classList.add("square-btn", "bluegrey");
         if (puzzleTileData.length === this.levelsPerPage) {
-            nextButton.innerHTML = "<stroke-text>NEXT</stroke-text>";
+            nextButton.innerHTML = "<stroke-text>PAGE " + (this.page + 1 + 1).toFixed(0) + " &gt;</stroke-text>";
             nextButton.onclick = () => {
                 this.page++;
                 this.redraw();

@@ -4,7 +4,7 @@
 
 var MRS_VERSION: number = 0;
 var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 10;
+var MRS_VERSION3: number = 11;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -233,7 +233,7 @@ class Game {
     public menuCamAlpha: number = - Math.PI * 0.75;
     public menuCamBeta: number = Math.PI * 0.3;
     public menuCamRadius: number = 15;
-    public playCameraRange: number = 10;
+    public playCameraRange: number = 15;
     public playCameraRadius: number = 20;
     public playCameraMinRadius: number = 10;
 
@@ -246,12 +246,18 @@ class Game {
     public noiseTexture: BABYLON.RawTexture3D;
     public vertexDataLoader: Mummu.VertexDataLoader;
 
+    public tileColorMaterials: BABYLON.Material[];
     public colorMaterials: BABYLON.Material[];
     public whiteMaterial: BABYLON.StandardMaterial;
-    public salmonMaterial: BABYLON.StandardMaterial;
-    public brownMaterial: BABYLON.StandardMaterial;
     public grayMaterial: BABYLON.StandardMaterial;
     public blackMaterial: BABYLON.StandardMaterial;
+    public brownMaterial: BABYLON.StandardMaterial;
+    public salmonMaterial: BABYLON.StandardMaterial;
+    public blueMaterial: BABYLON.StandardMaterial;
+    public redMaterial: BABYLON.StandardMaterial;
+    public yellowMaterial: BABYLON.StandardMaterial;
+    public greenMaterial: BABYLON.StandardMaterial;
+
     public floorMaterial: BABYLON.StandardMaterial;
     public darkFloorMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
@@ -415,23 +421,15 @@ class Game {
         this.shadowDiscMaterial.alpha = 0.4;
         this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
 
-        this.colorMaterials = [];
-        this.colorMaterials[TileColor.North] = northMaterial;
-        this.colorMaterials[TileColor.South] = southMaterial;
-        this.colorMaterials[TileColor.East] = eastMaterial;
-        this.colorMaterials[TileColor.West] = westMaterial;
+        this.tileColorMaterials = [];
+        this.tileColorMaterials[TileColor.North] = northMaterial;
+        this.tileColorMaterials[TileColor.South] = southMaterial;
+        this.tileColorMaterials[TileColor.East] = eastMaterial;
+        this.tileColorMaterials[TileColor.West] = westMaterial;
 
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
-
-        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
-        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
-        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
-
-        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
-        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
         this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d7275");
@@ -440,6 +438,37 @@ class Game {
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
         this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
+        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
+        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.blueMaterial = new BABYLON.StandardMaterial("blue-material");
+        this.blueMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
+        this.blueMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.redMaterial = new BABYLON.StandardMaterial("red-material");
+        this.redMaterial.diffuseColor = BABYLON.Color3.FromHexString("#b03a48");
+        this.redMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.yellowMaterial = new BABYLON.StandardMaterial("yellow-material");
+        this.yellowMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e0c872");
+        this.yellowMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.greenMaterial = new BABYLON.StandardMaterial("green-material");
+        this.greenMaterial.diffuseColor = BABYLON.Color3.FromHexString("#3e6958");
+        this.greenMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        this.colorMaterials = [
+            this.redMaterial,
+            this.yellowMaterial,
+            this.blueMaterial,
+            this.greenMaterial
+        ]
 
         let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
         cubicNoiseTexture.double();
@@ -588,8 +617,8 @@ class Game {
 
         let devSecret = 0;
         let devSecretTimout: number = 0;
-        (document.querySelector("#home h1") as HTMLHeadingElement).style.pointerEvents = "auto";
-        (document.querySelector("#home h1") as HTMLDivElement).onclick = () => {
+        (document.querySelector("#home-menu h1") as HTMLHeadingElement).style.pointerEvents = "auto";
+        (document.querySelector("#home-menu h1") as HTMLDivElement).onclick = () => {
             if (devSecret < 6) {
                 devSecret++;
             }
@@ -672,7 +701,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -750,7 +779,7 @@ class Game {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.puzzle.ball.position.clone();
-                let margin = 4;
+                let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -758,10 +787,10 @@ class Game {
                     targetCameraPos.x = (this.puzzle.xMin + this.puzzle.xMax) * 0.5;
                 }
                 if (this.puzzle.zMax - this.puzzle.zMin > 2 * margin) {
-                    targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + margin * 1.15, this.puzzle.zMax - margin * 0.85);
+                    targetCameraPos.z = Nabu.MinMax(targetCameraPos.z, this.puzzle.zMin + margin * 0.85, this.puzzle.zMax - margin * 1.15);
                 }
                 else {
-                    targetCameraPos.z = (this.puzzle.zMin * 1.15 + this.puzzle.zMax * 0.85) * 0.5;
+                    targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
                 
                 let f = Nabu.Easing.smooth2Sec(1 / rawDT);

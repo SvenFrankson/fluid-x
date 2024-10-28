@@ -35,7 +35,7 @@ class Ball extends BABYLON.Mesh {
     public setColor(color: TileColor) {
         this.color = color;
         if (this.ballTop) {
-            this.ballTop.material = this.game.colorMaterials[this.color];
+            this.ballTop.material = this.game.tileColorMaterials[this.color];
         }
     }
 
@@ -73,7 +73,7 @@ class Ball extends BABYLON.Mesh {
         //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
         this.material = boxMaterial;
 
-        this.ballTop.material = this.game.colorMaterials[this.color];
+        this.ballTop.material = this.game.tileColorMaterials[this.color];
 
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = -0.015;
@@ -348,6 +348,7 @@ class Ball extends BABYLON.Mesh {
                                                 if (tile.color === this.color) {
                                                     tile.tileState = TileState.Dying;
                                                     tile.shrink().then(() => {
+                                                        tile.shootStar();
                                                         tile.dispose();
                                                     });
                                                 }

@@ -1,5 +1,6 @@
 class PuzzleUI {
 
+    public ingameTimer: HTMLDivElement;
     public successPanel: HTMLDivElement;
     public gameoverPanel: HTMLDivElement;
     public failMessage: HTMLDivElement;
@@ -32,6 +33,7 @@ class PuzzleUI {
     }
 
     constructor(public puzzle: Puzzle) {
+        this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement as HTMLDivElement;
@@ -60,6 +62,7 @@ class PuzzleUI {
     public win(): void {
         this.successPanel.style.display = "";
         this.gameoverPanel.style.display = "none";
+        this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
@@ -68,6 +71,7 @@ class PuzzleUI {
     public lose(): void {
         this.successPanel.style.display = "none";
         this.gameoverPanel.style.display = "";
+        this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
@@ -79,6 +83,9 @@ class PuzzleUI {
         }
         if (this.gameoverPanel) {
             this.gameoverPanel.style.display = "none";
+        }
+        if (this.ingameTimer) {
+            this.ingameTimer.style.display = "";
         }
     }
 

@@ -6,9 +6,9 @@ var BallState;
     BallState[BallState["Done"] = 3] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
-    constructor(game, props) {
+    constructor(puzzle, props) {
         super("ball");
-        this.game = game;
+        this.puzzle = puzzle;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.vZ = 1;
@@ -102,6 +102,9 @@ class Ball extends BABYLON.Mesh {
     set j(v) {
         this.position.z = v * 1.1;
     }
+    get game() {
+        return this.puzzle.game;
+    }
     async instantiate() {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         ballDatas[0].applyToMesh(this);
@@ -172,9 +175,6 @@ class Ball extends BABYLON.Mesh {
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
-                if (USE_POKI_SDK) {
-                    PokiGameplayStart();
-                }
             }
             return;
         }
@@ -195,27 +195,27 @@ class Ball extends BABYLON.Mesh {
             this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
             let speed = this.moveDir.scale(this.speed);
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.game.puzzle.zMax + 0.05) {
+            if (this.position.z + this.radius > this.puzzle.zMax + 0.05) {
                 this.vZ = -1;
                 this.woodChocSound2.play();
             }
-            else if (this.position.z - this.radius < this.game.puzzle.zMin - 0.05) {
+            else if (this.position.z - this.radius < this.puzzle.zMin - 0.05) {
                 this.vZ = 1;
                 this.woodChocSound2.play();
             }
-            if (this.position.x + this.radius > this.game.puzzle.xMax + 0.05) {
+            if (this.position.x + this.radius > this.puzzle.xMax + 0.05) {
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
                 this.woodChocSound2.play();
             }
-            else if (this.position.x - this.radius < this.game.puzzle.xMin - 0.05) {
+            else if (this.position.x - this.radius < this.puzzle.xMin - 0.05) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
             }
             let impact = BABYLON.Vector3.Zero();
-            let borders = this.game.puzzle.getBorders(this.position.x, this.position.z);
+            let borders = this.puzzle.getBorders(this.position.x, this.position.z);
             for (let i = 0; i < borders.length; i++) {
                 let border = borders[i];
                 if (border.collide(this, impact)) {
@@ -244,7 +244,7 @@ class Ball extends BABYLON.Mesh {
             }
             for (let ii = -1; ii <= 1; ii++) {
                 for (let jj = -1; jj <= 1; jj++) {
-                    let stack = this.game.puzzle.getGriddedStack(this.i + ii, this.j + jj);
+                    let stack = this.puzzle.getGriddedStack(this.i + ii, this.j + jj);
                     if (stack) {
                         let tiles = stack.array;
                         for (let i = 0; i < tiles.length; i++) {
@@ -345,7 +345,7 @@ class Ball extends BABYLON.Mesh {
                 explosionCloud.tZero = 0.9;
                 explosionCloud.boom();
                 this.ballState = BallState.Done;
-                this.game.puzzle.lose();
+                this.puzzle.lose();
                 return;
             }
             let f = Math.pow(this.fallTimer, 0.9);
@@ -883,20 +883,35 @@ class CarillonRouter extends Nabu.Router {
         this.game.mode = GameMode.Menu;
         this.game.editor.deactivate();
         if (page.startsWith("#options")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
         }
         else if (page.startsWith("#credits")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             await this.show(this.creditsPage, false, showTime);
         }
         else if (page === "#dev") {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#community")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             this.show(this.communityLevelPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.communityLevelPage.redraw();
             });
         }
         else if (page.startsWith("#dev-levels")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             if (!DEV_MODE_ACTIVATED) {
                 location.hash = "#dev";
                 return;
@@ -937,7 +952,7 @@ class CarillonRouter extends Nabu.Router {
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameTutorialLevels;
                 if (data.puzzles[numLevel - 1]) {
-                    this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
+                    this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
                 }
                 else {
                     location.hash = "#levels";
@@ -969,7 +984,7 @@ class CarillonRouter extends Nabu.Router {
                 });
                 let data = await response.json();
                 CLEAN_IPuzzleData(data);
-                this.game.puzzle.loadFromData(data);
+                this.game.puzzle.resetFromData(data);
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
@@ -977,12 +992,18 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             this.show(this.baseLevelPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.baseLevelPage.redraw();
             });
         }
         else if (page.startsWith("#home")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             await this.show(this.homeMenu.nabuPage, false, showTime);
         }
         else {
@@ -1036,7 +1057,7 @@ class Editor {
                 if (pick.hit) {
                     this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
                     this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
-                    this.cursorH = this.game.puzzle.hMapGet(this.cursorI, this.cursorJ);
+                    this.cursorH = this.puzzle.hMapGet(this.cursorI, this.cursorJ);
                     this.cursor.isVisible = true;
                     this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
                     this.cursor.position.addInPlace(this.cursorOffset);
@@ -1060,26 +1081,26 @@ class Editor {
                 });
                 if (pick.hit) {
                     if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                        let tile = this.game.puzzle.tiles.find(tile => {
+                        let tile = this.puzzle.tiles.find(tile => {
                             return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
                         if (tile) {
                             tile.dispose();
-                            this.game.puzzle.rebuildFloor();
+                            this.puzzle.rebuildFloor();
                             this.updateInvisifloorTM();
                         }
                         else {
-                            let building = this.game.puzzle.buildings.find(build => {
+                            let building = this.puzzle.buildings.find(build => {
                                 return build.i === this.cursorI && build.j === this.cursorJ;
                             });
                             if (building) {
                                 building.dispose();
-                                this.game.puzzle.editorRegenerateBuildings();
+                                this.puzzle.editorRegenerateBuildings();
                             }
                         }
                     }
                     else if (ev.button === 0) {
-                        let tile = this.game.puzzle.tiles.find(tile => {
+                        let tile = this.puzzle.tiles.find(tile => {
                             return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
                         if (!tile) {
@@ -1125,25 +1146,25 @@ class Editor {
                                     i: this.cursorI,
                                     j: this.cursorJ
                                 });
-                                this.game.puzzle.editorRegenerateBuildings();
+                                this.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Ramp) {
                                 let box = new Ramp(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ
                                 });
-                                this.game.puzzle.editorRegenerateBuildings();
+                                this.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Bridge) {
                                 let box = new Bridge(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ
                                 });
-                                this.game.puzzle.editorRegenerateBuildings();
+                                this.puzzle.editorRegenerateBuildings();
                             }
                             if (tile) {
                                 tile.instantiate();
-                                this.game.puzzle.rebuildFloor();
+                                this.puzzle.rebuildFloor();
                                 this.updateInvisifloorTM();
                             }
                         }
@@ -1185,18 +1206,24 @@ class Editor {
     getScene() {
         return this.game.scene;
     }
+    get puzzle() {
+        return this.game.puzzle;
+    }
+    get ball() {
+        return this.puzzle.ball;
+    }
     initValues() {
-        this.originColorInput.setValue(this.game.ball.color);
-        this.originIInput.setValue(this.game.ball.i);
-        this.originJInput.setValue(this.game.ball.j);
-        this.widthInput.setValue(this.game.puzzle.w);
-        this.heightInput.setValue(this.game.puzzle.h);
+        this.originColorInput.setValue(this.ball.color);
+        this.originIInput.setValue(this.ball.i);
+        this.originJInput.setValue(this.ball.j);
+        this.widthInput.setValue(this.puzzle.w);
+        this.heightInput.setValue(this.puzzle.h);
     }
     activate() {
         this.originColorInput = document.getElementById("editor-origin-color");
         this.originColorInput.onValueChange = (v) => {
             let color = v;
-            this.game.ball.setColor(color);
+            this.ball.setColor(color);
         };
         this.originColorInput.valueToString = (v) => {
             return TileColorNames[v];
@@ -1204,25 +1231,25 @@ class Editor {
         this.originIInput = document.getElementById("editor-origin-i");
         this.originIInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.ball.i = Math.min(v, this.game.puzzle.w - 1);
+            this.ball.i = Math.min(v, this.puzzle.w - 1);
         };
         this.originJInput = document.getElementById("editor-origin-j");
         this.originJInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.ball.j = Math.min(v, this.game.puzzle.h - 1);
+            this.ball.j = Math.min(v, this.puzzle.h - 1);
         };
         this.widthInput = document.getElementById("editor-width");
         this.widthInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.puzzle.w = Math.max(v, 3);
-            this.game.puzzle.rebuildFloor();
+            this.puzzle.w = Math.max(v, 3);
+            this.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
         };
         this.heightInput = document.getElementById("editor-height");
         this.heightInput.onValueChange = (v) => {
             this.dropClear();
-            this.game.puzzle.h = Math.max(v, 3);
-            this.game.puzzle.rebuildFloor();
+            this.puzzle.h = Math.max(v, 3);
+            this.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
         };
         this.switchTileNorthButton = document.getElementById("switch-north-btn");
@@ -1293,14 +1320,14 @@ class Editor {
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
-            this.game.puzzle.data.content = SaveAsText(this.game.puzzle);
-            this.game.puzzle.reset();
+            this.puzzle.data.content = SaveAsText(this.puzzle);
+            this.puzzle.reset();
             location.hash = "#editor-preview";
         };
         document.getElementById("save-btn").onclick = () => {
             this.dropClear();
             this.dropBrush();
-            let content = SaveAsText(this.game.puzzle);
+            let content = SaveAsText(this.puzzle);
             Nabu.download("puzzle.txt", content);
         };
         document.getElementById("load-btn").onclick = () => {
@@ -1316,13 +1343,13 @@ class Editor {
                 const reader = new FileReader();
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
-                    this.game.puzzle.loadFromData({
+                    this.puzzle.resetFromData({
                         id: 42,
                         title: "Custom Machine",
                         author: "Editor",
                         content: content
                     });
-                    await this.game.puzzle.instantiate();
+                    await this.puzzle.instantiate();
                     this.initValues();
                 });
                 reader.readAsText(file);
@@ -1361,14 +1388,14 @@ class Editor {
                 let data = {
                     title: this.title,
                     author: this.author,
-                    content: SaveAsText(this.game.puzzle),
+                    content: SaveAsText(this.puzzle),
                     id: null
                 };
                 let headers = {
                     "Content-Type": "application/json",
                 };
-                if (DEV_MODE_ACTIVATED && this.game.puzzle.data.id != null) {
-                    data.id = this.game.puzzle.data.id;
+                if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
+                    data.id = this.puzzle.data.id;
                     if (var1) {
                         headers = {
                             "Content-Type": "application/json",
@@ -1416,8 +1443,8 @@ class Editor {
         };
         this.doClearButton.onclick = async () => {
             this.dropClear();
-            await this.game.puzzle.loadFromFile("./datas/levels/min.txt");
-            await this.game.puzzle.instantiate();
+            await this.puzzle.loadFromFile("./datas/levels/min.txt");
+            await this.puzzle.instantiate();
             this.initValues();
             this.updatePublishText();
         };
@@ -1465,11 +1492,11 @@ class Editor {
         });
     }
     updatePublishText() {
-        if (DEV_MODE_ACTIVATED && this.game.puzzle.data.id != null) {
+        if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
             document.querySelector("#publish-btn stroke-text").innerHTML = "Update";
             this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Update";
-            this.titleInput.value = this.game.puzzle.data.title;
-            this.authorInput.value = this.game.puzzle.data.author;
+            this.titleInput.value = this.puzzle.data.title;
+            this.authorInput.value = this.puzzle.data.author;
         }
         else {
             document.querySelector("#publish-btn stroke-text").innerHTML = "Publish";
@@ -1477,8 +1504,8 @@ class Editor {
         }
     }
     updateInvisifloorTM() {
-        let w = this.game.puzzle.xMax - this.game.puzzle.xMin;
-        let h = this.game.puzzle.zMax - this.game.puzzle.zMin;
+        let w = this.puzzle.xMax - this.puzzle.xMin;
+        let h = this.puzzle.zMax - this.puzzle.zMin;
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = 0.5 * w;
         this.invisiFloorTM.position.z = 0.5 * h;
@@ -1638,8 +1665,8 @@ class Haiku extends BABYLON.Mesh {
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
     update(dt) {
-        if (this.game.ball.ballState === BallState.Move) {
-            let dx = Math.abs(this.position.x - this.game.ball.position.x);
+        if (this.game.puzzle.ball.ballState === BallState.Move) {
+            let dx = Math.abs(this.position.x - this.game.puzzle.ball.position.x);
             if (!this.inRange) {
                 if (dx < 3) {
                     this.inRange = true;
@@ -1942,10 +1969,10 @@ class LevelPage {
         let rect = container.getBoundingClientRect();
         this.colCount = Math.floor(rect.width / 150);
         this.rowCount = Math.floor(rect.height / 150);
-        while (this.colCount < 3) {
+        while (this.colCount < 2) {
             this.colCount++;
         }
-        while (this.rowCount < 4) {
+        while (this.rowCount < 2) {
             this.rowCount++;
         }
         this.levelsPerPage = this.colCount * (this.rowCount - 1);
@@ -2053,9 +2080,6 @@ class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
-        line = document.createElement("div");
-        line.classList.add("square-btn-container-halfline");
-        container.appendChild(line);
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
         }
@@ -2131,7 +2155,7 @@ class BaseLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
                     locked: locked
@@ -2176,7 +2200,7 @@ class CommunityLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[i],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "play-community-" + id;
                     }
                 };
@@ -2196,7 +2220,7 @@ class CommunityLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "play-community-" + data.puzzles[n].id;
                     }
                 };
@@ -2229,7 +2253,7 @@ class DevLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[i],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "play-community-" + id;
                     }
                 };
@@ -2246,7 +2270,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 8;
+var MRS_VERSION3 = 9;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2309,8 +2333,6 @@ let onFirstPlayerInteractionTouch = (ev) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
-    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -2696,14 +2718,9 @@ class Game {
                 this.tiaratumGameOfflinePuzzleLevels.puzzles[i].numLevel = (i + 1);
             }
         }
-        this.ball = new Ball(this, { color: TileColor.North });
-        this.ball.position.x = 0;
-        this.ball.position.z = 0;
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
-        await this.ball.instantiate();
-        this.ball.ballState = BallState.Ready;
         this.editor = new Editor(this);
         /*
         let bridge = new Bridge(this, {
@@ -2828,8 +2845,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             //document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -2874,7 +2891,7 @@ class Game {
         if (isFinite(rawDT)) {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = this.ball.position.clone();
+                let targetCameraPos = this.puzzle.ball.position.clone();
                 let margin = 4;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
@@ -2894,9 +2911,6 @@ class Game {
                 this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
                 this.camera.radius = this.camera.radius * f3 + (this.playCameraRadius) * (1 - f3);
-                if (this.ball) {
-                    this.ball.update(rawDT);
-                }
                 if (this.puzzle) {
                     this.puzzle.update(rawDT);
                 }
@@ -3274,7 +3288,15 @@ class PushTile extends Tile {
     }
     async instantiate() {
         await super.instantiate();
-        let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/box.babylon");
+        let tileData = CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.35,
+            thickness: 0.05,
+            flatShading: true,
+            topCap: false,
+            bottomCap: true,
+        });
         tileData.applyToMesh(this);
         this.tileTop.position.y = 0.3;
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
@@ -4001,6 +4023,7 @@ class Puzzle {
         this._timer = 0;
         this._globalTime = 0;
         this._smoothedFPS = 30;
+        this.ball = new Ball(this, { color: TileColor.North });
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
@@ -4096,8 +4119,24 @@ class Puzzle {
     get zMax() {
         return this.h * 1.1 - 0.55;
     }
+    async reset() {
+        if (this.data) {
+            this.resetFromData(this.data);
+            await this.instantiate();
+        }
+        this.puzzleUI.reset();
+        document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
+        document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
+        this.game.fadeInIntro();
+        if (USE_POKI_SDK) {
+            PokiGameplayStart();
+        }
+    }
     win() {
-        let score = Math.floor(this.game.ball.playTimer * 100);
+        if (USE_POKI_SDK) {
+            PokiGameplayStop();
+        }
+        let score = Math.floor(this.ball.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         let highscore = this.data.score;
@@ -4110,7 +4149,7 @@ class Puzzle {
         let s3 = ratio > 0.9 ? "★" : "☆";
         this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
         setTimeout(() => {
-            if (this.game.ball.ballState === BallState.Done) {
+            if (this.ball.ballState === BallState.Done) {
                 this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
                 this.puzzleUI.win();
                 if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
@@ -4123,8 +4162,11 @@ class Puzzle {
         }, 1000);
     }
     lose() {
+        if (USE_POKI_SDK) {
+            PokiGameplayStop();
+        }
         setTimeout(() => {
-            if (this.game.ball.ballState === BallState.Done) {
+            if (this.ball.ballState === BallState.Done) {
                 this.puzzleUI.lose();
             }
         }, 1000);
@@ -4134,7 +4176,7 @@ class Puzzle {
             return;
         }
         this._pendingPublish = true;
-        let score = Math.round(this.game.ball.playTimer * 100);
+        let score = Math.round(this.ball.playTimer * 100);
         let puzzleId = this.data.id;
         let player = document.querySelector("#score-player-input").value;
         let actions = "cheating";
@@ -4170,27 +4212,17 @@ class Puzzle {
             }
         }
     }
-    async reset() {
-        if (this.data) {
-            this.loadFromData(this.data);
-            await this.instantiate();
-        }
-        this.puzzleUI.reset();
-        document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
-        document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
-        this.game.fadeInIntro();
-    }
     async loadFromFile(path) {
         let file = await fetch(path);
         let content = await file.text();
-        this.loadFromData({
+        this.resetFromData({
             id: null,
             title: "No Title",
             author: "No Author",
             content: content
         });
     }
-    loadFromData(data) {
+    resetFromData(data) {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
@@ -4212,21 +4244,21 @@ class Puzzle {
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
-        this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
-        this.game.ball.position.y = 0;
-        this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
-        this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        this.game.ball.trailPoints = [];
-        this.game.ball.trailMesh.isVisible = false;
+        this.ball.position.x = parseInt(ballLine[0]) * 1.1;
+        this.ball.position.y = 0;
+        this.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.ball.trailPoints = [];
+        this.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
-            this.game.ball.setColor(parseInt(ballLine[2]));
+            this.ball.setColor(parseInt(ballLine[2]));
         }
         else {
-            this.game.ball.setColor(TileColor.North);
+            this.ball.setColor(TileColor.North);
         }
-        this.game.ball.ballState = BallState.Ready;
+        this.ball.ballState = BallState.Ready;
         this.game.setPlayTimer(0);
-        this.game.ball.vZ = 1;
+        this.ball.vZ = 1;
         this.h = lines.length;
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
@@ -4372,6 +4404,7 @@ class Puzzle {
             this.buildings[i].regenerateBorders();
             await this.buildings[i].instantiate();
         }
+        await this.ball.instantiate();
         this.rebuildFloor();
     }
     regenerateHeightMap() {
@@ -4539,11 +4572,12 @@ class Puzzle {
         }
     }
     update(dt) {
+        this.ball.update(dt);
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
         });
-        if (tiles.length === 0 && this.game.ball.ballState != BallState.Done) {
-            this.game.ball.ballState = BallState.Done;
+        if (tiles.length === 0 && this.ball.ballState != BallState.Done) {
+            this.ball.ballState = BallState.Done;
             this.win();
         }
         for (let i = 0; i < this.haikus.length; i++) {
@@ -4806,7 +4840,7 @@ function SaveAsText(puzzle) {
     });
     lines.reverse();
     let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
-    lines2.splice(0, 0, puzzle.game.ball.i.toFixed(0) + "u" + puzzle.game.ball.j.toFixed(0) + "u" + puzzle.game.ball.color.toFixed(0));
+    lines2.splice(0, 0, puzzle.ball.i.toFixed(0) + "u" + puzzle.ball.j.toFixed(0) + "u" + puzzle.ball.color.toFixed(0));
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
 }
 class PuzzleUI {

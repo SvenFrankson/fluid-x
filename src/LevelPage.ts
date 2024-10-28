@@ -50,10 +50,10 @@ abstract class LevelPage {
         let rect = container.getBoundingClientRect();
         this.colCount = Math.floor(rect.width / 150);
         this.rowCount = Math.floor(rect.height / 150);
-        while (this.colCount < 3) {
+        while (this.colCount < 2) {
             this.colCount++;
         }
-        while (this.rowCount < 4) {
+        while (this.rowCount < 2) {
             this.rowCount++;
         }
 
@@ -172,10 +172,6 @@ abstract class LevelPage {
             nextButton.style.visibility = "hidden";
         }
         line.appendChild(nextButton);
-
-        line = document.createElement("div");
-        line.classList.add("square-btn-container-halfline");
-        container.appendChild(line);
 
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
@@ -373,7 +369,7 @@ class BaseLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
                     locked: locked
@@ -425,7 +421,7 @@ class CommunityLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[i],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "play-community-" + id;
                     }
                 }
@@ -448,7 +444,7 @@ class CommunityLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[n]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "play-community-" + data.puzzles[n].id;
                     }
                 }
@@ -490,7 +486,7 @@ class DevLevelPage extends LevelPage {
                 puzzleData[i] = {
                     data: data.puzzles[i],
                     onclick: () => {
-                        this.router.game.puzzle.loadFromData(data.puzzles[i]);
+                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "play-community-" + id;
                     }
                 }

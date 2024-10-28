@@ -1,6 +1,114 @@
 class HaikuMaker {
 
     public static MakeHaiku(puzzle: Puzzle): void {
+        if (puzzle.data.id === 74 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Control -",
+                IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 3);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 75 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Control -",
+                IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 3);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+
+            let testHaiku2 = new Haiku(
+                puzzle.game,
+                "",
+                "- Objective -",
+                "Hit all colored tiles.",
+                ""
+            );
+            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 2.5);
+            testHaiku2.visibility = 0;
+            puzzle.haikus.push(testHaiku2);
+        }
+        if (puzzle.data.id === 76 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Color -",
+                "Hit a drum to switch Color.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 3);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 60 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Caution -",
+                "Holes are dangerous.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 2.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 78 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Push -",
+                "Wooden Tiles can be pushed.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 1.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 62 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Count -",
+                "One Tile at a time.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 5, 0.1, 1.1 * 4.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 68 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Satisfaction -",
+                "",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 1.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 80 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Lives -",
+                "Don't look down.",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+
         if (puzzle.data.id === 58 && puzzle.data.state === 2) {
             // First Level Haikus
 

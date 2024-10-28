@@ -37,4 +37,5 @@ Remove-Item -Path "../carillion-build/tsconfig.json"
 
 (Get-Content "../carillion-build/index.js").Replace('./lib/babylon.max.js', './lib/babylon.js') | Set-Content "../carillion-build/index.js"
 (Get-Content "../carillion-build/fluid-x.js").Replace('this.DEBUG_MODE = true', 'this.DEBUG_MODE = false') | Set-Content "../carillion-build/fluid-x.js"
+(Get-Content "../carillion-build/fluid-x.js").Replace('var OFFLINE_MODE = false', 'var OFFLINE_MODE = true') | Set-Content "../carillion-build/fluid-x.js"
 (Get-Content "../carillion-build/fluid-x.js").Replace('this.DEBUG_USE_LOCAL_STORAGE = true', 'this.DEBUG_USE_LOCAL_STORAGE = false') | Set-Content "../carillion-build/fluid-x.js"

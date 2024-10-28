@@ -1542,6 +1542,58 @@ class Editor {
 }
 class HaikuMaker {
     static MakeHaiku(puzzle) {
+        if (puzzle.data.id === 74 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
+            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 3);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 75 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 3);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+            let testHaiku2 = new Haiku(puzzle.game, "", "- Objective -", "Hit all colored tiles.", "");
+            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 2.5);
+            testHaiku2.visibility = 0;
+            puzzle.haikus.push(testHaiku2);
+        }
+        if (puzzle.data.id === 76 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Color -", "Hit a drum to switch Color.", "");
+            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 3);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 60 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Caution -", "Holes are dangerous.", "");
+            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 2.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 78 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Push -", "Wooden Tiles can be pushed.", "");
+            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 1.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 62 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Count -", "One Tile at a time.", "");
+            testHaiku.position.copyFromFloats(1.1 * 5, 0.1, 1.1 * 4.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 68 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Satisfaction -", "", "");
+            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 1.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 80 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Lives -", "Don't look down.", "");
+            testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
         if (puzzle.data.id === 58 && puzzle.data.state === 2) {
             // First Level Haikus
             let testHaiku = new Haiku(puzzle.game, "- Control -", "Left -west- to right -east-", "One may decide where he goes.", "Unless walls oppose.");
@@ -2205,7 +2257,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 7;
+var MRS_VERSION3 = 8;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2246,9 +2298,6 @@ var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
-}
-if (location.host.indexOf("poki.com") != -1 || location.host.indexOf("poki.dev") != -1) {
-    OFFLINE_MODE = true;
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -2790,8 +2839,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             //document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            document.querySelector("#dev-pass-input").value = "Crillion";
+            DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {

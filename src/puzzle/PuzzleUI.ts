@@ -9,7 +9,6 @@ class PuzzleUI {
     public scorePendingBtn: HTMLButtonElement;
     public scoreDoneBtn: HTMLButtonElement;
     public successReplayButton: HTMLButtonElement;
-    public successBackButton: HTMLButtonElement;
     public successNextButton: HTMLButtonElement;
     public gameoverBackButton: HTMLButtonElement;
     public gameoverReplayButton: HTMLButtonElement;
@@ -44,7 +43,6 @@ class PuzzleUI {
         this.successReplayButton.onclick = () => {
             this.puzzle.reset();
         }
-        this.successBackButton = document.querySelector("#success-back-btn") as HTMLButtonElement;
         this.successNextButton = document.querySelector("#success-next-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
@@ -145,7 +143,7 @@ class PuzzleUI {
             if (this.hoveredElement === undefined) {
                 this.setHoveredElement(this.successNextButton);
             }
-            else if (this.hoveredElement === this.successBackButton || this.hoveredElement === this.successNextButton) {
+            else if (this.hoveredElement === this.successNextButton) {
                 this.setHoveredElement(this.successReplayButton);
             }
             else if (this.hoveredElement === this.successReplayButton) {
@@ -175,11 +173,11 @@ class PuzzleUI {
             if (this.hoveredElement === undefined) {
                 this.setHoveredElement(this.successNextButton);
             }
-            else if (this.hoveredElement === this.successBackButton) {
+            else if (this.hoveredElement === this.successReplayButton) {
                 this.setHoveredElement(this.successNextButton);
             } 
             else if (this.hoveredElement === this.successNextButton) {
-                this.setHoveredElement(this.successBackButton);
+                this.setHoveredElement(this.successReplayButton);
             }
         }
         else if (this.gameoverPanel.style.display === "") {
@@ -214,7 +212,7 @@ class PuzzleUI {
             else if (this.hoveredElement === this.successReplayButton) {
                 this.setHoveredElement(this.successNextButton);
             }
-            else if (this.hoveredElement === this.successBackButton || this.hoveredElement === this.successNextButton) {
+            else if (this.hoveredElement === this.successNextButton) {
                 if (this.highscoreContainer.style.display === "block") {
                     this.setHoveredElement(this.highscorePlayerLine);
                 }

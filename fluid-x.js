@@ -929,7 +929,6 @@ class CarillonRouter extends Nabu.Router {
             });
         }
         else if (page.startsWith("#editor-preview")) {
-            this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#editor";
             this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#editor";
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#editor";
             this.show(this.playUI, false, showTime);
@@ -945,7 +944,6 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             this.playBackButton.parentElement.href = "#levels";
-            this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#levels";
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
@@ -966,7 +964,6 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#play-community-")) {
             this.playBackButton.parentElement.href = "#community";
-            this.game.puzzle.puzzleUI.successBackButton.parentElement.href = "#community";
             this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community";
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#community";
             let puzzleId = parseInt(page.replace("#play-community-", ""));
@@ -2270,7 +2267,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 9;
+var MRS_VERSION3 = 10;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2336,7 +2333,7 @@ let onFirstPlayerInteractionTouch = (ev) => {
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 500);
+    }, 300);
     Game.Instance.onResize();
     IsTouchScreen = 1;
     document.body.classList.add("touchscreen");
@@ -2359,7 +2356,9 @@ let onFirstPlayerInteractionClick = (ev) => {
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Clic");
-    document.getElementById("click-anywhere-screen").style.display = "none";
+    setTimeout(() => {
+        document.getElementById("click-anywhere-screen").style.display = "none";
+    }, 300);
     Game.Instance.onResize();
     IsTouchScreen = 0;
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
@@ -2381,7 +2380,9 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
-    document.getElementById("click-anywhere-screen").style.display = "none";
+    setTimeout(() => {
+        document.getElementById("click-anywhere-screen").style.display = "none";
+    }, 300);
     Game.Instance.onResize();
     IsTouchScreen = 0;
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
@@ -2463,9 +2464,9 @@ class Game {
         this.menuCamAlpha = -Math.PI * 0.75;
         this.menuCamBeta = Math.PI * 0.3;
         this.menuCamRadius = 15;
-        this.playCameraRange = 12;
+        this.playCameraRange = 10;
         this.playCameraRadius = 20;
-        this.playCameraMinRadius = 15;
+        this.playCameraMinRadius = 10;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
         this.completedPuzzles = [];
@@ -4851,7 +4852,7 @@ class PuzzleUI {
                 if (this.hoveredElement === undefined) {
                     this.setHoveredElement(this.successNextButton);
                 }
-                else if (this.hoveredElement === this.successBackButton || this.hoveredElement === this.successNextButton) {
+                else if (this.hoveredElement === this.successNextButton) {
                     this.setHoveredElement(this.successReplayButton);
                 }
                 else if (this.hoveredElement === this.successReplayButton) {
@@ -4879,11 +4880,11 @@ class PuzzleUI {
                 if (this.hoveredElement === undefined) {
                     this.setHoveredElement(this.successNextButton);
                 }
-                else if (this.hoveredElement === this.successBackButton) {
+                else if (this.hoveredElement === this.successReplayButton) {
                     this.setHoveredElement(this.successNextButton);
                 }
                 else if (this.hoveredElement === this.successNextButton) {
-                    this.setHoveredElement(this.successBackButton);
+                    this.setHoveredElement(this.successReplayButton);
                 }
             }
             else if (this.gameoverPanel.style.display === "") {
@@ -4917,7 +4918,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.successReplayButton) {
                     this.setHoveredElement(this.successNextButton);
                 }
-                else if (this.hoveredElement === this.successBackButton || this.hoveredElement === this.successNextButton) {
+                else if (this.hoveredElement === this.successNextButton) {
                     if (this.highscoreContainer.style.display === "block") {
                         this.setHoveredElement(this.highscorePlayerLine);
                     }
@@ -4960,7 +4961,6 @@ class PuzzleUI {
         this.successReplayButton.onclick = () => {
             this.puzzle.reset();
         };
-        this.successBackButton = document.querySelector("#success-back-btn");
         this.successNextButton = document.querySelector("#success-next-btn");
         this.gameoverBackButton = document.querySelector("#gameover-back-btn");
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");

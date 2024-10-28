@@ -96,7 +96,6 @@ class CarillonRouter extends Nabu.Router {
             })
         }
         else if (page.startsWith("#editor-preview")) {
-            (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             this.show(this.playUI, false, showTime);
@@ -112,7 +111,6 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             (this.playBackButton.parentElement as HTMLAnchorElement).href = "#levels";
-            (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
@@ -133,7 +131,6 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#play-community-")) {
             (this.playBackButton.parentElement as HTMLAnchorElement).href = "#community";
-            (this.game.puzzle.puzzleUI.successBackButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
             let puzzleId = parseInt(page.replace("#play-community-", ""));

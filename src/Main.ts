@@ -4,7 +4,7 @@
 
 var MRS_VERSION: number = 0;
 var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 9;
+var MRS_VERSION3: number = 10;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 
@@ -76,7 +76,7 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 500);
+    }, 300);
     Game.Instance.onResize();
 
     IsTouchScreen = 1;
@@ -101,7 +101,9 @@ let onFirstPlayerInteractionClick = (ev: Event) => {
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Clic");
-    document.getElementById("click-anywhere-screen").style.display = "none";
+    setTimeout(() => {
+        document.getElementById("click-anywhere-screen").style.display = "none";
+    }, 300);
     Game.Instance.onResize();
 
     IsTouchScreen = 0;
@@ -125,7 +127,9 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
-    document.getElementById("click-anywhere-screen").style.display = "none";
+    setTimeout(() => {
+        document.getElementById("click-anywhere-screen").style.display = "none";
+    }, 300);
     Game.Instance.onResize();
 
     IsTouchScreen = 0;
@@ -229,9 +233,9 @@ class Game {
     public menuCamAlpha: number = - Math.PI * 0.75;
     public menuCamBeta: number = Math.PI * 0.3;
     public menuCamRadius: number = 15;
-    public playCameraRange: number = 12;
+    public playCameraRange: number = 10;
     public playCameraRadius: number = 20;
-    public playCameraMinRadius: number = 15;
+    public playCameraMinRadius: number = 10;
 
     public cameraOrtho: boolean = false;
 

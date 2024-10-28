@@ -72,7 +72,6 @@ a:active {
     width: min(100vw, 700px);
     height: 100%;
     text-align: center;
-    outline: 1px solid magenta;
 }
 
 .button-frame {
@@ -103,7 +102,6 @@ h1 {
     font-family: Julee;
     font-weight: 900;
     margin: 0;
-    outline: 1px solid red;
     color: #2b2821;
 }
 
@@ -316,17 +314,24 @@ button:hover, .hovered {
     border: 2px solid #624c3cff;
     font-weight: 900;
     padding: 3px;
-    margin: 3px;
+    margin: 5px;
 }
 
 .square-btn {
     display: flex;
+    text-align: center;
     font-size: 30px;
     flex: 1;
     border: 2px solid #624c3cff;
     font-weight: 900;
+
     padding: 3px;
-    margin: 3px;
+    margin: 5px;
+}
+
+.square-btn stroke-text {
+    display: block;
+    width: 100%;
 }
 
 .small-btn {
@@ -356,8 +361,8 @@ button:hover, .hovered {
     position: fixed;
     display: block;
     bottom: 16px;
-    width: 140px;
-    height: 100px;
+    width: 120px;
+    height: 80px;
     border-radius: 0px;
     border: 3px solid #2b2821ff;
     padding: 0;
@@ -381,11 +386,11 @@ button:hover, .hovered {
 }
 
 .input-button img {
-    width: 95px;
+    width: 75px;
     pointer-events: none;
 }
 
-#input-left {
+body.vertical #input-left {
     right: calc((50vw + 0px));
     background-color: #b1a58d;
     border-top-left-radius: 30px;
@@ -393,12 +398,24 @@ button:hover, .hovered {
     border-right: none;
 }
 
-#input-right {
+body.vertical #input-right {
     left: calc((50vw + 0px));
     background-color: #624c3c;
     border-top-right-radius: 30px;
     border-bottom-right-radius: 30px;
     border-left: none;
+}
+
+body:not(.vertical) #input-left {
+    left: 5vw;
+    background-color: #b1a58d;
+    border-radius: 30px;
+}
+
+body:not(.vertical) #input-right {
+    right: 5vw;
+    background-color: #624c3c;
+    border-radius: 30px;
 }
 
 .inline {
@@ -415,12 +432,11 @@ button:hover, .hovered {
     display: flex;
     flex-direction: column;
     height: calc(100svh - 90px);
-    outline: 1px solid yellow
 }
 
 .square-btn-container-line {
     display: flex;
-    flex: 2;
+    flex: 3;
     flex-direction: row;
 }
 
@@ -438,7 +454,7 @@ button:hover, .hovered {
     display: block;
     position: absolute;
     left: 25%;
-    bottom: 28px;
+    bottom: 35px;
     max-width: 50%;
     max-height: 50%;
     z-index: 1;
@@ -465,7 +481,7 @@ button:hover, .hovered {
 .square-btn-panel .stamp {
     display: block;
     position: absolute;
-    bottom: 30px;
+    bottom: 50px;
     right: 5px;
     z-index: 2;
     transform-origin: bottom right;
@@ -589,7 +605,7 @@ input[type="text"] {
 #play-success-panel {
     width: 310px;
     left: calc((100vw - 338px) * 0.5);
-    top: calc((100svh - 350px) * 0.5);
+    top: calc((100svh - 300px) * 0.5);
     text-align: center;
 }
 

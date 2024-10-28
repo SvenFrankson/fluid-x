@@ -5,7 +5,6 @@ enum EditorBrush {
     Switch,
     Push,
     Hole,
-    Rock,
     Wall,
     Box,
     Ramp,
@@ -42,7 +41,6 @@ class Editor {
     public blockTileWestButton: HTMLButtonElement;
     public pushTileButton: HTMLButtonElement;
     public holeButton: HTMLButtonElement;
-    public rockButton: HTMLButtonElement;
     public wallButton: HTMLButtonElement;
     public boxButton: HTMLButtonElement;
     public rampButton: HTMLButtonElement;
@@ -163,7 +161,6 @@ class Editor {
         this.blockTileWestButton = document.getElementById("tile-west-btn") as HTMLButtonElement;
         this.pushTileButton = document.getElementById("push-tile-btn") as HTMLButtonElement;
         this.holeButton = document.getElementById("hole-btn") as HTMLButtonElement;
-        this.rockButton = document.getElementById("rock-btn") as HTMLButtonElement;
         this.wallButton = document.getElementById("wall-btn") as HTMLButtonElement;
         this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
         this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
@@ -181,7 +178,6 @@ class Editor {
             this.blockTileWestButton,
             this.pushTileButton,
             this.holeButton,
-            this.rockButton,
             this.wallButton,
             this.boxButton,
             this.rampButton,
@@ -220,7 +216,6 @@ class Editor {
 
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
-        makeBrushButton(this.rockButton, EditorBrush.Rock);
         makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
@@ -231,7 +226,7 @@ class Editor {
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
-            this.game.puzzle.data.content = this.game.puzzle.saveAsText()
+            this.game.puzzle.data.content = SaveAsText(this.game.puzzle);
             this.game.puzzle.reset();
             location.hash = "#editor-preview";
         };
@@ -239,7 +234,7 @@ class Editor {
         document.getElementById("save-btn").onclick = () => {
             this.dropClear();
             this.dropBrush();
-            let content = this.game.puzzle.saveAsText();
+            let content = SaveAsText(this.game.puzzle);
             Nabu.download("puzzle.txt", content);
         };
         
@@ -309,7 +304,7 @@ class Editor {
                 let data = {
                     title: this.title,
                     author: this.author,
-                    content: this.game.puzzle.saveAsText(),
+                    content: SaveAsText(this.game.puzzle),
                     id: null
                 }
                 let headers: any = {
@@ -623,16 +618,6 @@ class Editor {
                         }
                         else if (this.brush === EditorBrush.Hole) {
                             tile = new HoleTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Rock) {
-                            tile = new RockTile(
                                 this.game,
                                 {
                                     i: this.cursorI,

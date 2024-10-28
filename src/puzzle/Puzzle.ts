@@ -1,55 +1,7 @@
-interface IPuzzleData {
-    id: number;
-    title: string;
-    author: string;
-    content: string;
-    numLevel?: number;
-    score?: number;
-    player?: string;
-    state?: number;
-    story_order?: number;
-}
-
-function CLEAN_IPuzzleData(data: any): any {
-    if (data.id != null && typeof(data.id) === "string") {
-        data.id = parseInt(data.id);
-    }
-    if (data.score != null && typeof(data.score) === "string") {
-        data.score = parseInt(data.score);
-    }
-    if (data.state != null && typeof(data.state) === "string") {
-        data.state = parseInt(data.state);
-    }
-    if (data.story_order != null && typeof(data.story_order) === "string") {
-        data.story_order = parseInt(data.story_order);
-    }
-}
-
-interface IPuzzlesData {
-    puzzles: IPuzzleData[];
-}
-
-function CLEAN_IPuzzlesData(data: any): any {
-    for (let i = 0; i < data.puzzles.length; i++) {
-        if (data.puzzles[i].id != null && typeof(data.puzzles[i].id) === "string") {
-            data.puzzles[i].id = parseInt(data.puzzles[i].id);
-        }
-        if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
-            data.puzzles[i].score = parseInt(data.puzzles[i].score);
-        }
-        if (data.puzzles[i].state != null && typeof(data.puzzles[i].state) === "string") {
-            data.puzzles[i].state = parseInt(data.puzzles[i].state);
-        }
-        if (data.puzzles[i].story_order != null && typeof(data.puzzles[i].story_order) === "string") {
-            data.puzzles[i].story_order = parseInt(data.puzzles[i].story_order);
-        }
-    }
-}
-
 class Puzzle {
 
     public data: IPuzzleData = {
-        id: -1,
+        id: null,
         title: "No Title",
         author: "No Author",
         content: ""
@@ -347,7 +299,7 @@ class Puzzle {
                     });
                 }
                 if (c === "r") {
-                    let rock = new RockTile(this.game, {
+                    let rock = new WallTile(this.game, {
                         color: TileColor.North,
                         i: i,
                         j: j,
@@ -458,83 +410,6 @@ class Puzzle {
         HaikuMaker.MakeHaiku(this);
     }
 
-    public saveAsText(): string {
-        let lines: string[][] = [];
-        for (let j = 0; j < this.h; j++) {
-            lines[j] = [];
-            for (let i = 0; i < this.w; i++) {
-                lines[j][i] = "o";
-            }
-        }
-
-        this.tiles.forEach(tile => {
-            let i = tile.i;
-            let j = tile.j;
-            if (tile instanceof BlockTile) {
-                if (tile.color === TileColor.North) {
-                    lines[j][i] = "n";
-                }
-                else if (tile.color === TileColor.East) {
-                    lines[j][i] = "e";
-                }
-                else if (tile.color === TileColor.South) {
-                    lines[j][i] = "s";
-                }
-                else if (tile.color === TileColor.West) {
-                    lines[j][i] = "w";
-                }
-            }
-            else if (tile instanceof SwitchTile) {
-                if (tile.color === TileColor.North) {
-                    lines[j][i] = "N";
-                }
-                else if (tile.color === TileColor.East) {
-                    lines[j][i] = "E";
-                }
-                else if (tile.color === TileColor.South) {
-                    lines[j][i] = "S";
-                }
-                else if (tile.color === TileColor.West) {
-                    lines[j][i] = "W";
-                }
-            }
-            else if (tile instanceof PushTile) {
-                lines[j][i] = "p";
-            }
-            else if (tile instanceof HoleTile) {
-                lines[j][i] = "O";
-            }
-            else if (tile instanceof RockTile) {
-                lines[j][i] = "r";
-            }
-            else if (tile instanceof WallTile) {
-                lines[j][i] = "a";
-            }
-        });
-
-        this.buildings.forEach(building => {
-            let i = building.i;
-            let j = building.j;
-            if (building instanceof Box) {
-                lines[j][i] = "B";
-            }
-            if (building instanceof Ramp) {
-                lines[j][i] = "R";
-            }
-            if (building instanceof Bridge) {
-                lines[j][i] = "U";
-            }
-        })
-
-        lines.reverse();
-
-        let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
-
-        lines2.splice(0, 0, this.game.ball.i.toFixed(0) + "u" + this.game.ball.j.toFixed(0) + "u" + this.game.ball.color.toFixed(0));
-
-        return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
-    }
-
     public async instantiate(): Promise<void> {
         this.regenerateHeightMap();
         for (let i = 0; i < this.tiles.length; i++) {
@@ -582,49 +457,31 @@ class Puzzle {
         }
         this.border = new BABYLON.Mesh("border");
 
-        let top = BABYLON.MeshBuilder.CreateBox("top", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5});
-        top.position.x = 0.5 * (this.xMin + this.xMax);
-        top.position.y = 0.1;
-        top.position.z = this.zMax + 0.25;
-        top.material = this.game.blackMaterial;
-        top.parent = this.border;
-        
-        let topPanel = BABYLON.MeshBuilder.CreateGround("top-panel", { width: this.xMax - this.xMin + 1, height: 5.5});
-        topPanel.position.x = 0.5 * (this.xMin + this.xMax);
-        topPanel.position.y = - 5.5 * 0.5;
-        topPanel.position.z = this.zMax + 0.5;
-        topPanel.rotation.x = Math.PI * 0.5;
-        topPanel.material = this.game.blackMaterial;
-        topPanel.parent = this.border;
+        let width = this.xMax - this.xMin;
+        let depth = this.zMax - this.zMin;
 
-        let right = BABYLON.MeshBuilder.CreateBox("right", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin});
-        right.position.x = this.xMax + 0.25;
-        right.position.y = 0.1;
-        right.position.z = 0.5 * (this.zMin + this.zMax);
-        right.material = this.game.blackMaterial;
-        right.parent = this.border;
-        
-        let rightPanel = BABYLON.MeshBuilder.CreateGround("right-panel", { width: 5.5, height: this.zMax - this.zMin + 1});
-        rightPanel.position.x = this.xMax + 0.5;
-        rightPanel.position.y = - 5.5 * 0.5;
-        rightPanel.position.z = 0.5 * (this.zMin + this.zMax);
-        rightPanel.rotation.z = - Math.PI * 0.5;
-        rightPanel.material = this.game.blackMaterial;
-        rightPanel.parent = this.border;
+        let data = CreateBoxFrameVertexData({
+            w: width + 1,
+            d: depth + 1,
+            h: 5.7,
+            thickness: 0.5,
+            innerHeight: 0.2,
+            flatShading: true
+        })
 
-        let bottom = BABYLON.MeshBuilder.CreateBox("bottom", { width: this.xMax - this.xMin + 1, height: 0.2, depth: 0.5});
-        bottom.position.x = 0.5 * (this.xMin + this.xMax);
-        bottom.position.y = 0.1;
-        bottom.position.z = this.zMin - 0.25;
-        bottom.material = this.game.blackMaterial;
-        bottom.parent = this.border;
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, -5.5, 0));
+
+        this.border.position.copyFromFloats((this.xMax + this.xMin) * 0.5, 0, (this.zMax + this.zMin) * 0.5)
+        this.border.material = this.game.blackMaterial;
+        data.applyToMesh(this.border);
 
         let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
+        Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-1.25, 0, 0.16));
         
-        let tiaratumLogo = BABYLON.MeshBuilder.CreateGround("tiaratum-logo", { width: 2.5, height: 0.2 });
+        let tiaratumLogo = new BABYLON.Mesh("tiaratum-logo");
         plaqueData.applyToMesh(tiaratumLogo);
-        tiaratumLogo.parent = bottom;
-        tiaratumLogo.position.copyFromFloats((this.xMax - this.xMin) * 0.5 + 0.5 - 1.25 - 0.1, 0.10, 0);
+        tiaratumLogo.parent = this.border;
+        tiaratumLogo.position.copyFromFloats(width * 0.5 + 0.4, 0.21, - depth * 0.5 - 0.4);
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
         haikuMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/tiaratum-logo-yellow.png");
         haikuMaterial.diffuseTexture.hasAlpha = true;
@@ -632,48 +489,28 @@ class Puzzle {
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         tiaratumLogo.material = haikuMaterial;
         
-        let tiaratumLogo2 = BABYLON.MeshBuilder.CreateGround("tiaratum-logo", { width: 2.5, height: 0.2 });
+        Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-1.25, 0, 0.16).scale(-2));
+        let tiaratumLogo2 = new BABYLON.Mesh("tiaratum-logo-2");
         plaqueData.applyToMesh(tiaratumLogo2);
-        tiaratumLogo2.parent = top;
-        tiaratumLogo2.position.copyFromFloats(- (this.xMax - this.xMin) * 0.5 - 0.5 + 1.25 + 0.1, 0.10, 0);
+        tiaratumLogo2.parent = this.border;
+        tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
         
-        let fpsPlaqueData = CreatePlaqueVertexData(0.32 * 6, 0.32, 0.03);
+        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
 
-        let fpsPlaque = BABYLON.MeshBuilder.CreateGround("tiaratum-fps", { width: 2.5, height: 0.2 });
+        let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
-        fpsPlaque.parent = bottom;
-        fpsPlaque.position.copyFromFloats(- (this.xMax - this.xMin) * 0.5 - 0.5 + 0.32 * 6 * 0.5 + 0.1, 0.10, 0);
+        fpsPlaque.parent = this.border;
+        fpsPlaque.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, - depth * 0.5 - 0.4);
         fpsPlaque.material = this.fpsMaterial;
         
-        let fpsPlaque2 = BABYLON.MeshBuilder.CreateGround("tiaratum-fps", { width: 2.5, height: 0.2 });
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
+        let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
-        fpsPlaque2.parent = top;
-        fpsPlaque2.position.copyFromFloats((this.xMax - this.xMin) * 0.5 + 0.5 - 0.32 * 6 * 0.5 - 0.1, 0.10, 0);
+        fpsPlaque2.parent = this.border;
+        fpsPlaque2.position.copyFromFloats(width * 0.5 + 0.4, 0.21, depth * 0.5 + 0.4);
         fpsPlaque2.material = this.fpsMaterial;
-        
-        let bottomPanel = BABYLON.MeshBuilder.CreateGround("bottom-panel", { width: this.xMax - this.xMin + 1, height: 5.5});
-        bottomPanel.position.x = 0.5 * (this.xMin + this.xMax);
-        bottomPanel.position.y = - 5.5 * 0.5;
-        bottomPanel.position.z = this.zMin - 0.5;
-        bottomPanel.rotation.x = - Math.PI * 0.5;
-        bottomPanel.material = this.game.blackMaterial;
-        bottomPanel.parent = this.border;
-
-        let left = BABYLON.MeshBuilder.CreateBox("left", { width: 0.5, height: 0.2, depth: this.zMax - this.zMin});
-        left.position.x = this.xMin - 0.25;
-        left.position.y = 0.1;
-        left.position.z = 0.5 * (this.zMin + this.zMax);
-        left.material = this.game.blackMaterial;
-        left.parent = this.border;
-        
-        let leftPanel = BABYLON.MeshBuilder.CreateGround("left-panel", { width: 5.5, height: this.zMax - this.zMin + 1});
-        leftPanel.position.x = this.xMin - 0.5;
-        leftPanel.position.y = - 5.5 * 0.5;
-        leftPanel.position.z = 0.5 * (this.zMin + this.zMax);
-        leftPanel.rotation.z = Math.PI * 0.5;
-        leftPanel.material = this.game.blackMaterial;
-        leftPanel.parent = this.border;
         
         let holes = [];
         let floorDatas = [];

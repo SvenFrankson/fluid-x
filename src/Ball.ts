@@ -52,7 +52,11 @@ class Ball extends BABYLON.Mesh {
         this.position.z = v * 1.1;
     }
 
-    constructor(public game: Game, props: BallProps) {
+    public get game(): Game {
+        return this.puzzle.game;
+    }
+
+    constructor(public puzzle: Puzzle, props: BallProps) {
         super("ball");
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
 
@@ -217,9 +221,6 @@ class Ball extends BABYLON.Mesh {
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
-                if (USE_POKI_SDK) {
-                    PokiGameplayStart();
-                }
             }
             return;
         }
@@ -247,29 +248,29 @@ class Ball extends BABYLON.Mesh {
             let speed = this.moveDir.scale(this.speed);
 
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.game.puzzle.zMax + 0.05) {
+            if (this.position.z + this.radius > this.puzzle.zMax + 0.05) {
                 this.vZ = -1;
                 this.woodChocSound2.play();
             }
-            else if (this.position.z - this.radius < this.game.puzzle.zMin - 0.05) {
+            else if (this.position.z - this.radius < this.puzzle.zMin - 0.05) {
                 this.vZ = 1;
                 this.woodChocSound2.play();
             }
 
-            if (this.position.x + this.radius > this.game.puzzle.xMax + 0.05) {
+            if (this.position.x + this.radius > this.puzzle.xMax + 0.05) {
                 this.bounceXValue = - 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
                 this.woodChocSound2.play();
             }
-            else if (this.position.x - this.radius < this.game.puzzle.xMin - 0.05) {
+            else if (this.position.x - this.radius < this.puzzle.xMin - 0.05) {
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
             }
 
             let impact = BABYLON.Vector3.Zero();
-            let borders = this.game.puzzle.getBorders(this.position.x, this.position.z);
+            let borders = this.puzzle.getBorders(this.position.x, this.position.z);
             for (let i = 0; i < borders.length; i++) {
                 let border = borders[i];
                 if (border.collide(this, impact)) {
@@ -299,7 +300,7 @@ class Ball extends BABYLON.Mesh {
 
             for (let ii = -1; ii <= 1; ii++) {
                 for (let jj = -1; jj <= 1; jj++) {
-                    let stack = this.game.puzzle.getGriddedStack(this.i + ii, this.j + jj);
+                    let stack = this.puzzle.getGriddedStack(this.i + ii, this.j + jj);
                     if (stack) {
                         let tiles = stack.array;
                         for (let i = 0; i < tiles.length; i++) {
@@ -407,7 +408,7 @@ class Ball extends BABYLON.Mesh {
                 explosionCloud.boom();
 
                 this.ballState = BallState.Done;
-                this.game.puzzle.lose();
+                this.puzzle.lose();
                 return;
             }
 

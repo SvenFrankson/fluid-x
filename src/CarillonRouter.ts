@@ -50,21 +50,35 @@ class CarillonRouter extends Nabu.Router {
         this.game.editor.deactivate();
 
         if (page.startsWith("#options")) {
-            
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
         }
         else if (page.startsWith("#credits")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             await this.show(this.creditsPage, false, showTime);
         }
         else if (page === "#dev") {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#community")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             this.show(this.communityLevelPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.communityLevelPage.redraw();
             })
         }
         else if (page.startsWith("#dev-levels")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             if (!DEV_MODE_ACTIVATED) {
                 location.hash = "#dev";
                 return;
@@ -105,7 +119,7 @@ class CarillonRouter extends Nabu.Router {
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameTutorialLevels;
                 if (data.puzzles[numLevel - 1]) {
-                    this.game.puzzle.loadFromData(data.puzzles[numLevel - 1]);
+                    this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
                 }
                 else {
                     location.hash = "#levels";
@@ -137,7 +151,7 @@ class CarillonRouter extends Nabu.Router {
                 });
                 let data = await response.json();
                 CLEAN_IPuzzleData(data);
-                this.game.puzzle.loadFromData(data);
+                this.game.puzzle.resetFromData(data);
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
@@ -145,12 +159,18 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Play;
         }
         else if (page.startsWith("#levels")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             this.show(this.baseLevelPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.baseLevelPage.redraw();
             })
         }
         else if (page.startsWith("#home")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
             await this.show(this.homeMenu.nabuPage, false, showTime);
         }
         else {

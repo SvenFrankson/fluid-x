@@ -7,6 +7,7 @@ class Puzzle {
         content: ""
     };
 
+    public ball: Ball;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
@@ -116,6 +117,8 @@ class Puzzle {
     public haikus: Haiku[] = [];
 
     constructor(public game: Game) {
+        this.ball = new Ball(this, { color: TileColor.North });
+
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
 
@@ -132,8 +135,25 @@ class Puzzle {
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
     }
 
-    public win(): void {        
-        let score = Math.floor(this.game.ball.playTimer * 100);
+    public async reset(): Promise<void> {
+        if (this.data) {
+            this.resetFromData(this.data);
+            await this.instantiate();
+        }
+        this.puzzleUI.reset();
+        (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
+        (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
+        this.game.fadeInIntro();
+        if (USE_POKI_SDK) {
+            PokiGameplayStart();
+        }
+    }
+
+    public win(): void {
+        if (USE_POKI_SDK) {
+            PokiGameplayStop();
+        }
+        let score = Math.floor(this.ball.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
@@ -148,7 +168,7 @@ class Puzzle {
         this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
 
         setTimeout(() => {
-            if (this.game.ball.ballState === BallState.Done) {
+            if (this.ball.ballState === BallState.Done) {
 
                 this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
                 this.puzzleUI.win();
@@ -163,8 +183,11 @@ class Puzzle {
     }
 
     public lose(): void {
+        if (USE_POKI_SDK) {
+            PokiGameplayStop();
+        }
         setTimeout(() => {
-            if (this.game.ball.ballState === BallState.Done) {
+            if (this.ball.ballState === BallState.Done) {
                 this.puzzleUI.lose();
             }
         }, 1000);
@@ -176,7 +199,7 @@ class Puzzle {
         }
         this._pendingPublish = true;
 
-        let score = Math.round(this.game.ball.playTimer * 100);
+        let score = Math.round(this.ball.playTimer * 100);
         let puzzleId = this.data.id;
         let player = (document.querySelector("#score-player-input") as HTMLInputElement).value;
         let actions = "cheating";
@@ -214,21 +237,10 @@ class Puzzle {
         }
     }
 
-    public async reset(): Promise<void> {
-        if (this.data) {
-            this.loadFromData(this.data);
-            await this.instantiate();
-        }
-        this.puzzleUI.reset();
-        (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
-        (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
-        this.game.fadeInIntro();
-    }
-
     public async loadFromFile(path: string): Promise<void> {
         let file = await fetch(path);
         let content = await file.text();
-        this.loadFromData({
+        this.resetFromData({
             id: null,
             title: "No Title",
             author: "No Author",
@@ -236,7 +248,7 @@ class Puzzle {
         });
     }
 
-    public loadFromData(data: IPuzzleData): void {
+    public resetFromData(data: IPuzzleData): void {
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }
@@ -261,21 +273,21 @@ class Puzzle {
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
-        this.game.ball.position.x = parseInt(ballLine[0]) * 1.1;
-        this.game.ball.position.y = 0;
-        this.game.ball.position.z = parseInt(ballLine[1]) * 1.1;
-        this.game.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        this.game.ball.trailPoints = [];
-        this.game.ball.trailMesh.isVisible = false;
+        this.ball.position.x = parseInt(ballLine[0]) * 1.1;
+        this.ball.position.y = 0;
+        this.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.ball.trailPoints = [];
+        this.ball.trailMesh.isVisible = false;
         if (ballLine.length > 2) {
-            this.game.ball.setColor(parseInt(ballLine[2]));
+            this.ball.setColor(parseInt(ballLine[2]));
         }
         else {
-            this.game.ball.setColor(TileColor.North);
+            this.ball.setColor(TileColor.North);
         }
-        this.game.ball.ballState = BallState.Ready;
+        this.ball.ballState = BallState.Ready;
         this.game.setPlayTimer(0);
-        this.game.ball.vZ = 1;
+        this.ball.vZ = 1;
         this.h = lines.length;
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
@@ -425,6 +437,7 @@ class Puzzle {
             await this.buildings[i].instantiate();
         }
 
+        await this.ball.instantiate();
         this.rebuildFloor();
     }
 
@@ -613,11 +626,12 @@ class Puzzle {
     private _globalTime: number = 0;
     private _smoothedFPS: number = 30;
     public update(dt: number): void {
+        this.ball.update(dt);
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
         })
-        if (tiles.length === 0 && this.game.ball.ballState != BallState.Done) {
-            this.game.ball.ballState = BallState.Done;
+        if (tiles.length === 0 && this.ball.ballState != BallState.Done) {
+            this.ball.ballState = BallState.Done;
             this.win();
         }
         for (let i = 0; i < this.haikus.length; i++) {

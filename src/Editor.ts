@@ -89,6 +89,13 @@ class Editor {
 
     private _pendingPublish: boolean = false;
 
+    public get puzzle(): Puzzle {
+        return this.game.puzzle;
+    }
+    public get ball(): Ball {
+        return this.puzzle.ball;
+    }
+
     constructor(public game: Game) {
         this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 } );
         this.invisiFloorTM.position.x = 5 - 0.55;
@@ -106,18 +113,18 @@ class Editor {
     }
 
     public initValues(): void {
-        this.originColorInput.setValue(this.game.ball.color);
-        this.originIInput.setValue(this.game.ball.i);
-        this.originJInput.setValue(this.game.ball.j);
-        this.widthInput.setValue(this.game.puzzle.w);
-        this.heightInput.setValue(this.game.puzzle.h);
+        this.originColorInput.setValue(this.ball.color);
+        this.originIInput.setValue(this.ball.i);
+        this.originJInput.setValue(this.ball.j);
+        this.widthInput.setValue(this.puzzle.w);
+        this.heightInput.setValue(this.puzzle.h);
     }
 
     public activate(): void {
         this.originColorInput = document.getElementById("editor-origin-color") as NumValueInput;
         this.originColorInput.onValueChange = (v: number) => {
             let color = v;
-            this.game.ball.setColor(color);
+            this.ball.setColor(color);
         }
         this.originColorInput.valueToString = (v: number) => {
             return TileColorNames[v];
@@ -126,28 +133,28 @@ class Editor {
         this.originIInput = document.getElementById("editor-origin-i") as NumValueInput;
         this.originIInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.ball.i = Math.min(v, this.game.puzzle.w - 1);
+            this.ball.i = Math.min(v, this.puzzle.w - 1);
         }
 
         this.originJInput = document.getElementById("editor-origin-j") as NumValueInput;
         this.originJInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.ball.j = Math.min(v, this.game.puzzle.h - 1);
+            this.ball.j = Math.min(v, this.puzzle.h - 1);
         }
 
         this.widthInput = document.getElementById("editor-width") as NumValueInput;
         this.widthInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.puzzle.w = Math.max(v, 3);
-            this.game.puzzle.rebuildFloor();
+            this.puzzle.w = Math.max(v, 3);
+            this.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
         }
 
         this.heightInput = document.getElementById("editor-height") as NumValueInput;
         this.heightInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.game.puzzle.h = Math.max(v, 3);
-            this.game.puzzle.rebuildFloor();
+            this.puzzle.h = Math.max(v, 3);
+            this.puzzle.rebuildFloor();
             this.updateInvisifloorTM();
         }
 
@@ -226,15 +233,15 @@ class Editor {
         document.getElementById("play-btn").onclick = async () => {
             this.dropClear();
             this.dropBrush();
-            this.game.puzzle.data.content = SaveAsText(this.game.puzzle);
-            this.game.puzzle.reset();
+            this.puzzle.data.content = SaveAsText(this.puzzle);
+            this.puzzle.reset();
             location.hash = "#editor-preview";
         };
 
         document.getElementById("save-btn").onclick = () => {
             this.dropClear();
             this.dropBrush();
-            let content = SaveAsText(this.game.puzzle);
+            let content = SaveAsText(this.puzzle);
             Nabu.download("puzzle.txt", content);
         };
         
@@ -252,13 +259,13 @@ class Editor {
                 const reader = new FileReader();
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result as string;
-                    this.game.puzzle.loadFromData({
+                    this.puzzle.resetFromData({
                         id: 42,
                         title: "Custom Machine",
                         author: "Editor",
                         content: content
                     });
-                    await this.game.puzzle.instantiate();
+                    await this.puzzle.instantiate();
                     this.initValues();
                 });
                 reader.readAsText(file);
@@ -304,14 +311,14 @@ class Editor {
                 let data = {
                     title: this.title,
                     author: this.author,
-                    content: SaveAsText(this.game.puzzle),
+                    content: SaveAsText(this.puzzle),
                     id: null
                 }
                 let headers: any = {
                     "Content-Type": "application/json",
                 };
-                if (DEV_MODE_ACTIVATED && this.game.puzzle.data.id != null) {
-                    data.id = this.game.puzzle.data.id;
+                if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
+                    data.id = this.puzzle.data.id;
                     if (var1) {
                         headers = {
                             "Content-Type": "application/json",
@@ -366,8 +373,8 @@ class Editor {
 
         this.doClearButton.onclick = async () => {
             this.dropClear();
-            await this.game.puzzle.loadFromFile("./datas/levels/min.txt");
-            await this.game.puzzle.instantiate();
+            await this.puzzle.loadFromFile("./datas/levels/min.txt");
+            await this.puzzle.instantiate();
             this.initValues();
             this.updatePublishText();
         }
@@ -431,11 +438,11 @@ class Editor {
     }
 
     public updatePublishText(): void {
-        if (DEV_MODE_ACTIVATED && this.game.puzzle.data.id != null) {
+        if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
             document.querySelector("#publish-btn stroke-text").innerHTML = "Update";
             this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Update";
-            this.titleInput.value = this.game.puzzle.data.title;
-            this.authorInput.value = this.game.puzzle.data.author;
+            this.titleInput.value = this.puzzle.data.title;
+            this.authorInput.value = this.puzzle.data.author;
         }
         else {
             document.querySelector("#publish-btn stroke-text").innerHTML = "Publish";
@@ -444,8 +451,8 @@ class Editor {
     }
 
     public updateInvisifloorTM(): void {
-        let w = this.game.puzzle.xMax - this.game.puzzle.xMin;
-        let h = this.game.puzzle.zMax - this.game.puzzle.zMin;
+        let w = this.puzzle.xMax - this.puzzle.xMin;
+        let h = this.puzzle.zMax - this.puzzle.zMin;
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = 0.5 * w;
         this.invisiFloorTM.position.z = 0.5 * h;
@@ -530,7 +537,7 @@ class Editor {
             if (pick.hit) {
                 this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
                 this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
-                this.cursorH = this.game.puzzle.hMapGet(this.cursorI, this.cursorJ);
+                this.cursorH = this.puzzle.hMapGet(this.cursorI, this.cursorJ);
 
                 this.cursor.isVisible = true;
                 this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
@@ -561,26 +568,26 @@ class Editor {
             )
             if (pick.hit) {
                 if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                    let tile = this.game.puzzle.tiles.find(tile => {
+                    let tile = this.puzzle.tiles.find(tile => {
                         return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
                     if (tile) {
                         tile.dispose();
-                        this.game.puzzle.rebuildFloor();
+                        this.puzzle.rebuildFloor();
                         this.updateInvisifloorTM();
                     }
                     else {
-                        let building = this.game.puzzle.buildings.find(build => {
+                        let building = this.puzzle.buildings.find(build => {
                             return build.i === this.cursorI && build.j === this.cursorJ;
                         });
                         if (building) {
                             building.dispose();
-                            this.game.puzzle.editorRegenerateBuildings();
+                            this.puzzle.editorRegenerateBuildings();
                         }
                     }
                 }
                 else if (ev.button === 0) {
-                    let tile = this.game.puzzle.tiles.find(tile => {
+                    let tile = this.puzzle.tiles.find(tile => {
                         return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
                     if (!tile) {
@@ -644,7 +651,7 @@ class Editor {
                                     j: this.cursorJ
                                 }
                             );
-                            this.game.puzzle.editorRegenerateBuildings();
+                            this.puzzle.editorRegenerateBuildings();
                         }
                         else if (this.brush === EditorBrush.Ramp) {
                             let box = new Ramp(
@@ -654,7 +661,7 @@ class Editor {
                                     j: this.cursorJ
                                 }
                             );
-                            this.game.puzzle.editorRegenerateBuildings();
+                            this.puzzle.editorRegenerateBuildings();
                         }
                         else if (this.brush === EditorBrush.Bridge) {
                             let box = new Bridge(
@@ -664,11 +671,11 @@ class Editor {
                                     j: this.cursorJ
                                 }
                             );
-                            this.game.puzzle.editorRegenerateBuildings();
+                            this.puzzle.editorRegenerateBuildings();
                         }
                         if (tile) {
                             tile.instantiate();
-                            this.game.puzzle.rebuildFloor();
+                            this.puzzle.rebuildFloor();
                             this.updateInvisifloorTM();
                         }
                     }

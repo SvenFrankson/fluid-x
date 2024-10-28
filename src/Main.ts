@@ -4,7 +4,7 @@
 
 var MRS_VERSION: number = 0;
 var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 8;
+var MRS_VERSION3: number = 9;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 
@@ -73,8 +73,6 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
-    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -255,7 +253,6 @@ class Game {
     public shadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
     public puzzle: Puzzle;
-    public ball: Ball;
     public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
 
@@ -520,17 +517,10 @@ class Game {
             }
         }
 
-        this.ball = new Ball(this, { color: TileColor.North });
-
-        this.ball.position.x = 0;
-        this.ball.position.z = 0;
-
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
-        await this.ball.instantiate();
 
-        this.ball.ballState = BallState.Ready;
 
         this.editor = new Editor(this);
 
@@ -679,8 +669,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             //document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
 	}
 
@@ -755,7 +745,7 @@ class Game {
         if (isFinite(rawDT)) {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = this.ball.position.clone();
+                let targetCameraPos = this.puzzle.ball.position.clone();
                 let margin = 4;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
@@ -777,9 +767,6 @@ class Game {
                 this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
                 this.camera.radius = this.camera.radius * f3 + (this.playCameraRadius) * (1 - f3);
                 
-                if (this.ball) {
-                    this.ball.update(rawDT);
-                }
                 if (this.puzzle) {
                     this.puzzle.update(rawDT);
                 }

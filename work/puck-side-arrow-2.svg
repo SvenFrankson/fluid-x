@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="puck-side-arrow-2.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\textures\puck-side-arrow.png"
+   inkscape:export-xdpi="65.024002"
+   inkscape:export-ydpi="65.024002">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="6.5514563"
+     inkscape:cx="307.51557"
+     inkscape:cy="198.36057"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path838"
+       style="fill:#2b2821;fill-opacity:1;stroke:none;stroke-width:3.77953;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       inkscape:transform-center-x="-4.3481051"
+       d="m 253.93945,120.36328 c 8.76675,8.3007 15.86151,18.20458 20.90039,29.17578 5.68247,12.371 8.62461,25.82383 8.625,39.4375 -1.4e-4,25.95559 -10.67741,50.76822 -29.52539,68.61328 6.69314,-3.03783 14.56492,-7.53088 22.73828,-12.83593 10.60356,-16.67133 16.23568,-36.0196 16.23633,-55.77735 -2.1e-4,-11.06903 -1.76858,-22.06696 -5.23828,-32.57812 -2.69301,-8.15855 -6.38721,-15.95173 -10.99805,-23.20117 -8.17332,-5.30503 -16.04517,-9.79617 -22.73828,-12.83399 z m 39.51172,24.55664 c 2.41189,5.71947 4.35004,11.62735 5.79492,17.66406 2.06939,8.645 3.11498,17.50335 3.11524,26.39258 -2.9e-4,15.133 -3.02986,30.11283 -8.91016,44.05664 4.77542,-3.57164 9.43708,-7.26071 13.81055,-10.94726 3.01759,-10.77769 4.54803,-21.91722 4.54883,-33.10938 -9.5e-4,-6.90661 -0.58439,-13.80083 -1.74414,-20.60937 -0.71684,-4.21262 -1.653,-8.38495 -2.80469,-12.5 -4.37347,-3.68655 -9.03513,-7.37563 -13.81055,-10.94727 z"
+       transform="scale(0.26458333)"
+       sodipodi:nodetypes="cccccccccccccccccc" />
+  </g>
+</svg>

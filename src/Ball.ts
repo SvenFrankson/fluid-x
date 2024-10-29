@@ -16,6 +16,20 @@ class Ball extends BABYLON.Mesh {
     public woodChocSound2: MySound;
     public fallImpactSound: MySound;
 
+    public leftArrow: BABYLON.Mesh;
+    public get leftArrowSize(): number {
+        return this.leftArrow.scaling.x;
+    }
+    public set leftArrowSize(v: number) {
+        this.leftArrow.scaling.copyFromFloats(v, v, v);
+    }
+    public rightArrow: BABYLON.Mesh;
+    public get rightArrowSize(): number {
+        return this.rightArrow.scaling.x;
+    }
+    public set rightArrowSize(v: number) {
+        this.rightArrow.scaling.copyFromFloats(v, v, v);
+    }
     public ballState: BallState = BallState.Ready;
     public fallOriginPos: BABYLON.Vector3;
     public fallRotAxis: BABYLON.Vector3;
@@ -83,6 +97,19 @@ class Ball extends BABYLON.Mesh {
         this.shadow.parent = this;
 
         this.shadow.material = this.game.shadowDiscMaterial;
+        
+        this.leftArrow = new BABYLON.Mesh("left-arrow");
+        this.leftArrow.position.y = 0.15;
+        this.leftArrow.rotation.y = Math.PI;
+        this.leftArrow.parent = this;
+        this.leftArrow.material = this.game.puckSideMaterial;
+        this.leftArrowSize = 0.5;
+
+        this.rightArrow = new BABYLON.Mesh("right-arrow");
+        this.rightArrow.position.y = 0.15;
+        this.rightArrow.parent = this;
+        this.rightArrow.material = this.game.puckSideMaterial;
+        this.rightArrowSize = 0.5;
 
         this.trailMesh = new BABYLON.Mesh("trailMesh");
         this.trailMesh.material = this.game.whiteMaterial;
@@ -138,6 +165,8 @@ class Ball extends BABYLON.Mesh {
         ballDatas[1].applyToMesh(this.ballTop);
 
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.leftArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.rightArrow);
     }
 
     public playTimer: number = 0;
@@ -156,11 +185,19 @@ class Ball extends BABYLON.Mesh {
     public update(dt: number): void {
         let vX = 0;
         if (this.leftDown) {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + 1 * 0.2;
             vX -= 1;
+        }
+        else {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
         }
 
         if (this.rightDown) {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + 1 * 0.2;
             vX += 1;
+        }
+        else {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
         }
 
         vX = Nabu.MinMax(vX, -1, 1);

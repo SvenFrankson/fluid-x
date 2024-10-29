@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="puck-side-arrow.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.3162896"
+     inkscape:cx="236.38252"
+     inkscape:cy="179.43302"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path838"
+       style="fill:#000000;fill-opacity:1;stroke:#fffffe;stroke-width:3.77952761;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:34.0158;paint-order:stroke fill markers;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       inkscape:transform-center-x="-4.3481051"
+       d="M 253.93945 120.36328 A 94.488186 94.488186 0 0 1 274.83984 149.53906 A 94.488186 94.488186 0 0 1 283.46484 188.97656 A 94.488186 94.488186 0 0 1 253.93945 257.58984 C 260.63259 254.55201 268.50437 250.05896 276.67773 244.75391 A 103.93701 103.93701 0 0 0 292.91406 188.97656 A 103.93701 103.93701 0 0 0 287.67578 156.39844 A 103.93701 103.93701 0 0 0 276.67773 133.19727 C 268.50441 127.89224 260.63256 123.4011 253.93945 120.36328 z M 293.45117 144.91992 A 113.38581 113.38583 0 0 1 299.24609 162.58398 A 113.38581 113.38583 0 0 1 302.36133 188.97656 A 113.38581 113.38583 0 0 1 293.45117 233.0332 C 298.22659 229.46156 302.88825 225.77249 307.26172 222.08594 A 122.83464 122.83464 0 0 0 311.81055 188.97656 A 122.83464 122.83464 0 0 0 310.06641 168.36719 A 122.83464 122.83464 0 0 0 307.26172 155.86719 C 302.88825 152.18064 298.22659 148.49156 293.45117 144.91992 z M 319.39453 166.84961 A 132.28344 132.28346 0 0 1 320.39453 173.88867 A 132.28344 132.28346 0 0 1 321.25977 188.97656 A 132.28344 132.28346 0 0 1 319.39648 211.10156 C 323.91257 206.66843 327.70485 202.45235 330.37305 198.72461 C 333.13809 194.86156 334.72852 191.51319 334.72852 188.97656 C 334.72852 186.43985 333.13827 183.08978 330.37305 179.22656 C 330.3712 179.22399 330.36903 179.22133 330.36719 179.21875 C 327.69891 175.49247 323.9082 171.28024 319.39453 166.84961 z "
+       transform="scale(0.26458333)" />
+  </g>
+</svg>

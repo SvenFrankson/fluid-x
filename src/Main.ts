@@ -263,6 +263,7 @@ class Game {
     public darkFloorMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
+    public puckSideMaterial: BABYLON.StandardMaterial;
     public puzzle: Puzzle;
     public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
@@ -421,6 +422,14 @@ class Game {
         this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
         this.shadowDiscMaterial.alpha = 0.4;
         this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
+            
+        this.puckSideMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.puckSideMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.puckSideMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/puck-side-arrow.png");
+        this.puckSideMaterial.diffuseTexture.hasAlpha = true;
+        this.puckSideMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        this.puckSideMaterial.useAlphaFromDiffuseTexture = true;
+        this.puckSideMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.tileColorMaterials = [];
         this.tileColorMaterials[TileColor.North] = northMaterial;

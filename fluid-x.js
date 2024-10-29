@@ -45,6 +45,17 @@ class Ball extends BABYLON.Mesh {
         this.shadow.position.z = -0.015;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
+        this.leftArrow = new BABYLON.Mesh("left-arrow");
+        this.leftArrow.position.y = 0.15;
+        this.leftArrow.rotation.y = Math.PI;
+        this.leftArrow.parent = this;
+        this.leftArrow.material = this.game.puckSideMaterial;
+        this.leftArrowSize = 0.5;
+        this.rightArrow = new BABYLON.Mesh("right-arrow");
+        this.rightArrow.position.y = 0.15;
+        this.rightArrow.parent = this;
+        this.rightArrow.material = this.game.puckSideMaterial;
+        this.rightArrowSize = 0.5;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
         this.trailMesh.material = this.game.whiteMaterial;
         this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
@@ -86,6 +97,18 @@ class Ball extends BABYLON.Mesh {
             });
         }
     }
+    get leftArrowSize() {
+        return this.leftArrow.scaling.x;
+    }
+    set leftArrowSize(v) {
+        this.leftArrow.scaling.copyFromFloats(v, v, v);
+    }
+    get rightArrowSize() {
+        return this.rightArrow.scaling.x;
+    }
+    set rightArrowSize(v) {
+        this.rightArrow.scaling.copyFromFloats(v, v, v);
+    }
     setColor(color) {
         this.color = color;
         if (this.ballTop) {
@@ -112,14 +135,24 @@ class Ball extends BABYLON.Mesh {
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.leftArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.rightArrow);
     }
     update(dt) {
         let vX = 0;
         if (this.leftDown) {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + 1 * 0.2;
             vX -= 1;
         }
+        else {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
+        }
         if (this.rightDown) {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + 1 * 0.2;
             vX += 1;
+        }
+        else {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
         }
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
@@ -2782,6 +2815,13 @@ class Game {
         this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
         this.shadowDiscMaterial.alpha = 0.4;
         this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.puckSideMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.puckSideMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.puckSideMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/puck-side-arrow.png");
+        this.puckSideMaterial.diffuseTexture.hasAlpha = true;
+        this.puckSideMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        this.puckSideMaterial.useAlphaFromDiffuseTexture = true;
+        this.puckSideMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.tileColorMaterials = [];
         this.tileColorMaterials[TileColor.North] = northMaterial;
         this.tileColorMaterials[TileColor.South] = southMaterial;

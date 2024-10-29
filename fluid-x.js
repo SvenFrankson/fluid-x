@@ -1878,11 +1878,15 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
-        context.font = "900 130px Shalimar";
-        context.fillText(this.title, 100, 150);
-        context.fillText(this.text1, 30, 550);
-        context.fillText(this.text2, 30, 700);
-        context.fillText(this.text3, 30, 850);
+        context.font = "130px Shalimar";
+        for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 3; y++) {
+                context.fillText(this.title, 100 + x, 150 + y);
+                context.fillText(this.text1, 30 + x, 550 + y);
+                context.fillText(this.text2, 30 + x, 700 + y);
+                context.fillText(this.text3, 30 + x, 850 + y);
+            }
+        }
         this.dynamicTexture.update();
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }

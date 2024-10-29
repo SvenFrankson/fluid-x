@@ -312,6 +312,7 @@ button:hover, .hovered {
     margin: 5px;
     width: 100px;
     height: 40px;
+    padding: 0;
 }
 
 .medium-btn.plussize {

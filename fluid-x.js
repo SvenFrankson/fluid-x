@@ -367,7 +367,7 @@ class Ball extends BABYLON.Mesh {
                         this.bounceXValue = 0;
                         this.bounceXTimer = 0;
                         this.speed = 0;
-                        this.vZ = 1;
+                        this.vZ *= -1;
                         this.animateSpeed(this.nominalSpeed, 0.5, Nabu.Easing.easeInCubic);
                     });
                 }
@@ -4200,9 +4200,9 @@ class FishingPole {
             flatShading: true
         });
         Mummu.ColorizeVertexDataInPlace(magnet, this.puzzle.game.blackMaterial.diffuseColor);
-        let line = BABYLON.CreateCylinderVertexData({ diameter: 0.05, height: 20, tessellation: 12, cap: BABYLON.Mesh.NO_CAP });
+        let line = BABYLON.CreateCylinderVertexData({ diameter: 0.05, height: 100, tessellation: 12, cap: BABYLON.Mesh.NO_CAP });
         Mummu.ColorizeVertexDataInPlace(line, this.puzzle.game.brownMaterial.diffuseColor.scale(1.5));
-        Mummu.TranslateVertexDataInPlace(line, new BABYLON.Vector3(0, 10.2, 0));
+        Mummu.TranslateVertexDataInPlace(line, new BABYLON.Vector3(0, 50.2, 0));
         let data = Mummu.MergeVertexDatas(magnet, line);
         Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.3, 0));
         data.applyToMesh(this.lineMesh);

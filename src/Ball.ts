@@ -436,7 +436,7 @@ class Ball extends BABYLON.Mesh {
                             this.bounceXValue = 0;
                             this.bounceXTimer = 0;
                             this.speed = 0;
-                            this.vZ = 1;
+                            this.vZ *= -1;
                             this.animateSpeed(this.nominalSpeed, 0.5, Nabu.Easing.easeInCubic);
                         }
                     );

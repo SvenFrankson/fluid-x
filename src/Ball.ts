@@ -474,7 +474,7 @@ class Ball extends BABYLON.Mesh {
             )
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
-                this.position.y = this.position.y * f + hit.pickedPoint.y * (1 - f);
+                this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
                 let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
             }    

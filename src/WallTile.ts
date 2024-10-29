@@ -12,8 +12,8 @@ class WallTile extends Tile {
     public async instantiate(): Promise<void> {
         await super.instantiate();
         
-        let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.2, depth: 1.1 });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.1, 0));
+        let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.3, depth: 1.1 });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
         data.applyToMesh(this);
     }
 }

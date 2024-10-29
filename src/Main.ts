@@ -4,7 +4,7 @@
 
 var MRS_VERSION: number = 0;
 var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 11;
+var MRS_VERSION3: number = 12;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 

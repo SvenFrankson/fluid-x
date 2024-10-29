@@ -7,8 +7,10 @@ class Puzzle {
         content: ""
     };
 
+    public winSlotRows = 1;
     public winSlots: BABYLON.Mesh[] = [];
     public winSlotsIndexes: number[] = [0, 0, 0, 0];
+    public stars: BABYLON.Mesh[] = [];
 
     public ball: Ball;
     public border: BABYLON.Mesh;
@@ -131,7 +133,7 @@ class Puzzle {
         this.puzzleUI = new PuzzleUI(this);
 
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 300, height: 100 });
         this.fpsTexture.hasAlpha = true;
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -182,7 +184,7 @@ class Puzzle {
                     this.puzzleUI.setHighscoreState(0);
                 }
             }
-        }, 1000);
+        }, 3000);
     }
 
     public lose(): void {
@@ -474,18 +476,40 @@ class Puzzle {
         while (this.winSlots.length > 0) {
             this.winSlots.pop().dispose();
         }
+        while (this.stars.length > 0) {
+            this.stars.pop().dispose();
+        }
         this.border = new BABYLON.Mesh("border");
 
+        this.winSlotRows = 1;
         let bHeight = 0.3;
         let bThickness = 0.8;
         let width = this.xMax - this.xMin;
         let depth = this.zMax - this.zMin;
 
+        let slotCounts = [];
+        for (let color = TileColor.North; color <= TileColor.West; color++) {
+            slotCounts[color] = this.tiles.filter((tile) => {
+                return tile instanceof BlockTile && tile.color === color;
+            }).length;
+        }
+
+        let lNorth = slotCounts[TileColor.North] * 0.7 + 0.1;
+        let lEast = slotCounts[TileColor.East] * 0.7 + 0.1;
+        let lSouth = slotCounts[TileColor.South] * 0.7 + 0.1;
+        let lWest = slotCounts[TileColor.West] * 0.7 + 0.1;
+        if (lNorth > width || lEast > width) {
+            this.winSlotRows = 2;
+        }
+        if (lSouth > depth || lWest > depth) {
+            this.winSlotRows = 2;
+        }
+
         let data = CreateBoxFrameVertexData({
-            w: width + 2 * bThickness,
-            d: depth + 2 * bThickness,
+            w: width + 2 * this.winSlotRows * bThickness,
+            d: depth + 2 * this.winSlotRows * bThickness,
             h: 5.5 + bHeight,
-            thickness: bThickness,
+            thickness: this.winSlotRows * bThickness,
             innerHeight: bHeight,
             flatShading: true
         })
@@ -517,31 +541,29 @@ class Puzzle {
         tiaratumLogo2.parent = this.border;
         tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
+        */
         
-        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
+        let fpsPlaqueData = CreatePlaqueVertexData(0.9, 0.32, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16));
 
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
         fpsPlaque.parent = this.border;
-        fpsPlaque.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, - depth * 0.5 - 0.4);
+        fpsPlaque.position.copyFromFloats(- width * 0.5 - bThickness + 0.1, bHeight, - depth * 0.5 - bThickness + 0.1);
         fpsPlaque.material = this.fpsMaterial;
         
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
-        fpsPlaque2.position.copyFromFloats(width * 0.5 + 0.4, 0.21, depth * 0.5 + 0.4);
+        fpsPlaque2.position.copyFromFloats(width * 0.5 + bThickness - 0.1, bHeight, depth * 0.5 + bThickness - 0.1);
         fpsPlaque2.material = this.fpsMaterial;
-        */
 
         this.winSlotsIndexes = [0, 0, 0, 0];
         for (let color = TileColor.North; color <= TileColor.West; color++) {
             this.winSlots[color] = new BABYLON.Mesh("winslots-south");
             this.winSlots[color].material = this.game.blackMaterial;
-            let count = this.tiles.filter((tile) => {
-                return tile instanceof BlockTile && tile.color === color;
-            }).length;
+            let count = slotCounts[color];
             if (count > 0) {
                 let datas: BABYLON.VertexData[] = [];
                 for (let i = 0; i < count; i++) {
@@ -557,22 +579,24 @@ class Puzzle {
                         topCapColor: new BABYLON.Color4(0.7, 0.7, 0.7, 1),
                         flatShading: true
                     });
-                    Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(i * 0.7, 0, 0));
+                    let x = Math.floor(i / this.winSlotRows);
+                    let z = i % this.winSlotRows;
+                    Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(x * 0.7, 0, z * 0.7));
                     datas.push(data);
                 }
                 Mummu.MergeVertexDatas(...datas).applyToMesh(this.winSlots[color]);
                 this.winSlots[color].parent = this.border;
                 if (color === TileColor.North) {
-                    this.winSlots[color].position.copyFromFloats(- (count - 1) * 0.7 * 0.5, bHeight, depth * 0.5 + bThickness * 0.5);
+                    this.winSlots[color].position.copyFromFloats(- (count - 1) * 0.7 * 0.5 / this.winSlotRows, bHeight, depth * 0.5 + bThickness * 0.5);
                 }
                 else if (color === TileColor.East) {
-                    this.winSlots[color].position.copyFromFloats(width * 0.5 + bThickness * 0.5, bHeight, (count - 1) * 0.7 * 0.5);
+                    this.winSlots[color].position.copyFromFloats(width * 0.5 + bThickness * 0.5, bHeight, (count - 1) * 0.7 * 0.5 / this.winSlotRows);
                 }
                 else if (color === TileColor.South) {
-                    this.winSlots[color].position.copyFromFloats((count - 1) * 0.7 * 0.5, bHeight, - depth * 0.5 - bThickness * 0.5);
+                    this.winSlots[color].position.copyFromFloats((count - 1) * 0.7 * 0.5 / this.winSlotRows, bHeight, - depth * 0.5 - bThickness * 0.5);
                 }
                 else if (color === TileColor.West) {
-                    this.winSlots[color].position.copyFromFloats(- width * 0.5 - bThickness * 0.5, bHeight, - (count - 1) * 0.7 * 0.5);
+                    this.winSlots[color].position.copyFromFloats(- width * 0.5 - bThickness * 0.5, bHeight, - (count - 1) * 0.7 * 0.5 / this.winSlotRows);
                 }
                 this.winSlots[color].rotation.y = Math.PI * 0.5 * color;
             }
@@ -683,7 +707,9 @@ class Puzzle {
 
     public fetchWinSlotPos(color: number): BABYLON.Vector3 {
         let s = this.fetchWinSlot(color);
-        let d = new BABYLON.Vector3(s * 0.7, 0, 0);
+        let x = Math.floor(s / this.winSlotRows);
+        let z = s % this.winSlotRows;
+        let d = new BABYLON.Vector3(x * 0.7, 0, z * 0.7);
         let winSlotMesh = this.winSlots[color];
         return BABYLON.Vector3.TransformCoordinates(d, winSlotMesh.getWorldMatrix());
     }
@@ -720,7 +746,6 @@ class Puzzle {
             context.font = "900 90px Julee";
             context.fillText(this._smoothedFPS.toFixed(0).padStart(3, " "), 30, 77);
             context.fillText("fps", 170, 77);
-            context.fillText(this._globalTime.toFixed(0) + "s", 350, 77);
     
             this.fpsTexture.update();
         }

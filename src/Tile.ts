@@ -88,7 +88,7 @@ abstract class Tile extends BABYLON.Mesh {
 
     public async shrink(): Promise<void> {
         await this.animateSize(1.1, 0.1);
-        await this.animateSize(0.01, 0.4);
+        await this.animateSize(0.4, 0.3);
     }
 
     public dispose(): void {
@@ -140,9 +140,10 @@ abstract class Tile extends BABYLON.Mesh {
             p.y += 2 * Math.sin(t * Math.PI)
             return p;
         }
+        let a0 = 2 * Math.PI * Math.random();
         let spireCount = (Math.floor(Math.random() * 2) + 1) * 2;
         let a = (t: number) => {
-            return t * spireCount * Math.PI;
+            return a0 + t * spireCount * Math.PI;
         }
         let r = (t: number) => {
             return Math.sin(t * Math.PI);
@@ -164,11 +165,13 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public shootStar(): void {
-
+        let dy = 0.4;
         let dest = this.game.puzzle.fetchWinSlotPos(this.color);
+        dest.y += dy;
         let path = this.getWinPath(dest);
 
         let star = BABYLON.MeshBuilder.CreateBox("star", { size: 0.4 });
+        this.game.puzzle.stars.push(star);
         let tileData = CreateBoxFrameVertexData({
             w: 1,
             d: 1,
@@ -191,38 +194,73 @@ abstract class Tile extends BABYLON.Mesh {
 
 
         let tail = new BABYLON.Mesh("tail");
-        tail.visibility = 0.6;
-        tail.material = this.game.colorMaterials[this.color];
-        let tailPoints: BABYLON.Vector3[] = [path[0]];
+        tail.visibility = 1;
+        let tailMaterial = new BABYLON.StandardMaterial("tail-material");
+        tailMaterial.specularColor.copyFromFloats(0, 0, 0);
+        tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+        tail.material = tailMaterial;
+        let tailPoints: BABYLON.Vector3[] = [];
 
-        let n = 0;
+        let t0 = performance.now();
+        let duration = 2;
         let step = () => {
-            let d = BABYLON.Vector3.Distance(star.position, path[n]);
-            if (d < 0.4) {
-                n++;
-                if (!path[n]) {
-                    tail.dispose();
-                    star.setParent(this.game.puzzle.border);
-                    return;
-                }
-                tailPoints.push(path[n]);
-                if (tailPoints.length > 20) {
-                    tailPoints.splice(0, 1);
-                }
+            if (star.isDisposed()) {
+                tail.dispose();
+                return;
             }
-            Mummu.StepToRef(star.position, path[n], 0.4, star.position);
-            if (tailPoints.length > 2) {
-                let data = Mummu.CreateWireVertexData({
-                    path: [...tailPoints, star.position],
-                    pathUps: [...tailPoints.map(p => { return BABYLON.Axis.Y; }), BABYLON.Axis.Y],
-                    radiusFunc: (f) => {
-                        return 0.1 * f + 0.01;
-                    },
-                    color: new BABYLON.Color4(1, 0.4, 0.4, 1)
-                });
-                data.applyToMesh(tail);
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                f = Nabu.Easing.easeOutSine(f);
+                Mummu.EvaluatePathToRef(f, path, star.position);
+                star.rotation.y = f * 2 * Math.PI;
+                let n = Math.floor(f * path.length);
+                if (f < 0.5) {
+                    if (0 < n - 3 - 1) {
+                        tailPoints = path.slice(0, n - 3);
+                    }
+                    else {
+                        tailPoints = [];
+                    }
+                }
+                else {
+                    let start = Math.floor((- 1.1 + 2.2 * f) * path.length);
+                    if (start < n - 3 - 1) {
+                        tailPoints = path.slice(start, n - 3);
+                    }
+                    else {
+                        tailPoints = [];
+                    }
+                }
+                if (tailPoints.length > 2) {
+                    let data = Mummu.CreateWireVertexData({
+                        path: [...tailPoints],
+                        pathUps: tailPoints.map(p => { return BABYLON.Axis.Y; }),
+                        radiusFunc: (f) => {
+                            return 0.02 * f + 0.01;
+                        },
+                        color: new BABYLON.Color4(1, 1, 1, 1)
+                    });
+                    data.applyToMesh(tail);
+                    tail.isVisible = true;
+                }
+                else {
+                    tail.isVisible = false;
+                }
+                requestAnimationFrame(step);
             }
-            requestAnimationFrame(step);
+            else {
+                tail.dispose();
+                star.position.copyFrom(dest);
+                star.setParent(this.game.puzzle.border);
+
+                let index = this.game.puzzle.stars.indexOf(star);
+                if (index != -1) {
+                    this.game.puzzle.stars.splice(index, 1);
+                }
+
+                let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
+                animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine);
+            }
         }
         step();
     }

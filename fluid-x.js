@@ -171,7 +171,7 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
                 this.speed = 0;
-                this.animateSpeed(2.5, 0.2, Nabu.Easing.easeInCubic);
+                this.animateSpeed(2.2, 0.2, Nabu.Easing.easeInCubic);
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
@@ -429,7 +429,7 @@ class Tile extends BABYLON.Mesh {
     }
     async shrink() {
         await this.animateSize(1.1, 0.1);
-        await this.animateSize(0.01, 0.4);
+        await this.animateSize(0.4, 0.3);
     }
     dispose() {
         let index = this.game.puzzle.tiles.indexOf(this);
@@ -474,9 +474,10 @@ class Tile extends BABYLON.Mesh {
             p.y += 2 * Math.sin(t * Math.PI);
             return p;
         };
+        let a0 = 2 * Math.PI * Math.random();
         let spireCount = (Math.floor(Math.random() * 2) + 1) * 2;
         let a = (t) => {
-            return t * spireCount * Math.PI;
+            return a0 + t * spireCount * Math.PI;
         };
         let r = (t) => {
             return Math.sin(t * Math.PI);
@@ -494,9 +495,12 @@ class Tile extends BABYLON.Mesh {
         return path;
     }
     shootStar() {
+        let dy = 0.4;
         let dest = this.game.puzzle.fetchWinSlotPos(this.color);
+        dest.y += dy;
         let path = this.getWinPath(dest);
         let star = BABYLON.MeshBuilder.CreateBox("star", { size: 0.4 });
+        this.game.puzzle.stars.push(star);
         let tileData = CreateBoxFrameVertexData({
             w: 1,
             d: 1,
@@ -515,37 +519,70 @@ class Tile extends BABYLON.Mesh {
         starTop.material = this.game.tileColorMaterials[this.color];
         star.scaling.copyFromFloats(0.4, 0.4, 0.4);
         let tail = new BABYLON.Mesh("tail");
-        tail.visibility = 0.6;
-        tail.material = this.game.colorMaterials[this.color];
-        let tailPoints = [path[0]];
-        let n = 0;
+        tail.visibility = 1;
+        let tailMaterial = new BABYLON.StandardMaterial("tail-material");
+        tailMaterial.specularColor.copyFromFloats(0, 0, 0);
+        tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+        tail.material = tailMaterial;
+        let tailPoints = [];
+        let t0 = performance.now();
+        let duration = 2;
         let step = () => {
-            let d = BABYLON.Vector3.Distance(star.position, path[n]);
-            if (d < 0.4) {
-                n++;
-                if (!path[n]) {
-                    tail.dispose();
-                    star.setParent(this.game.puzzle.border);
-                    return;
-                }
-                tailPoints.push(path[n]);
-                if (tailPoints.length > 20) {
-                    tailPoints.splice(0, 1);
-                }
+            if (star.isDisposed()) {
+                tail.dispose();
+                return;
             }
-            Mummu.StepToRef(star.position, path[n], 0.4, star.position);
-            if (tailPoints.length > 2) {
-                let data = Mummu.CreateWireVertexData({
-                    path: [...tailPoints, star.position],
-                    pathUps: [...tailPoints.map(p => { return BABYLON.Axis.Y; }), BABYLON.Axis.Y],
-                    radiusFunc: (f) => {
-                        return 0.1 * f + 0.01;
-                    },
-                    color: new BABYLON.Color4(1, 0.4, 0.4, 1)
-                });
-                data.applyToMesh(tail);
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                f = Nabu.Easing.easeOutSine(f);
+                Mummu.EvaluatePathToRef(f, path, star.position);
+                star.rotation.y = f * 2 * Math.PI;
+                let n = Math.floor(f * path.length);
+                if (f < 0.5) {
+                    if (0 < n - 3 - 1) {
+                        tailPoints = path.slice(0, n - 3);
+                    }
+                    else {
+                        tailPoints = [];
+                    }
+                }
+                else {
+                    let start = Math.floor((-1.1 + 2.2 * f) * path.length);
+                    if (start < n - 3 - 1) {
+                        tailPoints = path.slice(start, n - 3);
+                    }
+                    else {
+                        tailPoints = [];
+                    }
+                }
+                if (tailPoints.length > 2) {
+                    let data = Mummu.CreateWireVertexData({
+                        path: [...tailPoints],
+                        pathUps: tailPoints.map(p => { return BABYLON.Axis.Y; }),
+                        radiusFunc: (f) => {
+                            return 0.02 * f + 0.01;
+                        },
+                        color: new BABYLON.Color4(1, 1, 1, 1)
+                    });
+                    data.applyToMesh(tail);
+                    tail.isVisible = true;
+                }
+                else {
+                    tail.isVisible = false;
+                }
+                requestAnimationFrame(step);
             }
-            requestAnimationFrame(step);
+            else {
+                tail.dispose();
+                star.position.copyFrom(dest);
+                star.setParent(this.game.puzzle.border);
+                let index = this.game.puzzle.stars.indexOf(star);
+                if (index != -1) {
+                    this.game.puzzle.stars.splice(index, 1);
+                }
+                let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
+                animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine);
+            }
         };
         step();
     }
@@ -2351,7 +2388,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 11;
+var MRS_VERSION3 = 12;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3647,8 +3684,8 @@ class WallTile extends Tile {
     }
     async instantiate() {
         await super.instantiate();
-        let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.2, depth: 1.1 });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.1, 0));
+        let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.3, depth: 1.1 });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
         data.applyToMesh(this);
     }
 }
@@ -4115,8 +4152,10 @@ class Puzzle {
             author: "No Author",
             content: ""
         };
+        this.winSlotRows = 1;
         this.winSlots = [];
         this.winSlotsIndexes = [0, 0, 0, 0];
+        this.stars = [];
         this.tiles = [];
         this.griddedTiles = [];
         this.borders = [];
@@ -4135,7 +4174,7 @@ class Puzzle {
         this.holeWall.material = this.game.grayMaterial;
         this.puzzleUI = new PuzzleUI(this);
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 300, height: 100 });
         this.fpsTexture.hasAlpha = true;
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -4264,7 +4303,7 @@ class Puzzle {
                     this.puzzleUI.setHighscoreState(0);
                 }
             }
-        }, 1000);
+        }, 3000);
     }
     lose() {
         if (USE_POKI_SDK) {
@@ -4538,16 +4577,36 @@ class Puzzle {
         while (this.winSlots.length > 0) {
             this.winSlots.pop().dispose();
         }
+        while (this.stars.length > 0) {
+            this.stars.pop().dispose();
+        }
         this.border = new BABYLON.Mesh("border");
+        this.winSlotRows = 1;
         let bHeight = 0.3;
         let bThickness = 0.8;
         let width = this.xMax - this.xMin;
         let depth = this.zMax - this.zMin;
+        let slotCounts = [];
+        for (let color = TileColor.North; color <= TileColor.West; color++) {
+            slotCounts[color] = this.tiles.filter((tile) => {
+                return tile instanceof BlockTile && tile.color === color;
+            }).length;
+        }
+        let lNorth = slotCounts[TileColor.North] * 0.7 + 0.1;
+        let lEast = slotCounts[TileColor.East] * 0.7 + 0.1;
+        let lSouth = slotCounts[TileColor.South] * 0.7 + 0.1;
+        let lWest = slotCounts[TileColor.West] * 0.7 + 0.1;
+        if (lNorth > width || lEast > width) {
+            this.winSlotRows = 2;
+        }
+        if (lSouth > depth || lWest > depth) {
+            this.winSlotRows = 2;
+        }
         let data = CreateBoxFrameVertexData({
-            w: width + 2 * bThickness,
-            d: depth + 2 * bThickness,
+            w: width + 2 * this.winSlotRows * bThickness,
+            d: depth + 2 * this.winSlotRows * bThickness,
             h: 5.5 + bHeight,
-            thickness: bThickness,
+            thickness: this.winSlotRows * bThickness,
             innerHeight: bHeight,
             flatShading: true
         });
@@ -4576,30 +4635,25 @@ class Puzzle {
         tiaratumLogo2.parent = this.border;
         tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
-        
-        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
-
+        */
+        let fpsPlaqueData = CreatePlaqueVertexData(0.9, 0.32, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16));
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
         fpsPlaque.parent = this.border;
-        fpsPlaque.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, - depth * 0.5 - 0.4);
+        fpsPlaque.position.copyFromFloats(-width * 0.5 - bThickness + 0.1, bHeight, -depth * 0.5 - bThickness + 0.1);
         fpsPlaque.material = this.fpsMaterial;
-        
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
-        fpsPlaque2.position.copyFromFloats(width * 0.5 + 0.4, 0.21, depth * 0.5 + 0.4);
+        fpsPlaque2.position.copyFromFloats(width * 0.5 + bThickness - 0.1, bHeight, depth * 0.5 + bThickness - 0.1);
         fpsPlaque2.material = this.fpsMaterial;
-        */
         this.winSlotsIndexes = [0, 0, 0, 0];
         for (let color = TileColor.North; color <= TileColor.West; color++) {
             this.winSlots[color] = new BABYLON.Mesh("winslots-south");
             this.winSlots[color].material = this.game.blackMaterial;
-            let count = this.tiles.filter((tile) => {
-                return tile instanceof BlockTile && tile.color === color;
-            }).length;
+            let count = slotCounts[color];
             if (count > 0) {
                 let datas = [];
                 for (let i = 0; i < count; i++) {
@@ -4615,22 +4669,24 @@ class Puzzle {
                         topCapColor: new BABYLON.Color4(0.7, 0.7, 0.7, 1),
                         flatShading: true
                     });
-                    Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(i * 0.7, 0, 0));
+                    let x = Math.floor(i / this.winSlotRows);
+                    let z = i % this.winSlotRows;
+                    Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(x * 0.7, 0, z * 0.7));
                     datas.push(data);
                 }
                 Mummu.MergeVertexDatas(...datas).applyToMesh(this.winSlots[color]);
                 this.winSlots[color].parent = this.border;
                 if (color === TileColor.North) {
-                    this.winSlots[color].position.copyFromFloats(-(count - 1) * 0.7 * 0.5, bHeight, depth * 0.5 + bThickness * 0.5);
+                    this.winSlots[color].position.copyFromFloats(-(count - 1) * 0.7 * 0.5 / this.winSlotRows, bHeight, depth * 0.5 + bThickness * 0.5);
                 }
                 else if (color === TileColor.East) {
-                    this.winSlots[color].position.copyFromFloats(width * 0.5 + bThickness * 0.5, bHeight, (count - 1) * 0.7 * 0.5);
+                    this.winSlots[color].position.copyFromFloats(width * 0.5 + bThickness * 0.5, bHeight, (count - 1) * 0.7 * 0.5 / this.winSlotRows);
                 }
                 else if (color === TileColor.South) {
-                    this.winSlots[color].position.copyFromFloats((count - 1) * 0.7 * 0.5, bHeight, -depth * 0.5 - bThickness * 0.5);
+                    this.winSlots[color].position.copyFromFloats((count - 1) * 0.7 * 0.5 / this.winSlotRows, bHeight, -depth * 0.5 - bThickness * 0.5);
                 }
                 else if (color === TileColor.West) {
-                    this.winSlots[color].position.copyFromFloats(-width * 0.5 - bThickness * 0.5, bHeight, -(count - 1) * 0.7 * 0.5);
+                    this.winSlots[color].position.copyFromFloats(-width * 0.5 - bThickness * 0.5, bHeight, -(count - 1) * 0.7 * 0.5 / this.winSlotRows);
                 }
                 this.winSlots[color].rotation.y = Math.PI * 0.5 * color;
             }
@@ -4737,7 +4793,9 @@ class Puzzle {
     }
     fetchWinSlotPos(color) {
         let s = this.fetchWinSlot(color);
-        let d = new BABYLON.Vector3(s * 0.7, 0, 0);
+        let x = Math.floor(s / this.winSlotRows);
+        let z = s % this.winSlotRows;
+        let d = new BABYLON.Vector3(x * 0.7, 0, z * 0.7);
         let winSlotMesh = this.winSlots[color];
         return BABYLON.Vector3.TransformCoordinates(d, winSlotMesh.getWorldMatrix());
     }
@@ -4768,7 +4826,6 @@ class Puzzle {
             context.font = "900 90px Julee";
             context.fillText(this._smoothedFPS.toFixed(0).padStart(3, " "), 30, 77);
             context.fillText("fps", 170, 77);
-            context.fillText(this._globalTime.toFixed(0) + "s", 350, 77);
             this.fpsTexture.update();
         }
     }

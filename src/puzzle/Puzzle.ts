@@ -90,7 +90,6 @@ class Puzzle {
                 });
             });
         }
-        console.log(b.i + " " + b.j);
         this._getOrCreateGriddedBorderStack(b.i, b.j).push(b);
     }
     public removeFromGriddedBorderStack(t: Border): void {
@@ -204,7 +203,6 @@ class Puzzle {
         this.puzzleUI.reset();
         (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
         (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
-        (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("range " + this.game.playCameraRange);
         this.game.fadeInIntro();
         if (USE_POKI_SDK) {
             PokiGameplayStart();

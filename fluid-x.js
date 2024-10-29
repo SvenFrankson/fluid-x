@@ -1810,7 +1810,7 @@ class HaikuMaker {
         }
         if (puzzle.data.id === 78 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Push -", "Wooden Tiles can be pushed.", "");
-            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 1.5);
+            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 2.7);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
         }
@@ -2496,7 +2496,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 15;
+var CRL_VERSION3 = 17;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2533,7 +2533,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2971,13 +2971,7 @@ class Game {
             });
             offlinePuzzles = await response.json();
             CLEAN_IPuzzlesData(offlinePuzzles);
-            for (let i = 0; i < offlinePuzzles.puzzles.length; i++) {
-                offlinePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + offlinePuzzles.puzzles[i].title;
-            }
             this.tiaratumGameOfflinePuzzleLevels = offlinePuzzles;
-            for (let i = 0; i < this.tiaratumGameOfflinePuzzleLevels.puzzles.length; i++) {
-                this.tiaratumGameOfflinePuzzleLevels.puzzles[i].numLevel = (i + 1);
-            }
         }
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
@@ -3115,8 +3109,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            document.querySelector("#dev-pass-input").value = "Crillion";
+            DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4500,7 +4494,6 @@ class Puzzle {
                 });
             });
         }
-        console.log(b.i + " " + b.j);
         this._getOrCreateGriddedBorderStack(b.i, b.j).push(b);
     }
     removeFromGriddedBorderStack(t) {
@@ -4564,7 +4557,6 @@ class Puzzle {
         this.puzzleUI.reset();
         document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
         document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
-        document.querySelector("#puzzle-author stroke-text").setContent("range " + this.game.playCameraRange);
         this.game.fadeInIntro();
         if (USE_POKI_SDK) {
             PokiGameplayStart();

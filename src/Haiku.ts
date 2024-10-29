@@ -68,7 +68,7 @@ class HaikuMaker {
                 "Wooden Tiles can be pushed.",
                 ""
             );
-            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 1.5);
+            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 2.7);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
         }

@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 15;
+var CRL_VERSION3: number = 17;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -556,15 +556,8 @@ class Game {
             });
             offlinePuzzles = await response.json() as IPuzzlesData;
             CLEAN_IPuzzlesData(offlinePuzzles);
-            
-            for (let i = 0; i < offlinePuzzles.puzzles.length; i++) {
-                offlinePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + offlinePuzzles.puzzles[i].title;
-            }
     
             this.tiaratumGameOfflinePuzzleLevels = offlinePuzzles;
-            for (let i = 0; i < this.tiaratumGameOfflinePuzzleLevels.puzzles.length; i++) {
-                this.tiaratumGameOfflinePuzzleLevels.puzzles[i].numLevel = (i + 1);
-            }
         }
 
         this.puzzle = new Puzzle(this);
@@ -731,8 +724,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            DEV_ACTIVATE();
         }
 	}
 

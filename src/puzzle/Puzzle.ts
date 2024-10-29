@@ -12,7 +12,10 @@ class Puzzle {
     public winSlotsIndexes: number[] = [0, 0, 0, 0];
     public stars: BABYLON.Mesh[] = [];
 
+    public ballPositionZero: BABYLON.Vector3 = BABYLON.Vector3.Zero();
     public ball: Ball;
+    public fishingPolesCount: number = 3;
+    public fishingPole: FishingPole;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
@@ -72,6 +75,8 @@ class Puzzle {
     public fpsMaterial: BABYLON.StandardMaterial;
     public fpsTexture: BABYLON.DynamicTexture;
 
+    public clickSound: MySound;
+
     public getScene(): BABYLON.Scene {
         return this.game.scene;
     }
@@ -124,6 +129,8 @@ class Puzzle {
     constructor(public game: Game) {
         this.ball = new Ball(this, { color: TileColor.North });
 
+        this.fishingPole = new FishingPole(this);
+
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
 
@@ -138,6 +145,8 @@ class Puzzle {
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
+        
+        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 2);
     }
 
     public async reset(): Promise<void> {
@@ -281,6 +290,7 @@ class Puzzle {
         this.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.ball.position.y = 0;
         this.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.ballPositionZero.copyFrom(this.ball.position);
         this.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.ball.trailPoints = [];
         this.ball.trailMesh.isVisible = false;
@@ -293,6 +303,7 @@ class Puzzle {
         this.ball.ballState = BallState.Ready;
         this.game.setPlayTimer(0);
         this.ball.vZ = 1;
+        this.fishingPolesCount = 3;
         this.h = lines.length;
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {

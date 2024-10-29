@@ -3,7 +3,8 @@ var BallState;
     BallState[BallState["Ready"] = 0] = "Ready";
     BallState[BallState["Move"] = 1] = "Move";
     BallState[BallState["Fall"] = 2] = "Fall";
-    BallState[BallState["Done"] = 3] = "Done";
+    BallState[BallState["Flybacking"] = 3] = "Flybacking";
+    BallState[BallState["Done"] = 4] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
     constructor(puzzle, props) {
@@ -18,7 +19,8 @@ class Ball extends BABYLON.Mesh {
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
         this.playTimer = 0;
         this.xForce = 1;
-        this.speed = 2;
+        this.nominalSpeed = 2.2;
+        this.speed = this.nominalSpeed;
         this.moveDir = BABYLON.Vector3.Up();
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
@@ -120,7 +122,7 @@ class Ball extends BABYLON.Mesh {
             vX += 1;
         }
         vX = Nabu.MinMax(vX, -1, 1);
-        if (this.ballState != BallState.Ready) {
+        if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
             let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.04));
             if (this.trailTimer > 0.05) {
@@ -164,6 +166,13 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
+            else {
+                this.trailMesh.isVisible = false;
+            }
+        }
+        if (this.ballState === BallState.Move || this.ballState === BallState.Fall || this.ballState === BallState.Flybacking) {
+            this.playTimer += dt;
+            this.game.setPlayTimer(this.playTimer);
         }
         if (this.ballState === BallState.Ready) {
             if (this.leftDown || this.rightDown) {
@@ -171,7 +180,7 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
                 this.speed = 0;
-                this.animateSpeed(2.2, 0.2, Nabu.Easing.easeInCubic);
+                this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
@@ -181,10 +190,6 @@ class Ball extends BABYLON.Mesh {
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
-            }
-            else {
-                this.playTimer += dt;
-                this.game.setPlayTimer(this.playTimer);
             }
             this.xForce = 2;
             if (this.bounceXTimer > 0) {
@@ -317,7 +322,8 @@ class Ball extends BABYLON.Mesh {
                 return mesh.name === "floor" || mesh.name === "building-floor";
             });
             if (hit.hit) {
-                this.position.y = hit.pickedPoint.y;
+                let f = this.speed / this.nominalSpeed;
+                this.position.y = this.position.y * f + hit.pickedPoint.y * (1 - f);
                 let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
             }
@@ -345,8 +351,32 @@ class Ball extends BABYLON.Mesh {
                 explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
                 explosionCloud.tZero = 0.9;
                 explosionCloud.boom();
-                this.ballState = BallState.Done;
-                this.puzzle.lose();
+                if (this.puzzle.fishingPolesCount > 0) {
+                    this.puzzle.fishingPolesCount--;
+                    this.ballState = BallState.Flybacking;
+                    this.trailPoints = [];
+                    this.trailMesh.isVisible = false;
+                    this.puzzle.fishingPole.fish(this.position.clone(), this.puzzle.ballPositionZero.add(new BABYLON.Vector3(0, 0.2, 0)), () => {
+                        this.position.copyFromFloats(0, 0, 0);
+                        this.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, -Math.PI * 0.2);
+                        this.parent = this.puzzle.fishingPole.lineMesh;
+                    }, () => {
+                        this.position.copyFrom(this.puzzle.ballPositionZero);
+                        this.parent = undefined;
+                        this.ballState = BallState.Move;
+                        this.bounceXValue = 0;
+                        this.bounceXTimer = 0;
+                        this.speed = 0;
+                        this.vZ = 1;
+                        this.animateSpeed(this.nominalSpeed, 0.5, Nabu.Easing.easeInCubic);
+                    });
+                }
+                else {
+                    this.ballState = BallState.Done;
+                    setTimeout(() => {
+                        this.puzzle.lose();
+                    }, 500);
+                }
                 return;
             }
             let f = Math.pow(this.fallTimer, 0.9);
@@ -392,6 +422,7 @@ class Tile extends BABYLON.Mesh {
             this.shadow.material = this.game.shadow9Material;
         }
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
+        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 });
     }
     get size() {
         return this.scaling.x;
@@ -525,8 +556,9 @@ class Tile extends BABYLON.Mesh {
         tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
         tail.material = tailMaterial;
         let tailPoints = [];
+        this.wooshSound.play();
         let t0 = performance.now();
-        let duration = 2;
+        let duration = 1.5;
         let step = () => {
             if (star.isDisposed()) {
                 tail.dispose();
@@ -581,7 +613,9 @@ class Tile extends BABYLON.Mesh {
                     this.game.puzzle.stars.splice(index, 1);
                 }
                 let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
-                animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine);
+                animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine).then(() => {
+                    this.game.puzzle.clickSound.play();
+                });
             }
         };
         step();
@@ -2388,7 +2422,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MRS_VERSION = 0;
 var MRS_VERSION2 = 0;
-var MRS_VERSION3 = 12;
+var MRS_VERSION3 = 13;
 var VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2425,7 +2459,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2753,6 +2787,9 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        this.trueWhiteMaterial = new BABYLON.StandardMaterial("true-white-material");
+        this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -2962,7 +2999,7 @@ class Game {
         };
         updateCamMenuData();
         let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
-            ambient.setVolume(0.2);
+            ambient.setVolume(0.15);
         }, {
             autoplay: true,
             loop: true
@@ -3031,7 +3068,8 @@ class Game {
         if (isFinite(rawDT)) {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = this.puzzle.ball.position.clone();
+                let targetCameraPos = this.puzzle.ball.absolutePosition.clone();
+                targetCameraPos.y = Math.max(targetCameraPos.y, -2.5);
                 let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
@@ -4143,6 +4181,86 @@ class StampEffect {
         div.style.transition = "";
     }
 }
+class FishingPole {
+    constructor(puzzle) {
+        this.puzzle = puzzle;
+        this.origin = new BABYLON.Vector3(0, 20, 5);
+        this.animateTip = Mummu.AnimationFactory.EmptyVector3Callback;
+        this.lineMesh = new BABYLON.Mesh("tentacle");
+        this.lineMesh.material = this.puzzle.game.trueWhiteMaterial;
+        let magnet = CreateBoxFrameVertexData({
+            w: 0.2,
+            wBase: 0.25,
+            d: 0.2,
+            dBase: 0.25,
+            h: 0.3,
+            thickness: 0.03,
+            innerHeight: 0.1,
+            topCap: true,
+            flatShading: true
+        });
+        Mummu.ColorizeVertexDataInPlace(magnet, this.puzzle.game.blackMaterial.diffuseColor);
+        let line = BABYLON.CreateCylinderVertexData({ diameter: 0.05, height: 20, tessellation: 12, cap: BABYLON.Mesh.NO_CAP });
+        Mummu.ColorizeVertexDataInPlace(line, this.puzzle.game.brownMaterial.diffuseColor.scale(1.5));
+        Mummu.TranslateVertexDataInPlace(line, new BABYLON.Vector3(0, 10.2, 0));
+        let data = Mummu.MergeVertexDatas(magnet, line);
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.3, 0));
+        data.applyToMesh(this.lineMesh);
+        this.lineMesh.isVisible = false;
+        this.animateTip = Mummu.AnimationFactory.CreateVector3(this.lineMesh, this.lineMesh, "position");
+    }
+    async fish(from, to, onLowestPointCallback, onJustBeforeFlybackCallback) {
+        this.origin.copyFrom(from).addInPlace(to).scaleInPlace(0.5);
+        this.origin.y = 20;
+        let tipZero = BABYLON.Vector3.Lerp(this.origin, from, 0.1);
+        this.lineMesh.position.copyFrom(tipZero);
+        this.lineMesh.isVisible = true;
+        let fromTop = from.clone();
+        fromTop.y = 0;
+        let tipPath = [
+            tipZero.clone(),
+            fromTop.clone(),
+            from.clone(),
+            BABYLON.Vector3.Lerp(fromTop, to, 0.1).add(new BABYLON.Vector3(0, 3, 0)),
+            to.clone()
+        ];
+        Mummu.CatmullRomPathInPlace(tipPath);
+        Mummu.CatmullRomPathInPlace(tipPath);
+        Mummu.CatmullRomPathInPlace(tipPath);
+        Mummu.CatmullRomPathInPlace(tipPath);
+        Mummu.CatmullRomPathInPlace(tipPath);
+        return new Promise(resolve => {
+            let duration = 4;
+            let t0 = performance.now();
+            let step = async () => {
+                let f = (performance.now() - t0) / 1000 / duration;
+                if (f < 1) {
+                    if (f > 0.5 && onLowestPointCallback) {
+                        onLowestPointCallback();
+                        onLowestPointCallback = undefined;
+                    }
+                    f = Nabu.Easing.easeInOutSine(f);
+                    Mummu.EvaluatePathToRef(f, tipPath, this.lineMesh.position);
+                    requestAnimationFrame(step);
+                }
+                else {
+                    if (onLowestPointCallback) {
+                        onLowestPointCallback();
+                        onLowestPointCallback = undefined;
+                    }
+                    if (onJustBeforeFlybackCallback) {
+                        onJustBeforeFlybackCallback();
+                        onJustBeforeFlybackCallback = undefined;
+                    }
+                    await this.animateTip(this.origin, 1, Nabu.Easing.easeInSine);
+                    this.lineMesh.isVisible = false;
+                    resolve();
+                }
+            };
+            step();
+        });
+    }
+}
 class Puzzle {
     constructor(game) {
         this.game = game;
@@ -4156,6 +4274,8 @@ class Puzzle {
         this.winSlots = [];
         this.winSlotsIndexes = [0, 0, 0, 0];
         this.stars = [];
+        this.ballPositionZero = BABYLON.Vector3.Zero();
+        this.fishingPolesCount = 3;
         this.tiles = [];
         this.griddedTiles = [];
         this.borders = [];
@@ -4168,6 +4288,7 @@ class Puzzle {
         this._globalTime = 0;
         this._smoothedFPS = 30;
         this.ball = new Ball(this, { color: TileColor.North });
+        this.fishingPole = new FishingPole(this);
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
         this.holeWall = new BABYLON.Mesh("hole-wall");
@@ -4179,6 +4300,7 @@ class Puzzle {
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
+        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 2);
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {
@@ -4391,6 +4513,7 @@ class Puzzle {
         this.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.ball.position.y = 0;
         this.ball.position.z = parseInt(ballLine[1]) * 1.1;
+        this.ballPositionZero.copyFrom(this.ball.position);
         this.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.ball.trailPoints = [];
         this.ball.trailMesh.isVisible = false;
@@ -4403,6 +4526,7 @@ class Puzzle {
         this.ball.ballState = BallState.Ready;
         this.game.setPlayTimer(0);
         this.ball.vZ = 1;
+        this.fishingPolesCount = 3;
         this.h = lines.length;
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {

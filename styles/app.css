@@ -528,7 +528,7 @@ body:not(.vertical) #input-right {
 .stamp div {
     font-size: 35px;
     line-height: 22px;
-    transform: translateY(10px);
+    transform: translateY(12px);
     font-weight: 100;
 }
 

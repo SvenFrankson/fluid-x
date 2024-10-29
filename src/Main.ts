@@ -4,7 +4,7 @@
 
 var MRS_VERSION: number = 0;
 var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 12;
+var MRS_VERSION3: number = 13;
 var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -248,6 +248,7 @@ class Game {
 
     public tileColorMaterials: BABYLON.Material[];
     public colorMaterials: BABYLON.Material[];
+    public trueWhiteMaterial: BABYLON.StandardMaterial;
     public whiteMaterial: BABYLON.StandardMaterial;
     public grayMaterial: BABYLON.StandardMaterial;
     public blackMaterial: BABYLON.StandardMaterial;
@@ -426,6 +427,10 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+
+        this.trueWhiteMaterial = new BABYLON.StandardMaterial("true-white-material");
+        this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
@@ -673,7 +678,7 @@ class Game {
             "./datas/sounds/zen-ambient.mp3",
             this.scene,
             () => {
-                ambient.setVolume(0.2)
+                ambient.setVolume(0.15)
             },
             {
                 autoplay: true,
@@ -778,7 +783,8 @@ class Game {
         if (isFinite(rawDT)) {
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = this.puzzle.ball.position.clone();
+                let targetCameraPos = this.puzzle.ball.absolutePosition.clone();
+                targetCameraPos.y = Math.max(targetCameraPos.y, - 2.5);
                 let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);

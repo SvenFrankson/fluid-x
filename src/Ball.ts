@@ -6,6 +6,7 @@ enum BallState {
     Ready,
     Move,
     Fall,
+    Flybacking,
     Done
 }
 
@@ -141,7 +142,8 @@ class Ball extends BABYLON.Mesh {
 
     public playTimer: number = 0;
     public xForce: number = 1;
-    public speed: number = 2;
+    public nominalSpeed: number = 2.2;
+    public speed: number = this.nominalSpeed;
     public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Up();
     public inputSpeed: number = 1000;
     public bounceXValue: number = 0;
@@ -163,7 +165,7 @@ class Ball extends BABYLON.Mesh {
 
         vX = Nabu.MinMax(vX, -1, 1);
 
-        if (this.ballState != BallState.Ready) {
+        if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
             let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.04));
             if (this.trailTimer > 0.05) {
@@ -194,6 +196,7 @@ class Ball extends BABYLON.Mesh {
                     this.trailPoints.splice(0, 1);
                 }
             }
+
             if (this.trailPoints.length > 2) {
                 let points = this.trailPoints.map(pt => { return pt.clone(); });
                 Mummu.CatmullRomPathInPlace(points);
@@ -209,6 +212,14 @@ class Ball extends BABYLON.Mesh {
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
             }
+            else {
+                this.trailMesh.isVisible = false;
+            }
+        }
+
+        if (this.ballState === BallState.Move || this.ballState === BallState.Fall || this.ballState === BallState.Flybacking) {
+            this.playTimer += dt;
+            this.game.setPlayTimer(this.playTimer);
         }
 
         if (this.ballState === BallState.Ready) {
@@ -217,7 +228,7 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXValue = 0;
                 this.bounceXTimer = 0;
                 this.speed = 0;
-                this.animateSpeed(2.2, 0.2, Nabu.Easing.easeInCubic);
+                this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
                 this.game.fadeOutIntro(0.5);
                 this.playTimer = 0;
                 this.game.setPlayTimer(this.playTimer);
@@ -227,10 +238,6 @@ class Ball extends BABYLON.Mesh {
         else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
-            }
-            else {
-                this.playTimer += dt;
-                this.game.setPlayTimer(this.playTimer);
             }
             
             this.xForce = 2;
@@ -377,7 +384,8 @@ class Ball extends BABYLON.Mesh {
                 }
             )
             if (hit.hit) {
-                this.position.y = hit.pickedPoint.y;
+                let f = this.speed / this.nominalSpeed;
+                this.position.y = this.position.y * f + hit.pickedPoint.y * (1 - f);
                 let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
             }    
@@ -408,8 +416,37 @@ class Ball extends BABYLON.Mesh {
                 explosionCloud.tZero = 0.9;
                 explosionCloud.boom();
 
-                this.ballState = BallState.Done;
-                this.puzzle.lose();
+                if (this.puzzle.fishingPolesCount > 0) {
+                    this.puzzle.fishingPolesCount --;
+                    this.ballState = BallState.Flybacking;
+                    this.trailPoints = [];
+                    this.trailMesh.isVisible = false;
+                    this.puzzle.fishingPole.fish(
+                        this.position.clone(),
+                        this.puzzle.ballPositionZero.add(new BABYLON.Vector3(0, 0.2, 0)),
+                        () => {
+                            this.position.copyFromFloats(0, 0, 0);
+                            this.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, - Math.PI * 0.2);
+                            this.parent = this.puzzle.fishingPole.lineMesh;
+                        },
+                        () => {
+                            this.position.copyFrom(this.puzzle.ballPositionZero);
+                            this.parent = undefined;
+                            this.ballState = BallState.Move;
+                            this.bounceXValue = 0;
+                            this.bounceXTimer = 0;
+                            this.speed = 0;
+                            this.vZ = 1;
+                            this.animateSpeed(this.nominalSpeed, 0.5, Nabu.Easing.easeInCubic);
+                        }
+                    );
+                }
+                else {
+                    this.ballState = BallState.Done;
+                    setTimeout(() => {
+                        this.puzzle.lose();
+                    }, 500);
+                }
                 return;
             }
 

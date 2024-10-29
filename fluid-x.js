@@ -475,7 +475,7 @@ class Tile extends BABYLON.Mesh {
             return p;
         };
         let a0 = 2 * Math.PI * Math.random();
-        let spireCount = (Math.floor(Math.random() * 2) + 1) * 2;
+        let spireCount = (Math.floor(Math.random() * 6) + 2);
         let a = (t) => {
             return a0 + t * spireCount * Math.PI;
         };

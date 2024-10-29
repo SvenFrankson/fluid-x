@@ -70,59 +70,88 @@ class PushTile extends Tile {
     
             if (newI >= 0 && newI < this.game.puzzle.w) {
                 if (newJ >= 0 && newJ < this.game.puzzle.h) {
-                    let tileAtDestination = this.game.puzzle.tiles.find(tile => {
-                        return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.5;
-                    })
-                    if (tileAtDestination instanceof HoleTile) {
-                        let newPos = this.position.clone();
-                        newPos.x = (this.i + dir.x * 0.75) * 1.1;
-                        newPos.z = (this.j + dir.z * 0.75) * 1.1;
-        
-                        this.tileState = TileState.Moving;
-                        this.pushSound.play();
-                        await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
 
-                        if (dir.x === 1) {
-                            this.animateRotZ(- Math.PI, 0.4);
+                    let borderBlock = false;
+                    if (dir.x > 0) {
+                        let stack = this.game.puzzle.getGriddedBorderStack(this.i, this.j);
+                        if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                            borderBlock = true;
                         }
-                        else if (dir.x === -1) {
-                            this.animateRotZ(Math.PI, 0.4);
-                        }
-                        if (dir.z === 1) {
-                            this.animateRotX(Math.PI, 0.4);
-                        }
-                        else if (dir.z === -1) {
-                            this.animateRotX(- Math.PI, 0.4);
-                        }
-                        await this.animateWait(0.2);
-                        newPos.y -= 5.5
-                        await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
-                        let explosionCloud = new Explosion(this.game);
-                        let p = this.position.clone();
-                        p.y = -1;
-                        explosionCloud.origin.copyFrom(p);
-                        explosionCloud.setRadius(0.4);
-                        explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
-                        explosionCloud.lifespan = 4;
-                        explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
-                        explosionCloud.tZero = 0.9;
-                        explosionCloud.boom();
-                        this.fallImpactSound.play();
-                        this.dispose();
                     }
-                    else if (tileAtDestination) {
+                    else if (dir.x < 0) {
+                        let stack = this.game.puzzle.getGriddedBorderStack(newI, this.j);
+                        if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                            borderBlock = true;
+                        }
+                    }
+                    else if (dir.z > 0) {
+                        let stack = this.game.puzzle.getGriddedBorderStack(this.i, this.j);
+                        if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                            borderBlock = true;
+                        }
+                    }
+                    else if (dir.z < 0) {
+                        let stack = this.game.puzzle.getGriddedBorderStack(this.i, newJ);
+                        if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                            borderBlock = true;
+                        }
+                    }
 
-                    }
-                    else {
-                        let newPos = this.position.clone();
-                        newPos.x = newI * 1.1;
-                        newPos.z = newJ * 1.1;
-        
-                        this.tileState = TileState.Moving;
-                        this.pushSound.play();
-                        await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
-                        this.game.puzzle.updateGriddedStack(this);
-                        this.tileState = TileState.Active;
+                    if (!borderBlock) {
+                        let tileAtDestination = this.game.puzzle.tiles.find(tile => {
+                            return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.5;
+                        })
+                        if (tileAtDestination instanceof HoleTile) {
+                            let newPos = this.position.clone();
+                            newPos.x = (this.i + dir.x * 0.75) * 1.1;
+                            newPos.z = (this.j + dir.z * 0.75) * 1.1;
+            
+                            this.tileState = TileState.Moving;
+                            this.pushSound.play();
+                            await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
+
+                            if (dir.x === 1) {
+                                this.animateRotZ(- Math.PI, 0.4);
+                            }
+                            else if (dir.x === -1) {
+                                this.animateRotZ(Math.PI, 0.4);
+                            }
+                            if (dir.z === 1) {
+                                this.animateRotX(Math.PI, 0.4);
+                            }
+                            else if (dir.z === -1) {
+                                this.animateRotX(- Math.PI, 0.4);
+                            }
+                            await this.animateWait(0.2);
+                            newPos.y -= 5.5
+                            await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
+                            let explosionCloud = new Explosion(this.game);
+                            let p = this.position.clone();
+                            p.y = -1;
+                            explosionCloud.origin.copyFrom(p);
+                            explosionCloud.setRadius(0.4);
+                            explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
+                            explosionCloud.lifespan = 4;
+                            explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
+                            explosionCloud.tZero = 0.9;
+                            explosionCloud.boom();
+                            this.fallImpactSound.play();
+                            this.dispose();
+                        }
+                        else if (tileAtDestination) {
+
+                        }
+                        else {
+                            let newPos = this.position.clone();
+                            newPos.x = newI * 1.1;
+                            newPos.z = newJ * 1.1;
+            
+                            this.tileState = TileState.Moving;
+                            this.pushSound.play();
+                            await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
+                            this.game.puzzle.updateGriddedStack(this);
+                            this.tileState = TileState.Active;
+                        }
                     }
                 }
             }

@@ -2,11 +2,11 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var MRS_VERSION: number = 0;
-var MRS_VERSION2: number = 0;
-var MRS_VERSION3: number = 13;
-var VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
-var CONFIGURATION_VERSION: number = MRS_VERSION * 1000 + MRS_VERSION2 * 100 + MRS_VERSION3;
+var CRL_VERSION: number = 0;
+var CRL_VERSION2: number = 0;
+var CRL_VERSION3: number = 15;
+var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
+var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
 var observed_progress_speed_percent_second;
 var USE_POKI_SDK: boolean = true;
@@ -628,6 +628,8 @@ class Game {
         (document.querySelector("#eula-back-btn") as HTMLButtonElement).onclick = () => {
             this.router.eulaPage.hide(0);
         }
+
+        (document.querySelector("#title-version") as HTMLDivElement).innerHTML = "confidential build - v" + CRL_VERSION + "." + CRL_VERSION2 + "." + CRL_VERSION3;
 
         let devSecret = 0;
         let devSecretTimout: number = 0;

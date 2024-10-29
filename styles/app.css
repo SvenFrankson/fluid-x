@@ -118,6 +118,17 @@ h1 {
     color: #2b2821;
 }
 
+#title-version {
+    position: absolute;
+    top: 72px;
+    right: calc(50% - 150px);
+    font-family: monospace;
+    font-weight: 700;
+    color: white;
+    background-color: #000000B0;
+    padding: 0px 8px 2px 8px;
+}
+
 h2 {
     font-size: 40px;
     font-family: Julee;

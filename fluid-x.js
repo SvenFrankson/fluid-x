@@ -297,31 +297,38 @@ class Ball extends BABYLON.Mesh {
                 this.woodChocSound2.play();
             }
             let impact = BABYLON.Vector3.Zero();
-            let borders = this.puzzle.getBorders(this.position.x, this.position.z);
-            for (let i = 0; i < borders.length; i++) {
-                let border = borders[i];
-                if (border.collide(this, impact)) {
-                    let dir = this.position.subtract(impact);
-                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                        if (dir.x > 0) {
-                            this.bounceXValue = 1;
-                            this.bounceXTimer = this.bounceXDelay;
-                        }
-                        else {
-                            this.bounceXValue = -1;
-                            this.bounceXTimer = this.bounceXDelay;
+            for (let ii = -1; ii <= 1; ii++) {
+                for (let jj = -1; jj <= 1; jj++) {
+                    let stack = this.puzzle.getGriddedBorderStack(this.i + ii, this.j + jj);
+                    if (stack) {
+                        let borders = stack.array;
+                        for (let i = 0; i < borders.length; i++) {
+                            let border = borders[i];
+                            if (border.collide(this, impact)) {
+                                let dir = this.position.subtract(impact);
+                                if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                                    if (dir.x > 0) {
+                                        this.bounceXValue = 1;
+                                        this.bounceXTimer = this.bounceXDelay;
+                                    }
+                                    else {
+                                        this.bounceXValue = -1;
+                                        this.bounceXTimer = this.bounceXDelay;
+                                    }
+                                }
+                                else {
+                                    if (dir.z > 0) {
+                                        this.vZ = 1;
+                                    }
+                                    else {
+                                        this.vZ = -1;
+                                    }
+                                }
+                                this.woodChocSound2.play();
+                                break;
+                            }
                         }
                     }
-                    else {
-                        if (dir.z > 0) {
-                            this.vZ = 1;
-                        }
-                        else {
-                            this.vZ = -1;
-                        }
-                    }
-                    this.woodChocSound2.play();
-                    break;
                 }
             }
             for (let ii = -1; ii <= 1; ii++) {
@@ -732,10 +739,6 @@ class Border extends BABYLON.Mesh {
         this.w = 0;
         this.d = 1;
         this.material = this.game.blackMaterial;
-        let index = this.game.puzzle.borders.indexOf(this);
-        if (index === -1) {
-            this.game.puzzle.borders.push(this);
-        }
     }
     get vertical() {
         return this.rotation.y === 0;
@@ -745,11 +748,18 @@ class Border extends BABYLON.Mesh {
         this.w = v ? 0 : 1;
         this.d = v ? 1 : 0;
     }
+    get i() {
+        return Math.floor(this.position.x / 1.1);
+    }
+    get j() {
+        return Math.floor(this.position.z / 1.1);
+    }
     static BorderLeft(game, i, j, y = 0, ghost = false) {
         let border = new Border(game, ghost);
         border.position.x = (i - 0.5) * 1.1;
         border.position.y = y;
         border.position.z = j * 1.1;
+        border.game.puzzle.updateGriddedBorderStack(border, true);
         return border;
     }
     static BorderRight(game, i, j, y = 0, ghost = false) {
@@ -757,6 +767,7 @@ class Border extends BABYLON.Mesh {
         border.position.x = (i + 0.5) * 1.1;
         border.position.y = y;
         border.position.z = j * 1.1;
+        border.game.puzzle.updateGriddedBorderStack(border, true);
         return border;
     }
     static BorderTop(game, i, j, y = 0, ghost = false) {
@@ -765,6 +776,7 @@ class Border extends BABYLON.Mesh {
         border.position.x = i * 1.1;
         border.position.y = y;
         border.position.z = (j + 0.5) * 1.1;
+        border.game.puzzle.updateGriddedBorderStack(border, true);
         return border;
     }
     static BorderBottom(game, i, j, y = 0, ghost = false) {
@@ -773,6 +785,7 @@ class Border extends BABYLON.Mesh {
         border.position.x = i * 1.1;
         border.position.y = y;
         border.position.z = (j - 0.5) * 1.1;
+        border.game.puzzle.updateGriddedBorderStack(border, true);
         return border;
     }
     async instantiate() {
@@ -783,10 +796,7 @@ class Border extends BABYLON.Mesh {
         }
     }
     dispose() {
-        let index = this.game.puzzle.borders.indexOf(this);
-        if (index != -1) {
-            this.game.puzzle.borders.splice(index, 1);
-        }
+        this.game.puzzle.removeFromGriddedBorderStack(this);
         super.dispose();
     }
     collide(ball, impact) {
@@ -4351,7 +4361,7 @@ class Puzzle {
         this.fishingPolesCount = 3;
         this.tiles = [];
         this.griddedTiles = [];
-        this.borders = [];
+        this.griddedBorders = [];
         this.buildings = [];
         this.w = 10;
         this.h = 10;
@@ -4422,10 +4432,48 @@ class Puzzle {
             });
         }
     }
-    getBorders(x, z) {
-        return this.borders.filter(b => {
-            return Math.abs(b.position.x - x) < 2 && Math.abs(b.position.z - z) < 2;
-        });
+    _getOrCreateGriddedBorderStack(i, j) {
+        if (!this.griddedBorders[i]) {
+            this.griddedBorders[i] = [];
+        }
+        if (!this.griddedBorders[i][j]) {
+            this.griddedBorders[i][j] = new Nabu.UniqueList();
+        }
+        return this.griddedBorders[i][j];
+    }
+    getGriddedBorderStack(i, j) {
+        if (this.griddedBorders[i]) {
+            return this.griddedBorders[i][j];
+        }
+    }
+    updateGriddedBorderStack(b, skipSafetyCheck) {
+        if (!skipSafetyCheck) {
+            this.griddedBorders.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(b)) {
+                        stack.remove(b);
+                    }
+                });
+            });
+        }
+        console.log(b.i + " " + b.j);
+        this._getOrCreateGriddedBorderStack(b.i, b.j).push(b);
+    }
+    removeFromGriddedBorderStack(t) {
+        let expected = this.getGriddedBorderStack(t.i, t.j);
+        if (expected && expected.contains(t)) {
+            expected.remove(t);
+        }
+        else {
+            console.warn("Removing a Border that is not in its expected stack.");
+            this.griddedBorders.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
     }
     getScene() {
         return this.game.scene;
@@ -4578,6 +4626,7 @@ class Puzzle {
             this.haikus.pop().dispose();
         }
         this.griddedTiles = [];
+        this.griddedBorders = [];
         this.data = data;
         DEV_UPDATE_STATE_UI();
         if (isFinite(data.id)) {

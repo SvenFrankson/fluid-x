@@ -65,12 +65,51 @@ class Puzzle {
         }
     }
 
-    public borders: Border[] = [];
-    public getBorders(x: number, z: number): Border[] {
-        return this.borders.filter(b => {
-            return Math.abs(b.position.x - x) < 2 && Math.abs(b.position.z - z) < 2;
-        })
+    public griddedBorders: Nabu.UniqueList<Border>[][] = [];
+    private _getOrCreateGriddedBorderStack(i: number, j: number): Nabu.UniqueList<Border> {
+        if (!this.griddedBorders[i]) {
+            this.griddedBorders[i] = [];
+        }
+        if (!this.griddedBorders[i][j]) {
+            this.griddedBorders[i][j] = new Nabu.UniqueList<Border>();
+        }
+        return this.griddedBorders[i][j];
     }
+    public getGriddedBorderStack(i: number, j: number): Nabu.UniqueList<Border> {
+        if (this.griddedBorders[i]) {
+            return this.griddedBorders[i][j];
+        }
+    }
+    public updateGriddedBorderStack(b: Border, skipSafetyCheck?: boolean): void {
+        if (!skipSafetyCheck) {
+            this.griddedBorders.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(b)) {
+                        stack.remove(b);
+                    }
+                });
+            });
+        }
+        console.log(b.i + " " + b.j);
+        this._getOrCreateGriddedBorderStack(b.i, b.j).push(b);
+    }
+    public removeFromGriddedBorderStack(t: Border): void {
+        let expected = this.getGriddedBorderStack(t.i, t.j);
+        if (expected && expected.contains(t)) {
+            expected.remove(t);
+        }
+        else {
+            console.warn("Removing a Border that is not in its expected stack.");
+            this.griddedBorders.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+    }
+
     public buildings: Build[] = [];
 
     public fpsMaterial: BABYLON.StandardMaterial;
@@ -281,6 +320,7 @@ class Puzzle {
             this.haikus.pop().dispose();
         }
         this.griddedTiles = [];
+        this.griddedBorders = [];
 
         this.data = data;
         DEV_UPDATE_STATE_UI();

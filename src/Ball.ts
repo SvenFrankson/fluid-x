@@ -366,33 +366,41 @@ class Ball extends BABYLON.Mesh {
             }
 
             let impact = BABYLON.Vector3.Zero();
-            let borders = this.puzzle.getBorders(this.position.x, this.position.z);
-            for (let i = 0; i < borders.length; i++) {
-                let border = borders[i];
-                if (border.collide(this, impact)) {
-                    let dir = this.position.subtract(impact);
-                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                        if (dir.x > 0) {
-                            this.bounceXValue = 1;
-                            this.bounceXTimer = this.bounceXDelay;
-                        }
-                        else {
-                            this.bounceXValue = - 1;
-                            this.bounceXTimer = this.bounceXDelay;
+
+            for (let ii = -1; ii <= 1; ii++) {
+                for (let jj = -1; jj <= 1; jj++) {
+                    let stack = this.puzzle.getGriddedBorderStack(this.i + ii, this.j + jj);
+                    if (stack) {
+                        let borders = stack.array;
+                        for (let i = 0; i < borders.length; i++) {
+                            let border = borders[i];
+                            if (border.collide(this, impact)) {
+                                let dir = this.position.subtract(impact);
+                                if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                                    if (dir.x > 0) {
+                                        this.bounceXValue = 1;
+                                        this.bounceXTimer = this.bounceXDelay;
+                                    }
+                                    else {
+                                        this.bounceXValue = - 1;
+                                        this.bounceXTimer = this.bounceXDelay;
+                                    }
+                                }
+                                else {
+                                    if (dir.z > 0) {
+                                        this.vZ = 1;
+                                    }
+                                    else {
+                                        this.vZ = - 1;
+                                    }
+                                }
+                                this.woodChocSound2.play();
+                                break;
+                            }
                         }
                     }
-                    else {
-                        if (dir.z > 0) {
-                            this.vZ = 1;
-                        }
-                        else {
-                            this.vZ = - 1;
-                        }
-                    }
-                    this.woodChocSound2.play();
-                    break;
                 }
-            }
+            }            
 
             for (let ii = -1; ii <= 1; ii++) {
                 for (let jj = -1; jj <= 1; jj++) {

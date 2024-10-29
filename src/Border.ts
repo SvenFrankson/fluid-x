@@ -13,11 +13,21 @@ class Border extends BABYLON.Mesh {
     public w: number = 0;
     public d: number = 1;
 
+    public get i(): number {
+        return Math.floor(this.position.x / 1.1);
+    }
+
+    public get j(): number {
+        return Math.floor(this.position.z / 1.1);
+    }
+
     public static BorderLeft(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
         let border = new Border(game, ghost);
         border.position.x = (i - 0.5) * 1.1;
         border.position.y = y;
         border.position.z = j * 1.1;
+        
+        border.game.puzzle.updateGriddedBorderStack(border, true);
         
         return border;
     }
@@ -27,6 +37,8 @@ class Border extends BABYLON.Mesh {
         border.position.x = (i + 0.5) * 1.1;
         border.position.y = y;
         border.position.z = j * 1.1;
+        
+        border.game.puzzle.updateGriddedBorderStack(border, true);
         
         return border;
     }
@@ -38,6 +50,8 @@ class Border extends BABYLON.Mesh {
         border.position.y = y;
         border.position.z = (j + 0.5) * 1.1;
         
+        border.game.puzzle.updateGriddedBorderStack(border, true);
+        
         return border;
     }
 
@@ -48,6 +62,8 @@ class Border extends BABYLON.Mesh {
         border.position.y = y;
         border.position.z = (j - 0.5) * 1.1;
         
+        border.game.puzzle.updateGriddedBorderStack(border, true);
+
         return border;
     }
 
@@ -55,10 +71,6 @@ class Border extends BABYLON.Mesh {
         super("tile");
 
         this.material = this.game.blackMaterial;
-        let index = this.game.puzzle.borders.indexOf(this);
-        if (index === -1) {
-            this.game.puzzle.borders.push(this);
-        }
     }
 
     public async instantiate(): Promise<void> {
@@ -71,10 +83,7 @@ class Border extends BABYLON.Mesh {
 
 
     public dispose(): void {
-        let index = this.game.puzzle.borders.indexOf(this);
-        if (index != -1) {
-            this.game.puzzle.borders.splice(index, 1);
-        }
+        this.game.puzzle.removeFromGriddedBorderStack(this);
         super.dispose();
     }
 

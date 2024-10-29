@@ -1792,7 +1792,7 @@ class HaikuMaker {
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
             let testHaiku2 = new Haiku(puzzle.game, "", "- Objective -", "Hit all colored tiles.", "");
-            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 2.5);
+            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 1.8);
             testHaiku2.visibility = 0;
             puzzle.haikus.push(testHaiku2);
         }
@@ -2695,8 +2695,8 @@ class Game {
         this.menuCamRadius = 15;
         this.playCameraRange = 15;
         this.playCameraRadius = 20;
-        this.playCameraMinRadius = 10;
-        this.playCameraMaxRadius = 24;
+        this.playCameraMinRadius = 5;
+        this.playCameraMaxRadius = 100;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
         this.completedPuzzles = [];
@@ -2783,9 +2783,11 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
+            this.playCameraRange = 11;
         }
         else {
             document.body.classList.remove("vertical");
+            this.playCameraRange = 13;
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
@@ -3025,6 +3027,14 @@ class Game {
         document.querySelector("#reset-btn").onclick = () => {
             this.puzzle.reset();
         };
+        document.querySelector("#zoom-out-btn").onclick = () => {
+            this.playCameraRange += 1;
+            this.updatePlayCameraRadius();
+        };
+        document.querySelector("#zoom-in-btn").onclick = () => {
+            this.playCameraRange -= 1;
+            this.updatePlayCameraRadius();
+        };
         document.querySelector("#dev-mode-activate-btn").onclick = () => {
             DEV_ACTIVATE();
         };
@@ -3171,7 +3181,8 @@ class Game {
                 let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
-                this.camera.radius = this.camera.radius * f3 + (this.playCameraRadius) * (1 - f3);
+                let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
+                this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
                 if (this.puzzle) {
                     this.puzzle.update(rawDT);
                 }
@@ -4553,6 +4564,7 @@ class Puzzle {
         this.puzzleUI.reset();
         document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
         document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
+        document.querySelector("#puzzle-author stroke-text").setContent("range " + this.game.playCameraRange);
         this.game.fadeInIntro();
         if (USE_POKI_SDK) {
             PokiGameplayStart();

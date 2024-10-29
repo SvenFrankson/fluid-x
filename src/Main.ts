@@ -235,8 +235,8 @@ class Game {
     public menuCamRadius: number = 15;
     public playCameraRange: number = 15;
     public playCameraRadius: number = 20;
-    public playCameraMinRadius: number = 10;
-    public playCameraMaxRadius: number = 24;
+    public playCameraMinRadius: number = 5;
+    public playCameraMaxRadius: number = 100;
 
     public cameraOrtho: boolean = false;
 
@@ -332,9 +332,11 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
+            this.playCameraRange = 11;
         }
         else {
             document.body.classList.remove("vertical");
+            this.playCameraRange = 13;
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
@@ -622,6 +624,16 @@ class Game {
             this.puzzle.reset();
         }
 
+        (document.querySelector("#zoom-out-btn") as HTMLButtonElement).onclick = () => {
+            this.playCameraRange += 1;
+            this.updatePlayCameraRadius();
+        }
+
+        (document.querySelector("#zoom-in-btn") as HTMLButtonElement).onclick = () => {
+            this.playCameraRange -= 1;
+            this.updatePlayCameraRadius();
+        }
+
         (document.querySelector("#dev-mode-activate-btn") as HTMLButtonElement).onclick = () => {
             DEV_ACTIVATE();
         }
@@ -816,7 +828,8 @@ class Game {
                 let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (- Math.PI * 0.5) * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
-                this.camera.radius = this.camera.radius * f3 + (this.playCameraRadius) * (1 - f3);
+                let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
+                this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
                 
                 if (this.puzzle) {
                     this.puzzle.update(rawDT);

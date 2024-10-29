@@ -32,7 +32,7 @@ class HaikuMaker {
                 "Hit all colored tiles.",
                 ""
             );
-            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 2.5);
+            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 1.8);
             testHaiku2.visibility = 0;
             puzzle.haikus.push(testHaiku2);
         }

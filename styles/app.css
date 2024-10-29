@@ -551,53 +551,69 @@ input[type="text"] {
     right: 5px;
 }
 
+#zoom-out-btn {
+    display: block;
+    position: fixed;
+    width: 48px;
+    top: 95px;
+    right: 57px;
+}
+
+#zoom-in-btn {
+    display: block;
+    position: fixed;
+    width: 48px;
+    top: 95px;
+    right: 5px;
+}
+
 #editor-btn {
     display: block;
     position: fixed;
-    top: 95px;
+    top: 140px;
     right: 5px;
 }
 
 #dev-state-0-btn{
     position: fixed;
-    top: 185px;
+    top: 230px;
     right: 5px;
 }
 
 #dev-state-1-btn{
     position: fixed;
-    top: 230px;
+    top: 275px;
     right: 5px;
 }
 
 #dev-state-2-btn{
     position: fixed;
-    top: 275px;
+    top: 320px;
     right: 5px;
 }
 
 #dev-state-3-btn{
     position: fixed;
-    top: 320px;
+    top: 365px;
     right: 5px;
 }
 
 #dev-state-4-btn{
     position: fixed;
-    top: 365px;
+    top: 410px;
     right: 5px;
 }
 
 #dev-state-5-btn{
     position: fixed;
-    top: 410px;
+    top: 455px;
     right: 5px;
 }
 
 #dev-story-order{
     position: fixed;
     text-align: right;
-    top: 455px;
+    top: 490px;
     right: 5px;
     font-family: Julee;
 }

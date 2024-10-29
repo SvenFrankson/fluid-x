@@ -18,6 +18,7 @@ class Puzzle {
     public fishingPole: FishingPole;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
+    public invisiFloorTM: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
     public griddedTiles: Nabu.UniqueList<Tile>[][] = [];
@@ -134,6 +135,12 @@ class Puzzle {
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
 
+        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 } );
+        this.invisiFloorTM.position.x = 5 - 0.55;
+        this.invisiFloorTM.position.y = - 0.01;
+        this.invisiFloorTM.position.z = 5 - 0.55;
+        this.invisiFloorTM.isVisible = false;
+
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
 
@@ -150,6 +157,7 @@ class Puzzle {
     }
 
     public async reset(): Promise<void> {
+        this.fishingPole.stop = true;
         if (this.data) {
             this.resetFromData(this.data);
             await this.instantiate();
@@ -287,6 +295,7 @@ class Puzzle {
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
+        this.ball.parent = undefined;
         this.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.ball.position.y = 0;
         this.ball.position.z = parseInt(ballLine[1]) * 1.1;
@@ -301,6 +310,10 @@ class Puzzle {
             this.ball.setColor(TileColor.North);
         }
         this.ball.ballState = BallState.Ready;
+        this.ball.mouseCanControl = false;
+        setTimeout(() => {
+            this.ball.mouseCanControl = true;
+        }, 1000);
         this.game.setPlayTimer(0);
         this.ball.vZ = 1;
         this.fishingPolesCount = 3;
@@ -478,6 +491,14 @@ class Puzzle {
             this.buildings[i].regenerateBorders();
             await this.buildings[i].instantiate();
         }
+    }
+
+    public updateInvisifloorTM(): void {
+        let w = Math.max(100, 2 * (this.xMax - this.xMin));
+        let h = Math.max(100, 2 * (this.zMax - this.zMin));
+        BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
+        this.invisiFloorTM.position.x = (this.xMax + this.xMin) * 0.5;
+        this.invisiFloorTM.position.z = (this.zMax + this.zMin) * 0.5;
     }
 
     public rebuildFloor(): void {
@@ -708,6 +729,8 @@ class Puzzle {
         else {
             this.holeWall.isVisible = false;
         }
+
+        this.updateInvisifloorTM();
     }
 
     public fetchWinSlot(color: number): number {

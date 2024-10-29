@@ -43,8 +43,8 @@ class Ball extends BABYLON.Mesh {
     public vZ: number = 1;
     public radius: number = 0.3;
 
-    public leftDown: boolean = false;
-    public rightDown: boolean = false;
+    public leftDown: number = 0;
+    public rightDown: number = 0;
     public animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
 
     public setColor(color: TileColor) {
@@ -121,40 +121,68 @@ class Ball extends BABYLON.Mesh {
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.leftDown = true;
+                this.mouseInControl = false;
+                this.leftDown = 1;
             }
             else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.rightDown = true;
+                this.mouseInControl = false;
+                this.rightDown = 1;
             }
         })
 
         document.addEventListener("keyup", (ev: KeyboardEvent) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.leftDown = false;
+                this.mouseInControl = false;
+                this.leftDown = 0;
             }
             else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.rightDown = false;
+                this.mouseInControl = false;
+                this.rightDown = 0;
             }
         })
 
         let inputLeft = document.querySelector("#input-left");
         if (inputLeft) {
             inputLeft.addEventListener("pointerdown", () => {
-                this.leftDown = true;
+                this.leftDown = 1;
+                this.mouseInControl = false;
             })
             inputLeft.addEventListener("pointerup", () => {
-                this.leftDown = false;
+                this.mouseInControl = false;
+                this.leftDown = 0;
             })
         }
 
         let inputRight = document.querySelector("#input-right");
         if (inputRight) {
             inputRight.addEventListener("pointerdown", () => {
-                this.rightDown = true;
+                this.mouseInControl = false;
+                this.rightDown = 1;
             })
             inputRight.addEventListener("pointerup", () => {
-                this.rightDown = false;
+                this.mouseInControl = false;
+                this.rightDown = 0;
             })
+        }
+
+        this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+        this.game.canvas.addEventListener("pointerup", this.mouseUp);
+    }
+
+    public mouseCanControl: boolean = false;
+    public mouseInControl: boolean = false;
+    private _pointerDown: boolean = false;
+    public mouseDown = (ev: PointerEvent) => {
+        if (ev.pointerType === "mouse" && this.mouseCanControl) {
+            this.mouseInControl = true;
+            this._pointerDown = true;
+        }
+    }
+
+    public mouseUp = (ev: PointerEvent) => {
+        if (ev.pointerType === "mouse" && this.mouseCanControl) {
+            this.mouseInControl = true;
+            this._pointerDown = false;
         }
     }
 
@@ -183,18 +211,42 @@ class Ball extends BABYLON.Mesh {
     public trailPoints: BABYLON.Vector3[] = [];
     
     public update(dt: number): void {
+        if (this.mouseCanControl && this.mouseInControl) {
+            this.rightDown = 0;
+            this.leftDown = 0;
+            if (this._pointerDown) {
+                let pick = this.game.scene.pick(
+                    this.game.scene.pointerX,
+                    this.game.scene.pointerY,
+                    (mesh) => {
+                        return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
+                    }
+                )
+                if (pick.hit) {
+                    let point = pick.pickedPoint;
+                    let dx = point.x - this.absolutePosition.x;
+                    if (dx > 0) {
+                        this.rightDown = Math.min(1, dx / 0.5);
+                    }
+                    else if (dx < 0) {
+                        this.leftDown = Math.min(1, dx / -0.5);
+                    }
+                }
+            }
+        }
+
         let vX = 0;
-        if (this.leftDown) {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + 1 * 0.2;
-            vX -= 1;
+        if (this.leftDown > 0) {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftDown) * 0.2;
+            vX -= this.leftDown;
         }
         else {
             this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
         }
 
-        if (this.rightDown) {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + 1 * 0.2;
-            vX += 1;
+        if (this.rightDown > 0) {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightDown) * 0.2;
+            vX += this.rightDown;
         }
         else {
             this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;

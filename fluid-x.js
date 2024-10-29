@@ -14,9 +14,24 @@ class Ball extends BABYLON.Mesh {
         this.fallTimer = 0;
         this.vZ = 1;
         this.radius = 0.3;
-        this.leftDown = false;
-        this.rightDown = false;
+        this.leftDown = 0;
+        this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.mouseCanControl = false;
+        this.mouseInControl = false;
+        this._pointerDown = false;
+        this.mouseDown = (ev) => {
+            if (ev.pointerType === "mouse" && this.mouseCanControl) {
+                this.mouseInControl = true;
+                this._pointerDown = true;
+            }
+        };
+        this.mouseUp = (ev) => {
+            if (ev.pointerType === "mouse" && this.mouseCanControl) {
+                this.mouseInControl = true;
+                this._pointerDown = false;
+            }
+        };
         this.playTimer = 0;
         this.xForce = 1;
         this.nominalSpeed = 2.2;
@@ -64,38 +79,48 @@ class Ball extends BABYLON.Mesh {
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         document.addEventListener("keydown", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.leftDown = true;
+                this.mouseInControl = false;
+                this.leftDown = 1;
             }
             else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.rightDown = true;
+                this.mouseInControl = false;
+                this.rightDown = 1;
             }
         });
         document.addEventListener("keyup", (ev) => {
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.leftDown = false;
+                this.mouseInControl = false;
+                this.leftDown = 0;
             }
             else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.rightDown = false;
+                this.mouseInControl = false;
+                this.rightDown = 0;
             }
         });
         let inputLeft = document.querySelector("#input-left");
         if (inputLeft) {
             inputLeft.addEventListener("pointerdown", () => {
-                this.leftDown = true;
+                this.leftDown = 1;
+                this.mouseInControl = false;
             });
             inputLeft.addEventListener("pointerup", () => {
-                this.leftDown = false;
+                this.mouseInControl = false;
+                this.leftDown = 0;
             });
         }
         let inputRight = document.querySelector("#input-right");
         if (inputRight) {
             inputRight.addEventListener("pointerdown", () => {
-                this.rightDown = true;
+                this.mouseInControl = false;
+                this.rightDown = 1;
             });
             inputRight.addEventListener("pointerup", () => {
-                this.rightDown = false;
+                this.mouseInControl = false;
+                this.rightDown = 0;
             });
         }
+        this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+        this.game.canvas.addEventListener("pointerup", this.mouseUp);
     }
     get leftArrowSize() {
         return this.leftArrow.scaling.x;
@@ -139,17 +164,36 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.rightArrow);
     }
     update(dt) {
+        if (this.mouseCanControl && this.mouseInControl) {
+            this.rightDown = 0;
+            this.leftDown = 0;
+            if (this._pointerDown) {
+                let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
+                });
+                if (pick.hit) {
+                    let point = pick.pickedPoint;
+                    let dx = point.x - this.absolutePosition.x;
+                    if (dx > 0) {
+                        this.rightDown = Math.min(1, dx / 0.5);
+                    }
+                    else if (dx < 0) {
+                        this.leftDown = Math.min(1, dx / -0.5);
+                    }
+                }
+            }
+        }
         let vX = 0;
-        if (this.leftDown) {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + 1 * 0.2;
-            vX -= 1;
+        if (this.leftDown > 0) {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftDown) * 0.2;
+            vX -= this.leftDown;
         }
         else {
             this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
         }
-        if (this.rightDown) {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + 1 * 0.2;
-            vX += 1;
+        if (this.rightDown > 0) {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightDown) * 0.2;
+            vX += this.rightDown;
         }
         else {
             this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
@@ -1237,7 +1281,7 @@ class Editor {
         this.update = (dt) => {
             if (this.active) {
                 let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 });
                 if (pick.hit) {
                     this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
@@ -1262,7 +1306,7 @@ class Editor {
             let dd = dx * dx + dy * dy;
             if (dd < 9) {
                 let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 });
                 if (pick.hit) {
                     if (ev.button === 2 || this.brush === EditorBrush.Delete) {
@@ -1272,7 +1316,6 @@ class Editor {
                         if (tile) {
                             tile.dispose();
                             this.puzzle.rebuildFloor();
-                            this.updateInvisifloorTM();
                         }
                         else {
                             let building = this.puzzle.buildings.find(build => {
@@ -1350,18 +1393,12 @@ class Editor {
                             if (tile) {
                                 tile.instantiate();
                                 this.puzzle.rebuildFloor();
-                                this.updateInvisifloorTM();
                             }
                         }
                     }
                 }
             }
         };
-        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 });
-        this.invisiFloorTM.position.x = 5 - 0.55;
-        this.invisiFloorTM.position.y = -0.01;
-        this.invisiFloorTM.position.z = 5 - 0.55;
-        this.invisiFloorTM.isVisible = false;
         this.cursor = Mummu.CreateLineBox("cursor", {
             width: 1,
             height: 1,
@@ -1428,14 +1465,12 @@ class Editor {
             this.dropClear();
             this.puzzle.w = Math.max(v, 3);
             this.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
         };
         this.heightInput = document.getElementById("editor-height");
         this.heightInput.onValueChange = (v) => {
             this.dropClear();
             this.puzzle.h = Math.max(v, 3);
             this.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
         };
         this.switchTileNorthButton = document.getElementById("switch-north-btn");
         this.switchTileEastButton = document.getElementById("switch-east-btn");
@@ -1637,7 +1672,6 @@ class Editor {
         this.game.canvas.addEventListener("pointerup", this.pointerUp);
         this.game.camera.attachControl();
         this.updatePublishText();
-        this.updateInvisifloorTM();
         this.initValues();
         this.active = true;
     }
@@ -1687,13 +1721,6 @@ class Editor {
             document.querySelector("#publish-btn stroke-text").innerHTML = "Publish";
             this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Publish";
         }
-    }
-    updateInvisifloorTM() {
-        let w = this.puzzle.xMax - this.puzzle.xMin;
-        let h = this.puzzle.zMax - this.puzzle.zMin;
-        BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
-        this.invisiFloorTM.position.x = 0.5 * w;
-        this.invisiFloorTM.position.z = 0.5 * h;
     }
     setPublishState(state) {
         this.publishForm.style.display = "";
@@ -4226,6 +4253,7 @@ class FishingPole {
         this.puzzle = puzzle;
         this.origin = new BABYLON.Vector3(0, 20, 5);
         this.animateTip = Mummu.AnimationFactory.EmptyVector3Callback;
+        this.stop = false;
         this.lineMesh = new BABYLON.Mesh("tentacle");
         this.lineMesh.material = this.puzzle.game.trueWhiteMaterial;
         let magnet = CreateBoxFrameVertexData({
@@ -4269,10 +4297,15 @@ class FishingPole {
         Mummu.CatmullRomPathInPlace(tipPath);
         Mummu.CatmullRomPathInPlace(tipPath);
         Mummu.CatmullRomPathInPlace(tipPath);
+        this.stop = false;
         return new Promise(resolve => {
             let duration = 4;
             let t0 = performance.now();
             let step = async () => {
+                if (this.stop) {
+                    this.lineMesh.isVisible = false;
+                    return;
+                }
                 let f = (performance.now() - t0) / 1000 / duration;
                 if (f < 1) {
                     if (f > 0.5 && onLowestPointCallback) {
@@ -4331,6 +4364,11 @@ class Puzzle {
         this.fishingPole = new FishingPole(this);
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
+        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 });
+        this.invisiFloorTM.position.x = 5 - 0.55;
+        this.invisiFloorTM.position.y = -0.01;
+        this.invisiFloorTM.position.z = 5 - 0.55;
+        this.invisiFloorTM.isVisible = false;
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.grayMaterial;
         this.puzzleUI = new PuzzleUI(this);
@@ -4426,6 +4464,7 @@ class Puzzle {
         return this.h * 1.1 - 0.55;
     }
     async reset() {
+        this.fishingPole.stop = true;
         if (this.data) {
             this.resetFromData(this.data);
             await this.instantiate();
@@ -4550,6 +4589,7 @@ class Puzzle {
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
+        this.ball.parent = undefined;
         this.ball.position.x = parseInt(ballLine[0]) * 1.1;
         this.ball.position.y = 0;
         this.ball.position.z = parseInt(ballLine[1]) * 1.1;
@@ -4564,6 +4604,10 @@ class Puzzle {
             this.ball.setColor(TileColor.North);
         }
         this.ball.ballState = BallState.Ready;
+        this.ball.mouseCanControl = false;
+        setTimeout(() => {
+            this.ball.mouseCanControl = true;
+        }, 1000);
         this.game.setPlayTimer(0);
         this.ball.vZ = 1;
         this.fishingPolesCount = 3;
@@ -4733,6 +4777,13 @@ class Puzzle {
             this.buildings[i].regenerateBorders();
             await this.buildings[i].instantiate();
         }
+    }
+    updateInvisifloorTM() {
+        let w = Math.max(100, 2 * (this.xMax - this.xMin));
+        let h = Math.max(100, 2 * (this.zMax - this.zMin));
+        BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
+        this.invisiFloorTM.position.x = (this.xMax + this.xMin) * 0.5;
+        this.invisiFloorTM.position.z = (this.zMax + this.zMin) * 0.5;
     }
     rebuildFloor() {
         if (this.border) {
@@ -4949,6 +5000,7 @@ class Puzzle {
         else {
             this.holeWall.isVisible = false;
         }
+        this.updateInvisifloorTM();
     }
     fetchWinSlot(color) {
         let s = this.winSlotsIndexes[color];

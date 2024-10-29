@@ -21,7 +21,6 @@ class Editor {
     public cursorJ: number = 0;
     public cursorH: number = 0;
 
-    public invisiFloorTM: BABYLON.Mesh;
     public brush: EditorBrush = EditorBrush.None;
     public brushColor: TileColor = TileColor.North;
 
@@ -97,11 +96,6 @@ class Editor {
     }
 
     constructor(public game: Game) {
-        this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 } );
-        this.invisiFloorTM.position.x = 5 - 0.55;
-        this.invisiFloorTM.position.y = - 0.01;
-        this.invisiFloorTM.position.z = 5 - 0.55;
-        this.invisiFloorTM.isVisible = false;
 
         this.cursor = Mummu.CreateLineBox("cursor", {
             width: 1,
@@ -147,7 +141,6 @@ class Editor {
             this.dropClear();
             this.puzzle.w = Math.max(v, 3);
             this.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
         }
 
         this.heightInput = document.getElementById("editor-height") as NumValueInput;
@@ -155,7 +148,6 @@ class Editor {
             this.dropClear();
             this.puzzle.h = Math.max(v, 3);
             this.puzzle.rebuildFloor();
-            this.updateInvisifloorTM();
         }
 
         this.switchTileNorthButton = document.getElementById("switch-north-btn") as HTMLButtonElement;
@@ -385,7 +377,6 @@ class Editor {
         this.game.camera.attachControl();
 
         this.updatePublishText();
-        this.updateInvisifloorTM();
         this.initValues();
 
         this.active = true;
@@ -448,14 +439,6 @@ class Editor {
             document.querySelector("#publish-btn stroke-text").innerHTML = "Publish";
             this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Publish";
         }
-    }
-
-    public updateInvisifloorTM(): void {
-        let w = this.puzzle.xMax - this.puzzle.xMin;
-        let h = this.puzzle.zMax - this.puzzle.zMin;
-        BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
-        this.invisiFloorTM.position.x = 0.5 * w;
-        this.invisiFloorTM.position.z = 0.5 * h;
     }
 
     public updatePublishBtn = () => {
@@ -531,7 +514,7 @@ class Editor {
                 this.game.scene.pointerX,
                 this.game.scene.pointerY,
                 (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 }
             )
             if (pick.hit) {
@@ -563,7 +546,7 @@ class Editor {
                 this.game.scene.pointerX,
                 this.game.scene.pointerY,
                 (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.invisiFloorTM;
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 }
             )
             if (pick.hit) {
@@ -574,7 +557,6 @@ class Editor {
                     if (tile) {
                         tile.dispose();
                         this.puzzle.rebuildFloor();
-                        this.updateInvisifloorTM();
                     }
                     else {
                         let building = this.puzzle.buildings.find(build => {
@@ -676,7 +658,6 @@ class Editor {
                         if (tile) {
                             tile.instantiate();
                             this.puzzle.rebuildFloor();
-                            this.updateInvisifloorTM();
                         }
                     }
                 }

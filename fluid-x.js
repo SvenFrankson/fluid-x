@@ -2529,7 +2529,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2692,6 +2692,7 @@ class Game {
         this.playCameraRange = 15;
         this.playCameraRadius = 20;
         this.playCameraMinRadius = 10;
+        this.playCameraMaxRadius = 24;
         this.cameraOrtho = false;
         this.mode = GameMode.Menu;
         this.completedPuzzles = [];
@@ -3139,7 +3140,7 @@ class Game {
     }
     updatePlayCameraRadius() {
         let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
-        this.playCameraRadius = Math.max(this.playCameraMinRadius, this.playCameraRange / Math.tan(minFov));
+        this.playCameraRadius = Nabu.MinMax(this.playCameraRange / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
     update() {
         let rawDT = this.scene.deltaTime / 1000;

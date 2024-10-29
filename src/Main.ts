@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -236,6 +236,7 @@ class Game {
     public playCameraRange: number = 15;
     public playCameraRadius: number = 20;
     public playCameraMinRadius: number = 10;
+    public playCameraMaxRadius: number = 24;
 
     public cameraOrtho: boolean = false;
 
@@ -782,7 +783,7 @@ class Game {
 
     public updatePlayCameraRadius(): void {
         let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
-        this.playCameraRadius = Math.max(this.playCameraMinRadius, this.playCameraRange / Math.tan(minFov));
+        this.playCameraRadius = Nabu.MinMax(this.playCameraRange / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
 
     public movieIdleDir: BABYLON.Vector3 = BABYLON.Vector3.Zero();

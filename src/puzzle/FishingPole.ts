@@ -4,6 +4,7 @@ class FishingPole {
     public lineMesh: BABYLON.Mesh;
 
     public animateTip = Mummu.AnimationFactory.EmptyVector3Callback;
+    public stop: boolean = false;
 
     constructor(public puzzle: Puzzle) {
         this.lineMesh = new BABYLON.Mesh("tentacle");
@@ -58,10 +59,15 @@ class FishingPole {
         Mummu.CatmullRomPathInPlace(tipPath);
         Mummu.CatmullRomPathInPlace(tipPath);
 
+        this.stop = false;
         return new Promise<void>(resolve => {
             let duration = 4;
             let t0 = performance.now();
             let step = async () => {
+                if (this.stop) {
+                    this.lineMesh.isVisible = false;
+                    return;
+                }
                 let f = (performance.now() - t0) / 1000 / duration;
                 if (f < 1) {
                     if (f > 0.5 && onLowestPointCallback) {

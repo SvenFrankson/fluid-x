@@ -263,6 +263,7 @@ class Game {
     public floorMaterial: BABYLON.StandardMaterial;
     public darkFloorMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
+    public whiteShadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
     public puckSideMaterial: BABYLON.StandardMaterial;
     public puzzle: Puzzle;
@@ -417,6 +418,14 @@ class Game {
         this.shadow9Material.useAlphaFromDiffuseTexture = true;
         this.shadow9Material.alpha = 0.4;
         this.shadow9Material.specularColor.copyFromFloats(0, 0, 0);
+            
+        this.whiteShadow9Material = new BABYLON.StandardMaterial("white-shadow9-material");
+        this.whiteShadow9Material.diffuseColor.copyFromFloats(1, 1, 1);
+        this.whiteShadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.whiteShadow9Material.diffuseTexture.hasAlpha = true;
+        this.whiteShadow9Material.useAlphaFromDiffuseTexture = true;
+        this.whiteShadow9Material.alpha = 1;
+        this.whiteShadow9Material.specularColor.copyFromFloats(0, 0, 0);
             
         this.shadowDiscMaterial = new BABYLON.StandardMaterial("shadow-material");
         this.shadowDiscMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);

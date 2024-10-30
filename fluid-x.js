@@ -63,12 +63,10 @@ class Ball extends BABYLON.Mesh {
         this.leftArrow = new BABYLON.Mesh("left-arrow");
         this.leftArrow.position.y = 0.15;
         this.leftArrow.rotation.y = Math.PI;
-        this.leftArrow.parent = this;
         this.leftArrow.material = this.game.puckSideMaterial;
         this.leftArrowSize = 0.5;
         this.rightArrow = new BABYLON.Mesh("right-arrow");
         this.rightArrow.position.y = 0.15;
-        this.rightArrow.parent = this;
         this.rightArrow.material = this.game.puckSideMaterial;
         this.rightArrowSize = 0.5;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
@@ -156,12 +154,12 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.game;
     }
     async instantiate() {
-        let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
+        let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
-        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.leftArrow);
-        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.rightArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
     update(dt) {
         if (this.mouseCanControl && this.mouseInControl) {
@@ -201,27 +199,13 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.04));
-            if (this.trailTimer > 0.05) {
+            let p = new BABYLON.Vector3(0, 0, -0.8);
+            BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
+            if (this.trailTimer > 0.03) {
                 this.trailTimer = 0;
                 let last = this.trailPoints[this.trailPoints.length - 1];
                 if (last) {
                     p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
-                }
-                if (this.trailPoints.length >= 2) {
-                    let last = this.trailPoints[this.trailPoints.length - 1];
-                    let anteLast = this.trailPoints[this.trailPoints.length - 2];
-                    let lastDir = last.subtract(anteLast);
-                    let pDir = p.subtract(last);
-                    let a = Mummu.AngleFromToAround(lastDir, pDir, BABYLON.Axis.Y);
-                    if (a > Math.PI * 0.3) {
-                        Mummu.RotateInPlace(pDir, BABYLON.Axis.Y, -(a - Math.PI * 0.3));
-                        p.copyFrom(pDir).addInPlace(last);
-                    }
-                    if (a < -Math.PI * 0.3) {
-                        Mummu.RotateInPlace(pDir, BABYLON.Axis.Y, -(a + Math.PI * 0.3));
-                        p.copyFrom(pDir).addInPlace(last);
-                    }
                 }
                 this.trailPoints.push(p);
                 if (this.trailPoints.length > 15) {
@@ -408,8 +392,9 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
-                BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
+                let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
+                BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
             }
         }
         else if (this.ballState === BallState.Fall) {
@@ -470,6 +455,10 @@ class Ball extends BABYLON.Mesh {
             this.position.y = this.fallOriginPos.y * (1 - f) + bottom.y * f;
             this.rotate(this.fallRotAxis, 2 * Math.PI * dt, BABYLON.Space.WORLD);
         }
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.15;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.15;
     }
 }
 var TileState;
@@ -698,6 +687,18 @@ class Tile extends BABYLON.Mesh {
                 }
                 let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
                 animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine).then(() => {
+                    let flash = Mummu.Create9Slice("flash", {
+                        width: 1.2,
+                        height: 1.2,
+                        margin: 0.1
+                    });
+                    flash.material = this.game.whiteShadow9Material;
+                    flash.parent = star;
+                    flash.position.y = 0.29;
+                    flash.rotation.x = Math.PI * 0.5;
+                    SineFlashVisibility(flash, 0.3).then(() => {
+                        flash.dispose();
+                    });
                     this.game.puzzle.clickSound.play();
                 });
             }
@@ -2852,6 +2853,13 @@ class Game {
         this.shadow9Material.useAlphaFromDiffuseTexture = true;
         this.shadow9Material.alpha = 0.4;
         this.shadow9Material.specularColor.copyFromFloats(0, 0, 0);
+        this.whiteShadow9Material = new BABYLON.StandardMaterial("white-shadow9-material");
+        this.whiteShadow9Material.diffuseColor.copyFromFloats(1, 1, 1);
+        this.whiteShadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.whiteShadow9Material.diffuseTexture.hasAlpha = true;
+        this.whiteShadow9Material.useAlphaFromDiffuseTexture = true;
+        this.whiteShadow9Material.alpha = 1;
+        this.whiteShadow9Material.specularColor.copyFromFloats(0, 0, 0);
         this.shadowDiscMaterial = new BABYLON.StandardMaterial("shadow-material");
         this.shadowDiscMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
         this.shadowDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
@@ -5592,6 +5600,23 @@ class PuzzleUI {
         this.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
+}
+function SineFlashVisibility(target, duration, min = 0, max = 1) {
+    return new Promise(resolve => {
+        let t0 = performance.now();
+        let step = () => {
+            let f = (performance.now() - t0) / 1000 / duration;
+            if (f < 1) {
+                target.visibility = min + Math.sin(f * Math.PI) * max;
+                requestAnimationFrame(step);
+            }
+            else {
+                target.visibility = min;
+                resolve();
+            }
+        };
+        step();
+    });
 }
 function MakeQuad(i0, i1, i2, i3, indices, positions, flatShadingPositions) {
     if (positions && flatShadingPositions) {

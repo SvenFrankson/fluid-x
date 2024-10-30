@@ -101,13 +101,11 @@ class Ball extends BABYLON.Mesh {
         this.leftArrow = new BABYLON.Mesh("left-arrow");
         this.leftArrow.position.y = 0.15;
         this.leftArrow.rotation.y = Math.PI;
-        this.leftArrow.parent = this;
         this.leftArrow.material = this.game.puckSideMaterial;
         this.leftArrowSize = 0.5;
 
         this.rightArrow = new BABYLON.Mesh("right-arrow");
         this.rightArrow.position.y = 0.15;
-        this.rightArrow.parent = this;
         this.rightArrow.material = this.game.puckSideMaterial;
         this.rightArrowSize = 0.5;
 
@@ -187,14 +185,14 @@ class Ball extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
-        let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
+        let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
         ballDatas[0].applyToMesh(this);
 
         ballDatas[1].applyToMesh(this.ballTop);
 
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
-        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.leftArrow);
-        BABYLON.CreateGroundVertexData({ width: 2.2, height: 2.2 }).applyToMesh(this.rightArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
 
     public playTimer: number = 0;
@@ -256,28 +254,13 @@ class Ball extends BABYLON.Mesh {
 
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = this.absolutePosition.clone().add(Mummu.Rotate(this.moveDir, BABYLON.Axis.Y, Math.PI * 0.5).scale(0.04));
-            if (this.trailTimer > 0.05) {
+            let p = new BABYLON.Vector3(0, 0, -0.8);
+            BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
+            if (this.trailTimer > 0.03) {
                 this.trailTimer = 0;
                 let last = this.trailPoints[this.trailPoints.length - 1]
                 if (last) {
                     p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
-                }
-
-                if (this.trailPoints.length >= 2) {
-                    let last = this.trailPoints[this.trailPoints.length - 1];
-                    let anteLast = this.trailPoints[this.trailPoints.length - 2];
-                    let lastDir = last.subtract(anteLast);
-                    let pDir = p.subtract(last);
-                    let a = Mummu.AngleFromToAround(lastDir, pDir, BABYLON.Axis.Y);
-                    if (a > Math.PI * 0.3) {
-                        Mummu.RotateInPlace(pDir, BABYLON.Axis.Y, - (a - Math.PI * 0.3));
-                        p.copyFrom(pDir).addInPlace(last);
-                    } 
-                    if (a < - Math.PI * 0.3) {
-                        Mummu.RotateInPlace(pDir, BABYLON.Axis.Y, - (a + Math.PI * 0.3));
-                        p.copyFrom(pDir).addInPlace(last);
-                    } 
                 }
 
                 this.trailPoints.push(p);
@@ -483,8 +466,9 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
-                BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 0.1, this.rotationQuaternion);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
+                let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
+                BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
             }    
         }
         else if (this.ballState === BallState.Fall) {
@@ -555,5 +539,10 @@ class Ball extends BABYLON.Mesh {
 
             this.rotate(this.fallRotAxis, 2 * Math.PI * dt, BABYLON.Space.WORLD);
         }
+
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.15;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.15;
     }
 }

@@ -318,3 +318,99 @@ function CreateTrailVertexData(props: ITrailProps): BABYLON.VertexData {
 
     return data;
 }
+
+interface IBiDiscProps {
+    color?: BABYLON.Color4,
+    r1: number,
+    r2: number,
+    p1: BABYLON.Vector3,
+    p2: BABYLON.Vector3,
+}
+
+function CreateBiDiscVertexData(props: IBiDiscProps): BABYLON.VertexData {
+    let data = new BABYLON.VertexData();
+    let positions: number[] = [];
+    let normals = [];
+    let indices: number[] = [];
+    let uvs: number[] = [];
+
+    let r1 = props.r1;
+    let r2 = props.r2;
+    let d = BABYLON.Vector3.Distance(props.p1, props.p2);
+    
+    let alpha = 0;
+    if (d + r2 > r1) {
+        alpha = Math.acos((r1 - r2) / d);
+    }
+    
+
+    positions.push(0, 0, 0);
+    let count1 = Math.round((2 * Math.PI - 2 * alpha) / (Math.PI / 32));
+    let dA1 = (2 * Math.PI - 2 * alpha) / count1;
+    for (let n = 0; n <= count1; n++) {
+        let l = positions.length / 3;
+
+        let a = Math.PI - alpha - n * dA1;
+        let x = Math.cos(a) * r1;
+        let z = Math.sin(a) * r1;
+
+        positions.push(x, 0, z);
+        if (n < count1) {
+            indices.push(0, l + 1, l);
+        }
+    }
+
+    if (alpha > 0) {
+        let indexC2: number = positions.length / 3;
+        
+        indices.push(indexC2, 0, 1);
+        indices.push(indexC2, indexC2 - 1, 0);
+        indices.push(indexC2, indexC2 + 1, indexC2 - 1);
+    
+        positions.push(- d, 0, 0);
+        let count2 = Math.round((2 * alpha) / (Math.PI / 32));
+        let dA2 = (2 * alpha) / count2;
+        for (let n = 0; n <= count2; n++) {
+            let l = positions.length / 3;
+    
+            let a = Math.PI + alpha - n * dA2;
+            let x = - d + Math.cos(a) * r2;
+            let z = Math.sin(a) * r2;
+    
+            positions.push(x, 0, z);
+            if (n < count2) {
+                indices.push(indexC2, l + 1, l);
+            }
+        }
+    
+        indices.push(positions.length / 3 - 1, indexC2, 1);
+    }
+
+    data.positions = positions;
+    data.indices = indices;
+    
+    for (let i = 0; i < positions.length / 3; i++) {
+        normals.push(0, 1, 0);
+    }
+    data.normals = normals;
+    
+    data.uvs = uvs;
+    if (props.color) {
+        let colors = [];
+        let colArray = props.color.asArray();
+        for (let i = 0; i < positions.length / 3; i++) {
+            colors.push(...colArray)
+        }
+        data.colors = colors;
+    }
+
+    console.log(data);
+
+    if (d + r2 > r1) {
+        let rot = Mummu.AngleFromToAround(new BABYLON.Vector3(-1, 0, 0), props.p2.subtract(props.p1), BABYLON.Axis.Y);
+        Mummu.RotateAngleAxisVertexDataInPlace(data, rot, BABYLON.Axis.Y);
+    }
+    Mummu.TranslateVertexDataInPlace(data, props.p1);
+
+    return data;
+}

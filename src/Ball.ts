@@ -74,14 +74,16 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.game;
     }
 
+    public tail: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public tailVelocity: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public maxTailD: number = 0.5;
+
     constructor(public puzzle: Puzzle, props: BallProps) {
         super("ball");
 
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
 
         this.color = props.color;
-
-        this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
 
         this.ballTop = new BABYLON.Mesh("ball-top");
         this.ballTop.parent = this;
@@ -190,11 +192,18 @@ class Ball extends BABYLON.Mesh {
 
     public async instantiate(): Promise<void> {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
-        ballDatas[0].applyToMesh(this);
+        //ballDatas[0].applyToMesh(this);
 
-        ballDatas[1].applyToMesh(this.ballTop);
+        let data = CreateBiDiscVertexData({
+            r1: this.radius,
+            r2: this.radius * 0.3,
+            p1: BABYLON.Vector3.Zero(),
+            p2: new BABYLON.Vector3(- 0.5, 0, 0),
+        });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.2, 0));
+        data.applyToMesh(this.ballTop);
 
-        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+        BABYLON.CreateGroundVertexData({ width: 2.2 * this.radius, height: 2.2 * this.radius }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
@@ -211,6 +220,25 @@ class Ball extends BABYLON.Mesh {
     public trailPoints: BABYLON.Vector3[] = [];
     
     public update(dt: number): void {
+
+        let f = Nabu.Easing.smoothNSec(1 / dt, 0.5)
+        this.tailVelocity.addInPlace(
+            this.absolutePosition.subtract(this.tail).scaleInPlace(20 * dt)
+        );
+        this.tailVelocity.scaleInPlace(f);
+        this.tail.addInPlace(this.tailVelocity.scale(dt));
+        if (BABYLON.Vector3.DistanceSquared(this.tail, this.absolutePosition) > this.maxTailD * this.maxTailD) {
+            Mummu.ForceDistanceFromOriginInPlace(this.tail, this.absolutePosition, this.maxTailD);
+        }
+        let data = CreateBiDiscVertexData({
+            r1: this.radius,
+            r2: this.radius * 0.3,
+            p1: BABYLON.Vector3.Zero(),
+            p2: this.tail.subtract(this.absolutePosition)
+        });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.2, 0));
+        data.applyToMesh(this.ballTop);
+
         if (this.mouseCanControl && this.mouseInControl) {
             this.rightDown = 0;
             this.leftDown = 0;
@@ -258,6 +286,8 @@ class Ball extends BABYLON.Mesh {
             this.trailTimer += dt;
             let p = new BABYLON.Vector3(0, 0.1, -0.8);
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
+            p = this.tail.clone();
+            p.y += 0.1;
             if (this.trailTimer > 0.03) {
                 this.trailTimer = 0;
                 let last = this.trailPoints[this.trailPoints.length - 1]
@@ -481,7 +511,7 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
             }    

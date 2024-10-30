@@ -20,6 +20,9 @@ class Ball extends BABYLON.Mesh {
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.tail = BABYLON.Vector3.Zero();
+        this.tailVelocity = BABYLON.Vector3.Zero();
+        this.maxTailD = 0.5;
         this.mouseCanControl = false;
         this.mouseInControl = false;
         this._pointerDown = false;
@@ -46,7 +49,6 @@ class Ball extends BABYLON.Mesh {
         this.trailPoints = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
-        this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
         this.ballTop = new BABYLON.Mesh("ball-top");
         this.ballTop.parent = this;
         let boxMaterial = new BABYLON.StandardMaterial("box-material");
@@ -156,13 +158,35 @@ class Ball extends BABYLON.Mesh {
     }
     async instantiate() {
         let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
-        ballDatas[0].applyToMesh(this);
-        ballDatas[1].applyToMesh(this.ballTop);
-        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+        //ballDatas[0].applyToMesh(this);
+        let data = CreateBiDiscVertexData({
+            r1: this.radius,
+            r2: this.radius * 0.3,
+            p1: BABYLON.Vector3.Zero(),
+            p2: new BABYLON.Vector3(-0.5, 0, 0),
+        });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.2, 0));
+        data.applyToMesh(this.ballTop);
+        BABYLON.CreateGroundVertexData({ width: 2.2 * this.radius, height: 2.2 * this.radius }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
     update(dt) {
+        let f = Nabu.Easing.smoothNSec(1 / dt, 0.5);
+        this.tailVelocity.addInPlace(this.absolutePosition.subtract(this.tail).scaleInPlace(20 * dt));
+        this.tailVelocity.scaleInPlace(f);
+        this.tail.addInPlace(this.tailVelocity.scale(dt));
+        if (BABYLON.Vector3.DistanceSquared(this.tail, this.absolutePosition) > this.maxTailD * this.maxTailD) {
+            Mummu.ForceDistanceFromOriginInPlace(this.tail, this.absolutePosition, this.maxTailD);
+        }
+        let data = CreateBiDiscVertexData({
+            r1: this.radius,
+            r2: this.radius * 0.3,
+            p1: BABYLON.Vector3.Zero(),
+            p2: this.tail.subtract(this.absolutePosition)
+        });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.2, 0));
+        data.applyToMesh(this.ballTop);
         if (this.mouseCanControl && this.mouseInControl) {
             this.rightDown = 0;
             this.leftDown = 0;
@@ -202,6 +226,8 @@ class Ball extends BABYLON.Mesh {
             this.trailTimer += dt;
             let p = new BABYLON.Vector3(0, 0.1, -0.8);
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
+            p = this.tail.clone();
+            p.y += 0.1;
             if (this.trailTimer > 0.03) {
                 this.trailTimer = 0;
                 let last = this.trailPoints[this.trailPoints.length - 1];
@@ -405,7 +431,7 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
             }
@@ -5909,5 +5935,74 @@ function CreateTrailVertexData(props) {
         }
         data.colors = colors;
     }
+    return data;
+}
+function CreateBiDiscVertexData(props) {
+    let data = new BABYLON.VertexData();
+    let positions = [];
+    let normals = [];
+    let indices = [];
+    let uvs = [];
+    let r1 = props.r1;
+    let r2 = props.r2;
+    let d = BABYLON.Vector3.Distance(props.p1, props.p2);
+    let alpha = 0;
+    if (d + r2 > r1) {
+        alpha = Math.acos((r1 - r2) / d);
+    }
+    positions.push(0, 0, 0);
+    let count1 = Math.round((2 * Math.PI - 2 * alpha) / (Math.PI / 32));
+    let dA1 = (2 * Math.PI - 2 * alpha) / count1;
+    for (let n = 0; n <= count1; n++) {
+        let l = positions.length / 3;
+        let a = Math.PI - alpha - n * dA1;
+        let x = Math.cos(a) * r1;
+        let z = Math.sin(a) * r1;
+        positions.push(x, 0, z);
+        if (n < count1) {
+            indices.push(0, l + 1, l);
+        }
+    }
+    if (alpha > 0) {
+        let indexC2 = positions.length / 3;
+        indices.push(indexC2, 0, 1);
+        indices.push(indexC2, indexC2 - 1, 0);
+        indices.push(indexC2, indexC2 + 1, indexC2 - 1);
+        positions.push(-d, 0, 0);
+        let count2 = Math.round((2 * alpha) / (Math.PI / 32));
+        let dA2 = (2 * alpha) / count2;
+        for (let n = 0; n <= count2; n++) {
+            let l = positions.length / 3;
+            let a = Math.PI + alpha - n * dA2;
+            let x = -d + Math.cos(a) * r2;
+            let z = Math.sin(a) * r2;
+            positions.push(x, 0, z);
+            if (n < count2) {
+                indices.push(indexC2, l + 1, l);
+            }
+        }
+        indices.push(positions.length / 3 - 1, indexC2, 1);
+    }
+    data.positions = positions;
+    data.indices = indices;
+    for (let i = 0; i < positions.length / 3; i++) {
+        normals.push(0, 1, 0);
+    }
+    data.normals = normals;
+    data.uvs = uvs;
+    if (props.color) {
+        let colors = [];
+        let colArray = props.color.asArray();
+        for (let i = 0; i < positions.length / 3; i++) {
+            colors.push(...colArray);
+        }
+        data.colors = colors;
+    }
+    console.log(data);
+    if (d + r2 > r1) {
+        let rot = Mummu.AngleFromToAround(new BABYLON.Vector3(-1, 0, 0), props.p2.subtract(props.p1), BABYLON.Axis.Y);
+        Mummu.RotateAngleAxisVertexDataInPlace(data, rot, BABYLON.Axis.Y);
+    }
+    Mummu.TranslateVertexDataInPlace(data, props.p1);
     return data;
 }

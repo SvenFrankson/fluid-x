@@ -28,7 +28,11 @@ class Editor {
     public originIInput: NumValueInput;
     public originJInput: NumValueInput;
     public widthInput: NumValueInput;
+    public widthInsert: HTMLButtonElement;
+    public widthDelete: HTMLButtonElement;
     public heightInput: NumValueInput;
+    public heightInsert: HTMLButtonElement;
+    public heightDelete: HTMLButtonElement;
 
     public switchTileNorthButton: HTMLButtonElement;
     public switchTileEastButton: HTMLButtonElement;
@@ -143,11 +147,55 @@ class Editor {
             this.puzzle.rebuildFloor();
         }
 
+        this.widthInsert = document.getElementById("editor-width-insert") as HTMLButtonElement;
+        this.widthInsert.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            text = text.replaceAll("x", "xo");
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
+        }
+
+        this.widthDelete = document.getElementById("editor-width-delete") as HTMLButtonElement;
+        this.widthDelete.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+
+            let split = text.split("x");
+            for (let i = 1; i < split.length; i++) {
+                split[i] = split[i].substring(1);
+            }
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
+        }
+
         this.heightInput = document.getElementById("editor-height") as NumValueInput;
         this.heightInput.onValueChange = (v: number) => {
             this.dropClear();
             this.puzzle.h = Math.max(v, 3);
             this.puzzle.rebuildFloor();
+        }
+
+        this.heightInsert = document.getElementById("editor-height-insert") as HTMLButtonElement;
+        this.heightInsert.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            text += "x" + ("").padStart(this.puzzle.w, "o");
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
+        }
+
+        this.heightDelete = document.getElementById("editor-height-delete") as HTMLButtonElement;
+        this.heightDelete.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            let split = text.split("x");
+            split.pop();
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
         }
 
         this.switchTileNorthButton = document.getElementById("switch-north-btn") as HTMLButtonElement;

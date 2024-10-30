@@ -1045,30 +1045,37 @@ class Box extends Build {
         this.props.borderRight = false;
         this.props.borderBottom = false;
         this.props.borderTop = false;
-        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1 || this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1) {
             this.props.borderLeft = true;
             this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+            this.props.borderLeft = true;
             this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
         }
-        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
+        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1) {
             this.props.borderRight = true;
             this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
+            this.props.borderRight = true;
             this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 1));
         }
-        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
+        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1) {
             this.props.borderBottom = true;
             this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
+            this.props.borderBottom = true;
             this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
         }
-        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1) {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
+            this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
-            console.log("box " + this.i + " " + this.j);
-            let b1 = this.borders[this.borders.length - 2];
-            console.log("b1 " + b1.i + " " + b1.j);
-            let b2 = this.borders[this.borders.length - 1];
-            console.log("b2 " + b2.i + " " + b2.j);
         }
     }
     async instantiate() {
@@ -1563,11 +1570,49 @@ class Editor {
             this.puzzle.w = Math.max(v, 3);
             this.puzzle.rebuildFloor();
         };
+        this.widthInsert = document.getElementById("editor-width-insert");
+        this.widthInsert.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            text = text.replaceAll("x", "xo");
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
+        };
+        this.widthDelete = document.getElementById("editor-width-delete");
+        this.widthDelete.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            let split = text.split("x");
+            for (let i = 1; i < split.length; i++) {
+                split[i] = split[i].substring(1);
+            }
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
+        };
         this.heightInput = document.getElementById("editor-height");
         this.heightInput.onValueChange = (v) => {
             this.dropClear();
             this.puzzle.h = Math.max(v, 3);
             this.puzzle.rebuildFloor();
+        };
+        this.heightInsert = document.getElementById("editor-height-insert");
+        this.heightInsert.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            text += "x" + ("").padStart(this.puzzle.w, "o");
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
+        };
+        this.heightDelete = document.getElementById("editor-height-delete");
+        this.heightDelete.onclick = () => {
+            let text = SaveAsText(this.puzzle);
+            let split = text.split("x");
+            split.pop();
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+            this.puzzle.data.content = text;
+            this.puzzle.reset();
+            this.initValues();
         };
         this.switchTileNorthButton = document.getElementById("switch-north-btn");
         this.switchTileEastButton = document.getElementById("switch-east-btn");
@@ -4826,6 +4871,7 @@ class Puzzle {
         this.ball.vZ = 1;
         this.fishingPolesCount = 3;
         this.h = lines.length;
+        console.log("height = " + this.h);
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];

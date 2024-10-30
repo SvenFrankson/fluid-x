@@ -357,6 +357,7 @@ class Puzzle {
         this.ball.vZ = 1;
         this.fishingPolesCount = 3;
         this.h = lines.length;
+        console.log("height = " + this.h);
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];

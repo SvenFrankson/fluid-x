@@ -502,6 +502,8 @@ class Puzzle {
         }
         for (let i = 0; i < this.buildings.length; i++) {
             this.buildings[i].regenerateBorders();
+        }
+        for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
 

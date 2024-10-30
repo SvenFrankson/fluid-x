@@ -70,7 +70,7 @@ class Border extends BABYLON.Mesh {
     constructor(public game: Game, public ghost = false) {
         super("tile");
 
-        this.material = this.game.blackMaterial;
+        this.material = this.game.borderMaterial;
     }
 
     public async instantiate(): Promise<void> {

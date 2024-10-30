@@ -44,7 +44,7 @@ abstract class Build extends BABYLON.Mesh {
         this.floor.material = this.game.darkFloorMaterial;
 
         this.shadow = new BABYLON.Mesh("shadow");
-        this.shadow.position.y = 0.01;
+        this.shadow.position.y = 0.005;
         this.shadow.parent = this;
 
         this.shadow.material = this.game.shadow9Material;
@@ -79,18 +79,22 @@ abstract class Build extends BABYLON.Mesh {
 
 class Ramp extends Build {
 
-    public builtInBorder: BABYLON.Mesh;
+    public builtInBorderLeft: BABYLON.Mesh;
+    public builtInBorderRight: BABYLON.Mesh;
     
     constructor(game: Game, props: BuildProps) {
         super(game, props);
-
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
 
-        this.builtInBorder = new BABYLON.Mesh("ramp-border");
-        this.builtInBorder.parent = this;
+        this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
+        this.builtInBorderLeft.position.x = -0.55;
+        this.builtInBorderLeft.parent = this;
+        this.builtInBorderLeft.material = this.game.borderMaterial;
 
-        this.builtInBorder.material = this.game.blackMaterial;
+        this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
+        this.builtInBorderRight.position.x = 1.5 * 1.1;
+        this.builtInBorderRight.parent = this;
+        this.builtInBorderRight.material = this.game.borderMaterial;
     }
 
     public fillHeightmap() {
@@ -133,20 +137,37 @@ class Ramp extends Build {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
-        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/ramp.babylon");
         data[0].applyToMesh(this);
         data[1].applyToMesh(this.floor);
-        data[2].applyToMesh(this.builtInBorder);
+
+        let jPlusLeftStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j + 3);
+        let jPlusLeftConn = jPlusLeftStack && jPlusLeftStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
+        if (jPlusLeftConn) {
+            data[2].applyToMesh(this.builtInBorderLeft);
+        }
+        else {
+            data[3].applyToMesh(this.builtInBorderLeft);
+        }
+        
+        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + 1, this.j + 3);
+        let jPlusRightConn = jPlusRightStack && jPlusRightStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
+        if (jPlusRightConn) {
+            data[2].applyToMesh(this.builtInBorderRight);
+        }
+        else {
+            data[3].applyToMesh(this.builtInBorderRight);
+        }
 
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
-            width: 2 + 2 * m,
-            height: 3 + m,
+            width: 2.2 + 2 * m,
+            height: 3.3 + m,
             margin: m,
             cutTop: true
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 1 + 0.5 * m));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 1.1 + 0.5 * m));
         shadowData.applyToMesh(this.shadow);
     }
 }
@@ -156,7 +177,6 @@ class Box extends Build {
     constructor(game: Game, props: BuildProps) {
         super(game, props);
 
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
     }
 
@@ -253,7 +273,6 @@ class Bridge extends Build {
     constructor(game: Game, props: BuildProps) {
         super(game, props);
         
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
 
         this.builtInBorder = new BABYLON.Mesh("ramp-border");

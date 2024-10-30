@@ -762,7 +762,7 @@ class Border extends BABYLON.Mesh {
         this.ghost = ghost;
         this.w = 0;
         this.d = 1;
-        this.material = this.game.blackMaterial;
+        this.material = this.game.borderMaterial;
     }
     get vertical() {
         return this.rotation.y === 0;
@@ -901,7 +901,7 @@ class Build extends BABYLON.Mesh {
         this.floor.parent = this;
         this.floor.material = this.game.darkFloorMaterial;
         this.shadow = new BABYLON.Mesh("shadow");
-        this.shadow.position.y = 0.01;
+        this.shadow.position.y = 0.005;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadow9Material;
         let index = this.game.puzzle.buildings.indexOf(this);
@@ -943,11 +943,15 @@ class Build extends BABYLON.Mesh {
 class Ramp extends Build {
     constructor(game, props) {
         super(game, props);
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
-        this.builtInBorder = new BABYLON.Mesh("ramp-border");
-        this.builtInBorder.parent = this;
-        this.builtInBorder.material = this.game.blackMaterial;
+        this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
+        this.builtInBorderLeft.position.x = -0.55;
+        this.builtInBorderLeft.parent = this;
+        this.builtInBorderLeft.material = this.game.borderMaterial;
+        this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
+        this.builtInBorderRight.position.x = 1.5 * 1.1;
+        this.builtInBorderRight.parent = this;
+        this.builtInBorderRight.material = this.game.borderMaterial;
     }
     fillHeightmap() {
         for (let ii = 0; ii < 2; ii++) {
@@ -982,26 +986,40 @@ class Ramp extends Build {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
-        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/ramp.babylon");
         data[0].applyToMesh(this);
         data[1].applyToMesh(this.floor);
-        data[2].applyToMesh(this.builtInBorder);
+        let jPlusLeftStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j + 3);
+        let jPlusLeftConn = jPlusLeftStack && jPlusLeftStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
+        if (jPlusLeftConn) {
+            data[2].applyToMesh(this.builtInBorderLeft);
+        }
+        else {
+            data[3].applyToMesh(this.builtInBorderLeft);
+        }
+        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + 1, this.j + 3);
+        let jPlusRightConn = jPlusRightStack && jPlusRightStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
+        if (jPlusRightConn) {
+            data[2].applyToMesh(this.builtInBorderRight);
+        }
+        else {
+            data[3].applyToMesh(this.builtInBorderRight);
+        }
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
-            width: 2 + 2 * m,
-            height: 3 + m,
+            width: 2.2 + 2 * m,
+            height: 3.3 + m,
             margin: m,
             cutTop: true
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 1 + 0.5 * m));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 1.1 + 0.5 * m));
         shadowData.applyToMesh(this.shadow);
     }
 }
 class Box extends Build {
     constructor(game, props) {
         super(game, props);
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
     }
     fillHeightmap() {
@@ -1078,7 +1096,6 @@ class Box extends Build {
 class Bridge extends Build {
     constructor(game, props) {
         super(game, props);
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
         this.material = this.game.salmonMaterial;
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
@@ -2820,6 +2837,9 @@ class Game {
     getScene() {
         return this.scene;
     }
+    get borderMaterial() {
+        return this.brownMaterial;
+    }
     get bodyColorIndex() {
         return this._bodyColorIndex;
     }
@@ -3247,11 +3267,14 @@ class Game {
                 else {
                     targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
+                let relZPos = (this.puzzle.ball.absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
+                targetCamBeta = 0.1 * Math.PI;
                 let f = Nabu.Easing.smooth2Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
                 let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
-                this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
+                this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
                 let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
                 this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
                 if (this.puzzle) {

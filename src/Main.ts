@@ -266,6 +266,9 @@ class Game {
     public whiteShadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
     public puckSideMaterial: BABYLON.StandardMaterial;
+    public get borderMaterial() {
+        return this.brownMaterial;
+    }
     public puzzle: Puzzle;
     public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
@@ -823,12 +826,16 @@ class Game {
                 else {
                     targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
+
+                let relZPos = (this.puzzle.ball.absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
+                targetCamBeta = 0.1 * Math.PI;
                 
                 let f = Nabu.Easing.smooth2Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
                 let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (- Math.PI * 0.5) * (1 - f3);
-                this.camera.beta = this.camera.beta * f3 + (Math.PI * 0.1) * (1 - f3);
+                this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
                 let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
                 this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
                 

@@ -210,34 +210,44 @@ class Box extends Build {
         this.props.borderBottom = false;
         this.props.borderTop = false;
 
-        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1 || this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1) {
             this.props.borderLeft = true;
             this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
+        }
+
+        if (this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+            this.props.borderLeft = true;
             this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
         }
 
-        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
+        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1) {
             this.props.borderRight = true;
             this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 1));
+        }
+
+        if (this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
+            this.props.borderRight = true;
             this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 1));
         }
 
-        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1 || this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
+        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1) {
             this.props.borderBottom = true;
             this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
+        }
+
+        if (this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
+            this.props.borderBottom = true;
             this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
         }
 
-        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1) {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
-            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
+        }
 
-            console.log("box " + this.i + " " + this.j);
-            let b1 = this.borders[this.borders.length - 2];
-            console.log("b1 " + b1.i + " " + b1.j);
-            let b2 = this.borders[this.borders.length - 1];
-            console.log("b2 " + b2.i + " " + b2.j);
+        if (this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
+            this.props.borderTop = true;
+            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
         }
     }
 

@@ -75,9 +75,47 @@ class Border extends BABYLON.Mesh {
 
     public async instantiate(): Promise<void> {
         if (!this.ghost) {
-            let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
-            Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
-            data.applyToMesh(this);
+            let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
+            if (this.vertical) {
+                let jPlusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j + 1);
+                let jPlusConn = jPlusStack && jPlusStack.array.find(brd => { return brd.position.y === this.position.y && brd.vertical === this.vertical; });
+
+                let jMinusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j - 1);
+                let jMinusConn = jMinusStack && jMinusStack.array.find(brd => { return brd.position.y === this.position.y && brd.vertical === this.vertical; });
+
+                if (jPlusConn && jMinusConn) {
+                    borderDatas[0].applyToMesh(this);
+                }
+                else if (jPlusConn) {
+                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                }
+                else if (jMinusConn) {
+                    borderDatas[1].applyToMesh(this);
+                }
+                else {
+                    borderDatas[2].applyToMesh(this);
+                }
+            }
+            else {
+                let iPlusStack = this.game.puzzle.getGriddedBorderStack(this.i + 1, this.j);
+                let iPlusConn = iPlusStack && iPlusStack.array.find(brd => { return brd.position.y === this.position.y && !brd.vertical });
+
+                let iMinusStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j);
+                let iMinusConn = iMinusStack && iMinusStack.array.find(brd => { return brd.position.y === this.position.y && !brd.vertical });
+
+                if (iPlusConn && iMinusConn) {
+                    borderDatas[0].applyToMesh(this);
+                }
+                else if (iPlusConn) {
+                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                }
+                else if (iMinusConn) {
+                    borderDatas[1].applyToMesh(this);
+                }
+                else {
+                    borderDatas[2].applyToMesh(this);
+                }
+            }
         }
     }
 

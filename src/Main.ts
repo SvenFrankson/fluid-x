@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -381,7 +381,7 @@ class Game {
         
         this.router = new CarillonRouter(this);
         this.router.initialize();
-        await this.router.waitForAllPagesLoaded();
+        await this.router.postInitialize();
 
         this.uiInputManager.initialize();
 
@@ -603,6 +603,7 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
+        this.router.start();
 
         (document.querySelector("#score-player-input") as HTMLInputElement).onchange = () => {
             let v = (document.querySelector("#score-player-input") as HTMLInputElement).value;
@@ -619,8 +620,6 @@ class Game {
         (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.submitHighscore();
         }
-
-        this.router.start();
 
         (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.reset();

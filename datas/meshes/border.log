@@ -1,0 +1,50 @@
+Exporter version: 6.4.5, Blender version: 2.90.1
+========= Conversion from Blender to Babylon.js =========
+	Scene settings used :
+		Inline textures     :  false
+		Material Type       :  PBR
+		Positions Precision :  4
+		Normals Precision   :  3
+		UVs Precision       :  3
+		Vert Color Precision:  3
+		Mat Weight Precision:  2
+		Keep Z-up r-handed  :  no
+		Texture directory   :  C:\Users\svent\Documents\sven-frankson\fluid-x\datas\meshes\
+	Python World class constructor completed
+	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
+	processing begun of mesh:  0-straight
+		processing begun of material:  Material
+		num positions      :  98
+		num normals        :  98
+		num tangents       :  0
+		num uvs            :  196
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  44
+	processing begun of mesh:  1-top-cross
+		processing begun of material:  Material
+		registered as also a user of material:  Material
+		num positions      :  140
+		num normals        :  140
+		num tangents       :  0
+		num uvs            :  280
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  60
+	processing begun of mesh:  2-double-cross
+		processing begun of material:  Material
+		registered as also a user of material:  Material
+		num positions      :  183
+		num normals        :  183
+		num tangents       :  0
+		num uvs            :  366
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  76
+========= Writing of JSON file started =========
+	writing mesh:  0-straight
+	writing mesh:  1-top-cross
+	writing mesh:  2-double-cross
+========= Writing of JSON file completed =========
+========= end of processing =========
+elapsed time:  0 min, 0.0186 secs

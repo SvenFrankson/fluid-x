@@ -10,19 +10,17 @@ class Ball extends BABYLON.Mesh {
     constructor(puzzle, props) {
         super("ball");
         this.puzzle = puzzle;
+        this.dropletMode = false;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.nominalSpeed = 2.2;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
-        this.xForceAccelDelay = 2 * this.bounceXDelay;
+        this.xForceAccelDelay = 0.8 * this.bounceXDelay;
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.tail = BABYLON.Vector3.Zero();
-        this.tailVelocity = BABYLON.Vector3.Zero();
-        this.maxTailD = 0.5;
         this.mouseCanControl = false;
         this.mouseInControl = false;
         this._pointerDown = false;
@@ -49,6 +47,7 @@ class Ball extends BABYLON.Mesh {
         this.trailPoints = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
+        this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
         this.ballTop = new BABYLON.Mesh("ball-top");
         this.ballTop.parent = this;
         let boxMaterial = new BABYLON.StandardMaterial("box-material");
@@ -157,36 +156,20 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.game;
     }
     async instantiate() {
-        let ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
-        //ballDatas[0].applyToMesh(this);
-        let data = CreateBiDiscVertexData({
-            r1: this.radius,
-            r2: this.radius * 0.3,
-            p1: BABYLON.Vector3.Zero(),
-            p2: new BABYLON.Vector3(-0.5, 0, 0),
-        });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.2, 0));
-        data.applyToMesh(this.ballTop);
-        BABYLON.CreateGroundVertexData({ width: 2.2 * this.radius, height: 2.2 * this.radius }).applyToMesh(this.shadow);
+        let ballDatas;
+        if (this.dropletMode) {
+            ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
+        }
+        else {
+            ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
+        }
+        ballDatas[0].applyToMesh(this);
+        ballDatas[1].applyToMesh(this.ballTop);
+        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
     update(dt) {
-        let f = Nabu.Easing.smoothNSec(1 / dt, 0.5);
-        this.tailVelocity.addInPlace(this.absolutePosition.subtract(this.tail).scaleInPlace(20 * dt));
-        this.tailVelocity.scaleInPlace(f);
-        this.tail.addInPlace(this.tailVelocity.scale(dt));
-        if (BABYLON.Vector3.DistanceSquared(this.tail, this.absolutePosition) > this.maxTailD * this.maxTailD) {
-            Mummu.ForceDistanceFromOriginInPlace(this.tail, this.absolutePosition, this.maxTailD);
-        }
-        let data = CreateBiDiscVertexData({
-            r1: this.radius,
-            r2: this.radius * 0.3,
-            p1: BABYLON.Vector3.Zero(),
-            p2: this.tail.subtract(this.absolutePosition)
-        });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.2, 0));
-        data.applyToMesh(this.ballTop);
         if (this.mouseCanControl && this.mouseInControl) {
             this.rightDown = 0;
             this.leftDown = 0;
@@ -224,18 +207,19 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = new BABYLON.Vector3(0, 0.1, -0.8);
+            let p = new BABYLON.Vector3(0, 0.1, -0.35);
+            if (this.dropletMode) {
+                p = new BABYLON.Vector3(0, 0.1, -0.8);
+            }
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
-            p = this.tail.clone();
-            p.y += 0.1;
-            if (this.trailTimer > 0.03) {
+            if (this.trailTimer > 0.02) {
                 this.trailTimer = 0;
                 let last = this.trailPoints[this.trailPoints.length - 1];
                 if (last) {
                     p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                 }
                 this.trailPoints.push(p);
-                let count = 25;
+                let count = 30;
                 //count = 200; // debug
                 if (this.trailPoints.length > count) {
                     this.trailPoints.splice(0, 1);
@@ -431,7 +415,7 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
                 let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
             }
@@ -830,9 +814,43 @@ class Border extends BABYLON.Mesh {
     }
     async instantiate() {
         if (!this.ghost) {
-            let data = BABYLON.CreateBoxVertexData({ width: 0.1, height: 0.3, depth: 1.2 });
-            Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
-            data.applyToMesh(this);
+            let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
+            if (this.vertical) {
+                let jPlusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j + 1);
+                let jPlusConn = jPlusStack && jPlusStack.array.find(brd => { return brd.position.y === this.position.y && brd.vertical === this.vertical; });
+                let jMinusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j - 1);
+                let jMinusConn = jMinusStack && jMinusStack.array.find(brd => { return brd.position.y === this.position.y && brd.vertical === this.vertical; });
+                if (jPlusConn && jMinusConn) {
+                    borderDatas[0].applyToMesh(this);
+                }
+                else if (jPlusConn) {
+                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                }
+                else if (jMinusConn) {
+                    borderDatas[1].applyToMesh(this);
+                }
+                else {
+                    borderDatas[2].applyToMesh(this);
+                }
+            }
+            else {
+                let iPlusStack = this.game.puzzle.getGriddedBorderStack(this.i + 1, this.j);
+                let iPlusConn = iPlusStack && iPlusStack.array.find(brd => { return brd.position.y === this.position.y && !brd.vertical; });
+                let iMinusStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j);
+                let iMinusConn = iMinusStack && iMinusStack.array.find(brd => { return brd.position.y === this.position.y && !brd.vertical; });
+                if (iPlusConn && iMinusConn) {
+                    borderDatas[0].applyToMesh(this);
+                }
+                else if (iPlusConn) {
+                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                }
+                else if (iMinusConn) {
+                    borderDatas[1].applyToMesh(this);
+                }
+                else {
+                    borderDatas[2].applyToMesh(this);
+                }
+            }
         }
     }
     dispose() {
@@ -1028,6 +1046,11 @@ class Box extends Build {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
+            console.log("box " + this.i + " " + this.j);
+            let b1 = this.borders[this.borders.length - 2];
+            console.log("b1 " + b1.i + " " + b1.j);
+            let b2 = this.borders[this.borders.length - 1];
+            console.log("b2 " + b2.i + " " + b2.j);
         }
     }
     async instantiate() {
@@ -1109,6 +1132,11 @@ class Bridge extends Build {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
+            console.log("bridge " + this.i + " " + this.j);
+            let b1 = this.borders[this.borders.length - 2];
+            console.log("b1 " + b1.i + " " + b1.j);
+            let b2 = this.borders[this.borders.length - 1];
+            console.log("b2 " + b2.i + " " + b2.j);
             this.borders.push(Border.BorderTop(this.game, this.i + 2, this.j + 1, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 3, this.j + 1, 1));
         }
@@ -1139,8 +1167,10 @@ class CarillonRouter extends Nabu.Router {
         super();
         this.game = game;
     }
-    onFindAllPages() {
-        console.log("onFindAllPages");
+    async postInitialize() {
+        for (let i = 0; i < this.pages.length; i++) {
+            await this.pages[i].waitLoaded();
+        }
         this.homeMenu = new HomePage("#home-menu", this);
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
@@ -2573,7 +2603,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2863,7 +2893,7 @@ class Game {
         this.updatePlayCameraRadius();
         this.router = new CarillonRouter(this);
         this.router.initialize();
-        await this.router.waitForAllPagesLoaded();
+        await this.router.postInitialize();
         this.uiInputManager.initialize();
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -3050,6 +3080,7 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
+        this.router.start();
         document.querySelector("#score-player-input").onchange = () => {
             let v = document.querySelector("#score-player-input").value;
             if (v.length > 2) {
@@ -3064,7 +3095,6 @@ class Game {
         document.querySelector("#success-score-submit-btn").onclick = () => {
             this.puzzle.submitHighscore();
         };
-        this.router.start();
         document.querySelector("#reset-btn").onclick = () => {
             this.puzzle.reset();
         };
@@ -4915,6 +4945,8 @@ class Puzzle {
         }
         for (let i = 0; i < this.buildings.length; i++) {
             this.buildings[i].regenerateBorders();
+        }
+        for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
         await this.ball.instantiate();

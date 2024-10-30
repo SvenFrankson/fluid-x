@@ -18,8 +18,11 @@ class CarillonRouter extends Nabu.Router {
         super();
     }
 
-    protected onFindAllPages(): void {
-        console.log("onFindAllPages");
+    public async postInitialize(): Promise<void> {
+        for (let i = 0; i < this.pages.length; i++) {
+            await this.pages[i].waitLoaded();
+        }
+
         this.homeMenu = new HomePage("#home-menu", this);
         this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);

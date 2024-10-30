@@ -199,7 +199,7 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = new BABYLON.Vector3(0, 0, -0.8);
+            let p = new BABYLON.Vector3(0, 0.1, -0.8);
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
             if (this.trailTimer > 0.03) {
                 this.trailTimer = 0;
@@ -208,7 +208,7 @@ class Ball extends BABYLON.Mesh {
                     p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                 }
                 this.trailPoints.push(p);
-                if (this.trailPoints.length > 15) {
+                if (this.trailPoints.length > 25) {
                     this.trailPoints.splice(0, 1);
                 }
             }
@@ -216,13 +216,12 @@ class Ball extends BABYLON.Mesh {
                 let points = this.trailPoints.map(pt => { return pt.clone(); });
                 Mummu.CatmullRomPathInPlace(points);
                 points.push(p);
-                let data = Mummu.CreateWireVertexData({
+                let data = CreateTrailVertexData({
                     path: points,
-                    pathUps: points.map(p => { return BABYLON.Axis.Y; }),
                     radiusFunc: (f) => {
                         return 0.08 * f;
                     },
-                    color: new BABYLON.Color4(0.4, 0.4, 0.4, 1)
+                    color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
                 });
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
@@ -236,6 +235,10 @@ class Ball extends BABYLON.Mesh {
             this.game.setPlayTimer(this.playTimer);
         }
         if (this.ballState === BallState.Ready) {
+            this.rightArrow.position.copyFrom(this.position);
+            this.rightArrow.position.y += 0.15;
+            this.leftArrow.position.copyFrom(this.position);
+            this.leftArrow.position.y += 0.15;
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;
@@ -661,9 +664,9 @@ class Tile extends BABYLON.Mesh {
                     }
                 }
                 if (tailPoints.length > 2) {
-                    let data = Mummu.CreateWireVertexData({
+                    let data = CreateTrailVertexData({
                         path: [...tailPoints],
-                        pathUps: tailPoints.map(p => { return BABYLON.Axis.Y; }),
+                        up: BABYLON.Axis.Y,
                         radiusFunc: (f) => {
                             return 0.02 * f + 0.01;
                         },
@@ -5796,4 +5799,67 @@ function CreateBoxFrameVertexData(props) {
     vertexData.normals = normals;
     vertexData.colors = colors;
     return vertexData;
+}
+function CreateTrailVertexData(props) {
+    let data = new BABYLON.VertexData();
+    let positions = [];
+    let normals = [];
+    let indices = [];
+    let uvs = [];
+    let path = [...props.path];
+    let up = BABYLON.Vector3.Up();
+    if (props.up) {
+        up.copyFrom(props.up);
+    }
+    let n = path.length;
+    let directions = [];
+    let prev = path[0];
+    let next = path[1];
+    directions[0] = next.subtract(prev).normalize();
+    for (let i = 1; i < n - 1; i++) {
+        let prev = path[i - 1];
+        let next = path[i + 1];
+        directions[i] = next.subtract(prev).normalize();
+    }
+    prev = path[n - 2];
+    next = path[n - 1];
+    directions[n - 1] = next.subtract(prev).normalize();
+    let cumulLength = 0;
+    for (let i = 0; i < n; i++) {
+        let p = path[i];
+        if (i > 0) {
+            cumulLength += BABYLON.Vector3.Distance(p, path[i - 1]);
+        }
+        let dir = directions[i];
+        let xDir = BABYLON.Vector3.Cross(up, dir).normalize();
+        let normal = BABYLON.Vector3.Cross(dir, xDir).normalize();
+        let r = props.radius;
+        if (props.radiusFunc) {
+            r = props.radiusFunc(i / (n - 1));
+        }
+        let l = positions.length / 3;
+        positions.push(p.x + xDir.x * r, p.y + xDir.y * r, p.z + xDir.z * r);
+        positions.push(p.x - xDir.x * r, p.y - xDir.y * r, p.z - xDir.z * r);
+        if (i < n - 1) {
+            indices.push(l, l + 2, l + 1);
+            indices.push(l + 1, l + 2, l + 3);
+        }
+        normals.push(normal.x, normal.y, normal.z);
+        normals.push(normal.x, normal.y, normal.z);
+        uvs.push(1, i / (n - 1));
+        uvs.push(0, i / (n - 1));
+    }
+    data.positions = positions;
+    data.indices = indices;
+    data.normals = normals;
+    data.uvs = uvs;
+    if (props.color) {
+        let colors = [];
+        let colArray = props.color.asArray();
+        for (let i = 0; i < positions.length / 3; i++) {
+            colors.push(...colArray);
+        }
+        data.colors = colors;
+    }
+    return data;
 }

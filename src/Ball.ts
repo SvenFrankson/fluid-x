@@ -254,7 +254,7 @@ class Ball extends BABYLON.Mesh {
 
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = new BABYLON.Vector3(0, 0, -0.8);
+            let p = new BABYLON.Vector3(0, 0.1, -0.8);
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
             if (this.trailTimer > 0.03) {
                 this.trailTimer = 0;
@@ -264,7 +264,7 @@ class Ball extends BABYLON.Mesh {
                 }
 
                 this.trailPoints.push(p);
-                if (this.trailPoints.length > 15) {
+                if (this.trailPoints.length > 25) {
                     this.trailPoints.splice(0, 1);
                 }
             }
@@ -273,13 +273,12 @@ class Ball extends BABYLON.Mesh {
                 let points = this.trailPoints.map(pt => { return pt.clone(); });
                 Mummu.CatmullRomPathInPlace(points);
                 points.push(p);
-                let data = Mummu.CreateWireVertexData({
+                let data = CreateTrailVertexData({
                     path: points,
-                    pathUps: points.map(p => { return BABYLON.Axis.Y; }),
                     radiusFunc: (f) => {
                         return 0.08 * f;
                     },
-                    color: new BABYLON.Color4(0.4, 0.4, 0.4, 1)
+                    color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
                 });
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
@@ -295,6 +294,11 @@ class Ball extends BABYLON.Mesh {
         }
 
         if (this.ballState === BallState.Ready) {
+            this.rightArrow.position.copyFrom(this.position);
+            this.rightArrow.position.y += 0.15;
+            this.leftArrow.position.copyFrom(this.position);
+            this.leftArrow.position.y += 0.15;
+
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;

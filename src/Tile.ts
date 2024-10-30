@@ -235,9 +235,9 @@ abstract class Tile extends BABYLON.Mesh {
                     }
                 }
                 if (tailPoints.length > 2) {
-                    let data = Mummu.CreateWireVertexData({
+                    let data = CreateTrailVertexData({
                         path: [...tailPoints],
-                        pathUps: tailPoints.map(p => { return BABYLON.Axis.Y; }),
+                        up: BABYLON.Axis.Y,
                         radiusFunc: (f) => {
                             return 0.02 * f + 0.01;
                         },

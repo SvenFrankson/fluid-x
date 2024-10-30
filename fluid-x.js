@@ -12,8 +12,11 @@ class Ball extends BABYLON.Mesh {
         this.puzzle = puzzle;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
+        this.nominalSpeed = 2.2;
         this.vZ = 1;
-        this.radius = 0.3;
+        this.radius = 0.25;
+        this.bounceXDelay = 0.93;
+        this.xForceAccelDelay = 2 * this.bounceXDelay;
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -34,13 +37,11 @@ class Ball extends BABYLON.Mesh {
         };
         this.playTimer = 0;
         this.xForce = 1;
-        this.nominalSpeed = 2.2;
         this.speed = this.nominalSpeed;
         this.moveDir = BABYLON.Vector3.Up();
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
         this.bounceXTimer = 0;
-        this.bounceXDelay = 1.09;
         this.trailTimer = 0;
         this.trailPoints = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
@@ -208,7 +209,9 @@ class Ball extends BABYLON.Mesh {
                     p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                 }
                 this.trailPoints.push(p);
-                if (this.trailPoints.length > 25) {
+                let count = 25;
+                //count = 200; // debug
+                if (this.trailPoints.length > count) {
                     this.trailPoints.splice(0, 1);
                 }
             }
@@ -220,6 +223,7 @@ class Ball extends BABYLON.Mesh {
                     path: points,
                     radiusFunc: (f) => {
                         return 0.08 * f;
+                        //return 0.01;
                     },
                     color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
                 });
@@ -236,9 +240,9 @@ class Ball extends BABYLON.Mesh {
         }
         if (this.ballState === BallState.Ready) {
             this.rightArrow.position.copyFrom(this.position);
-            this.rightArrow.position.y += 0.15;
+            this.rightArrow.position.y += 0.1;
             this.leftArrow.position.copyFrom(this.position);
-            this.leftArrow.position.y += 0.15;
+            this.leftArrow.position.y += 0.1;
             if (this.leftDown || this.rightDown) {
                 this.ballState = BallState.Move;
                 this.bounceXValue = 0;
@@ -255,11 +259,14 @@ class Ball extends BABYLON.Mesh {
             if (this.ballState === BallState.Done) {
                 this.speed *= 0.99;
             }
-            this.xForce = 2;
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
                 this.bounceXTimer -= dt * this.speed;
                 this.xForce = 1;
+            }
+            else {
+                let fXForce = Nabu.Easing.smoothNSec(1 / dt, this.xForceAccelDelay);
+                this.xForce = this.xForce * fXForce + 2 * (1 - fXForce);
             }
             this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
             let speed = this.moveDir.scale(this.speed);
@@ -459,9 +466,9 @@ class Ball extends BABYLON.Mesh {
             this.rotate(this.fallRotAxis, 2 * Math.PI * dt, BABYLON.Space.WORLD);
         }
         this.rightArrow.position.copyFrom(this.position);
-        this.rightArrow.position.y += 0.15;
+        this.rightArrow.position.y += 0.1;
         this.leftArrow.position.copyFrom(this.position);
-        this.leftArrow.position.y += 0.15;
+        this.leftArrow.position.y += 0.1;
     }
 }
 var TileState;

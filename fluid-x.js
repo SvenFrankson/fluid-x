@@ -1087,8 +1087,8 @@ class Box extends Build {
         data[7].applyToMesh(this.floor);
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
-            width: 2 + 2 * m,
-            height: 2 + 2 * m,
+            width: 2.2 + 2 * m,
+            height: 2.2 + 2 * m,
             margin: m,
             cutTop: this.props.borderTop ? false : true,
             cutRight: this.props.borderRight ? false : true,
@@ -1096,7 +1096,7 @@ class Box extends Build {
             cutLeft: this.props.borderLeft ? false : true,
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.5, 0, 0.5));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 0.55));
         shadowData.applyToMesh(this.shadow);
     }
 }
@@ -1175,14 +1175,14 @@ class Bridge extends Build {
         data[5].applyToMesh(this.builtInBorder);
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
-            width: 4 + 2 * m,
-            height: 2 + 2 * m,
+            width: 4.4 + 2 * m,
+            height: 2.2 + 2 * m,
             margin: m,
             cutRight: this.props.borderRight ? false : true,
             cutLeft: this.props.borderLeft ? false : true
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5, 0, 0.5));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5 * 1.1, 0, 0.5 * 1.1));
         shadowData.applyToMesh(this.shadow);
     }
 }
@@ -2665,7 +2665,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";

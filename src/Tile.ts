@@ -263,6 +263,19 @@ abstract class Tile extends BABYLON.Mesh {
 
                 let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
                 animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine).then(() => {
+                    let flash = Mummu.Create9Slice("flash", {
+                        width: 1.2,
+                        height: 1.2,
+                        margin: 0.1
+                    });
+                    flash.material = this.game.whiteShadow9Material;
+                    flash.parent = star;
+                    flash.position.y = 0.29;
+                    flash.rotation.x = Math.PI * 0.5;
+                    SineFlashVisibility(flash, 0.3).then(() => {
+                        flash.dispose();
+                    });
+
                     this.game.puzzle.clickSound.play();
                 });
             }

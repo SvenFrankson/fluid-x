@@ -66,9 +66,11 @@ function CreatePlaqueVertexData(w: number, h: number, m: number): BABYLON.Vertex
 interface IBoxFrameVertexDataProps {
     w?: number,
     wBase?: number,
+    wTop?: number,
     h?: number,
     d?: number,
     dBase?: number,
+    dTop?: number,
     thickness?: number,
     innerHeight?: number,
     topCap?: boolean,
@@ -85,6 +87,9 @@ function CreateBoxFrameVertexData(
     if (!isFinite(props.wBase)) {
         props.wBase = props.w;
     }
+    if (!isFinite(props.wTop)) {
+        props.wTop = props.w;
+    }
     if (!isFinite(props.h)) {
         props.h = props.w;
     }
@@ -93,6 +98,9 @@ function CreateBoxFrameVertexData(
     }
     if (!isFinite(props.dBase)) {
         props.dBase = props.d;
+    }
+    if (!isFinite(props.dTop)) {
+        props.dTop = props.d;
     }
     if (!isFinite(props.thickness)) {
         props.thickness = props.w * 0.1;
@@ -103,8 +111,10 @@ function CreateBoxFrameVertexData(
 
     let w2 = props.w / 2;
     let wBase2 = props.wBase / 2;
+    let wTop2 = props.wTop / 2;
     let d2 = props.d / 2;
     let dBase2 = props.dBase / 2;
+    let dTop2 = props.dTop / 2;
     let h = props.h;
     let t = props.thickness;
     let hh = props.innerHeight;
@@ -125,10 +135,10 @@ function CreateBoxFrameVertexData(
         w2 - t, h, d2 - t,
         - w2 + t, h, d2 - t,
         
-        - w2 + t, h - hh, - d2 + t,
-        w2 - t, h - hh, - d2 + t,
-        w2 - t, h - hh, d2 - t,
-        - w2 + t, h - hh, d2 - t
+        - wTop2 + t, h - hh, - dTop2 + t,
+        wTop2 - t, h - hh, - dTop2 + t,
+        wTop2 - t, h - hh, dTop2 - t,
+        - wTop2 + t, h - hh, dTop2 - t
     ];
     
     let normalVec3s: BABYLON.Vector3[] = [];

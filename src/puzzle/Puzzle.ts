@@ -146,19 +146,19 @@ class Puzzle {
     }
 
     public get xMin(): number {
-        return - 0.55;
+        return - 0.55 - 0.05;
     }
 
     public get xMax(): number {
-        return this.w * 1.1 - 0.55;
+        return this.w * 1.1 - 0.55 + 0.05;
     }
 
     public get zMin(): number {
-        return - 0.55;
+        return - 0.55 - 0.05;
     }
 
     public get zMax(): number {
-        return this.h * 1.1 - 0.55;
+        return this.h * 1.1 - 0.55 + 0.05;
     }
 
     public puzzleUI: PuzzleUI;
@@ -579,6 +579,8 @@ class Puzzle {
         let data = CreateBoxFrameVertexData({
             w: width + 2 * this.winSlotRows * bThickness,
             d: depth + 2 * this.winSlotRows * bThickness,
+            wTop: width + 2 * this.winSlotRows * bThickness - 0.1,
+            dTop: depth + 2 * this.winSlotRows * bThickness - 0.1,
             h: 5.5 + bHeight,
             thickness: this.winSlotRows * bThickness,
             innerHeight: bHeight,

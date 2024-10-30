@@ -339,22 +339,25 @@ class Ball extends BABYLON.Mesh {
             let speed = this.moveDir.scale(this.speed);
 
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.puzzle.zMax + 0.05) {
+            if (this.position.z + this.radius > this.puzzle.zMax) {
+                this.position.z = this.puzzle.zMax - this.radius;
                 this.vZ = -1;
                 this.woodChocSound2.play();
             }
-            else if (this.position.z - this.radius < this.puzzle.zMin - 0.05) {
+            else if (this.position.z - this.radius < this.puzzle.zMin) {
+                this.position.z = this.puzzle.zMin + this.radius;
                 this.vZ = 1;
                 this.woodChocSound2.play();
             }
 
-            if (this.position.x + this.radius > this.puzzle.xMax + 0.05) {
+            if (this.position.x + this.radius > this.puzzle.xMax) {
+                this.position.x = this.puzzle.xMax - this.radius;
                 this.bounceXValue = - 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
-                this.woodChocSound2.play();
             }
-            else if (this.position.x - this.radius < this.puzzle.xMin - 0.05) {
+            else if (this.position.x - this.radius < this.puzzle.xMin) {
+                this.position.x = this.puzzle.xMin + this.radius;
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();

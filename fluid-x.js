@@ -271,21 +271,24 @@ class Ball extends BABYLON.Mesh {
             this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
             let speed = this.moveDir.scale(this.speed);
             this.position.addInPlace(speed.scale(dt));
-            if (this.position.z + this.radius > this.puzzle.zMax + 0.05) {
+            if (this.position.z + this.radius > this.puzzle.zMax) {
+                this.position.z = this.puzzle.zMax - this.radius;
                 this.vZ = -1;
                 this.woodChocSound2.play();
             }
-            else if (this.position.z - this.radius < this.puzzle.zMin - 0.05) {
+            else if (this.position.z - this.radius < this.puzzle.zMin) {
+                this.position.z = this.puzzle.zMin + this.radius;
                 this.vZ = 1;
                 this.woodChocSound2.play();
             }
-            if (this.position.x + this.radius > this.puzzle.xMax + 0.05) {
+            if (this.position.x + this.radius > this.puzzle.xMax) {
+                this.position.x = this.puzzle.xMax - this.radius;
                 this.bounceXValue = -1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
-                this.woodChocSound2.play();
             }
-            else if (this.position.x - this.radius < this.puzzle.xMin - 0.05) {
+            else if (this.position.x - this.radius < this.puzzle.xMin) {
+                this.position.x = this.puzzle.xMin + this.radius;
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
                 this.woodChocSound2.play();
@@ -527,7 +530,7 @@ class Tile extends BABYLON.Mesh {
     }
     async instantiate() {
         if (this.props.noShadow != true) {
-            let m = 0.05;
+            let m = 0.06;
             let shadowData = Mummu.Create9SliceVertexData({
                 width: 1 + 2 * m,
                 height: 1 + 2 * m,
@@ -2507,7 +2510,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 17;
+var CRL_VERSION3 = 18;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3855,8 +3858,36 @@ class WallTile extends Tile {
     }
     async instantiate() {
         await super.instantiate();
-        let data = BABYLON.CreateBoxVertexData({ width: 1.1, height: 0.3, depth: 1.1 });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.15, 0));
+        let xPlus = 0;
+        let xMinus = 0;
+        if (this.i === 0) {
+            xMinus = -0.1;
+        }
+        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === (this.i - 1) && tile.j === this.j; })) {
+            xMinus = -0.05;
+        }
+        if (this.i === this.game.puzzle.w - 1) {
+            xPlus = 0.1;
+        }
+        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === (this.i + 1) && tile.j === this.j; })) {
+            xPlus = 0.05;
+        }
+        let zPlus = 0;
+        let zMinus = 0;
+        if (this.j === 0) {
+            zMinus = -0.1;
+        }
+        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === this.i && tile.j === (this.j - 1); })) {
+            zMinus = -0.05;
+        }
+        if (this.j === this.game.puzzle.h - 1) {
+            zPlus = 0.1;
+        }
+        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === this.i && tile.j === (this.j + 1); })) {
+            zPlus = 0.05;
+        }
+        let data = BABYLON.CreateBoxVertexData({ width: 1 + xPlus - xMinus, height: 0.3, depth: 1 + zPlus - zMinus });
+        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(xPlus * 0.5 + xMinus * 0.5, 0.15, zPlus * 0.5 + zMinus * 0.5));
         data.applyToMesh(this);
     }
 }
@@ -4555,16 +4586,16 @@ class Puzzle {
         }
     }
     get xMin() {
-        return -0.55;
+        return -0.55 - 0.05;
     }
     get xMax() {
-        return this.w * 1.1 - 0.55;
+        return this.w * 1.1 - 0.55 + 0.05;
     }
     get zMin() {
-        return -0.55;
+        return -0.55 - 0.05;
     }
     get zMax() {
-        return this.h * 1.1 - 0.55;
+        return this.h * 1.1 - 0.55 + 0.05;
     }
     async reset() {
         this.fishingPole.stop = true;
@@ -4924,6 +4955,8 @@ class Puzzle {
         let data = CreateBoxFrameVertexData({
             w: width + 2 * this.winSlotRows * bThickness,
             d: depth + 2 * this.winSlotRows * bThickness,
+            wTop: width + 2 * this.winSlotRows * bThickness - 0.1,
+            dTop: depth + 2 * this.winSlotRows * bThickness - 0.1,
             h: 5.5 + bHeight,
             thickness: this.winSlotRows * bThickness,
             innerHeight: bHeight,
@@ -5696,6 +5729,9 @@ function CreateBoxFrameVertexData(props) {
     if (!isFinite(props.wBase)) {
         props.wBase = props.w;
     }
+    if (!isFinite(props.wTop)) {
+        props.wTop = props.w;
+    }
     if (!isFinite(props.h)) {
         props.h = props.w;
     }
@@ -5705,6 +5741,9 @@ function CreateBoxFrameVertexData(props) {
     if (!isFinite(props.dBase)) {
         props.dBase = props.d;
     }
+    if (!isFinite(props.dTop)) {
+        props.dTop = props.d;
+    }
     if (!isFinite(props.thickness)) {
         props.thickness = props.w * 0.1;
     }
@@ -5713,8 +5752,10 @@ function CreateBoxFrameVertexData(props) {
     }
     let w2 = props.w / 2;
     let wBase2 = props.wBase / 2;
+    let wTop2 = props.wTop / 2;
     let d2 = props.d / 2;
     let dBase2 = props.dBase / 2;
+    let dTop2 = props.dTop / 2;
     let h = props.h;
     let t = props.thickness;
     let hh = props.innerHeight;
@@ -5731,10 +5772,10 @@ function CreateBoxFrameVertexData(props) {
         w2 - t, h, -d2 + t,
         w2 - t, h, d2 - t,
         -w2 + t, h, d2 - t,
-        -w2 + t, h - hh, -d2 + t,
-        w2 - t, h - hh, -d2 + t,
-        w2 - t, h - hh, d2 - t,
-        -w2 + t, h - hh, d2 - t
+        -wTop2 + t, h - hh, -dTop2 + t,
+        wTop2 - t, h - hh, -dTop2 + t,
+        wTop2 - t, h - hh, dTop2 - t,
+        -wTop2 + t, h - hh, dTop2 - t
     ];
     let normalVec3s = [];
     let n0 = new BABYLON.Vector3(-1, props.bottomCap ? -1 : 0, -1);

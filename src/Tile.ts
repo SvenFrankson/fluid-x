@@ -72,7 +72,7 @@ abstract class Tile extends BABYLON.Mesh {
 
     public async instantiate(): Promise<void> {
         if (this.props.noShadow != true) {
-            let m = 0.05;
+            let m = 0.06;
             let shadowData = Mummu.Create9SliceVertexData({
                 width: 1 + 2 * m,
                 height: 1 + 2 * m,

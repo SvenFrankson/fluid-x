@@ -261,6 +261,7 @@ class Game {
     public yellowMaterial: BABYLON.StandardMaterial;
     public greenMaterial: BABYLON.StandardMaterial;
 
+    public waterMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
     public darkFloorMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
@@ -404,6 +405,11 @@ class Game {
         let westMaterial = new BABYLON.StandardMaterial("west-material");
         westMaterial.specularColor.copyFromFloats(0, 0, 0);
         westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+            
+        this.waterMaterial = new BABYLON.StandardMaterial("floor-material");
+        this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
             
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -728,8 +734,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            DEV_ACTIVATE();
         }
 	}
 
@@ -883,6 +889,8 @@ class Game {
                     this.puzzle.update(rawDT);
                 }
             }
+            
+            (this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset += 0.5 * rawDT;
         }
     }
 

@@ -2,7 +2,7 @@
 
 class WaterTile extends Tile {
 
-    public flowDir: BABYLON.Vector2 = new BABYLON.Vector2(0, - 1);
+    public path: BABYLON.Vector3[] = [];
     public distFromSource: number = Infinity;
     public iMinusWater: WaterTile;
     public iPlusWater: WaterTile;
@@ -25,11 +25,75 @@ class WaterTile extends Tile {
 
         this.waterMesh = new BABYLON.Mesh("water");
         this.waterMesh.parent = this;
-        this.waterMesh.material = this.game.tileColorMaterials[TileColor.South];
+        this.waterMesh.material = this.game.waterMaterial;
 
         this.floorMesh = new BABYLON.Mesh("floor");
         this.floorMesh.parent = this;
         this.floorMesh.material = this.game.floorMaterial;
+    }
+
+    public fallsIn(ball: Ball): boolean {
+        if (ball.position.x < this.position.x - 0.55) {
+            return false;
+        }
+        if (ball.position.x > this.position.x + 0.55) {
+            return false;
+        }
+        if (ball.position.z < this.position.z - 0.55) {
+            return false;
+        }
+        if (ball.position.z > this.position.z + 0.55) {
+            return false;
+        }
+        return true;
+    }
+
+    private _getPath(): BABYLON.Vector3[] {
+        let entry: BABYLON.Vector3 = (new BABYLON.Vector3(0, 0, 0.55)).add(this.position);
+        let exit: BABYLON.Vector3 = (new BABYLON.Vector3(0, 0, - 0.55)).add(this.position);
+        if (this.iPlusWater) {
+            if (this.iPlusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.iPlusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.iPlusWater.position).scaleInPlace(0.5);
+            }
+        }
+        if (this.iMinusWater) {
+            if (this.iMinusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.iMinusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.iMinusWater.position).scaleInPlace(0.5);
+            }
+        }
+        if (this.jPlusWater) {
+            if (this.jPlusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.jPlusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.jPlusWater.position).scaleInPlace(0.5);
+            }
+        }
+        if (this.jMinusWater) {
+            if (this.jMinusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.jMinusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.jMinusWater.position).scaleInPlace(0.5);
+            }
+        }
+
+        let dirIn = this.position.subtract(entry).scale(2);
+        let dirOut = exit.subtract(this.position).scale(2);
+
+        let path = [entry, exit];
+        Mummu.CatmullRomPathInPlace(path, dirIn, dirOut);
+        Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.5), dirOut.scale(0.5));
+        Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.25), dirOut.scale(0.25));
+        Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.1), dirOut.scale(0.1));
+
+        return path;
     }
 
     public recursiveConnect(d: number = 0): void {
@@ -67,6 +131,7 @@ class WaterTile extends Tile {
     public async instantiate(): Promise<void> {
         await super.instantiate();
 
+        this.path = this._getPath();
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
 
         if (this.iPlusWater && this.iMinusWater) {

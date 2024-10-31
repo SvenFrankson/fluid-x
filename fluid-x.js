@@ -293,8 +293,33 @@ class Ball extends BABYLON.Mesh {
                 let fXForce = Nabu.Easing.smoothNSec(1 / dt, this.xForceAccelDelay);
                 this.xForce = this.xForce * fXForce + 2 * (1 - fXForce);
             }
-            this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
-            let speed = this.moveDir.scale(this.speed);
+            let speed;
+            if (!this.water) {
+                this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
+                speed = this.moveDir.scale(this.speed);
+            }
+            else {
+                let path = this.water.path;
+                console.log(path);
+                let proj = {
+                    point: BABYLON.Vector3.Zero(),
+                    index: 0
+                };
+                Mummu.ProjectPointOnPathToRef(this.absolutePosition, path, proj);
+                let n = Nabu.MinMax(proj.index, 1, path.length - 2);
+                let correction = proj.point.subtract(this.position);
+                let dir = path[n].subtract(path[n - 1]).add(correction).normalize();
+                if (dir.z > 0.5) {
+                    this.vZ = 1;
+                }
+                else if (dir.z < -0.5) {
+                    this.vZ = -1;
+                }
+                this.moveDir.copyFrom(dir);
+                this.moveDir.x += this.xForce * vX * (1.2 - 2 * this.radius) / 0.55;
+                this.moveDir.normalize();
+                speed = this.moveDir.scale(this.speed * 0.5);
+            }
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.puzzle.zMax) {
                 this.position.z = this.puzzle.zMax - this.radius;
@@ -360,12 +385,22 @@ class Ball extends BABYLON.Mesh {
                         let tiles = stack.array;
                         for (let i = 0; i < tiles.length; i++) {
                             let tile = tiles[i];
+                            this.water = undefined;
                             if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                                 if (tile.fallsIn(this)) {
                                     this.ballState = BallState.Fall;
                                     this.fallTimer = 0;
                                     this.hole = tile;
                                     return;
+                                }
+                            }
+                            else if (this.ballState === BallState.Move && tile instanceof WaterTile) {
+                                if (tile.fallsIn(this)) {
+                                    this.water = tile;
+                                    ii = Infinity;
+                                    jj = Infinity;
+                                    i = Infinity;
+                                    break;
                                 }
                             }
                             else {
@@ -3006,6 +3041,10 @@ class Game {
         let westMaterial = new BABYLON.StandardMaterial("west-material");
         westMaterial.specularColor.copyFromFloats(0, 0, 0);
         westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+        this.waterMaterial = new BABYLON.StandardMaterial("floor-material");
+        this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.floorMaterial.diffuseColor.copyFromFloats(0.8, 0.8, 0.8);
@@ -3279,8 +3318,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            document.querySelector("#dev-pass-input").value = "Crillion";
+            DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -3390,6 +3429,7 @@ class Game {
                     this.puzzle.update(rawDT);
                 }
             }
+            this.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
         }
     }
     completePuzzle(id, score) {
@@ -4068,7 +4108,7 @@ class WallTile extends Tile {
 class WaterTile extends Tile {
     constructor(game, props) {
         super(game, props);
-        this.flowDir = new BABYLON.Vector2(0, -1);
+        this.path = [];
         this.distFromSource = Infinity;
         this.color = props.color;
         this.material = this.game.blackMaterial;
@@ -4077,10 +4117,69 @@ class WaterTile extends Tile {
         this.shoreMesh.material = this.game.whiteMaterial;
         this.waterMesh = new BABYLON.Mesh("water");
         this.waterMesh.parent = this;
-        this.waterMesh.material = this.game.tileColorMaterials[TileColor.South];
+        this.waterMesh.material = this.game.waterMaterial;
         this.floorMesh = new BABYLON.Mesh("floor");
         this.floorMesh.parent = this;
         this.floorMesh.material = this.game.floorMaterial;
+    }
+    fallsIn(ball) {
+        if (ball.position.x < this.position.x - 0.55) {
+            return false;
+        }
+        if (ball.position.x > this.position.x + 0.55) {
+            return false;
+        }
+        if (ball.position.z < this.position.z - 0.55) {
+            return false;
+        }
+        if (ball.position.z > this.position.z + 0.55) {
+            return false;
+        }
+        return true;
+    }
+    _getPath() {
+        let entry = (new BABYLON.Vector3(0, 0, 0.55)).add(this.position);
+        let exit = (new BABYLON.Vector3(0, 0, -0.55)).add(this.position);
+        if (this.iPlusWater) {
+            if (this.iPlusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.iPlusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.iPlusWater.position).scaleInPlace(0.5);
+            }
+        }
+        if (this.iMinusWater) {
+            if (this.iMinusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.iMinusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.iMinusWater.position).scaleInPlace(0.5);
+            }
+        }
+        if (this.jPlusWater) {
+            if (this.jPlusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.jPlusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.jPlusWater.position).scaleInPlace(0.5);
+            }
+        }
+        if (this.jMinusWater) {
+            if (this.jMinusWater.distFromSource < this.distFromSource) {
+                entry.copyFrom(this.position).addInPlace(this.jMinusWater.position).scaleInPlace(0.5);
+            }
+            else {
+                exit.copyFrom(this.position).addInPlace(this.jMinusWater.position).scaleInPlace(0.5);
+            }
+        }
+        let dirIn = this.position.subtract(entry).scale(2);
+        let dirOut = exit.subtract(this.position).scale(2);
+        let path = [entry, exit];
+        Mummu.CatmullRomPathInPlace(path, dirIn, dirOut);
+        Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.5), dirOut.scale(0.5));
+        Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.25), dirOut.scale(0.25));
+        Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.1), dirOut.scale(0.1));
+        return path;
     }
     recursiveConnect(d = 0) {
         this.distFromSource = d;
@@ -4111,6 +4210,7 @@ class WaterTile extends Tile {
     }
     async instantiate() {
         await super.instantiate();
+        this.path = this._getPath();
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
         if (this.iPlusWater && this.iMinusWater) {
             let a = Math.PI * 0.5;
@@ -5162,7 +5262,13 @@ class Puzzle {
         this.regenerateHeightMap();
         for (let i = 0; i < this.tiles.length; i++) {
             let t = this.tiles[i];
-            t.position.y = this.hMapGet(t.i, t.j);
+            if (t instanceof WaterTile) {
+            }
+            else if (t instanceof HoleTile) {
+            }
+            else {
+                t.position.y = this.hMapGet(t.i, t.j);
+            }
         }
         let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
         if (waterTiles.length > 2) {

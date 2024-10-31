@@ -37,6 +37,7 @@ class Ball extends BABYLON.Mesh {
     public fallRotAxis: BABYLON.Vector3;
     public fallTimer: number = 0;
     public hole: HoleTile;
+    public water: WaterTile;
     public color: TileColor;
     public ballTop: BABYLON.Mesh;
     public shadow: BABYLON.Mesh;
@@ -357,12 +358,37 @@ class Ball extends BABYLON.Mesh {
                 this.xForce = this.xForce * fXForce + 2 * (1 - fXForce);
             }
 
-            this.moveDir.copyFromFloats(
-                this.xForce * vX * (1.2 - 2 * this.radius) / 0.55,
-                0,
-                this.vZ
-            ).normalize();
-            let speed = this.moveDir.scale(this.speed);
+            let speed: BABYLON.Vector3;
+            if (!this.water) {
+                this.moveDir.copyFromFloats(
+                    this.xForce * vX * (1.2 - 2 * this.radius) / 0.55,
+                    0,
+                    this.vZ
+                ).normalize();
+                speed = this.moveDir.scale(this.speed);
+            }
+            else {
+                let path = this.water.path;
+                console.log(path);
+                let proj = {
+                    point: BABYLON.Vector3.Zero(),
+                    index: 0
+                }
+                Mummu.ProjectPointOnPathToRef(this.absolutePosition, path, proj);
+                let n = Nabu.MinMax(proj.index, 1, path.length - 2);
+                let correction = proj.point.subtract(this.position);
+                let dir = path[n].subtract(path[n - 1]).add(correction).normalize();
+                if (dir.z > 0.5) {
+                    this.vZ = 1;
+                }
+                else if (dir.z < -0.5) {
+                    this.vZ = -1;
+                }
+                this.moveDir.copyFrom(dir);
+                this.moveDir.x += this.xForce * vX * (1.2 - 2 * this.radius) / 0.55;
+                this.moveDir.normalize();
+                speed = this.moveDir.scale(this.speed * 0.5);
+            }
 
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.puzzle.zMax) {
@@ -433,12 +459,22 @@ class Ball extends BABYLON.Mesh {
                         let tiles = stack.array;
                         for (let i = 0; i < tiles.length; i++) {
                             let tile = tiles[i];
+                            this.water = undefined;
                             if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                                 if (tile.fallsIn(this)) {
                                     this.ballState = BallState.Fall;
                                     this.fallTimer = 0;
                                     this.hole = tile;
                                     return;
+                                }
+                            }
+                            else if (this.ballState === BallState.Move && tile instanceof WaterTile) {
+                                if (tile.fallsIn(this)) {
+                                    this.water = tile;
+                                    ii = Infinity;
+                                    jj = Infinity;
+                                    i = Infinity;
+                                    break;
                                 }
                             }
                             else {

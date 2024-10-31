@@ -509,7 +509,15 @@ class Puzzle {
         this.regenerateHeightMap();
         for (let i = 0; i < this.tiles.length; i++) {
             let t = this.tiles[i];
-            t.position.y = this.hMapGet(t.i, t.j);
+            if (t instanceof WaterTile) {
+
+            }
+            else if (t instanceof HoleTile) {
+                
+            }
+            else {
+                t.position.y = this.hMapGet(t.i, t.j);
+            }
         }
 
         let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });

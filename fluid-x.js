@@ -27,13 +27,13 @@ class Ball extends BABYLON.Mesh {
         this.mouseInControl = false;
         this._pointerDown = false;
         this.mouseDown = (ev) => {
-            if (ev.pointerType === "mouse" && this.mouseCanControl) {
+            if (this.mouseCanControl) {
                 this.mouseInControl = true;
                 this._pointerDown = true;
             }
         };
         this.mouseUp = (ev) => {
-            if (ev.pointerType === "mouse" && this.mouseCanControl) {
+            if (this.mouseCanControl) {
                 this.mouseInControl = true;
                 this._pointerDown = false;
             }
@@ -183,7 +183,7 @@ class Ball extends BABYLON.Mesh {
             this.rightDown = 0;
             this.leftDown = 0;
             if (this._pointerDown) {
-                let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
                     return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 });
                 if (pick.hit) {
@@ -568,7 +568,6 @@ class Tile extends BABYLON.Mesh {
             this.shadow.material = this.game.shadow9Material;
         }
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
-        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 });
     }
     get size() {
         return this.scaling.x;
@@ -702,7 +701,7 @@ class Tile extends BABYLON.Mesh {
         tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
         tail.material = tailMaterial;
         let tailPoints = [];
-        this.wooshSound.play();
+        this.game.puzzle.wooshSound.play();
         let t0 = performance.now();
         let duration = 1.5;
         let step = () => {
@@ -4856,7 +4855,8 @@ class Puzzle {
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
-        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 2);
+        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {

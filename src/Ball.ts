@@ -187,14 +187,14 @@ class Ball extends BABYLON.Mesh {
     public mouseInControl: boolean = false;
     private _pointerDown: boolean = false;
     public mouseDown = (ev: PointerEvent) => {
-        if (ev.pointerType === "mouse" && this.mouseCanControl) {
+        if (this.mouseCanControl) {
             this.mouseInControl = true;
             this._pointerDown = true;
         }
     }
 
     public mouseUp = (ev: PointerEvent) => {
-        if (ev.pointerType === "mouse" && this.mouseCanControl) {
+        if (this.mouseCanControl) {
             this.mouseInControl = true;
             this._pointerDown = false;
         }
@@ -234,8 +234,8 @@ class Ball extends BABYLON.Mesh {
             this.leftDown = 0;
             if (this._pointerDown) {
                 let pick = this.game.scene.pick(
-                    this.game.scene.pointerX,
-                    this.game.scene.pointerY,
+                    this.game.scene.pointerX * window.devicePixelRatio,
+                    this.game.scene.pointerY * window.devicePixelRatio,
                     (mesh) => {
                         return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                     }

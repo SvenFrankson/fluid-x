@@ -14,7 +14,6 @@ enum TileState {
 
 abstract class Tile extends BABYLON.Mesh {
 
-    public wooshSound: MySound;
     public tileState: TileState = TileState.Active;
     public shadow: BABYLON.Mesh;
 
@@ -67,7 +66,6 @@ abstract class Tile extends BABYLON.Mesh {
         }
 
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
-        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 });
     }
 
     public async instantiate(): Promise<void> {
@@ -203,7 +201,7 @@ abstract class Tile extends BABYLON.Mesh {
         tail.material = tailMaterial;
         let tailPoints: BABYLON.Vector3[] = [];
 
-        this.wooshSound.play();
+        this.game.puzzle.wooshSound.play();
         let t0 = performance.now();
         let duration = 1.5;
         let step = () => {

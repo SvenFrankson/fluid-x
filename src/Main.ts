@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 19;
+var CRL_VERSION3: number = 20;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -734,8 +734,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
 	}
 
@@ -891,6 +891,9 @@ class Game {
             }
             
             (this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset += 0.5 * rawDT;
+            if ((this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset > 1) {
+                (this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset -= 1;
+            }
         }
     }
 

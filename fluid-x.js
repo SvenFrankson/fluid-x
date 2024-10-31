@@ -2695,7 +2695,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 19;
+var CRL_VERSION3 = 20;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3318,8 +3318,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -3430,6 +3430,9 @@ class Game {
                 }
             }
             this.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
+            if (this.waterMaterial.diffuseTexture.vOffset > 1) {
+                this.waterMaterial.diffuseTexture.vOffset -= 1;
+            }
         }
     }
     completePuzzle(id, score) {
@@ -4135,7 +4138,13 @@ class WaterTile extends Tile {
         if (ball.position.z > this.position.z + 0.55) {
             return false;
         }
-        return true;
+        let proj = {
+            point: BABYLON.Vector3.Zero(),
+            index: 0
+        };
+        Mummu.ProjectPointOnPathToRef(ball.position, this.path, proj);
+        let dist = BABYLON.Vector3.Distance(ball.position, proj.point);
+        return dist < ball.radius + 0.3;
     }
     _getPath() {
         let entry = (new BABYLON.Vector3(0, 0, 0.55)).add(this.position);
@@ -4172,8 +4181,8 @@ class WaterTile extends Tile {
                 exit.copyFrom(this.position).addInPlace(this.jMinusWater.position).scaleInPlace(0.5);
             }
         }
-        let dirIn = this.position.subtract(entry).scale(2);
-        let dirOut = exit.subtract(this.position).scale(2);
+        let dirIn = this.position.subtract(entry).scale(4);
+        let dirOut = exit.subtract(this.position).scale(4);
         let path = [entry, exit];
         Mummu.CatmullRomPathInPlace(path, dirIn, dirOut);
         Mummu.CatmullRomPathInPlace(path, dirIn.scale(0.5), dirOut.scale(0.5));
@@ -5709,6 +5718,13 @@ class PuzzleMiniatureMaker {
                     }
                     if (c === "p") {
                         context.fillStyle = "#624c3c";
+                        context.fillRect(x, y, s, s);
+                    }
+                    if (c === "q") {
+                        let x = i * b;
+                        let y = (h - 1 - j) * b;
+                        let s = b;
+                        context.fillStyle = "#647d9c";
                         context.fillRect(x, y, s, s);
                     }
                     if (c === "r") {

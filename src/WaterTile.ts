@@ -45,7 +45,13 @@ class WaterTile extends Tile {
         if (ball.position.z > this.position.z + 0.55) {
             return false;
         }
-        return true;
+        let proj = {
+            point: BABYLON.Vector3.Zero(),
+            index: 0
+        }
+        Mummu.ProjectPointOnPathToRef(ball.position, this.path, proj);
+        let dist = BABYLON.Vector3.Distance(ball.position, proj.point);
+        return dist < ball.radius + 0.3;
     }
 
     private _getPath(): BABYLON.Vector3[] {
@@ -84,8 +90,8 @@ class WaterTile extends Tile {
             }
         }
 
-        let dirIn = this.position.subtract(entry).scale(2);
-        let dirOut = exit.subtract(this.position).scale(2);
+        let dirIn = this.position.subtract(entry).scale(4);
+        let dirOut = exit.subtract(this.position).scale(4);
 
         let path = [entry, exit];
         Mummu.CatmullRomPathInPlace(path, dirIn, dirOut);

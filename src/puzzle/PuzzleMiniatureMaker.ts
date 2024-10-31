@@ -92,6 +92,13 @@ class PuzzleMiniatureMaker {
                         context.fillStyle = "#624c3c";
                         context.fillRect(x, y, s, s);
                     }
+                    if (c === "q") {
+                        let x = i * b;
+                        let y = (h - 1 - j) * b;
+                        let s = b;
+                        context.fillStyle = "#647d9c";
+                        context.fillRect(x, y, s, s);
+                    }
                     if (c === "r") {
                         context.fillStyle = "#5d7275";
                         context.fillRect(x, y, s, s);

@@ -18,10 +18,12 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
         this.xForceAccelDelay = 0.8 * this.bounceXDelay;
+        this.isControlLocked = false;
+        this._lockControlTimout = 0;
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.mouseCanControl = false;
+        this.mouseCanControl = true;
         this.mouseInControl = false;
         this._pointerDown = false;
         this.mouseDown = (ev) => {
@@ -133,6 +135,13 @@ class Ball extends BABYLON.Mesh {
     }
     set rightArrowSize(v) {
         this.rightArrow.scaling.copyFromFloats(v, v, v);
+    }
+    lockControl(duration = 0.2) {
+        clearTimeout(this._lockControlTimout);
+        this.isControlLocked = true;
+        this._lockControlTimout = setTimeout(() => {
+            this.isControlLocked = false;
+        }, duration * 1000);
     }
     setColor(color) {
         this.color = color;
@@ -253,15 +262,21 @@ class Ball extends BABYLON.Mesh {
             this.rightArrow.position.y += 0.1;
             this.leftArrow.position.copyFrom(this.position);
             this.leftArrow.position.y += 0.1;
-            if (this.leftDown || this.rightDown) {
-                this.ballState = BallState.Move;
-                this.bounceXValue = 0;
-                this.bounceXTimer = 0;
-                this.speed = 0;
-                this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
-                this.game.fadeOutIntro(0.5);
-                this.playTimer = 0;
-                this.game.setPlayTimer(this.playTimer);
+            if (!this.isControlLocked && (this.leftDown || this.rightDown)) {
+                if (this.game.mode === GameMode.Preplay) {
+                    this.puzzle.skipIntro();
+                    this.lockControl(0.2);
+                }
+                else {
+                    this.ballState = BallState.Move;
+                    this.bounceXValue = 0;
+                    this.bounceXTimer = 0;
+                    this.speed = 0;
+                    this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
+                    this.game.fadeOutIntro(0.5);
+                    this.playTimer = 0;
+                    this.game.setPlayTimer(this.playTimer);
+                }
             }
             return;
         }
@@ -1217,6 +1232,7 @@ class CarillonRouter extends Nabu.Router {
             await this.pages[i].waitLoaded();
         }
         this.game.mode = GameMode.Menu;
+        this.game.globalTimer = 0;
         this.game.editor.deactivate();
         if (page.startsWith("#options")) {
             if (USE_POKI_SDK) {
@@ -1270,7 +1286,9 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             document.querySelector("#editor-btn").style.display = "";
             await this.game.puzzle.reset();
-            this.game.mode = GameMode.Play;
+            this.game.puzzle.skipIntro();
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
         }
         else if (page.startsWith("#editor")) {
             this.show(this.editorUI, false, showTime);
@@ -1296,7 +1314,8 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Play;
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
         }
         else if (page.startsWith("#play-community-")) {
             this.playBackButton.parentElement.href = "#community";
@@ -1322,7 +1341,8 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Play;
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
         }
         else if (page.startsWith("#levels")) {
             if (USE_POKI_SDK) {
@@ -1914,7 +1934,7 @@ class HaikuMaker {
     static MakeHaiku(puzzle) {
         if (puzzle.data.id === 74 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
-            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 3);
+            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 1.5);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
         }
@@ -1924,7 +1944,7 @@ class HaikuMaker {
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
             let testHaiku2 = new Haiku(puzzle.game, "", "- Objective -", "Hit all colored tiles.", "");
-            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 1.8);
+            testHaiku2.position.copyFromFloats(1.1 * 7, 0.1, 1.1 * 1);
             testHaiku2.visibility = 0;
             puzzle.haikus.push(testHaiku2);
         }
@@ -2628,7 +2648,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 18;
+var CRL_VERSION3 = 19;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -2665,7 +2685,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -2784,8 +2804,9 @@ var TileColorNames = [
 var GameMode;
 (function (GameMode) {
     GameMode[GameMode["Menu"] = 0] = "Menu";
-    GameMode[GameMode["Play"] = 1] = "Play";
-    GameMode[GameMode["Editor"] = 2] = "Editor";
+    GameMode[GameMode["Preplay"] = 1] = "Preplay";
+    GameMode[GameMode["Play"] = 2] = "Play";
+    GameMode[GameMode["Editor"] = 3] = "Editor";
 })(GameMode || (GameMode = {}));
 var cssColors = [
     "black",
@@ -2853,6 +2874,7 @@ class Game {
         this.factoredTimeSinceGameStart = 0;
         this.averagedFPS = 0;
         this.updateConfigTimeout = -1;
+        this.globalTimer = 0;
         this.machineEditorContainerIsDisplayed = false;
         this.machineEditorContainerHeight = -1;
         this.machineEditorContainerWidth = -1;
@@ -3160,8 +3182,9 @@ class Game {
         document.querySelector("#success-score-submit-btn").onclick = () => {
             this.puzzle.submitHighscore();
         };
-        document.querySelector("#reset-btn").onclick = () => {
-            this.puzzle.reset();
+        document.querySelector("#reset-btn").onclick = async () => {
+            await this.puzzle.reset();
+            this.puzzle.skipIntro();
         };
         document.querySelector("#zoom-out-btn").onclick = () => {
             this.playCameraRange += 1;
@@ -3220,13 +3243,6 @@ class Game {
                 devSecret = 0;
             }, 3000);
         });
-        let updateCamMenuData = () => {
-            this.menuCamAlpha = -Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
-            this.menuCamBeta = Math.PI * 0.3 + (Math.random() - 0.5) * 2 * Math.PI * 0.1;
-            this.menuCamRadius = 15 + (Math.random() - 0.5) * 2 * 5;
-            setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
-        };
-        updateCamMenuData();
         let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
             ambient.setVolume(0.15);
         }, {
@@ -3251,8 +3267,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -3292,9 +3308,26 @@ class Game {
         let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
         this.playCameraRadius = Nabu.MinMax(this.playCameraRange / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
+    updateMenuCameraRadius() {
+        let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
+        this.menuCamRadius = Nabu.MinMax(Math.min(this.playCameraRange, Math.max(this.puzzle.w, this.puzzle.h) * 1.1) / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
+    }
     update() {
         let rawDT = this.scene.deltaTime / 1000;
         if (isFinite(rawDT)) {
+            this.globalTimer += rawDT;
+            let aLeft = -Math.PI * 0.9;
+            let aRight = -Math.PI * 0.3;
+            let a0 = (aLeft + aRight) * 0.5;
+            let aDist = Math.abs(aLeft - aRight) * 0.5;
+            let fa = Math.sin(this.globalTimer / 40 * 2 * Math.PI);
+            this.menuCamAlpha = a0 + aDist * fa;
+            let bTop = Math.PI * 0.1;
+            let bBottom = Math.PI * 0.35;
+            let b0 = (bTop + bBottom) * 0.5;
+            let bDist = Math.abs(bTop - bBottom) * 0.5;
+            let fb = Math.sin(this.globalTimer / 20 * 2 * Math.PI);
+            this.menuCamBeta = b0 + bDist * fb;
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.puzzle.ball.absolutePosition.clone();
@@ -3315,21 +3348,20 @@ class Game {
                 let relZPos = (this.puzzle.ball.absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
-                let f = Nabu.Easing.smooth2Sec(1 / rawDT);
+                let f = Nabu.Easing.smooth1Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
-                let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
+                let f3 = Nabu.Easing.smooth2Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
                 let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
                 this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
-                if (this.puzzle) {
-                    this.puzzle.update(rawDT);
-                }
             }
-            else if (this.mode === GameMode.Menu) {
+            else if (this.mode === GameMode.Menu || this.mode === GameMode.Preplay) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = new BABYLON.Vector3(0.5 * (this.puzzle.xMin + this.puzzle.xMax), 0, 0.5 * (this.puzzle.zMin + this.puzzle.zMax));
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, 5);
+                let w = this.puzzle.xMax - this.puzzle.xMin;
+                let d = this.puzzle.zMax - this.puzzle.zMin;
+                let targetCameraPos = new BABYLON.Vector3(0.5 * (this.puzzle.xMin + this.puzzle.xMax) + 0.2 * w * Math.cos(this.globalTimer / 30 * 2 * Math.PI), 0, 0.4 * (this.puzzle.zMin + this.puzzle.zMax) + 0.2 * d * Math.sin(this.globalTimer / 30 * 2 * Math.PI));
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 8 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
                 this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);
@@ -3340,6 +3372,11 @@ class Game {
                 this.camera.target.z = Nabu.MinMax(this.camera.target.z, this.puzzle.zMin, this.puzzle.zMax);
                 this.camera.target.y = 0;
                 this.editor.update(rawDT);
+            }
+            if (this.mode === GameMode.Preplay || this.mode === GameMode.Play) {
+                if (this.puzzle) {
+                    this.puzzle.update(rawDT);
+                }
             }
         }
     }
@@ -4730,10 +4767,17 @@ class Puzzle {
         this.puzzleUI.reset();
         document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
         document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
+        document.querySelector("#puzzle-skip-intro").style.display = "";
+        document.querySelector("#puzzle-ready").style.display = "none";
         this.game.fadeInIntro();
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
+    }
+    skipIntro() {
+        document.querySelector("#puzzle-skip-intro").style.display = "none";
+        document.querySelector("#puzzle-ready").style.display = "";
+        this.game.mode = GameMode.Play;
     }
     win() {
         if (USE_POKI_SDK) {
@@ -4863,15 +4907,11 @@ class Puzzle {
             this.ball.setColor(TileColor.North);
         }
         this.ball.ballState = BallState.Ready;
-        this.ball.mouseCanControl = false;
-        setTimeout(() => {
-            this.ball.mouseCanControl = true;
-        }, 1000);
+        this.ball.lockControl(0.2);
         this.game.setPlayTimer(0);
         this.ball.vZ = 1;
         this.fishingPolesCount = 3;
         this.h = lines.length;
-        console.log("height = " + this.h);
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
@@ -5002,6 +5042,7 @@ class Puzzle {
             }
         }
         HaikuMaker.MakeHaiku(this);
+        this.game.updateMenuCameraRadius();
     }
     async instantiate() {
         this.regenerateHeightMap();
@@ -5667,12 +5708,14 @@ class PuzzleUI {
         this.successReplayButton = document.querySelector("#success-replay-btn");
         this.successReplayButton.onclick = () => {
             this.puzzle.reset();
+            this.puzzle.skipIntro();
         };
         this.successNextButton = document.querySelector("#success-next-btn");
         this.gameoverBackButton = document.querySelector("#gameover-back-btn");
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
         this.gameoverReplayButton.onclick = () => {
             this.puzzle.reset();
+            this.puzzle.skipIntro();
         };
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");

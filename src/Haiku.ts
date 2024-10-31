@@ -9,7 +9,7 @@ class HaikuMaker {
                 IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.",
                 ""
             );
-            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 3);
+            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 1.5);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
         }
@@ -32,7 +32,7 @@ class HaikuMaker {
                 "Hit all colored tiles.",
                 ""
             );
-            testHaiku2.position.copyFromFloats(1.1 * 6.2, 0.1, 1.1 * 1.8);
+            testHaiku2.position.copyFromFloats(1.1 * 7, 0.1, 1.1 * 1);
             testHaiku2.visibility = 0;
             puzzle.haikus.push(testHaiku2);
         }

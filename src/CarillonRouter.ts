@@ -50,6 +50,7 @@ class CarillonRouter extends Nabu.Router {
         }
         
         this.game.mode = GameMode.Menu;
+        this.game.globalTimer = 0;
         this.game.editor.deactivate();
 
         if (page.startsWith("#options")) {
@@ -104,7 +105,9 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
             await this.game.puzzle.reset();
-            this.game.mode = GameMode.Play;
+            this.game.puzzle.skipIntro();
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
         }
         else if (page.startsWith("#editor")) {
             this.show(this.editorUI, false, showTime);
@@ -130,7 +133,8 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Play;
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
         }
         else if (page.startsWith("#play-community-")) {
             (this.playBackButton.parentElement as HTMLAnchorElement).href = "#community";
@@ -156,7 +160,8 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Play;
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
         }
         else if (page.startsWith("#levels")) {
             if (USE_POKI_SDK) {

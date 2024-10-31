@@ -203,10 +203,18 @@ class Puzzle {
         this.puzzleUI.reset();
         (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
         (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
+        (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
+        (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";
         this.game.fadeInIntro();
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
+    }
+
+    public skipIntro(): void {
+        (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "none";
+        (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "";
+        this.game.mode = GameMode.Play;
     }
 
     public win(): void {
@@ -349,15 +357,11 @@ class Puzzle {
             this.ball.setColor(TileColor.North);
         }
         this.ball.ballState = BallState.Ready;
-        this.ball.mouseCanControl = false;
-        setTimeout(() => {
-            this.ball.mouseCanControl = true;
-        }, 1000);
+        this.ball.lockControl(0.2);
         this.game.setPlayTimer(0);
         this.ball.vZ = 1;
         this.fishingPolesCount = 3;
         this.h = lines.length;
-        console.log("height = " + this.h);
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
@@ -489,6 +493,7 @@ class Puzzle {
         }
 
         HaikuMaker.MakeHaiku(this);
+        this.game.updateMenuCameraRadius();
     }
 
     public async instantiate(): Promise<void> {

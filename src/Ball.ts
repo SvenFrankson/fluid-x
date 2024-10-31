@@ -48,6 +48,15 @@ class Ball extends BABYLON.Mesh {
     public bounceXDelay: number = 0.93;
     public xForceAccelDelay: number = 0.8 * this.bounceXDelay;
 
+    public isControlLocked: boolean = false;
+    private _lockControlTimout: number = 0;
+    public lockControl(duration: number = 0.2): void {
+        clearTimeout(this._lockControlTimout);
+        this.isControlLocked = true;
+        this._lockControlTimout = setTimeout(() => {
+            this.isControlLocked = false;
+        }, duration * 1000);
+    }
     public leftDown: number = 0;
     public rightDown: number = 0;
     public animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -173,7 +182,7 @@ class Ball extends BABYLON.Mesh {
         this.game.canvas.addEventListener("pointerup", this.mouseUp);
     }
 
-    public mouseCanControl: boolean = false;
+    public mouseCanControl: boolean = true;
     public mouseInControl: boolean = false;
     private _pointerDown: boolean = false;
     public mouseDown = (ev: PointerEvent) => {
@@ -315,15 +324,21 @@ class Ball extends BABYLON.Mesh {
             this.leftArrow.position.copyFrom(this.position);
             this.leftArrow.position.y += 0.1;
 
-            if (this.leftDown || this.rightDown) {
-                this.ballState = BallState.Move;
-                this.bounceXValue = 0;
-                this.bounceXTimer = 0;
-                this.speed = 0;
-                this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
-                this.game.fadeOutIntro(0.5);
-                this.playTimer = 0;
-                this.game.setPlayTimer(this.playTimer);
+            if (!this.isControlLocked && (this.leftDown || this.rightDown)) {
+                if (this.game.mode === GameMode.Preplay) {
+                    this.puzzle.skipIntro();
+                    this.lockControl(0.2);
+                }
+                else {
+                    this.ballState = BallState.Move;
+                    this.bounceXValue = 0;
+                    this.bounceXTimer = 0;
+                    this.speed = 0;
+                    this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
+                    this.game.fadeOutIntro(0.5);
+                    this.playTimer = 0;
+                    this.game.setPlayTimer(this.playTimer);
+                }
             }
             return;
         }

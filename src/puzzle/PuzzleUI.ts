@@ -44,12 +44,14 @@ class PuzzleUI {
         this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;
         this.successReplayButton.onclick = () => {
             this.puzzle.reset();
+            this.puzzle.skipIntro();
         }
         this.successNextButton = document.querySelector("#success-next-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
         this.gameoverReplayButton.onclick = () => {
             this.puzzle.reset();
+            this.puzzle.skipIntro();
         }
         
         this.successPanel = document.querySelector("#play-success-panel");

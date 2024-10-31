@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 18;
+var CRL_VERSION3: number = 19;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -175,6 +175,7 @@ var TileColorNames = [
 
 enum GameMode {
     Menu,
+    Preplay,
     Play,
     Editor
 }
@@ -624,8 +625,9 @@ class Game {
             this.puzzle.submitHighscore();
         }
 
-        (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = () => {
-            this.puzzle.reset();
+        (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = async () => {
+            await this.puzzle.reset();
+            this.puzzle.skipIntro();
         }
 
         (document.querySelector("#zoom-out-btn") as HTMLButtonElement).onclick = () => {
@@ -692,15 +694,6 @@ class Game {
             }, 3000);
         })
 
-        let updateCamMenuData = () => {
-            this.menuCamAlpha = - Math.PI * 0.5 + (Math.random() - 0.5) * 2 * Math.PI * 0.4;
-            this.menuCamBeta = Math.PI * 0.3 + (Math.random() - 0.5) * 2 * Math.PI * 0.1;
-            this.menuCamRadius = 15 + (Math.random() - 0.5) * 2 * 5;
-
-            setTimeout(updateCamMenuData, 2000 + 4000 * Math.random());
-        }
-        updateCamMenuData();
-
         let ambient = this.soundManager.createSound(
             "ambient",
             "./datas/sounds/zen-ambient.mp3",
@@ -735,8 +728,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
 	}
 
@@ -802,13 +795,35 @@ class Game {
         this.playCameraRadius = Nabu.MinMax(this.playCameraRange / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
 
+    public updateMenuCameraRadius(): void {
+        let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
+        this.menuCamRadius = Nabu.MinMax(Math.min(this.playCameraRange, Math.max(this.puzzle.w, this.puzzle.h) * 1.1) / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
+    }
+
     public movieIdleDir: BABYLON.Vector3 = BABYLON.Vector3.Zero();
     public factoredTimeSinceGameStart: number = 0;
     public averagedFPS: number = 0;
     public updateConfigTimeout: number = - 1;
+    public globalTimer: number = 0;
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
         if (isFinite(rawDT)) {
+            this.globalTimer += rawDT;
+            
+            let aLeft = - Math.PI * 0.9;
+            let aRight = - Math.PI * 0.3;
+            let a0 = (aLeft + aRight) * 0.5;
+            let aDist = Math.abs(aLeft - aRight) * 0.5;
+            let fa = Math.sin(this.globalTimer / 40 * 2 * Math.PI);
+            this.menuCamAlpha = a0 + aDist * fa;
+            
+            let bTop = Math.PI * 0.1;
+            let bBottom = Math.PI * 0.35;
+            let b0 = (bTop + bBottom) * 0.5;
+            let bDist = Math.abs(bTop - bBottom) * 0.5;
+            let fb = Math.sin(this.globalTimer / 20 * 2 * Math.PI);
+            this.menuCamBeta = b0 + bDist * fb;
+
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.puzzle.ball.absolutePosition.clone();
@@ -831,27 +846,25 @@ class Game {
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
                 
-                let f = Nabu.Easing.smooth2Sec(1 / rawDT);
+                let f = Nabu.Easing.smooth1Sec(1 / rawDT);
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
-                let f3 = Nabu.Easing.smooth3Sec(1 / rawDT);
+                let f3 = Nabu.Easing.smooth2Sec(1 / rawDT);
                 this.camera.alpha = this.camera.alpha * f3 + (- Math.PI * 0.5) * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
                 let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
                 this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
-                
-                if (this.puzzle) {
-                    this.puzzle.update(rawDT);
-                }
             }
-            else if (this.mode === GameMode.Menu) {
+            else if (this.mode === GameMode.Menu || this.mode === GameMode.Preplay) {
                 rawDT = Math.min(rawDT, 1);
+                let w = this.puzzle.xMax - this.puzzle.xMin;
+                let d = this.puzzle.zMax - this.puzzle.zMin;
                 let targetCameraPos = new BABYLON.Vector3(
-                    0.5 * (this.puzzle.xMin + this.puzzle.xMax),
+                    0.5 * (this.puzzle.xMin + this.puzzle.xMax) + 0.2 * w * Math.cos(this.globalTimer / 30 * 2 * Math.PI),
                     0,
-                    0.5 * (this.puzzle.zMin + this.puzzle.zMax)
+                    0.4 * (this.puzzle.zMin + this.puzzle.zMax) + 0.2 * d * Math.sin(this.globalTimer / 30 * 2 * Math.PI)
                 )
                 
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, 5);
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 8 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
                 this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);
@@ -863,6 +876,12 @@ class Game {
                 this.camera.target.y = 0;
 
                 this.editor.update(rawDT);
+            }
+
+            if (this.mode === GameMode.Preplay || this.mode === GameMode.Play) {
+                if (this.puzzle) {
+                    this.puzzle.update(rawDT);
+                }
             }
         }
     }

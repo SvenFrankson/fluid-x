@@ -64,7 +64,7 @@ class HaikuMaker {
             let testHaiku = new Haiku(
                 puzzle.game,
                 "",
-                "- Push -",
+                "                - Push -",
                 "Wooden Tiles can be pushed.",
                 ""
             );
@@ -105,6 +105,18 @@ class HaikuMaker {
                 ""
             );
             testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 92 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(
+                puzzle.game,
+                "",
+                "- Water -",
+                "Dip a toe !",
+                ""
+            );
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
         }

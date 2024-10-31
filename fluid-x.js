@@ -2008,7 +2008,7 @@ class HaikuMaker {
             puzzle.haikus.push(testHaiku);
         }
         if (puzzle.data.id === 78 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Push -", "Wooden Tiles can be pushed.", "");
+            let testHaiku = new Haiku(puzzle.game, "", "                - Push -", "Wooden Tiles can be pushed.", "");
             testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 2.7);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
@@ -2028,6 +2028,12 @@ class HaikuMaker {
         if (puzzle.data.id === 80 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Lives -", "Don't look down.", "");
             testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
+            testHaiku.visibility = 0;
+            puzzle.haikus.push(testHaiku);
+        }
+        if (puzzle.data.id === 92 && puzzle.data.state === 2) {
+            let testHaiku = new Haiku(puzzle.game, "", "- Water -", "Dip a toe !", "");
+            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
             puzzle.haikus.push(testHaiku);
         }

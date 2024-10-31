@@ -399,6 +399,15 @@ class Puzzle {
                         h: 0
                     });
                 }
+                if (c === "q") {
+                    let water = new WaterTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
                 if (c === "N") {
                     let block = new SwitchTile(this.game, {
                         color: TileColor.North,
@@ -501,6 +510,19 @@ class Puzzle {
         for (let i = 0; i < this.tiles.length; i++) {
             let t = this.tiles[i];
             t.position.y = this.hMapGet(t.i, t.j);
+        }
+
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
+        if (waterTiles.length > 2) {
+            waterTiles = waterTiles.sort((t1, t2) => {
+                if (t2.j === t1.j) {
+                    return t1.i - t2.i;
+                }
+                return t2.j - t1.j;
+            });
+            if (waterTiles[0]) {
+                (waterTiles[0] as WaterTile).recursiveConnect(0);
+            }
         }
 
         for (let i = 0; i < this.tiles.length; i++) {
@@ -706,10 +728,22 @@ class Puzzle {
                     floorDatas.push(tileData);
                 }
                 if (!holeTile) {
-                    let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
-                    Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, 0, j * 1.1));
-                    Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.White());
-                    floorDatas.push(tileData);
+                    let waterTile = this.tiles.find(tile => {
+                        if (tile instanceof WaterTile) {
+                            if (tile.props.i === i) {
+                                if (tile.props.j === j) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    })
+                    if (!waterTile) {
+                        let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
+                        Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, 0, j * 1.1));
+                        Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.White());
+                        floorDatas.push(tileData);
+                    }
                 }
             }
         }

@@ -6,6 +6,7 @@ enum EditorBrush {
     Push,
     Hole,
     Wall,
+    Water,
     Box,
     Ramp,
     Bridge
@@ -45,6 +46,7 @@ class Editor {
     public pushTileButton: HTMLButtonElement;
     public holeButton: HTMLButtonElement;
     public wallButton: HTMLButtonElement;
+    public waterButton: HTMLButtonElement;
     public boxButton: HTMLButtonElement;
     public rampButton: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
@@ -209,6 +211,7 @@ class Editor {
         this.pushTileButton = document.getElementById("push-tile-btn") as HTMLButtonElement;
         this.holeButton = document.getElementById("hole-btn") as HTMLButtonElement;
         this.wallButton = document.getElementById("wall-btn") as HTMLButtonElement;
+        this.waterButton = document.getElementById("water-btn") as HTMLButtonElement;
         this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
         this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
@@ -226,6 +229,7 @@ class Editor {
             this.pushTileButton,
             this.holeButton,
             this.wallButton,
+            this.waterButton,
             this.boxButton,
             this.rampButton,
             this.bridgeButton
@@ -264,6 +268,7 @@ class Editor {
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.wallButton, EditorBrush.Wall);
+        makeBrushButton(this.waterButton, EditorBrush.Water);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
@@ -670,6 +675,17 @@ class Editor {
                                     i: this.cursorI,
                                     j: this.cursorJ,
                                     color: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Water) {
+                            tile = new WaterTile(
+                                this.game,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor,
+                                    noShadow: true
                                 }
                             )
                         }

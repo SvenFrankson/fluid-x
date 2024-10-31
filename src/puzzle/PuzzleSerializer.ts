@@ -47,6 +47,9 @@ function SaveAsText(puzzle: Puzzle): string {
         else if (tile instanceof WallTile) {
             lines[j][i] = "a";
         }
+        else if (tile instanceof WaterTile) {
+            lines[j][i] = "q";
+        }
     });
 
     puzzle.buildings.forEach(building => {

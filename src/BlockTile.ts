@@ -12,7 +12,6 @@ class BlockTile extends Tile {
 
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-
         this.tileTop.material = this.game.tileColorMaterials[this.color];
     }
 

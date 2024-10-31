@@ -1374,9 +1374,10 @@ var EditorBrush;
     EditorBrush[EditorBrush["Push"] = 4] = "Push";
     EditorBrush[EditorBrush["Hole"] = 5] = "Hole";
     EditorBrush[EditorBrush["Wall"] = 6] = "Wall";
-    EditorBrush[EditorBrush["Box"] = 7] = "Box";
-    EditorBrush[EditorBrush["Ramp"] = 8] = "Ramp";
-    EditorBrush[EditorBrush["Bridge"] = 9] = "Bridge";
+    EditorBrush[EditorBrush["Water"] = 7] = "Water";
+    EditorBrush[EditorBrush["Box"] = 8] = "Box";
+    EditorBrush[EditorBrush["Ramp"] = 9] = "Ramp";
+    EditorBrush[EditorBrush["Bridge"] = 10] = "Bridge";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -1491,6 +1492,14 @@ class Editor {
                                     i: this.cursorI,
                                     j: this.cursorJ,
                                     color: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Water) {
+                                tile = new WaterTile(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor,
+                                    noShadow: true
                                 });
                             }
                             else if (this.brush === EditorBrush.Box) {
@@ -1645,6 +1654,7 @@ class Editor {
         this.pushTileButton = document.getElementById("push-tile-btn");
         this.holeButton = document.getElementById("hole-btn");
         this.wallButton = document.getElementById("wall-btn");
+        this.waterButton = document.getElementById("water-btn");
         this.boxButton = document.getElementById("box-btn");
         this.rampButton = document.getElementById("ramp-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
@@ -1661,6 +1671,7 @@ class Editor {
             this.pushTileButton,
             this.holeButton,
             this.wallButton,
+            this.waterButton,
             this.boxButton,
             this.rampButton,
             this.bridgeButton
@@ -1695,6 +1706,7 @@ class Editor {
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.wallButton, EditorBrush.Wall);
+        makeBrushButton(this.waterButton, EditorBrush.Water);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
@@ -2685,7 +2697,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -4052,6 +4064,99 @@ class WallTile extends Tile {
         data.applyToMesh(this);
     }
 }
+/// <reference path="./Tile.ts"/>
+class WaterTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.flowDir = new BABYLON.Vector2(0, -1);
+        this.distFromSource = Infinity;
+        this.color = props.color;
+        this.material = this.game.blackMaterial;
+        this.shoreMesh = new BABYLON.Mesh("shore");
+        this.shoreMesh.parent = this;
+        this.shoreMesh.material = this.game.whiteMaterial;
+        this.waterMesh = new BABYLON.Mesh("water");
+        this.waterMesh.parent = this;
+        this.waterMesh.material = this.game.tileColorMaterials[TileColor.South];
+        this.floorMesh = new BABYLON.Mesh("floor");
+        this.floorMesh.parent = this;
+        this.floorMesh.material = this.game.floorMaterial;
+    }
+    recursiveConnect(d = 0) {
+        this.distFromSource = d;
+        let right = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i + 1) && tile.j === this.j; });
+        if (right && (!this.iPlusWater || this.iPlusWater.distFromSource > d + 1)) {
+            this.iPlusWater = right;
+            right.iMinusWater = this;
+            right.recursiveConnect(d + 1);
+        }
+        let left = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i - 1) && tile.j === this.j; });
+        if (left && (!this.iMinusWater || this.iMinusWater.distFromSource > d + 1)) {
+            this.iMinusWater = left;
+            left.iPlusWater = this;
+            left.recursiveConnect(d + 1);
+        }
+        let up = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j + 1); });
+        if (up && (!this.jPlusWater || this.jPlusWater.distFromSource > d + 1)) {
+            this.jPlusWater = up;
+            up.jMinusWater = this;
+            up.recursiveConnect(d + 1);
+        }
+        let down = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j - 1); });
+        if (down && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
+            this.jMinusWater = down;
+            down.jPlusWater = this;
+            down.recursiveConnect(d + 1);
+        }
+    }
+    async instantiate() {
+        await super.instantiate();
+        let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
+        if (this.iPlusWater && this.iMinusWater) {
+            let a = Math.PI * 0.5;
+            if (this.iMinusWater.distFromSource < this.distFromSource) {
+                a = -Math.PI * 0.5;
+            }
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[0]), a, BABYLON.Axis.Y).applyToMesh(this);
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[1]), a, BABYLON.Axis.Y).applyToMesh(this.shoreMesh);
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[2]), a, BABYLON.Axis.Y).applyToMesh(this.waterMesh);
+        }
+        else if (!this.iPlusWater && !this.iMinusWater) {
+            datas[0].applyToMesh(this);
+            datas[1].applyToMesh(this.shoreMesh);
+            datas[2].applyToMesh(this.waterMesh);
+        }
+        else if (this.iPlusWater && this.jPlusWater) {
+            datas[3].applyToMesh(this);
+            datas[4].applyToMesh(this.shoreMesh);
+            datas[5].applyToMesh(this.waterMesh);
+            datas[6].applyToMesh(this.floorMesh);
+        }
+        else if (this.iMinusWater && this.jPlusWater) {
+            Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[3])).applyToMesh(this);
+            Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[4])).applyToMesh(this.shoreMesh);
+            Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[5])).applyToMesh(this.waterMesh);
+            Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[6])).applyToMesh(this.floorMesh);
+        }
+        else if (this.iPlusWater && this.jMinusWater) {
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this);
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[4]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this.shoreMesh);
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this.waterMesh);
+            Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[6]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this.floorMesh);
+        }
+        else if (this.iMinusWater && this.jMinusWater) {
+            Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this);
+            Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[4]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this.shoreMesh);
+            Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this.waterMesh);
+            Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[6]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this.floorMesh);
+        }
+        else {
+            datas[0].applyToMesh(this);
+            datas[1].applyToMesh(this.shoreMesh);
+            datas[2].applyToMesh(this.waterMesh);
+        }
+    }
+}
 class CubicNoiseTexture {
     constructor(scene) {
         this.scene = scene;
@@ -4949,6 +5054,15 @@ class Puzzle {
                         h: 0
                     });
                 }
+                if (c === "q") {
+                    let water = new WaterTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
                 if (c === "N") {
                     let block = new SwitchTile(this.game, {
                         color: TileColor.North,
@@ -5049,6 +5163,18 @@ class Puzzle {
         for (let i = 0; i < this.tiles.length; i++) {
             let t = this.tiles[i];
             t.position.y = this.hMapGet(t.i, t.j);
+        }
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
+        if (waterTiles.length > 2) {
+            waterTiles = waterTiles.sort((t1, t2) => {
+                if (t2.j === t1.j) {
+                    return t1.i - t2.i;
+                }
+                return t2.j - t1.j;
+            });
+            if (waterTiles[0]) {
+                waterTiles[0].recursiveConnect(0);
+            }
         }
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
@@ -5234,10 +5360,22 @@ class Puzzle {
                     floorDatas.push(tileData);
                 }
                 if (!holeTile) {
-                    let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
-                    Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, 0, j * 1.1));
-                    Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.White());
-                    floorDatas.push(tileData);
+                    let waterTile = this.tiles.find(tile => {
+                        if (tile instanceof WaterTile) {
+                            if (tile.props.i === i) {
+                                if (tile.props.j === j) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    });
+                    if (!waterTile) {
+                        let tileData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
+                        Mummu.TranslateVertexDataInPlace(tileData, new BABYLON.Vector3(i * 1.1, 0, j * 1.1));
+                        Mummu.ColorizeVertexDataInPlace(tileData, BABYLON.Color3.White());
+                        floorDatas.push(tileData);
+                    }
                 }
             }
         }
@@ -5571,6 +5709,9 @@ function SaveAsText(puzzle) {
         }
         else if (tile instanceof WallTile) {
             lines[j][i] = "a";
+        }
+        else if (tile instanceof WaterTile) {
+            lines[j][i] = "q";
         }
     });
     puzzle.buildings.forEach(building => {

@@ -115,6 +115,7 @@ class Puzzle {
     public fpsTexture: BABYLON.DynamicTexture;
 
     public clickSound: MySound;
+    public wooshSound: MySound;
 
     public getScene(): BABYLON.Scene {
         return this.game.scene;
@@ -191,7 +192,8 @@ class Puzzle {
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
         
-        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 2);
+        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
     }
 
     public async reset(): Promise<void> {
@@ -513,7 +515,7 @@ class Puzzle {
 
             }
             else if (t instanceof HoleTile) {
-                
+
             }
             else {
                 t.position.y = this.hMapGet(t.i, t.j);

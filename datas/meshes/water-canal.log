@@ -21,7 +21,7 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  8
-	processing begun of mesh:  2-straight-water
+	processing begun of mesh:  1-straight-water
 		WARNING: No materials have been assigned: 
 		num positions      :  4
 		num normals        :  4
@@ -30,25 +30,16 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  2
-	processing begun of mesh:  1-straight-shore
+	processing begun of mesh:  3-turn-border
 		WARNING: No materials have been assigned: 
-		num positions      :  8
-		num normals        :  8
+		num positions      :  72
+		num normals        :  72
 		num tangents       :  0
-		num uvs            :  16
+		num uvs            :  144
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  4
-	processing begun of mesh:  4-turn-border
-		WARNING: No materials have been assigned: 
-		num positions      :  64
-		num normals        :  64
-		num tangents       :  0
-		num uvs            :  128
-		num uvs2           :  0
-		num colors         :  0
-		num triangles      :  56
-	processing begun of mesh:  6-turn-water
+		num triangles      :  64
+	processing begun of mesh:  4-turn-water
 		WARNING: No materials have been assigned: 
 		num positions      :  18
 		num normals        :  18
@@ -57,32 +48,31 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  16
-	processing begun of mesh:  5-turn-shore
+	processing begun of mesh:  5-turn-floor
 		WARNING: No materials have been assigned: 
-		num positions      :  36
-		num normals        :  36
+		num positions      :  28
+		num normals        :  28
 		num tangents       :  0
-		num uvs            :  72
+		num uvs            :  56
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  32
-	processing begun of mesh:  7-turn-floor
+		num triangles      :  24
+	processing begun of mesh:  2-straight-floor
 		WARNING: No materials have been assigned: 
-		num positions      :  16
-		num normals        :  16
+		num positions      :  8
+		num normals        :  8
 		num tangents       :  0
-		num uvs            :  32
+		num uvs            :  16
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  14
+		num triangles      :  4
 ========= Writing of JSON file started =========
 	writing mesh:  0-straight-border
-	writing mesh:  2-straight-water
-	writing mesh:  1-straight-shore
-	writing mesh:  4-turn-border
-	writing mesh:  6-turn-water
-	writing mesh:  5-turn-shore
-	writing mesh:  7-turn-floor
+	writing mesh:  1-straight-water
+	writing mesh:  3-turn-border
+	writing mesh:  4-turn-water
+	writing mesh:  5-turn-floor
+	writing mesh:  2-straight-floor
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0268 secs
+elapsed time:  0 min, 0.0249 secs

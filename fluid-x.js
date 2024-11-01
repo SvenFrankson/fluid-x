@@ -2919,7 +2919,7 @@ class Game {
         this.playCameraMinRadius = 5;
         this.playCameraMaxRadius = 100;
         this.cameraOrtho = false;
-        this.mode = GameMode.Menu;
+        this._mode = GameMode.Menu;
         this.completedPuzzles = [];
         this.gameLoaded = false;
         this._bodyColorIndex = 0;
@@ -2974,6 +2974,15 @@ class Game {
     }
     get borderMaterial() {
         return this.brownMaterial;
+    }
+    get mode() {
+        return this._mode;
+    }
+    set mode(m) {
+        if (m != this._mode) {
+            this._mode = m;
+            this.globalTimer = 0;
+        }
     }
     get bodyColorIndex() {
         return this._bodyColorIndex;
@@ -3420,12 +3429,12 @@ class Game {
                 let relZPos = (this.puzzle.ball.absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
-                let f = Nabu.Easing.smooth1Sec(1 / rawDT);
+                let f = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 3 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
-                let f3 = Nabu.Easing.smooth2Sec(1 / rawDT);
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(2, 4 - this.globalTimer));
                 this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
-                let f4 = Nabu.Easing.smooth025Sec(1 / rawDT);
+                let f4 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.25, 2.25 - this.globalTimer));
                 this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
             }
             else if (this.mode === GameMode.Menu || this.mode === GameMode.Preplay) {
@@ -4242,9 +4251,9 @@ class WaterTile extends Tile {
         await super.instantiate();
         this.path = this._getPath();
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
-        let DEBUG = BABYLON.CreateLines("debug", { points: this.path, colors: this.path.map(() => { return new BABYLON.Color4(1, 0, 0, 1); }) });
-        DEBUG.parent = this;
-        DEBUG.position = this.position.scale(-1);
+        //let DEBUG = BABYLON.CreateLines("debug", { points: this.path, colors: this.path.map(() => { return new BABYLON.Color4(1, 0, 0, 1); })});
+        //DEBUG.parent = this;
+        //DEBUG.position = this.position.scale(-1);
         if (this.iPlusWater && this.iMinusWater) {
             let a = Math.PI * 0.5;
             if (this.iMinusWater.distFromSource < this.distFromSource) {

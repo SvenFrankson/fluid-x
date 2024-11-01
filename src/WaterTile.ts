@@ -140,9 +140,9 @@ class WaterTile extends Tile {
         this.path = this._getPath();
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
 
-        let DEBUG = BABYLON.CreateLines("debug", { points: this.path, colors: this.path.map(() => { return new BABYLON.Color4(1, 0, 0, 1); })});
-        DEBUG.parent = this;
-        DEBUG.position = this.position.scale(-1);
+        //let DEBUG = BABYLON.CreateLines("debug", { points: this.path, colors: this.path.map(() => { return new BABYLON.Color4(1, 0, 0, 1); })});
+        //DEBUG.parent = this;
+        //DEBUG.position = this.position.scale(-1);
 
         if (this.iPlusWater && this.iMinusWater) {
             let a = Math.PI * 0.5;

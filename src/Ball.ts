@@ -74,12 +74,22 @@ class Ball extends BABYLON.Mesh {
     }
     public set i(v: number) {
         this.position.x = v * 1.1;
+
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.1;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.1;
     }
     public get j(): number {
         return Math.round(this.position.z / 1.1);
     }
     public set j(v: number) {
         this.position.z = v * 1.1;
+
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.1;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.1;
     }
 
     public get game(): Game {
@@ -115,13 +125,13 @@ class Ball extends BABYLON.Mesh {
         this.shadow.material = this.game.shadowDiscMaterial;
         
         this.leftArrow = new BABYLON.Mesh("left-arrow");
-        this.leftArrow.position.y = 0.15;
+        this.leftArrow.position.y = 0.1;
         this.leftArrow.rotation.y = Math.PI;
         this.leftArrow.material = this.game.puckSideMaterial;
         this.leftArrowSize = 0.5;
 
         this.rightArrow = new BABYLON.Mesh("right-arrow");
-        this.rightArrow.position.y = 0.15;
+        this.rightArrow.position.y = 0.1;
         this.rightArrow.material = this.game.puckSideMaterial;
         this.rightArrowSize = 0.5;
 

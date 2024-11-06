@@ -64,12 +64,12 @@ class Ball extends BABYLON.Mesh {
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
         this.leftArrow = new BABYLON.Mesh("left-arrow");
-        this.leftArrow.position.y = 0.15;
+        this.leftArrow.position.y = 0.1;
         this.leftArrow.rotation.y = Math.PI;
         this.leftArrow.material = this.game.puckSideMaterial;
         this.leftArrowSize = 0.5;
         this.rightArrow = new BABYLON.Mesh("right-arrow");
-        this.rightArrow.position.y = 0.15;
+        this.rightArrow.position.y = 0.1;
         this.rightArrow.material = this.game.puckSideMaterial;
         this.rightArrowSize = 0.5;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
@@ -203,12 +203,20 @@ class Ball extends BABYLON.Mesh {
     }
     set i(v) {
         this.position.x = v * 1.1;
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.1;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.1;
     }
     get j() {
         return Math.round(this.position.z / 1.1);
     }
     set j(v) {
         this.position.z = v * 1.1;
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.1;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.1;
     }
     get game() {
         return this.puzzle.game;
@@ -1673,34 +1681,68 @@ class Editor {
     get puzzle() {
         return this.game.puzzle;
     }
-    get ball() {
-        return this.puzzle.balls[0];
-    }
     initValues() {
-        this.originColorInput.setValue(this.ball.color);
-        this.originIInput.setValue(this.ball.i);
-        this.originJInput.setValue(this.ball.j);
+        this.p1OriginColorInput.setValue(this.puzzle.balls[0].color);
+        this.p1OriginIInput.setValue(this.puzzle.balls[0].i);
+        this.p1OriginJInput.setValue(this.puzzle.balls[0].j);
+        this.p2OriginColorInput.setValue(this.puzzle.balls[1].color);
+        this.p2OriginIInput.setValue(this.puzzle.balls[1].i);
+        this.p2OriginJInput.setValue(this.puzzle.balls[1].j);
         this.widthInput.setValue(this.puzzle.w);
         this.heightInput.setValue(this.puzzle.h);
+        document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
+        this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
     }
     activate() {
-        this.originColorInput = document.getElementById("editor-origin-color");
-        this.originColorInput.onValueChange = (v) => {
-            let color = v;
-            this.ball.setColor(color);
+        this.ballCountButton = document.getElementById("ball-count-btn");
+        this.ballCountButton.onclick = () => {
+            if (this.puzzle.ballsCount === 1) {
+                this.puzzle.ballsCount = 2;
+                this.puzzle.balls[1].instantiate();
+                this.puzzle.balls[1].setVisible(true);
+            }
+            else if (this.puzzle.ballsCount === 2) {
+                this.puzzle.ballsCount = 1;
+                this.puzzle.balls[1].setVisible(false);
+            }
+            document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
+            this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
         };
-        this.originColorInput.valueToString = (v) => {
+        this.p1OriginColorInput = document.getElementById("editor-p1-origin-color");
+        this.p1OriginColorInput.onValueChange = (v) => {
+            let color = v;
+            this.puzzle.balls[0].setColor(color);
+        };
+        this.p1OriginColorInput.valueToString = (v) => {
             return TileColorNames[v];
         };
-        this.originIInput = document.getElementById("editor-origin-i");
-        this.originIInput.onValueChange = (v) => {
+        this.p1OriginIInput = document.getElementById("editor-p1-origin-i");
+        this.p1OriginIInput.onValueChange = (v) => {
             this.dropClear();
-            this.ball.i = Math.min(v, this.puzzle.w - 1);
+            this.puzzle.balls[0].i = Math.min(v, this.puzzle.w - 1);
         };
-        this.originJInput = document.getElementById("editor-origin-j");
-        this.originJInput.onValueChange = (v) => {
+        this.p1OriginJInput = document.getElementById("editor-p1-origin-j");
+        this.p1OriginJInput.onValueChange = (v) => {
             this.dropClear();
-            this.ball.j = Math.min(v, this.puzzle.h - 1);
+            this.puzzle.balls[0].j = Math.min(v, this.puzzle.h - 1);
+        };
+        this.p2OriginColorInput = document.getElementById("editor-p2-origin-color");
+        this.p2OriginColorInput.onValueChange = (v) => {
+            let color = v;
+            this.puzzle.balls[1].setColor(color);
+        };
+        this.p2OriginColorInput.valueToString = (v) => {
+            return TileColorNames[v];
+        };
+        this.p2OriginIInput = document.getElementById("editor-p2-origin-i");
+        this.p2OriginIInput.onValueChange = (v) => {
+            this.dropClear();
+            this.puzzle.balls[1].i = Math.min(v, this.puzzle.w - 1);
+        };
+        this.p2OriginJInput = document.getElementById("editor-p2-origin-j");
+        this.p2OriginJInput.onValueChange = (v) => {
+            this.dropClear();
+            this.puzzle.balls[1].j = Math.min(v, this.puzzle.h - 1);
         };
         this.widthInput = document.getElementById("editor-width");
         this.widthInput.onValueChange = (v) => {

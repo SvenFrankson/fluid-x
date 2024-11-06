@@ -105,7 +105,6 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#editor-preview")) {
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
-            (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#editor";
             this.show(this.playUI, false, showTime);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
             await this.game.puzzle.reset();
@@ -120,8 +119,6 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
-            (this.playBackButton.parentElement as HTMLAnchorElement).href = "#levels";
-            (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             let numLevel = parseInt(page.replace("#level-", ""));
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
@@ -141,9 +138,6 @@ class CarillonRouter extends Nabu.Router {
             this.game.globalTimer = 0;
         }
         else if (page.startsWith("#play-community-")) {
-            (this.playBackButton.parentElement as HTMLAnchorElement).href = "#community";
-            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
-            (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community";
             let puzzleId = parseInt(page.replace("#play-community-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
                 let headers = {};
@@ -160,6 +154,12 @@ class CarillonRouter extends Nabu.Router {
                 let data = await response.json();
                 CLEAN_IPuzzleData(data);
                 this.game.puzzle.resetFromData(data);
+            }
+            if (this.game.puzzle.data.state === 3) {
+                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#multiplayer-levels";
+            }
+            else {
+                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#community";
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();

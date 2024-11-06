@@ -65,7 +65,7 @@ class Ball extends BABYLON.Mesh {
     public setColor(color: TileColor) {
         this.color = color;
         if (this.ballTop) {
-            this.ballTop.material = this.game.tileColorMaterials[this.color];
+            this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
         }
     }
 
@@ -106,15 +106,12 @@ class Ball extends BABYLON.Mesh {
         this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
 
         this.ballTop = new BABYLON.Mesh("ball-top");
+        this.ballTop.position.y = 0.3;
         this.ballTop.parent = this;
 
-        let boxMaterial = new BABYLON.StandardMaterial("box-material");
-        boxMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        boxMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.material = boxMaterial;
+        this.material = this.game.brownMaterial;
 
-        this.ballTop.material = this.game.tileColorMaterials[this.color];
+        this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
 
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = -0.015;
@@ -278,11 +275,11 @@ class Ball extends BABYLON.Mesh {
         else {
             ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         }
+        
         ballDatas[0].applyToMesh(this);
-
         ballDatas[1].applyToMesh(this.ballTop);
 
-        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+        BABYLON.CreateGroundVertexData({ width: 1.3, height: 1.3 }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
@@ -293,11 +290,15 @@ class Ball extends BABYLON.Mesh {
         this.shadow.isVisible = v;
         this.leftArrow.isVisible = v;
         this.rightArrow.isVisible = v;
+        if (!v) {
+            this.trailMesh.isVisible = false;
+        }
     }
 
     public xForce: number = 1;
     public speed: number = this.nominalSpeed;
-    public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Up();
+    public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Forward();
+    public smoothedMoveDir: BABYLON.Vector3 = BABYLON.Vector3.Forward();
     public inputSpeed: number = 1000;
     public bounceXValue: number = 0;
     public bounceXTimer: number = 0;
@@ -351,9 +352,13 @@ class Ball extends BABYLON.Mesh {
 
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = new BABYLON.Vector3(0, 0.1, -0.35);
+            let p = BABYLON.Vector3.Zero();
             if (this.dropletMode) {
                 p = new BABYLON.Vector3(0, 0.1, -0.8);
+            }
+            else {
+                p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
+                p.y += 0.1;
             }
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
             if (this.trailTimer > 0.02) {
@@ -624,9 +629,11 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
+                BABYLON.Vector3.SlerpToRef(this.smoothedMoveDir, this.moveDir, fQ, this.smoothedMoveDir);
+                this.smoothedMoveDir.normalize();
             }    
         }
         else if (this.ballState === BallState.Fall) {

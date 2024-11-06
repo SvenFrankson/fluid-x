@@ -248,7 +248,8 @@ class Game {
     public noiseTexture: BABYLON.RawTexture3D;
     public vertexDataLoader: Mummu.VertexDataLoader;
 
-    public tileColorMaterials: BABYLON.Material[];
+    public tileColorMaterials: BABYLON.StandardMaterial[];
+    public tileColorShinyMaterials: BABYLON.StandardMaterial[];
     public colorMaterials: BABYLON.Material[];
     public trueWhiteMaterial: BABYLON.StandardMaterial;
     public whiteMaterial: BABYLON.StandardMaterial;
@@ -467,6 +468,17 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        
+        this.tileColorShinyMaterials = [];
+        this.tileColorShinyMaterials[TileColor.North] = northMaterial.clone(northMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.East] = eastMaterial.clone(eastMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.South] = southMaterial.clone(southMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.West] = westMaterial.clone(westMaterial.name + "-shiny");
+
+        this.tileColorShinyMaterials.forEach(shinyMat => {
+            //shinyMat.specularColor.copyFromFloats(1, 1, 1);
+            //shinyMat.specularPower = 256;
+        })
 
         this.trueWhiteMaterial = new BABYLON.StandardMaterial("true-white-material");
         this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");

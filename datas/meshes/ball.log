@@ -14,25 +14,35 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
 	processing begun of mesh:  0-ball-box
 		WARNING: No materials have been assigned: 
-		num positions      :  129
-		num normals        :  129
+		num positions      :  66
+		num normals        :  66
 		num tangents       :  0
-		num uvs            :  258
+		num uvs            :  132
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  224
+		num triangles      :  128
 	processing begun of mesh:  1-ball-top
 		WARNING: No materials have been assigned: 
-		num positions      :  33
-		num normals        :  33
+		num positions      :  193
+		num normals        :  193
 		num tangents       :  0
-		num uvs            :  66
+		num uvs            :  386
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  32
+		num triangles      :  352
+	processing begun of mesh:  2-ball-box-p2
+		WARNING: No materials have been assigned: 
+		num positions      :  82
+		num normals        :  82
+		num tangents       :  0
+		num uvs            :  164
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  160
 ========= Writing of JSON file started =========
 	writing mesh:  0-ball-box
 	writing mesh:  1-ball-top
+	writing mesh:  2-ball-box-p2
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.1184 secs
+elapsed time:  0 min, 0.0445 secs

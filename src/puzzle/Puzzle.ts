@@ -356,7 +356,6 @@ class Puzzle {
 
         let ballLine = lines.splice(0, 1)[0].split("u");
         this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
-        console.log("BallsCount = " + this.ballsCount)
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
             this.balls[bIndex].parent = undefined;
             this.balls[bIndex].position.x = parseInt(ballLine[0 + 3 * bIndex]) * 1.1;
@@ -382,6 +381,14 @@ class Puzzle {
         }
         for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
             this.balls[bIndex].setVisible(false);
+        }
+
+        if (this.ballsCount === 1) {
+            this.balls[0].material = this.game.brownMaterial;
+        }
+        else if (this.ballsCount === 2) {
+            this.balls[0].material = this.game.whiteMaterial;
+            this.balls[1].material = this.game.blackMaterial;
         }
         
         this.fishingPolesCount = 3;

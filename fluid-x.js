@@ -40,7 +40,8 @@ class Ball extends BABYLON.Mesh {
         };
         this.xForce = 1;
         this.speed = this.nominalSpeed;
-        this.moveDir = BABYLON.Vector3.Up();
+        this.moveDir = BABYLON.Vector3.Forward();
+        this.smoothedMoveDir = BABYLON.Vector3.Forward();
         this.inputSpeed = 1000;
         this.bounceXValue = 0;
         this.bounceXTimer = 0;
@@ -50,13 +51,10 @@ class Ball extends BABYLON.Mesh {
         this.color = props.color;
         this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
         this.ballTop = new BABYLON.Mesh("ball-top");
+        this.ballTop.position.y = 0.3;
         this.ballTop.parent = this;
-        let boxMaterial = new BABYLON.StandardMaterial("box-material");
-        boxMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        boxMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //boxMaterial.emissiveColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.material = boxMaterial;
-        this.ballTop.material = this.game.tileColorMaterials[this.color];
+        this.material = this.game.brownMaterial;
+        this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = -0.015;
         this.shadow.position.y = 0.1;
@@ -195,7 +193,7 @@ class Ball extends BABYLON.Mesh {
     setColor(color) {
         this.color = color;
         if (this.ballTop) {
-            this.ballTop.material = this.game.tileColorMaterials[this.color];
+            this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
         }
     }
     get i() {
@@ -240,7 +238,7 @@ class Ball extends BABYLON.Mesh {
         }
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
-        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+        BABYLON.CreateGroundVertexData({ width: 1.3, height: 1.3 }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
@@ -250,6 +248,9 @@ class Ball extends BABYLON.Mesh {
         this.shadow.isVisible = v;
         this.leftArrow.isVisible = v;
         this.rightArrow.isVisible = v;
+        if (!v) {
+            this.trailMesh.isVisible = false;
+        }
     }
     update(dt) {
         if (this.mouseCanControl && this.mouseInControl) {
@@ -289,9 +290,13 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = new BABYLON.Vector3(0, 0.1, -0.35);
+            let p = BABYLON.Vector3.Zero();
             if (this.dropletMode) {
                 p = new BABYLON.Vector3(0, 0.1, -0.8);
+            }
+            else {
+                p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
+                p.y += 0.1;
             }
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
             if (this.trailTimer > 0.02) {
@@ -541,9 +546,11 @@ class Ball extends BABYLON.Mesh {
             if (hit.hit) {
                 let f = this.speed / this.nominalSpeed;
                 this.position.y = this.position.y * (1 - f) + hit.pickedPoint.y * f;
-                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), this.moveDir);
+                let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
+                BABYLON.Vector3.SlerpToRef(this.smoothedMoveDir, this.moveDir, fQ, this.smoothedMoveDir);
+                this.smoothedMoveDir.normalize();
             }
         }
         else if (this.ballState === BallState.Fall) {
@@ -2235,6 +2242,42 @@ class Haiku extends BABYLON.Mesh {
         }
     }
 }
+class HaikuAuthor extends BABYLON.Mesh {
+    constructor(game, author) {
+        super("haiku");
+        this.game = game;
+        this.author = author;
+        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.inRange = false;
+        BABYLON.CreateGroundVertexData({ width: 4, height: 0.8 }).applyToMesh(this);
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 500, height: 100 });
+        this.dynamicTexture.hasAlpha = true;
+        haikuMaterial.diffuseTexture = this.dynamicTexture;
+        haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        this.material = haikuMaterial;
+        let context = this.dynamicTexture.getContext();
+        context.fillStyle = "#00000000";
+        context.fillRect(0, 0, 500, 100);
+        context.font = "100px Shalimar";
+        let l = context.measureText(this.author).width;
+        context.fillStyle = "#e3cfb4ff";
+        for (let x = -4; x <= 4; x++) {
+            for (let y = -4; y <= 4; y++) {
+                context.fillText(this.author, Math.floor(250 - l * 0.5) + x, 80 + y);
+            }
+        }
+        context.fillStyle = "#473a2fFF";
+        for (let x = -2; x <= 2; x++) {
+            for (let y = -2; y <= 2; y++) {
+                context.fillText(this.author, Math.floor(250 - l * 0.5) + x, 80 + y);
+            }
+        }
+        this.dynamicTexture.update();
+        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+}
 /// <reference path="./Tile.ts"/>
 class HoleTile extends Tile {
     constructor(game, props) {
@@ -3217,6 +3260,15 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        this.tileColorShinyMaterials = [];
+        this.tileColorShinyMaterials[TileColor.North] = northMaterial.clone(northMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.East] = eastMaterial.clone(eastMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.South] = southMaterial.clone(southMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.West] = westMaterial.clone(westMaterial.name + "-shiny");
+        this.tileColorShinyMaterials.forEach(shinyMat => {
+            //shinyMat.specularColor.copyFromFloats(1, 1, 1);
+            //shinyMat.specularPower = 256;
+        });
         this.trueWhiteMaterial = new BABYLON.StandardMaterial("true-white-material");
         this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
         this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -5261,7 +5313,6 @@ class Puzzle {
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
         this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
-        console.log("BallsCount = " + this.ballsCount);
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
             this.balls[bIndex].parent = undefined;
             this.balls[bIndex].position.x = parseInt(ballLine[0 + 3 * bIndex]) * 1.1;
@@ -5285,6 +5336,13 @@ class Puzzle {
         }
         for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
             this.balls[bIndex].setVisible(false);
+        }
+        if (this.ballsCount === 1) {
+            this.balls[0].material = this.game.brownMaterial;
+        }
+        else if (this.ballsCount === 2) {
+            this.balls[0].material = this.game.whiteMaterial;
+            this.balls[1].material = this.game.blackMaterial;
         }
         this.fishingPolesCount = 3;
         this.h = lines.length;

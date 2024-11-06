@@ -499,3 +499,45 @@ class DevLevelPage extends LevelPage {
         return puzzleData;
     }
 }
+
+class MultiplayerLevelPage extends LevelPage {
+    
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.className = "MultiplayerLevelPage";
+    }
+
+    public levelStateToFetch: number = 0;
+    
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/3", {
+            method: "GET",
+            mode: "cors"
+        });
+
+        if (response.status === 200) {
+            let text = await response.text();
+            
+            let data = JSON.parse(text);
+            CLEAN_IPuzzlesData(data);
+    
+            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+                let id = data.puzzles[i].id;
+                puzzleData[i] = {
+                    data: data.puzzles[i],
+                    onclick: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
+                        location.hash = "play-community-" + id;
+                    }
+                }
+            }
+        }
+        else {
+            console.error(await response.text());
+        }
+
+        return puzzleData;
+    }
+}

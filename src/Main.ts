@@ -276,6 +276,9 @@ class Game {
     public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
 
+    public player1Name: string = "Player 1";
+    public player2Name: string = "Player 2";
+
     public tiaratumGameTutorialLevels: IPuzzlesData;
     public tiaratumGameOfflinePuzzleLevels: IPuzzlesData;
     public router: CarillonRouter;
@@ -636,17 +639,42 @@ class Game {
         this.canvas.addEventListener("wheel", this.onWheelEvent);
         this.router.start();
 
-        (document.querySelector("#score-player-input") as HTMLInputElement).onchange = () => {
-            let v = (document.querySelector("#score-player-input") as HTMLInputElement).value;
-            if (v.length > 2) {
-                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("locked");
-                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("orange");
+        document.querySelectorAll(".p1-name-input").forEach(e => {
+            if (e instanceof HTMLInputElement) {
+                e.onchange = () => {
+                    let v = e.value;
+                    this.player1Name = v;
+                    if (v.length > 2) {
+                        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("locked");
+                        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("orange");
+                    }
+                    else {
+                        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("orange");
+                        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("locked");
+                    }
+                    
+                    document.querySelectorAll(".p1-name-input").forEach(e2 => {
+                        if (e2 instanceof HTMLInputElement) {
+                            e2.value = v;
+                        }
+                    });
+                }
             }
-            else {
-                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("orange");
-                (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("locked");
+        });
+
+        document.querySelectorAll(".p2-name-input").forEach(e => {
+            if (e instanceof HTMLInputElement) {
+                e.onchange = () => {
+                    let v = e.value;
+                    this.player2Name = v;
+                    document.querySelectorAll(".p2-name-input").forEach(e2 => {
+                        if (e2 instanceof HTMLInputElement) {
+                            e2.value = v;
+                        }
+                    });
+                }
             }
-        }
+        });
 
         (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).onclick = () => {
             this.puzzle.submitHighscore();

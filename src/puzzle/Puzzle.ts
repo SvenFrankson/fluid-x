@@ -399,8 +399,8 @@ class Puzzle {
             this.balls[0].material = this.game.whiteMaterial;
             this.balls[1].material = this.game.blackMaterial;
 
-            this.playerHaikus[0] = new HaikuPlayerStart(this.game, "Player 1", this.balls[0]);
-            this.playerHaikus[1] = new HaikuPlayerStart(this.game, "Player 2", this.balls[1]);
+            this.playerHaikus[0] = new HaikuPlayerStart(this.game, this.game.player1Name, this.balls[0]);
+            this.playerHaikus[1] = new HaikuPlayerStart(this.game, this.game.player2Name, this.balls[1]);
         }
 
         this.ballCollision.copyFromFloats(- 10, 0, -10);

@@ -1,8 +1,9 @@
 class CarillonRouter extends Nabu.Router {
     public homeMenu: HomePage;
-    public baseLevelPage: BaseLevelPage;
+    public baseLevelsPage: BaseLevelPage;
     public communityLevelPage: CommunityLevelPage;
     public devLevelPage: DevLevelPage;
+    public multiplayerLevelsPage: MultiplayerLevelPage;
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
     public creditsPage: Nabu.DefaultPage;
@@ -25,9 +26,10 @@ class CarillonRouter extends Nabu.Router {
         }
 
         this.homeMenu = new HomePage("#home-menu", this);
-        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
+        this.baseLevelsPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
+        this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
         this.creditsPage = document.querySelector("#credits-page") as Nabu.DefaultPage;
         this.multiplayerPage = document.querySelector("#multiplayer-page") as Nabu.DefaultPage;
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
@@ -169,9 +171,19 @@ class CarillonRouter extends Nabu.Router {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
-            this.show(this.baseLevelPage.nabuPage, false, showTime);
+            this.show(this.baseLevelsPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
-                this.baseLevelPage.redraw();
+                this.baseLevelsPage.redraw();
+            })
+        }
+        else if (page.startsWith("#multiplayer-levels")) {
+            console.log("!");
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.multiplayerLevelsPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.multiplayerLevelsPage.redraw();
             })
         }
         else if (page.startsWith("#multiplayer")) {

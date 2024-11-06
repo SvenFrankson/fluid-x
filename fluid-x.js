@@ -1370,9 +1370,10 @@ class CarillonRouter extends Nabu.Router {
             await this.pages[i].waitLoaded();
         }
         this.homeMenu = new HomePage("#home-menu", this);
-        this.baseLevelPage = new BaseLevelPage("#base-levels-page", this);
+        this.baseLevelsPage = new BaseLevelPage("#base-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
+        this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
         this.creditsPage = document.querySelector("#credits-page");
         this.multiplayerPage = document.querySelector("#multiplayer-page");
         this.playUI = document.querySelector("#play-ui");
@@ -1508,9 +1509,19 @@ class CarillonRouter extends Nabu.Router {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
-            this.show(this.baseLevelPage.nabuPage, false, showTime);
+            this.show(this.baseLevelsPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
-                this.baseLevelPage.redraw();
+                this.baseLevelsPage.redraw();
+            });
+        }
+        else if (page.startsWith("#multiplayer-levels")) {
+            console.log("!");
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.multiplayerLevelsPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.multiplayerLevelsPage.redraw();
             });
         }
         else if (page.startsWith("#multiplayer")) {
@@ -2306,7 +2317,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.strokeStyle = "#473a2fFF";
-        context.lineWidth = 4;
+        context.lineWidth = 6;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;
             let a2 = (i + 1) * Math.PI * 0.5 - Math.PI * 0.1;
@@ -2319,7 +2330,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         let l = context.measureText(this.playerName).width;
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
-                context.fillText(this.playerName, Math.floor(500 - l * 0.5) + x, 650 + y);
+                context.fillText(this.playerName, Math.floor(500 - l * 0.5) + x, 700 + y);
             }
         }
         this.dynamicTexture.update();
@@ -2909,6 +2920,39 @@ class DevLevelPage extends LevelPage {
         return puzzleData;
     }
 }
+class MultiplayerLevelPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.levelStateToFetch = 0;
+        this.className = "MultiplayerLevelPage";
+    }
+    async getPuzzlesData(page, levelsPerPage) {
+        let puzzleData = [];
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/3", {
+            method: "GET",
+            mode: "cors"
+        });
+        if (response.status === 200) {
+            let text = await response.text();
+            let data = JSON.parse(text);
+            CLEAN_IPuzzlesData(data);
+            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+                let id = data.puzzles[i].id;
+                puzzleData[i] = {
+                    data: data.puzzles[i],
+                    onclick: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
+                        location.hash = "play-community-" + id;
+                    }
+                };
+            }
+        }
+        else {
+            console.error(await response.text());
+        }
+        return puzzleData;
+    }
+}
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
@@ -3117,6 +3161,8 @@ class Game {
         this.playCameraMinRadius = 5;
         this.playCameraMaxRadius = 100;
         this.cameraOrtho = false;
+        this.player1Name = "Player 1";
+        this.player2Name = "Player 2";
         this._mode = GameMode.Menu;
         this.completedPuzzles = [];
         this.gameLoaded = false;
@@ -3456,17 +3502,40 @@ class Game {
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
         this.router.start();
-        document.querySelector("#score-player-input").onchange = () => {
-            let v = document.querySelector("#score-player-input").value;
-            if (v.length > 2) {
-                document.querySelector("#success-score-submit-btn").classList.remove("locked");
-                document.querySelector("#success-score-submit-btn").classList.add("orange");
+        document.querySelectorAll(".p1-name-input").forEach(e => {
+            if (e instanceof HTMLInputElement) {
+                e.onchange = () => {
+                    let v = e.value;
+                    this.player1Name = v;
+                    if (v.length > 2) {
+                        document.querySelector("#success-score-submit-btn").classList.remove("locked");
+                        document.querySelector("#success-score-submit-btn").classList.add("orange");
+                    }
+                    else {
+                        document.querySelector("#success-score-submit-btn").classList.remove("orange");
+                        document.querySelector("#success-score-submit-btn").classList.add("locked");
+                    }
+                    document.querySelectorAll(".p1-name-input").forEach(e2 => {
+                        if (e2 instanceof HTMLInputElement) {
+                            e2.value = v;
+                        }
+                    });
+                };
             }
-            else {
-                document.querySelector("#success-score-submit-btn").classList.remove("orange");
-                document.querySelector("#success-score-submit-btn").classList.add("locked");
+        });
+        document.querySelectorAll(".p2-name-input").forEach(e => {
+            if (e instanceof HTMLInputElement) {
+                e.onchange = () => {
+                    let v = e.value;
+                    this.player2Name = v;
+                    document.querySelectorAll(".p2-name-input").forEach(e2 => {
+                        if (e2 instanceof HTMLInputElement) {
+                            e2.value = v;
+                        }
+                    });
+                };
             }
-        };
+        });
         document.querySelector("#success-score-submit-btn").onclick = () => {
             this.puzzle.submitHighscore();
         };
@@ -5404,8 +5473,8 @@ class Puzzle {
         else if (this.ballsCount === 2) {
             this.balls[0].material = this.game.whiteMaterial;
             this.balls[1].material = this.game.blackMaterial;
-            this.playerHaikus[0] = new HaikuPlayerStart(this.game, "Player 1", this.balls[0]);
-            this.playerHaikus[1] = new HaikuPlayerStart(this.game, "Player 2", this.balls[1]);
+            this.playerHaikus[0] = new HaikuPlayerStart(this.game, this.game.player1Name, this.balls[0]);
+            this.playerHaikus[1] = new HaikuPlayerStart(this.game, this.game.player2Name, this.balls[1]);
         }
         this.ballCollision.copyFromFloats(-10, 0, -10);
         this.ballCollisionDone = [true, true];

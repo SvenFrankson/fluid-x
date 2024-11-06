@@ -3706,7 +3706,7 @@ function DEV_ACTIVATE() {
         e.appendChild(info);
     });
     let devStateBtns = [];
-    for (let i = 0; i <= 5; i++) {
+    for (let i = 0; i <= 6; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
         devStateBtns.push(btn);
     }
@@ -3768,7 +3768,7 @@ function DEV_ACTIVATE() {
 }
 function DEV_UPDATE_STATE_UI() {
     let devStateBtns = [];
-    for (let i = 0; i <= 5; i++) {
+    for (let i = 0; i <= 6; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
         devStateBtns.push(btn);
     }

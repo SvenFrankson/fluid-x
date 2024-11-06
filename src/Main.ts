@@ -276,8 +276,8 @@ class Game {
     public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
 
-    public player1Name: string = "Player 1";
-    public player2Name: string = "Player 2";
+    public player1Name: string = "";
+    public player2Name: string = "";
 
     public tiaratumGameTutorialLevels: IPuzzlesData;
     public tiaratumGameOfflinePuzzleLevels: IPuzzlesData;
@@ -652,6 +652,13 @@ class Game {
                         (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("orange");
                         (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("locked");
                     }
+
+                    if (this.player1Name.length > 2 && this.player2Name.length > 2) {
+                        this.router.multiplayerPage.localPlayBtn.classList.remove("locked");
+                    }
+                    else {
+                        this.router.multiplayerPage.localPlayBtn.classList.add("locked");
+                    }
                     
                     document.querySelectorAll(".p1-name-input").forEach(e2 => {
                         if (e2 instanceof HTMLInputElement) {
@@ -667,6 +674,14 @@ class Game {
                 e.onchange = () => {
                     let v = e.value;
                     this.player2Name = v;
+
+                    if (this.player1Name.length > 2 && this.player2Name.length > 2) {
+                        this.router.multiplayerPage.localPlayBtn.classList.remove("locked");
+                    }
+                    else {
+                        this.router.multiplayerPage.localPlayBtn.classList.add("locked");
+                    }
+
                     document.querySelectorAll(".p2-name-input").forEach(e2 => {
                         if (e2 instanceof HTMLInputElement) {
                             e2.value = v;

@@ -1375,7 +1375,7 @@ class CarillonRouter extends Nabu.Router {
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
         this.creditsPage = document.querySelector("#credits-page");
-        this.multiplayerPage = document.querySelector("#multiplayer-page");
+        this.multiplayerPage = new MultiplayerPage("#multiplayer-page", this);
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
         this.devPage = document.querySelector("#dev-page");
@@ -1528,7 +1528,7 @@ class CarillonRouter extends Nabu.Router {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
-            await this.show(this.multiplayerPage, false, showTime);
+            await this.show(this.multiplayerPage.nabuPage, false, showTime);
         }
         else if (page.startsWith("#home")) {
             if (USE_POKI_SDK) {
@@ -1949,7 +1949,7 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
                     this.puzzle.resetFromData({
-                        id: 42,
+                        id: null,
                         title: "Custom Machine",
                         author: "Editor",
                         content: content
@@ -2001,6 +2001,8 @@ class Editor {
                 };
                 if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
                     data.id = this.puzzle.data.id;
+                    console.log("ID found, going into update mode");
+                    console.log(data.id);
                     if (var1) {
                         headers = {
                             "Content-Type": "application/json",
@@ -3161,8 +3163,8 @@ class Game {
         this.playCameraMinRadius = 5;
         this.playCameraMaxRadius = 100;
         this.cameraOrtho = false;
-        this.player1Name = "Player 1";
-        this.player2Name = "Player 2";
+        this.player1Name = "";
+        this.player2Name = "";
         this._mode = GameMode.Menu;
         this.completedPuzzles = [];
         this.gameLoaded = false;
@@ -3515,6 +3517,12 @@ class Game {
                         document.querySelector("#success-score-submit-btn").classList.remove("orange");
                         document.querySelector("#success-score-submit-btn").classList.add("locked");
                     }
+                    if (this.player1Name.length > 2 && this.player2Name.length > 2) {
+                        this.router.multiplayerPage.localPlayBtn.classList.remove("locked");
+                    }
+                    else {
+                        this.router.multiplayerPage.localPlayBtn.classList.add("locked");
+                    }
                     document.querySelectorAll(".p1-name-input").forEach(e2 => {
                         if (e2 instanceof HTMLInputElement) {
                             e2.value = v;
@@ -3528,6 +3536,12 @@ class Game {
                 e.onchange = () => {
                     let v = e.value;
                     this.player2Name = v;
+                    if (this.player1Name.length > 2 && this.player2Name.length > 2) {
+                        this.router.multiplayerPage.localPlayBtn.classList.remove("locked");
+                    }
+                    else {
+                        this.router.multiplayerPage.localPlayBtn.classList.add("locked");
+                    }
                     document.querySelectorAll(".p2-name-input").forEach(e2 => {
                         if (e2 instanceof HTMLInputElement) {
                             e2.value = v;
@@ -3981,6 +3995,154 @@ requestAnimationFrame(() => {
         createAndInit();
     }
 });
+var MultiplayerPagePanel;
+(function (MultiplayerPagePanel) {
+    MultiplayerPagePanel[MultiplayerPagePanel["Selection"] = 0] = "Selection";
+    MultiplayerPagePanel[MultiplayerPagePanel["Local"] = 1] = "Local";
+})(MultiplayerPagePanel || (MultiplayerPagePanel = {}));
+class MultiplayerPage {
+    constructor(queryString, router) {
+        this.router = router;
+        this.currentPanel = MultiplayerPagePanel.Selection;
+        this.panels = [];
+        this._hoveredButtonIndex = 0;
+        this._filter = (btn) => {
+            return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+        };
+        this._inputUp = () => {
+            if (!this.shown) {
+                return;
+            }
+            /*
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonIndex === 0) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + (this.rowCount - 1), this._filter)) {
+                    this._inputUp();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                    this._inputUp();
+                }
+            }
+            */
+        };
+        this._inputDown = () => {
+            if (!this.shown) {
+                return;
+            }
+            /*
+            if (this.buttons.length === 0) {
+                return;
+            }
+            if (this.hoveredButtonIndex === this.rowCount - 1) {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - (this.rowCount - 1), this._filter)) {
+                    this._inputDown();
+                }
+            }
+            else {
+                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                    this._inputDown();
+                }
+            }
+            */
+        };
+        this._inputEnter = () => {
+            if (!this.shown) {
+                return;
+            }
+            /*
+            if (this.buttons.length === 0) {
+                return;
+            }
+            let btn = this.buttons[this._hoveredButtonIndex];
+            if (btn && btn.onpointerup) {
+                btn.onpointerup(undefined);
+            }
+            */
+        };
+        this._inputDropControl = () => {
+            if (!this.shown) {
+                return;
+            }
+            /*
+            if (this.buttons.length === 0) {
+                return;
+            }
+            this.buttons.forEach(btn => {
+                btn.classList.remove("hovered");
+            });
+            */
+        };
+        this.nabuPage = document.querySelector(queryString);
+        this.panels = [
+            document.querySelector("#multiplayer-panel-selection"),
+            document.querySelector("#multiplayer-panel-local")
+        ];
+        this.selectLocalBtn = document.querySelector("#multiplayer-select-local");
+        this.selectLocalBtn.onclick = () => {
+            this.setPanel(MultiplayerPagePanel.Local);
+        };
+        this.selectPublicBtn = document.querySelector("#multiplayer-select-public");
+        this.selectPrivateBtn = document.querySelector("#multiplayer-select-private");
+        this.localPlayBtn = this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-play");
+        this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-back").onclick = () => {
+            this.setPanel(MultiplayerPagePanel.Selection);
+        };
+        this._registerToInputManager();
+    }
+    setPanel(p) {
+        for (let i = 0; i < this.panels.length; i++) {
+            this.panels[i].style.display = (p === i) ? "block" : "none";
+        }
+    }
+    get shown() {
+        return this.nabuPage.shown;
+    }
+    async show(duration) {
+        return this.nabuPage.show(duration);
+    }
+    async hide(duration) {
+        return this.nabuPage.hide(duration);
+    }
+    get hoveredButtonIndex() {
+        return this._hoveredButtonIndex;
+    }
+    setHoveredButtonIndex(v, filter) {
+        /*
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn) {
+            btn.classList.remove("hovered");
+        }
+        this._hoveredButtonIndex = v;
+        btn = this.buttons[this._hoveredButtonIndex];
+        if (!btn) {
+            return true;
+        }
+        else if ((!filter || filter(btn))) {
+            if (btn) {
+                btn.classList.add("hovered");
+            }
+            return true;
+        }
+        */
+        return false;
+    }
+    _registerToInputManager() {
+        this.router.game.uiInputManager.onUpCallbacks.push(this._inputUp);
+        this.router.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.router.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
+        this.router.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
+    }
+    _unregisterFromInputManager() {
+        this.router.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
+        this.router.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
+        this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
+    }
+}
 class NumValueInput extends HTMLElement {
     constructor() {
         super(...arguments);
@@ -5473,8 +5635,8 @@ class Puzzle {
         else if (this.ballsCount === 2) {
             this.balls[0].material = this.game.whiteMaterial;
             this.balls[1].material = this.game.blackMaterial;
-            this.playerHaikus[0] = new HaikuPlayerStart(this.game, this.game.player1Name, this.balls[0]);
-            this.playerHaikus[1] = new HaikuPlayerStart(this.game, this.game.player2Name, this.balls[1]);
+            this.playerHaikus[0] = new HaikuPlayerStart(this.game, this.game.player1Name.toLocaleUpperCase(), this.balls[0]);
+            this.playerHaikus[1] = new HaikuPlayerStart(this.game, this.game.player2Name.toLocaleUpperCase(), this.balls[1]);
         }
         this.ballCollision.copyFromFloats(-10, 0, -10);
         this.ballCollisionDone = [true, true];

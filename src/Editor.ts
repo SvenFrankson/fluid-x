@@ -350,7 +350,7 @@ class Editor {
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result as string;
                     this.puzzle.resetFromData({
-                        id: 42,
+                        id: null,
                         title: "Custom Machine",
                         author: "Editor",
                         content: content
@@ -409,6 +409,8 @@ class Editor {
                 };
                 if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
                     data.id = this.puzzle.data.id;
+                    console.log("ID found, going into update mode");
+                    console.log(data.id);
                     if (var1) {
                         headers = {
                             "Content-Type": "application/json",

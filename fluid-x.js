@@ -3636,8 +3636,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4428,7 +4428,6 @@ class SoundManager {
 }
 class StrokeText extends HTMLElement {
     connectedCallback() {
-        this.style.position = "relative";
         let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
         o = "1px";
         this.style.textShadow = o + " " + o + " 0px #e3cfb4ff, -" + o + " " + o + " 0px #e3cfb4ff, -" + o + " -" + o + " 0px #e3cfb4ff, " + o + " -" + o + " 0px #e3cfb4ff";

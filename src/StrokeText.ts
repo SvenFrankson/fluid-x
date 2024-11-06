@@ -6,7 +6,6 @@ class StrokeText extends HTMLElement {
     public content: string;
     
     public connectedCallback(): void {
-        this.style.position = "relative";
         let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
         o = "1px";
         this.style.textShadow = o + " " + o + " 0px #e3cfb4ff, -" + o + " " + o + " 0px #e3cfb4ff, -" + o + " -" + o + " 0px #e3cfb4ff, " + o + " -" + o + " 0px #e3cfb4ff";

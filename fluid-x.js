@@ -24,7 +24,6 @@ class Ball extends BABYLON.Mesh {
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.mouseCanControl = true;
         this.mouseInControl = false;
         this._pointerDown = false;
         this.mouseDown = (ev) => {
@@ -80,23 +79,71 @@ class Ball extends BABYLON.Mesh {
         this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         document.addEventListener("keydown", (ev) => {
-            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.mouseInControl = false;
-                this.leftDown = 1;
+            if (ev.code === "KeyA") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 1;
+                }
             }
-            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.mouseInControl = false;
-                this.rightDown = 1;
+            if (ev.code === "ArrowLeft") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 1;
+                }
+            }
+            if (ev.code === "KeyD") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 1;
+                }
+            }
+            if (ev.code === "ArrowRight") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 1;
+                }
             }
         });
         document.addEventListener("keyup", (ev) => {
-            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.mouseInControl = false;
-                this.leftDown = 0;
+            if (ev.code === "KeyA") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 0;
+                }
             }
-            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.mouseInControl = false;
-                this.rightDown = 0;
+            if (ev.code === "ArrowLeft") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 0;
+                }
+            }
+            if (ev.code === "KeyD") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 0;
+                }
+            }
+            if (ev.code === "ArrowRight") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 0;
+                }
             }
         });
         let inputLeft = document.querySelector("#input-left");
@@ -165,6 +212,15 @@ class Ball extends BABYLON.Mesh {
     }
     get game() {
         return this.puzzle.game;
+    }
+    get wasdCanControl() {
+        return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
+    }
+    get arrowCanControl() {
+        return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
+    }
+    get mouseCanControl() {
+        return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
     }
     async instantiate() {
         let ballDatas;

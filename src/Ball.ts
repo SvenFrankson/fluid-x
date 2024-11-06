@@ -134,24 +134,74 @@ class Ball extends BABYLON.Mesh {
 
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         document.addEventListener("keydown", (ev: KeyboardEvent) => {
-            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.mouseInControl = false;
-                this.leftDown = 1;
+            if (ev.code === "KeyA") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 1;
+                }
             }
-            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.mouseInControl = false;
-                this.rightDown = 1;
+            if (ev.code === "ArrowLeft") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 1;
+                }
+            }
+            
+            if (ev.code === "KeyD") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 1;
+                }
+            }
+            if (ev.code === "ArrowRight") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 1;
+                }
             }
         })
 
         document.addEventListener("keyup", (ev: KeyboardEvent) => {
-            if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
-                this.mouseInControl = false;
-                this.leftDown = 0;
+            if (ev.code === "KeyA") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 0;
+                }
             }
-            else if (ev.code === "KeyD" || ev.code === "ArrowRight") {
-                this.mouseInControl = false;
-                this.rightDown = 0;
+            if (ev.code === "ArrowLeft") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.leftDown = 0;
+                }
+            }
+            
+            if (ev.code === "KeyD") {
+                if (this.wasdCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 0;
+                }
+            }
+            if (ev.code === "ArrowRight") {
+                if (this.arrowCanControl) {
+                    if (this.mouseCanControl) {
+                        this.mouseInControl = false;
+                    }
+                    this.rightDown = 0;
+                }
             }
         })
 
@@ -185,7 +235,15 @@ class Ball extends BABYLON.Mesh {
         this.game.canvas.addEventListener("pointerout", this.mouseUp);
     }
 
-    public mouseCanControl: boolean = true;
+    public get wasdCanControl(): boolean {
+        return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
+    }
+    public get arrowCanControl(): boolean {
+        return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
+    }
+    public get mouseCanControl(): boolean {
+        return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
+    }
     public mouseInControl: boolean = false;
     private _pointerDown: boolean = false;
     public mouseDown = (ev: PointerEvent) => {

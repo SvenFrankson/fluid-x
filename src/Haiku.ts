@@ -244,7 +244,7 @@ class Haiku extends BABYLON.Mesh {
     }
 }
 
-class HaikuAuthor extends BABYLON.Mesh {
+class HaikuPlayerStart extends BABYLON.Mesh {
 
     public dynamicTexture: BABYLON.DynamicTexture;
     public animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -252,13 +252,17 @@ class HaikuAuthor extends BABYLON.Mesh {
 
     constructor(
         public game: Game,
-        public author: string
+        public playerName: string,
+        public ball: Ball
     ) {
         super("haiku");
-        BABYLON.CreateGroundVertexData({ width: 4, height: 0.8 }).applyToMesh(this);
+        BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
+
+        this.position.copyFrom(this.ball.position);
+        this.position.y += 0.01;
 
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 500, height: 100 });
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 1000, height: 1000 });
         this.dynamicTexture.hasAlpha = true;
         haikuMaterial.diffuseTexture = this.dynamicTexture;
         haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -267,25 +271,37 @@ class HaikuAuthor extends BABYLON.Mesh {
 
         let context = this.dynamicTexture.getContext();
         context.fillStyle = "#00000000";
-        context.fillRect(0, 0, 500, 100);
+        context.fillRect(0, 0, 1000, 1000);
 
-        context.font = "100px Shalimar";
-        let l = context.measureText(this.author).width;
-        context.fillStyle = "#e3cfb4ff";
-        for (let x = -4; x <= 4; x++) {
-            for (let y = -4; y <= 4; y++) {
-                context.fillText(this.author, Math.floor(250 - l * 0.5) + x, 80 + y);
-            }
+        context.strokeStyle = "#473a2fFF";
+        context.lineWidth = 4;
+        for (let i = 0; i < 4; i++) {
+            let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;
+            let a2 = (i + 1) * Math.PI * 0.5 - Math.PI * 0.1;
+            context.beginPath();
+            context.arc(500, 500, 80, a1, a2);
+            context.stroke();
         }
+
         context.fillStyle = "#473a2fFF";
-        for (let x = -2; x <= 2; x++) {
-            for (let y = -2; y <= 2; y++) {
-                context.fillText(this.author, Math.floor(250 - l * 0.5) + x, 80 + y);
+        context.font = "130px Shalimar";
+        let l = context.measureText(this.playerName).width;
+        for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 3; y++) {
+                context.fillText(this.playerName, Math.floor(500 - l * 0.5) + x, 650 + y);
             }
         }
 
         this.dynamicTexture.update();
 
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+
+    public show(): void {
+        this.animateVisibility(1, 1, Nabu.Easing.easeInOutSine);
+    }
+
+    public hide(): void {
+        this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
     }
 }

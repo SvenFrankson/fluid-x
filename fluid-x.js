@@ -2284,16 +2284,19 @@ class Haiku extends BABYLON.Mesh {
         }
     }
 }
-class HaikuAuthor extends BABYLON.Mesh {
-    constructor(game, author) {
+class HaikuPlayerStart extends BABYLON.Mesh {
+    constructor(game, playerName, ball) {
         super("haiku");
         this.game = game;
-        this.author = author;
+        this.playerName = playerName;
+        this.ball = ball;
         this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
         this.inRange = false;
-        BABYLON.CreateGroundVertexData({ width: 4, height: 0.8 }).applyToMesh(this);
+        BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
+        this.position.copyFrom(this.ball.position);
+        this.position.y += 0.01;
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 500, height: 100 });
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 1000, height: 1000 });
         this.dynamicTexture.hasAlpha = true;
         haikuMaterial.diffuseTexture = this.dynamicTexture;
         haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -2301,23 +2304,32 @@ class HaikuAuthor extends BABYLON.Mesh {
         this.material = haikuMaterial;
         let context = this.dynamicTexture.getContext();
         context.fillStyle = "#00000000";
-        context.fillRect(0, 0, 500, 100);
-        context.font = "100px Shalimar";
-        let l = context.measureText(this.author).width;
-        context.fillStyle = "#e3cfb4ff";
-        for (let x = -4; x <= 4; x++) {
-            for (let y = -4; y <= 4; y++) {
-                context.fillText(this.author, Math.floor(250 - l * 0.5) + x, 80 + y);
-            }
+        context.fillRect(0, 0, 1000, 1000);
+        context.strokeStyle = "#473a2fFF";
+        context.lineWidth = 4;
+        for (let i = 0; i < 4; i++) {
+            let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;
+            let a2 = (i + 1) * Math.PI * 0.5 - Math.PI * 0.1;
+            context.beginPath();
+            context.arc(500, 500, 80, a1, a2);
+            context.stroke();
         }
         context.fillStyle = "#473a2fFF";
-        for (let x = -2; x <= 2; x++) {
-            for (let y = -2; y <= 2; y++) {
-                context.fillText(this.author, Math.floor(250 - l * 0.5) + x, 80 + y);
+        context.font = "130px Shalimar";
+        let l = context.measureText(this.playerName).width;
+        for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 3; y++) {
+                context.fillText(this.playerName, Math.floor(500 - l * 0.5) + x, 650 + y);
             }
         }
         this.dynamicTexture.update();
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+    show() {
+        this.animateVisibility(1, 1, Nabu.Easing.easeInOutSine);
+    }
+    hide() {
+        this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
     }
 }
 /// <reference path="./Tile.ts"/>
@@ -5069,6 +5081,7 @@ class Puzzle {
         this.h = 10;
         this._pendingPublish = false;
         this.haikus = [];
+        this.playerHaikus = [];
         this._ballCollisionTimeStamp = 0;
         this._timer = 0;
         this._globalTime = 0;
@@ -5344,6 +5357,9 @@ class Puzzle {
         while (this.haikus.length > 0) {
             this.haikus.pop().dispose();
         }
+        while (this.playerHaikus.length > 0) {
+            this.playerHaikus.pop().dispose();
+        }
         this.griddedTiles = [];
         this.griddedBorders = [];
         this.data = data;
@@ -5388,6 +5404,8 @@ class Puzzle {
         else if (this.ballsCount === 2) {
             this.balls[0].material = this.game.whiteMaterial;
             this.balls[1].material = this.game.blackMaterial;
+            this.playerHaikus[0] = new HaikuPlayerStart(this.game, "Player 1", this.balls[0]);
+            this.playerHaikus[1] = new HaikuPlayerStart(this.game, "Player 2", this.balls[1]);
         }
         this.ballCollision.copyFromFloats(-10, 0, -10);
         this.ballCollisionDone = [true, true];
@@ -5569,6 +5587,10 @@ class Puzzle {
         }
         for (let i = 0; i < this.ballsCount; i++) {
             await this.balls[i].instantiate();
+        }
+        if (this.ballsCount === 2) {
+            this.playerHaikus[0].show();
+            this.playerHaikus[1].show();
         }
         this.rebuildFloor();
     }
@@ -5849,6 +5871,9 @@ class Puzzle {
             this.balls[i].bounceXTimer = 0;
             this.balls[i].speed = 0;
             this.balls[i].animateSpeed(this.balls[i].nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
+            if (this.playerHaikus[i]) {
+                this.playerHaikus[i].hide();
+            }
         }
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;

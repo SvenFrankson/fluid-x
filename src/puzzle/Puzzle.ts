@@ -171,6 +171,7 @@ class Puzzle {
     public puzzleUI: PuzzleUI;
     private _pendingPublish: boolean = false;
     public haikus: Haiku[] = [];
+    public playerHaikus: HaikuPlayerStart[] = [];
 
     constructor(public game: Game) {
         this.balls = [
@@ -342,6 +343,9 @@ class Puzzle {
         while (this.haikus.length > 0) {
             this.haikus.pop().dispose();
         }
+        while (this.playerHaikus.length > 0) {
+            this.playerHaikus.pop().dispose();
+        }
         this.griddedTiles = [];
         this.griddedBorders = [];
 
@@ -382,6 +386,7 @@ class Puzzle {
             this.balls[bIndex].vZ = 1;
 
             this.balls[bIndex].setVisible(true);
+
         }
         for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
             this.balls[bIndex].setVisible(false);
@@ -393,6 +398,9 @@ class Puzzle {
         else if (this.ballsCount === 2) {
             this.balls[0].material = this.game.whiteMaterial;
             this.balls[1].material = this.game.blackMaterial;
+
+            this.playerHaikus[0] = new HaikuPlayerStart(this.game, "Player 1", this.balls[0]);
+            this.playerHaikus[1] = new HaikuPlayerStart(this.game, "Player 2", this.balls[1]);
         }
 
         this.ballCollision.copyFromFloats(- 10, 0, -10);
@@ -585,6 +593,12 @@ class Puzzle {
         for (let i = 0; i < this.ballsCount; i++) {
             await this.balls[i].instantiate();
         }
+
+        if (this.ballsCount === 2) {
+            this.playerHaikus[0].show();
+            this.playerHaikus[1].show();
+        }
+
         this.rebuildFloor();
     }
 
@@ -887,6 +901,9 @@ class Puzzle {
             this.balls[i].bounceXTimer = 0;
             this.balls[i].speed = 0;
             this.balls[i].animateSpeed(this.balls[i].nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
+            if (this.playerHaikus[i]) {
+                this.playerHaikus[i].hide();
+            }
         }
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;

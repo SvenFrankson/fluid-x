@@ -6,6 +6,7 @@ class CarillonRouter extends Nabu.Router {
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
     public creditsPage: Nabu.DefaultPage;
+    public multiplayerPage: Nabu.DefaultPage;
     public devPage: Nabu.DefaultPage;
     public eulaPage: Nabu.DefaultPage;
 
@@ -28,6 +29,7 @@ class CarillonRouter extends Nabu.Router {
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.creditsPage = document.querySelector("#credits-page") as Nabu.DefaultPage;
+        this.multiplayerPage = document.querySelector("#multiplayer-page") as Nabu.DefaultPage;
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
         this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
@@ -171,6 +173,12 @@ class CarillonRouter extends Nabu.Router {
             requestAnimationFrame(() => {
                 this.baseLevelPage.redraw();
             })
+        }
+        else if (page.startsWith("#multiplayer")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            await this.show(this.multiplayerPage, false, showTime);
         }
         else if (page.startsWith("#home")) {
             if (USE_POKI_SDK) {

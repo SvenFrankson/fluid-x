@@ -219,8 +219,8 @@ class Haiku extends BABYLON.Mesh {
     }
 
     public update(dt: number): void {
-        if (this.game.puzzle.ball.ballState === BallState.Move) {
-            let dx = Math.abs(this.position.x - this.game.puzzle.ball.position.x);
+        if (this.game.puzzle.balls[0].ballState === BallState.Move) {
+            let dx = Math.abs(this.position.x - this.game.puzzle.balls[0].position.x);
             if (!this.inRange) {
                 if (dx < 3) {
                     this.inRange = true;

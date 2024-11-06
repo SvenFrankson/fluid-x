@@ -70,7 +70,14 @@ function SaveAsText(puzzle: Puzzle): string {
 
     let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
 
-    lines2.splice(0, 0, puzzle.ball.i.toFixed(0) + "u" + puzzle.ball.j.toFixed(0) + "u" + puzzle.ball.color.toFixed(0));
+    let ballLine = "";
+    for (let i = 0; i < puzzle.ballsCount; i++) {
+        ballLine += puzzle.balls[i].i.toFixed(0) + "u" + puzzle.balls[i].j.toFixed(0) + "u" + puzzle.balls[i].color.toFixed(0);
+        if (i < puzzle.ballsCount - 1) {
+            ballLine += "u";
+        }
+    }
+    lines2.splice(0, 0, ballLine);
 
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
 }

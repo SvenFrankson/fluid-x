@@ -756,6 +756,14 @@ body.vertical #play-timer {
     background-color: #ffffff40;
 }
 
+#multiplayer-page {
+    text-align: center;
+    width: 300px;
+    left: calc((100vw - 328px) * 0.5);
+    top: calc((100svh - 320px) * 0.5);
+    line-height: 30px;
+}
+
 #click-anywhere-screen {
     position: fixed;
     top: 0;

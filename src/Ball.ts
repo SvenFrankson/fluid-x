@@ -86,7 +86,7 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.game;
     }
 
-    constructor(public puzzle: Puzzle, props: BallProps) {
+    constructor(public puzzle: Puzzle, props: BallProps, public ballIndex: number = 0) {
         super("ball");
 
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
@@ -219,7 +219,14 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
 
-    public playTimer: number = 0;
+    public setVisible(v: boolean): void {
+        this.isVisible = v;
+        this.ballTop.isVisible = v;
+        this.shadow.isVisible = v;
+        this.leftArrow.isVisible = v;
+        this.rightArrow.isVisible = v;
+    }
+
     public xForce: number = 1;
     public speed: number = this.nominalSpeed;
     public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Up();
@@ -316,11 +323,6 @@ class Ball extends BABYLON.Mesh {
             }
         }
 
-        if (this.ballState === BallState.Move || this.ballState === BallState.Fall || this.ballState === BallState.Flybacking) {
-            this.playTimer += dt;
-            this.game.setPlayTimer(this.playTimer);
-        }
-
         if (this.ballState === BallState.Ready) {
             this.rightArrow.position.copyFrom(this.position);
             this.rightArrow.position.y += 0.1;
@@ -333,14 +335,7 @@ class Ball extends BABYLON.Mesh {
                     this.lockControl(0.2);
                 }
                 else {
-                    this.ballState = BallState.Move;
-                    this.bounceXValue = 0;
-                    this.bounceXTimer = 0;
-                    this.speed = 0;
-                    this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
-                    this.game.fadeOutIntro(0.5);
-                    this.playTimer = 0;
-                    this.game.setPlayTimer(this.playTimer);
+                    this.puzzle.start();
                 }
             }
             return;
@@ -599,14 +594,14 @@ class Ball extends BABYLON.Mesh {
                     this.trailMesh.isVisible = false;
                     this.puzzle.fishingPole.fish(
                         this.position.clone(),
-                        this.puzzle.ballPositionZero.add(new BABYLON.Vector3(0, 0.2, 0)),
+                        this.puzzle.ballsPositionZero[this.ballIndex].add(new BABYLON.Vector3(0, 0.2, 0)),
                         () => {
                             this.position.copyFromFloats(0, 0, 0);
                             this.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, - Math.PI * 0.2);
                             this.parent = this.puzzle.fishingPole.lineMesh;
                         },
                         () => {
-                            this.position.copyFrom(this.puzzle.ballPositionZero);
+                            this.position.copyFrom(this.puzzle.ballsPositionZero[this.ballIndex]);
                             this.parent = undefined;
                             this.ballState = BallState.Move;
                             this.bounceXValue = 0;

@@ -98,7 +98,7 @@ class Editor {
         return this.game.puzzle;
     }
     public get ball(): Ball {
-        return this.puzzle.ball;
+        return this.puzzle.balls[0];
     }
 
     constructor(public game: Game) {

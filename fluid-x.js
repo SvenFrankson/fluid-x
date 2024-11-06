@@ -7,9 +7,10 @@ var BallState;
     BallState[BallState["Done"] = 4] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
-    constructor(puzzle, props) {
+    constructor(puzzle, props, ballIndex = 0) {
         super("ball");
         this.puzzle = puzzle;
+        this.ballIndex = ballIndex;
         this.dropletMode = false;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
@@ -38,7 +39,6 @@ class Ball extends BABYLON.Mesh {
                 this._pointerDown = false;
             }
         };
-        this.playTimer = 0;
         this.xForce = 1;
         this.speed = this.nominalSpeed;
         this.moveDir = BABYLON.Vector3.Up();
@@ -180,6 +180,13 @@ class Ball extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
+    setVisible(v) {
+        this.isVisible = v;
+        this.ballTop.isVisible = v;
+        this.shadow.isVisible = v;
+        this.leftArrow.isVisible = v;
+        this.rightArrow.isVisible = v;
+    }
     update(dt) {
         if (this.mouseCanControl && this.mouseInControl) {
             this.rightDown = 0;
@@ -255,10 +262,6 @@ class Ball extends BABYLON.Mesh {
                 this.trailMesh.isVisible = false;
             }
         }
-        if (this.ballState === BallState.Move || this.ballState === BallState.Fall || this.ballState === BallState.Flybacking) {
-            this.playTimer += dt;
-            this.game.setPlayTimer(this.playTimer);
-        }
         if (this.ballState === BallState.Ready) {
             this.rightArrow.position.copyFrom(this.position);
             this.rightArrow.position.y += 0.1;
@@ -270,14 +273,7 @@ class Ball extends BABYLON.Mesh {
                     this.lockControl(0.2);
                 }
                 else {
-                    this.ballState = BallState.Move;
-                    this.bounceXValue = 0;
-                    this.bounceXTimer = 0;
-                    this.speed = 0;
-                    this.animateSpeed(this.nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
-                    this.game.fadeOutIntro(0.5);
-                    this.playTimer = 0;
-                    this.game.setPlayTimer(this.playTimer);
+                    this.puzzle.start();
                 }
             }
             return;
@@ -514,12 +510,12 @@ class Ball extends BABYLON.Mesh {
                     this.ballState = BallState.Flybacking;
                     this.trailPoints = [];
                     this.trailMesh.isVisible = false;
-                    this.puzzle.fishingPole.fish(this.position.clone(), this.puzzle.ballPositionZero.add(new BABYLON.Vector3(0, 0.2, 0)), () => {
+                    this.puzzle.fishingPole.fish(this.position.clone(), this.puzzle.ballsPositionZero[this.ballIndex].add(new BABYLON.Vector3(0, 0.2, 0)), () => {
                         this.position.copyFromFloats(0, 0, 0);
                         this.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, -Math.PI * 0.2);
                         this.parent = this.puzzle.fishingPole.lineMesh;
                     }, () => {
-                        this.position.copyFrom(this.puzzle.ballPositionZero);
+                        this.position.copyFrom(this.puzzle.ballsPositionZero[this.ballIndex]);
                         this.parent = undefined;
                         this.ballState = BallState.Move;
                         this.bounceXValue = 0;
@@ -1265,6 +1261,7 @@ class CarillonRouter extends Nabu.Router {
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.creditsPage = document.querySelector("#credits-page");
+        this.multiplayerPage = document.querySelector("#multiplayer-page");
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
         this.devPage = document.querySelector("#dev-page");
@@ -1402,6 +1399,12 @@ class CarillonRouter extends Nabu.Router {
             requestAnimationFrame(() => {
                 this.baseLevelPage.redraw();
             });
+        }
+        else if (page.startsWith("#multiplayer")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            await this.show(this.multiplayerPage, false, showTime);
         }
         else if (page.startsWith("#home")) {
             if (USE_POKI_SDK) {
@@ -1615,7 +1618,7 @@ class Editor {
         return this.game.puzzle;
     }
     get ball() {
-        return this.puzzle.ball;
+        return this.puzzle.balls[0];
     }
     initValues() {
         this.originColorInput.setValue(this.ball.color);
@@ -2111,8 +2114,8 @@ class Haiku extends BABYLON.Mesh {
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
     update(dt) {
-        if (this.game.puzzle.ball.ballState === BallState.Move) {
-            let dx = Math.abs(this.position.x - this.game.puzzle.ball.position.x);
+        if (this.game.puzzle.balls[0].ballState === BallState.Move) {
+            let dx = Math.abs(this.position.x - this.game.puzzle.balls[0].position.x);
             if (!this.inRange) {
                 if (dx < 3) {
                     this.inRange = true;
@@ -2716,7 +2719,7 @@ class DevLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 20;
+var CRL_VERSION3 = 21;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3411,7 +3414,7 @@ class Game {
             this.menuCamBeta = b0 + bDist * fb;
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = this.puzzle.ball.absolutePosition.clone();
+                let targetCameraPos = this.puzzle.balls[0].absolutePosition.clone();
                 targetCameraPos.y = Math.max(targetCameraPos.y, -2.5);
                 let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
@@ -3426,7 +3429,7 @@ class Game {
                 else {
                     targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
-                let relZPos = (this.puzzle.ball.absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let relZPos = (this.puzzle.balls[0].absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
                 let f = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 3 - this.globalTimer));
@@ -4859,7 +4862,10 @@ class Puzzle {
         this.winSlots = [];
         this.winSlotsIndexes = [0, 0, 0, 0];
         this.stars = [];
-        this.ballPositionZero = BABYLON.Vector3.Zero();
+        this.ballsCount = 1;
+        this.ballsPositionZero = [BABYLON.Vector3.Zero(), BABYLON.Vector3.Zero()];
+        this.balls = [];
+        this.playTimer = 0;
         this.fishingPolesCount = 3;
         this.tiles = [];
         this.griddedTiles = [];
@@ -4872,7 +4878,10 @@ class Puzzle {
         this._timer = 0;
         this._globalTime = 0;
         this._smoothedFPS = 30;
-        this.ball = new Ball(this, { color: TileColor.North });
+        this.balls = [
+            new Ball(this, { color: TileColor.North }, 0),
+            new Ball(this, { color: TileColor.North }, 1)
+        ];
         this.fishingPole = new FishingPole(this);
         this.floor = new BABYLON.Mesh("floor");
         this.floor.material = this.game.floorMaterial;
@@ -5038,7 +5047,7 @@ class Puzzle {
         if (USE_POKI_SDK) {
             PokiGameplayStop();
         }
-        let score = Math.floor(this.ball.playTimer * 100);
+        let score = Math.floor(this.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         let highscore = this.data.score;
@@ -5051,15 +5060,18 @@ class Puzzle {
         let s3 = ratio > 0.9 ? "★" : "☆";
         this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
         setTimeout(() => {
-            if (this.ball.ballState === BallState.Done) {
-                this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
-                this.puzzleUI.win();
-                if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
-                    this.puzzleUI.setHighscoreState(1);
+            for (let i = 0; i < this.ballsCount; i++) {
+                if (this.balls[i].ballState != BallState.Done) {
+                    return;
                 }
-                else {
-                    this.puzzleUI.setHighscoreState(0);
-                }
+            }
+            this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
+            this.puzzleUI.win();
+            if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
+                this.puzzleUI.setHighscoreState(1);
+            }
+            else {
+                this.puzzleUI.setHighscoreState(0);
             }
         }, 3000);
     }
@@ -5068,9 +5080,12 @@ class Puzzle {
             PokiGameplayStop();
         }
         setTimeout(() => {
-            if (this.ball.ballState === BallState.Done) {
-                this.puzzleUI.lose();
+            for (let i = 0; i < this.ballsCount; i++) {
+                if (this.balls[i].ballState != BallState.Done) {
+                    return;
+                }
             }
+            this.puzzleUI.lose();
         }, 1000);
     }
     async submitHighscore() {
@@ -5078,7 +5093,7 @@ class Puzzle {
             return;
         }
         this._pendingPublish = true;
-        let score = Math.round(this.ball.playTimer * 100);
+        let score = Math.round(this.playTimer * 100);
         let puzzleId = this.data.id;
         let player = document.querySelector("#score-player-input").value;
         let actions = "cheating";
@@ -5147,24 +5162,32 @@ class Puzzle {
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
-        this.ball.parent = undefined;
-        this.ball.position.x = parseInt(ballLine[0]) * 1.1;
-        this.ball.position.y = 0;
-        this.ball.position.z = parseInt(ballLine[1]) * 1.1;
-        this.ballPositionZero.copyFrom(this.ball.position);
-        this.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        this.ball.trailPoints = [];
-        this.ball.trailMesh.isVisible = false;
-        if (ballLine.length > 2) {
-            this.ball.setColor(parseInt(ballLine[2]));
+        this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
+        console.log("BallsCount = " + this.ballsCount);
+        for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
+            this.balls[bIndex].parent = undefined;
+            this.balls[bIndex].position.x = parseInt(ballLine[0 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].position.y = 0;
+            this.balls[bIndex].position.z = parseInt(ballLine[1 + 3 * bIndex]) * 1.1;
+            this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
+            this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
+            this.balls[bIndex].trailPoints = [];
+            this.balls[bIndex].trailMesh.isVisible = false;
+            if (ballLine.length > 2) {
+                this.balls[bIndex].setColor(parseInt(ballLine[2 + 3 * bIndex]));
+            }
+            else {
+                this.balls[bIndex].setColor(TileColor.North);
+            }
+            this.balls[bIndex].ballState = BallState.Ready;
+            this.balls[bIndex].lockControl(0.2);
+            this.game.setPlayTimer(0);
+            this.balls[bIndex].vZ = 1;
+            this.balls[bIndex].setVisible(true);
         }
-        else {
-            this.ball.setColor(TileColor.North);
+        for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
+            this.balls[bIndex].setVisible(false);
         }
-        this.ball.ballState = BallState.Ready;
-        this.ball.lockControl(0.2);
-        this.game.setPlayTimer(0);
-        this.ball.vZ = 1;
         this.fishingPolesCount = 3;
         this.h = lines.length;
         this.w = lines[0].length;
@@ -5341,7 +5364,9 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
-        await this.ball.instantiate();
+        for (let i = 0; i < this.ballsCount; i++) {
+            await this.balls[i].instantiate();
+        }
         this.rebuildFloor();
     }
     regenerateHeightMap() {
@@ -5614,17 +5639,45 @@ class Puzzle {
         let winSlotMesh = this.winSlots[color];
         return BABYLON.Vector3.TransformCoordinates(d, winSlotMesh.getWorldMatrix());
     }
+    start() {
+        for (let i = 0; i < this.ballsCount; i++) {
+            this.balls[i].ballState = BallState.Move;
+            this.balls[i].bounceXValue = 0;
+            this.balls[i].bounceXTimer = 0;
+            this.balls[i].speed = 0;
+            this.balls[i].animateSpeed(this.balls[i].nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
+        }
+        this.game.fadeOutIntro(0.5);
+        this.playTimer = 0;
+        this.game.setPlayTimer(this.playTimer);
+    }
     update(dt) {
-        this.ball.update(dt);
+        for (let i = 0; i < this.ballsCount; i++) {
+            this.balls[i].update(dt);
+        }
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
         });
-        if (tiles.length === 0 && this.ball.ballState != BallState.Done) {
-            this.ball.ballState = BallState.Done;
-            this.win();
+        if (tiles.length === 0) {
+            let ballNotDone = false;
+            for (let i = 0; i < this.ballsCount; i++) {
+                if (this.balls[i].ballState != BallState.Done) {
+                    ballNotDone = true;
+                }
+            }
+            if (ballNotDone) {
+                for (let i = 0; i < this.ballsCount; i++) {
+                    this.balls[i].ballState = BallState.Done;
+                }
+                this.win();
+            }
         }
         for (let i = 0; i < this.haikus.length; i++) {
             this.haikus[i].update(dt);
+        }
+        if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {
+            this.playTimer += dt;
+            this.game.setPlayTimer(this.playTimer);
         }
         this._globalTime += dt;
         this._timer += dt;
@@ -5892,7 +5945,14 @@ function SaveAsText(puzzle) {
     });
     lines.reverse();
     let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
-    lines2.splice(0, 0, puzzle.ball.i.toFixed(0) + "u" + puzzle.ball.j.toFixed(0) + "u" + puzzle.ball.color.toFixed(0));
+    let ballLine = "";
+    for (let i = 0; i < puzzle.ballsCount; i++) {
+        ballLine += puzzle.balls[i].i.toFixed(0) + "u" + puzzle.balls[i].j.toFixed(0) + "u" + puzzle.balls[i].color.toFixed(0);
+        if (i < puzzle.ballsCount - 1) {
+            ballLine += "u";
+        }
+    }
+    lines2.splice(0, 0, ballLine);
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
 }
 class PuzzleUI {

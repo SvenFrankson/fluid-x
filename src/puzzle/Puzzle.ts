@@ -12,8 +12,10 @@ class Puzzle {
     public winSlotsIndexes: number[] = [0, 0, 0, 0];
     public stars: BABYLON.Mesh[] = [];
 
-    public ballPositionZero: BABYLON.Vector3 = BABYLON.Vector3.Zero();
-    public ball: Ball;
+    public ballsCount: number = 1;
+    public ballsPositionZero: BABYLON.Vector3[] = [BABYLON.Vector3.Zero(), BABYLON.Vector3.Zero()];
+    public balls: Ball[] = [];
+    public playTimer: number = 0;
     public fishingPolesCount: number = 3;
     public fishingPole: FishingPole;
     public border: BABYLON.Mesh;
@@ -167,7 +169,10 @@ class Puzzle {
     public haikus: Haiku[] = [];
 
     constructor(public game: Game) {
-        this.ball = new Ball(this, { color: TileColor.North });
+        this.balls = [
+            new Ball(this, { color: TileColor.North }, 0),
+            new Ball(this, { color: TileColor.North }, 1)
+        ];
 
         this.fishingPole = new FishingPole(this);
 
@@ -223,7 +228,7 @@ class Puzzle {
         if (USE_POKI_SDK) {
             PokiGameplayStop();
         }
-        let score = Math.floor(this.ball.playTimer * 100);
+        let score = Math.floor(this.playTimer * 100);
         this.game.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
@@ -238,16 +243,18 @@ class Puzzle {
         this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
 
         setTimeout(() => {
-            if (this.ball.ballState === BallState.Done) {
-
-                this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
-                this.puzzleUI.win();
-                if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
-                    this.puzzleUI.setHighscoreState(1);
+            for (let i = 0; i < this.ballsCount; i++) {
+                if (this.balls[i].ballState != BallState.Done) {
+                    return;
                 }
-                else {
-                    this.puzzleUI.setHighscoreState(0);
-                }
+            }
+            this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
+            this.puzzleUI.win();
+            if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
+                this.puzzleUI.setHighscoreState(1);
+            }
+            else {
+                this.puzzleUI.setHighscoreState(0);
             }
         }, 3000);
     }
@@ -257,9 +264,12 @@ class Puzzle {
             PokiGameplayStop();
         }
         setTimeout(() => {
-            if (this.ball.ballState === BallState.Done) {
-                this.puzzleUI.lose();
+            for (let i = 0; i < this.ballsCount; i++) {
+                if (this.balls[i].ballState != BallState.Done) {
+                    return;
+                }
             }
+            this.puzzleUI.lose();
         }, 1000);
     }
 
@@ -269,7 +279,7 @@ class Puzzle {
         }
         this._pendingPublish = true;
 
-        let score = Math.round(this.ball.playTimer * 100);
+        let score = Math.round(this.playTimer * 100);
         let puzzleId = this.data.id;
         let player = (document.querySelector("#score-player-input") as HTMLInputElement).value;
         let actions = "cheating";
@@ -343,26 +353,39 @@ class Puzzle {
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
+
         let ballLine = lines.splice(0, 1)[0].split("u");
-        this.ball.parent = undefined;
-        this.ball.position.x = parseInt(ballLine[0]) * 1.1;
-        this.ball.position.y = 0;
-        this.ball.position.z = parseInt(ballLine[1]) * 1.1;
-        this.ballPositionZero.copyFrom(this.ball.position);
-        this.ball.rotationQuaternion = BABYLON.Quaternion.Identity();
-        this.ball.trailPoints = [];
-        this.ball.trailMesh.isVisible = false;
-        if (ballLine.length > 2) {
-            this.ball.setColor(parseInt(ballLine[2]));
+        this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
+        console.log("BallsCount = " + this.ballsCount)
+        for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
+            this.balls[bIndex].parent = undefined;
+            this.balls[bIndex].position.x = parseInt(ballLine[0 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].position.y = 0;
+            this.balls[bIndex].position.z = parseInt(ballLine[1 + 3 * bIndex]) * 1.1;
+            this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
+            this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
+            this.balls[bIndex].trailPoints = [];
+            this.balls[bIndex].trailMesh.isVisible = false;
+            if (ballLine.length > 2) {
+                this.balls[bIndex].setColor(parseInt(ballLine[2 + 3 * bIndex]));
+            }
+            else {
+                this.balls[bIndex].setColor(TileColor.North);
+            }
+            this.balls[bIndex].ballState = BallState.Ready;
+            this.balls[bIndex].lockControl(0.2);
+    
+            this.game.setPlayTimer(0);
+            this.balls[bIndex].vZ = 1;
+
+            this.balls[bIndex].setVisible(true);
         }
-        else {
-            this.ball.setColor(TileColor.North);
+        for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
+            this.balls[bIndex].setVisible(false);
         }
-        this.ball.ballState = BallState.Ready;
-        this.ball.lockControl(0.2);
-        this.game.setPlayTimer(0);
-        this.ball.vZ = 1;
+        
         this.fishingPolesCount = 3;
+
         this.h = lines.length;
         this.w = lines[0].length;
         for (let j = 0; j < lines.length; j++) {
@@ -545,7 +568,9 @@ class Puzzle {
             await this.buildings[i].instantiate();
         }
 
-        await this.ball.instantiate();
+        for (let i = 0; i < this.ballsCount; i++) {
+            await this.balls[i].instantiate();
+        }
         this.rebuildFloor();
     }
 
@@ -841,20 +866,50 @@ class Puzzle {
         return BABYLON.Vector3.TransformCoordinates(d, winSlotMesh.getWorldMatrix());
     }
 
+    public start(): void {
+        for (let i = 0; i < this.ballsCount; i++) {
+            this.balls[i].ballState = BallState.Move;
+            this.balls[i].bounceXValue = 0;
+            this.balls[i].bounceXTimer = 0;
+            this.balls[i].speed = 0;
+            this.balls[i].animateSpeed(this.balls[i].nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
+        }
+        this.game.fadeOutIntro(0.5);
+        this.playTimer = 0;
+        this.game.setPlayTimer(this.playTimer);
+    }
+
     private _timer: number = 0;
     private _globalTime: number = 0;
     private _smoothedFPS: number = 30;
     public update(dt: number): void {
-        this.ball.update(dt);
+        for (let i = 0; i < this.ballsCount; i++) {
+            this.balls[i].update(dt);
+        }
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
         })
-        if (tiles.length === 0 && this.ball.ballState != BallState.Done) {
-            this.ball.ballState = BallState.Done;
-            this.win();
+        if (tiles.length === 0) {
+            let ballNotDone = false;
+            for (let i = 0; i < this.ballsCount; i++) {
+                if (this.balls[i].ballState != BallState.Done) {
+                    ballNotDone = true;
+                }
+            }
+            if (ballNotDone) {
+                for (let i = 0; i < this.ballsCount; i++) {
+                    this.balls[i].ballState = BallState.Done;
+                }
+                this.win();
+            }
         }
         for (let i = 0; i < this.haikus.length; i++) {
             this.haikus[i].update(dt);
+        }
+
+        if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {
+            this.playTimer += dt;
+            this.game.setPlayTimer(this.playTimer);
         }
 
         this._globalTime += dt;

@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 20;
+var CRL_VERSION3: number = 21;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -841,7 +841,7 @@ class Game {
 
             if (this.mode === GameMode.Play) {
                 rawDT = Math.min(rawDT, 1);
-                let targetCameraPos = this.puzzle.ball.absolutePosition.clone();
+                let targetCameraPos = this.puzzle.balls[0].absolutePosition.clone();
                 targetCameraPos.y = Math.max(targetCameraPos.y, - 2.5);
                 let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
@@ -857,7 +857,7 @@ class Game {
                     targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
 
-                let relZPos = (this.puzzle.ball.absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let relZPos = (this.puzzle.balls[0].absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
                 

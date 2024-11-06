@@ -369,7 +369,7 @@ class Ball extends BABYLON.Mesh {
                 }
 
                 this.trailPoints.push(p);
-                let count = 30;
+                let count = 40;
                 //count = 200; // debug
                 if (this.trailPoints.length > count) {
                     this.trailPoints.splice(0, 1);
@@ -545,6 +545,45 @@ class Ball extends BABYLON.Mesh {
                 }
             }
 
+            for (let i = 0; i < this.puzzle.ballsCount; i++) {
+                let otherBall = this.puzzle.balls[i];
+                if (otherBall && otherBall != this) {
+                    let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, otherBall.absolutePosition);
+                    if (sqrDist < (this.radius + otherBall.radius) * (this.radius + otherBall.radius)) {
+                        this.puzzle.addBallCollision(this.absolutePosition.add(otherBall.absolutePosition).scaleInPlace(0.5));
+                    }
+                }
+            }
+
+            if (!this.puzzle.ballCollisionDone[this.ballIndex]) {
+                let dir = this.absolutePosition.subtract(this.puzzle.ballCollision);
+                let sqrDist = dir.lengthSquared();
+                if (sqrDist < this.radius * this.radius) {
+                    Mummu.ForceDistanceFromOriginInPlace(this.position, this.puzzle.ballCollision, this.radius);
+                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                        if (dir.x > 0) {
+                            this.bounceXValue = 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        else {
+                            this.bounceXValue = - 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        this.woodChocSound.play();
+                    }
+                    else {
+                        if (dir.z > 0) {
+                            this.vZ = 1;
+                        }
+                        else {
+                            this.vZ = -1;
+                        }
+                        this.woodChocSound.play();
+                    }
+                    this.puzzle.ballCollisionDone[this.ballIndex] = true;
+                }
+            }
+
             for (let ii = -1; ii <= 1; ii++) {
                 for (let jj = -1; jj <= 1; jj++) {
                     let stack = this.puzzle.getGriddedStack(this.i + ii, this.j + jj);
@@ -632,7 +671,12 @@ class Ball extends BABYLON.Mesh {
                 let q = Mummu.QuaternionFromYZAxis(hit.getNormal(true), BABYLON.Axis.Z);
                 let fQ = Nabu.Easing.smoothNSec(1 / dt, 0.5);
                 BABYLON.Quaternion.SlerpToRef(this.rotationQuaternion, q, 1 - fQ, this.rotationQuaternion);
-                BABYLON.Vector3.SlerpToRef(this.smoothedMoveDir, this.moveDir, fQ, this.smoothedMoveDir);
+                let a = Mummu.Angle(this.moveDir, this.smoothedMoveDir.scale(-1));
+                if (Math.abs(a) < Math.PI / 180) {
+                    this.smoothedMoveDir.x += -0.05 + Math.random() * 0.1;
+                    this.smoothedMoveDir.normalize();
+                }
+                BABYLON.Vector3.SlerpToRef(this.smoothedMoveDir, this.moveDir, 1 - fQ, this.smoothedMoveDir);
                 this.smoothedMoveDir.normalize();
             }    
         }

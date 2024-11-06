@@ -15,6 +15,10 @@ class Puzzle {
     public ballsCount: number = 1;
     public ballsPositionZero: BABYLON.Vector3[] = [BABYLON.Vector3.Zero(), BABYLON.Vector3.Zero()];
     public balls: Ball[] = [];
+
+    public ballCollision: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public ballCollisionDone: boolean[] = [true, true];
+
     public playTimer: number = 0;
     public fishingPolesCount: number = 3;
     public fishingPole: FishingPole;
@@ -390,6 +394,9 @@ class Puzzle {
             this.balls[0].material = this.game.whiteMaterial;
             this.balls[1].material = this.game.blackMaterial;
         }
+
+        this.ballCollision.copyFromFloats(- 10, 0, -10);
+        this.ballCollisionDone = [true, true];
         
         this.fishingPolesCount = 3;
 
@@ -884,6 +891,15 @@ class Puzzle {
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
         this.game.setPlayTimer(this.playTimer);
+    }
+
+    private _ballCollisionTimeStamp: number = 0;
+    public addBallCollision(v: BABYLON.Vector3): void {
+        if (Math.abs(this._globalTime - this._ballCollisionTimeStamp) > 0.1) {
+            this.ballCollisionDone = [false, false];
+            this.ballCollision.copyFrom(v);
+            this._ballCollisionTimeStamp = this._globalTime;
+        }
     }
 
     private _timer: number = 0;

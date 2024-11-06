@@ -3700,8 +3700,11 @@ class Game {
             let fb = Math.sin(this.globalTimer / 20 * 2 * Math.PI);
             this.menuCamBeta = b0 + bDist * fb;
             if (this.mode === GameMode.Play) {
-                rawDT = Math.min(rawDT, 1);
                 let targetCameraPos = this.puzzle.balls[0].absolutePosition.clone();
+                if (this.puzzle.ballsCount === 2) {
+                    targetCameraPos.addInPlace(this.puzzle.balls[1].absolutePosition).scaleInPlace(0.5);
+                }
+                rawDT = Math.min(rawDT, 1);
                 targetCameraPos.y = Math.max(targetCameraPos.y, -2.5);
                 let margin = 3;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
@@ -3716,7 +3719,7 @@ class Game {
                 else {
                     targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
-                let relZPos = (this.puzzle.balls[0].absolutePosition.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let relZPos = (targetCameraPos.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
                 let f = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 3 - this.globalTimer));

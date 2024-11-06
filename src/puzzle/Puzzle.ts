@@ -287,6 +287,9 @@ class Puzzle {
         let score = Math.round(this.playTimer * 100);
         let puzzleId = this.data.id;
         let player = (document.querySelector("#score-player-input") as HTMLInputElement).value;
+        if (this.ballsCount === 2) {
+            player = (document.querySelector("#score-2-players-input") as HTMLInputElement).value;
+        }
         let actions = "cheating";
 
         let data = {

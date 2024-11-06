@@ -45,10 +45,13 @@
     
     <div id="success-highscore-container">
         <div class="editor-line hoverable">
-            <span class="editor-label">player</span><input id="score-player-input" class="p1-name-input" type="text"/>
+            <span class="editor-label">player</span><input id="score-player-input" class="p1-name-input" style="width: 150px;" type="text"/>
+        </div>
+        <div class="editor-line hoverable">
+            <span class="editor-label">players</span><input id="score-2-players-input" class="p1-name-input" style="width: 150px;" type="text"/>
         </div>
         <div class="editor-line">
-            <button id="success-score-submit-btn" class="medium-btn inline locked" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
+            <button id="success-score-submit-btn" class="medium-btn inline orange locked" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
             <button id="success-score-pending-btn" class="medium-btn inline bluegrey" style="width: 220px"><stroke-text>Sending...</stroke-text></button>
             <button id="success-score-done-btn" class="medium-btn inline green" style="width: 220px;"><stroke-text>Well Played !</stroke-text></button>
             <div id="success-score-fail-message" style="color: #b03a48; font-weight: 900; display: none;"><stroke-text>Error - Server not found</stroke-text></div>

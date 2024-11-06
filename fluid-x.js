@@ -3511,10 +3511,8 @@ class Game {
                     this.player1Name = v;
                     if (v.length > 2) {
                         document.querySelector("#success-score-submit-btn").classList.remove("locked");
-                        document.querySelector("#success-score-submit-btn").classList.add("orange");
                     }
                     else {
-                        document.querySelector("#success-score-submit-btn").classList.remove("orange");
                         document.querySelector("#success-score-submit-btn").classList.add("locked");
                     }
                     if (this.player1Name.length > 2 && this.player2Name.length > 2) {
@@ -5538,6 +5536,9 @@ class Puzzle {
         let score = Math.round(this.playTimer * 100);
         let puzzleId = this.data.id;
         let player = document.querySelector("#score-player-input").value;
+        if (this.ballsCount === 2) {
+            player = document.querySelector("#score-2-players-input").value;
+        }
         let actions = "cheating";
         let data = {
             puzzle_id: puzzleId,
@@ -6535,6 +6536,7 @@ class PuzzleUI {
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement;
+        this.highscoreTwoPlayersLine = document.querySelector("#score-2-players-input").parentElement;
         this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
@@ -6598,6 +6600,9 @@ class PuzzleUI {
         }
     }
     setHighscoreState(state) {
+        let twoPlayerCase = this.puzzle.ballsCount === 2;
+        this.highscorePlayerLine.style.display = twoPlayerCase ? "none" : "block";
+        this.highscoreTwoPlayersLine.style.display = twoPlayerCase ? "block" : "none";
         this.failMessage.style.display = "none";
         if (state === 0) {
             // Not enough for Highscore
@@ -6606,6 +6611,10 @@ class PuzzleUI {
         else if (state === 1) {
             // Enough for Highscore, waiting for player action.
             this.highscoreContainer.style.display = "block";
+            if (twoPlayerCase) {
+                this.highscoreTwoPlayersLine.querySelector("input").value = this.puzzle.game.player1Name + " & " + this.puzzle.game.player2Name;
+                this.scoreSubmitBtn.classList.remove("locked");
+            }
             this.scoreSubmitBtn.style.display = "inline-block";
             this.scorePendingBtn.style.display = "none";
             this.scoreDoneBtn.style.display = "none";

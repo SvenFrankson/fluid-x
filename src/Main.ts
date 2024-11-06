@@ -646,10 +646,8 @@ class Game {
                     this.player1Name = v;
                     if (v.length > 2) {
                         (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("locked");
-                        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("orange");
                     }
                     else {
-                        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.remove("orange");
                         (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).classList.add("locked");
                     }
 

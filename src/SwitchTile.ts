@@ -11,10 +11,18 @@ class SwitchTile extends Tile {
 
         this.material = this.game.brownMaterial;
 
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
 
         this.tileFrame.material = this.game.blackMaterial;
+
+        this.tileFrame.renderOutline = true;
+        this.tileFrame.outlineColor = BABYLON.Color3.Black();
+        this.tileFrame.outlineWidth = 0.02;
 
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;

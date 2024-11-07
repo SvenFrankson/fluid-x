@@ -12,6 +12,7 @@ class WaterTile extends Tile {
     public shoreMesh: BABYLON.Mesh;
     public waterMesh: BABYLON.Mesh;
     public floorMesh: BABYLON.Mesh;
+    public sculptMesh: BABYLON.Mesh;
 
     constructor(game: Game, props: TileProps) {
         super(game, props);
@@ -145,6 +146,7 @@ class WaterTile extends Tile {
         //DEBUG.position = this.position.scale(-1);
 
         if (this.iPlusWater && this.iMinusWater) {
+            console.log("alpha");
             let a = Math.PI * 0.5;
             if (this.iMinusWater.distFromSource < this.distFromSource) {
                 a = - Math.PI * 0.5;
@@ -162,16 +164,35 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else if (!this.iPlusWater && !this.iMinusWater) {
-            datas[0].applyToMesh(this);
-            datas[1].applyToMesh(this.waterMesh);
-            datas[2].applyToMesh(this.floorMesh);
+            if (this.distFromSource === 0) {
+                if (!this.sculptMesh) {
+                    this.sculptMesh = new BABYLON.Mesh("sculpt");
+                    this.sculptMesh.parent = this;
+                    this.sculptMesh.material = this.game.grayMaterial;
+
+                    this.sculptMesh.renderOutline = true;
+                    this.sculptMesh.outlineColor = BABYLON.Color3.Black();
+                    this.sculptMesh.outlineWidth = 0.01;
+                }
+                datas[6].applyToMesh(this);
+                datas[7].applyToMesh(this.waterMesh);
+                datas[8].applyToMesh(this.floorMesh);
+                datas[9].applyToMesh(this.sculptMesh);
+            }
+            else {
+                datas[0].applyToMesh(this);
+                datas[1].applyToMesh(this.waterMesh);
+                datas[2].applyToMesh(this.floorMesh);
+            }
         }
         else if (this.iPlusWater && this.jPlusWater) {
+            console.log("charly");
             datas[3].applyToMesh(this);
             datas[4].applyToMesh(this.waterMesh);
             datas[5].applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jPlusWater) {
+            console.log("delta");
             Mummu.MirrorXVertexDataInPlace(
                 Mummu.CloneVertexData(datas[3])
             ).applyToMesh(this);
@@ -189,6 +210,7 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else if (this.iPlusWater && this.jMinusWater) {
+            console.log("echo");
             Mummu.RotateAngleAxisVertexDataInPlace(
                 Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y
             ).applyToMesh(this);
@@ -206,6 +228,7 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jMinusWater) {
+            console.log("foxtrot");
             Mummu.MirrorXVertexDataInPlace(
                 Mummu.RotateAngleAxisVertexDataInPlace(
                     Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y
@@ -231,9 +254,17 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else {
-            datas[0].applyToMesh(this);
-            datas[1].applyToMesh(this.waterMesh);
-            datas[2].applyToMesh(this.floorMesh);
+            console.log("golf");
+            if (this.distFromSource === 0) {
+                datas[6].applyToMesh(this);
+                datas[7].applyToMesh(this.waterMesh);
+                datas[8].applyToMesh(this.floorMesh);
+            }
+            else {
+                datas[0].applyToMesh(this);
+                datas[1].applyToMesh(this.waterMesh);
+                datas[2].applyToMesh(this.floorMesh);
+            }
         }
     }
 }

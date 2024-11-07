@@ -23,10 +23,10 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num triangles      :  24
 	processing begun of mesh:  100-bridge
 		WARNING: No materials have been assigned: 
-		num positions      :  78
-		num normals        :  78
+		num positions      :  84
+		num normals        :  84
 		num tangents       :  0
-		num uvs            :  156
+		num uvs            :  168
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  68
@@ -57,15 +57,6 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  2
-	processing begun of mesh:  200-box
-		WARNING: No materials have been assigned: 
-		num positions      :  16
-		num normals        :  16
-		num tangents       :  0
-		num uvs            :  32
-		num uvs2           :  0
-		num colors         :  0
-		num triangles      :  8
 	processing begun of mesh:  201-box-floor
 		WARNING: No materials have been assigned: 
 		num positions      :  4
@@ -84,15 +75,48 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  84
+	processing begun of mesh:  200-box
+		processing begun of material:  white
+		num positions      :  152
+		num normals        :  152
+		num tangents       :  0
+		num uvs            :  304
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  64
+	processing begun of mesh:  202-box-roof
+		WARNING: No materials have been assigned: 
+		num positions      :  24
+		num normals        :  24
+		num tangents       :  0
+		num uvs            :  48
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  16
+	processing begun of mesh:  203-box-wall
+		processing begun of material:  red
+		processing begun of material:  white
+		processing begun of material:  wood
+		registered as also a user of material:  white
+		processing begun of multimaterial:  building.Multimaterial#0
+		num positions      :  16
+		num normals        :  16
+		num tangents       :  0
+		num uvs            :  32
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  8
 ========= Writing of JSON file started =========
 	writing mesh:  002-ramp-border
 	writing mesh:  100-bridge
 	writing mesh:  001-ramp-floor
 	writing mesh:  000-ramp
 	writing mesh:  101-bridge-floor
-	writing mesh:  200-box
 	writing mesh:  201-box-floor
 	writing mesh:  102-bridge-border
+	writing mesh:  200-box
+	writing mesh:  202-box-roof
+	writing mesh:  203-box-wall
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0232 secs
+elapsed time:  0 min, 0.0333 secs

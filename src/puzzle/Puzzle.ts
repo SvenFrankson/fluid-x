@@ -24,6 +24,7 @@ class Puzzle {
     public fishingPole: FishingPole;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
+    public holeOutline: BABYLON.LinesMesh;
     public invisiFloorTM: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
     public tiles: Tile[] = [];
@@ -191,7 +192,7 @@ class Puzzle {
         this.invisiFloorTM.isVisible = false;
 
         this.holeWall = new BABYLON.Mesh("hole-wall");
-        this.holeWall.material = this.game.grayMaterial;
+        this.holeWall.material = this.game.holeMaterial;
 
         this.puzzleUI = new PuzzleUI(this);
 
@@ -640,6 +641,9 @@ class Puzzle {
         if (this.border) {
             this.border.dispose();
         }
+        if (this.holeOutline) {
+            this.holeOutline.dispose();
+        }
         while (this.winSlots.length > 0) {
             this.winSlots.pop().dispose();
         }
@@ -814,13 +818,15 @@ class Puzzle {
             }
         }
 
+        let holeOutlinePoints: BABYLON.Vector3[][] = [];
+        let holeOutlineColors: BABYLON.Color4[][] = [];
         for (let n = 0; n < holes.length; n++) {
             let hole = holes[n];
             let i = hole.i;
             let j = hole.j;
             let left = holes.find(h => { return h.i === i - 1 && h.j === j; });
             if (!left) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -830,10 +836,18 @@ class Puzzle {
                 Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, - Math.PI * 0.5, 0));
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i - 0.5) * 1.1, -2.5, j * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 + 0.55),
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 - 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
             let right = holes.find(h => { return h.i === i + 1 && h.j === j; });
             if (!right) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -843,10 +857,18 @@ class Puzzle {
                 Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI * 0.5, 0));
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i + 0.5) * 1.1, -2.5, j * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 + 0.55),
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 - 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
             let up = holes.find(h => { return h.i === i && h.j === j + 1; });
             if (!up) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -855,10 +877,18 @@ class Puzzle {
                 ];
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j + 0.5) * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 + 0.55),
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 + 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
             let down = holes.find(h => { return h.i === i && h.j === j - 1; });
             if (!down) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -868,9 +898,28 @@ class Puzzle {
                 Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI, 0));
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j - 0.5) * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 - 0.55),
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 - 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
         }
-        Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
+        let floorData = Mummu.MergeVertexDatas(...floorDatas);
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            floorData.uvs[2 * i] = 0.5 * floorData.positions[3 * i];
+            floorData.uvs[2 * i + 1] = 0.5 * floorData.positions[3 * i + 2] - 0.5;
+        }
+        floorData.applyToMesh(this.floor);
+
+        this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
+            lines: holeOutlinePoints,
+            colors: holeOutlineColors
+        }, this.game.scene);
+
         if (holeDatas.length > 0) {
             Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
             this.holeWall.isVisible = true;

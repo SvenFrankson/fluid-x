@@ -261,6 +261,8 @@ abstract class Tile extends BABYLON.Mesh {
 
                 let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
                 animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine).then(() => {
+                    star.freezeWorldMatrix();
+                    starTop.freezeWorldMatrix();
                     let flash = Mummu.Create9Slice("flash", {
                         width: 1.2,
                         height: 1.2,

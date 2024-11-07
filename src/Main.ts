@@ -264,7 +264,12 @@ class Game {
 
     public waterMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
-    public darkFloorMaterial: BABYLON.StandardMaterial;
+    public woodFloorMaterial: BABYLON.StandardMaterial;
+    public roofMaterial: BABYLON.StandardMaterial;
+    public woodMaterial: BABYLON.StandardMaterial;
+    public wallMaterial: BABYLON.StandardMaterial;
+    public brickWallMaterial: BABYLON.StandardMaterial;
+    public holeMaterial: BABYLON.StandardMaterial;
     public shadow9Material: BABYLON.StandardMaterial;
     public whiteShadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
@@ -426,13 +431,40 @@ class Game {
             
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.floorMaterial.diffuseColor.copyFromFloats(0.8, 0.8, 0.8);
-        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+        this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_2.png");
             
-        this.darkFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
-        this.darkFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.darkFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.darkFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+        this.woodFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
+        this.woodFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.woodFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.woodFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wood-plank.png");
+            
+        this.roofMaterial = new BABYLON.StandardMaterial("roof-material");
+        this.roofMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.roofMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
+        this.roofMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
+        (this.roofMaterial.diffuseTexture as BABYLON.Texture).uScale = 5;
+        (this.roofMaterial.diffuseTexture as BABYLON.Texture).vScale = 5;
+            
+        this.woodMaterial = new BABYLON.StandardMaterial("wood-material");
+        this.woodMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.woodMaterial.specularColor.copyFromFloats(0, 0, 0);
+        //this.woodMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/roof.png");
+        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).uScale = 10;
+        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).vScale = 10;
+            
+        this.wallMaterial = new BABYLON.StandardMaterial("wall-material");
+        this.wallMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
+        this.wallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
+            
+        this.brickWallMaterial = new BABYLON.StandardMaterial("wall-material");
+        this.brickWallMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.brickWallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_05.png");
+            
+        this.holeMaterial = new BABYLON.StandardMaterial("roof-material");
+        this.holeMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.holeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_01.png");
             
         this.shadow9Material = new BABYLON.StandardMaterial("shadow-material");
         this.shadow9Material.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
@@ -541,6 +573,30 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
+
+        let borderDatas = await this.vertexDataLoader.get("./datas/meshes/border.babylon");
+        borderDatas.forEach(data => {
+            let positions = data.positions;
+
+            for (let i = 0; i < positions.length / 3; i++) {
+                let x = positions[3 * i];
+                let y = positions[3 * i + 1];
+                let z = positions[3 * i + 2];
+
+                let nx = data.normals[3 * i];
+                let ny = data.normals[3 * i + 1];
+                let nz = data.normals[3 * i + 2];
+
+                if (Math.abs(z - 0.55) < 0.01 || Math.abs(z + 0.55) < 0.01) {
+                    let n = new BABYLON.Vector3(nx, ny, 0);
+                    n.normalize();
+                    
+                    data.normals[3 * i] = n.x;
+                    data.normals[3 * i + 1] = n.y;
+                    data.normals[3 * i + 2] = n.z;
+                }
+            }
+        })
 
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
@@ -796,8 +852,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            DEV_ACTIVATE();
         }
 	}
 

@@ -111,6 +111,10 @@ class Ball extends BABYLON.Mesh {
 
         this.material = this.game.brownMaterial;
 
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02 / (this.radius * 2);
+
         this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
 
         this.shadow = new BABYLON.Mesh("shadow");
@@ -386,7 +390,7 @@ class Ball extends BABYLON.Mesh {
                         return 0.08 * f;
                         //return 0.01;
                     },
-                    color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
+                    color: new BABYLON.Color4(0.2, 0.2, 0.2, 1)
                 });
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;

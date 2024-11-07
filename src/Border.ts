@@ -71,6 +71,10 @@ class Border extends BABYLON.Mesh {
         super("tile");
 
         this.material = this.game.borderMaterial;
+
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.01;
     }
 
     public async instantiate(): Promise<void> {
@@ -87,13 +91,13 @@ class Border extends BABYLON.Mesh {
                     borderDatas[0].applyToMesh(this);
                 }
                 else if (jPlusConn) {
-                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[3]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
                 }
                 else if (jMinusConn) {
-                    borderDatas[1].applyToMesh(this);
+                    borderDatas[3].applyToMesh(this);
                 }
                 else {
-                    borderDatas[2].applyToMesh(this);
+                    borderDatas[4].applyToMesh(this);
                 }
             }
             else {

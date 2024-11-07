@@ -22,6 +22,10 @@ class PushTile extends Tile {
 
         this.material = this.game.brownMaterial;
 
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
 
@@ -43,7 +47,7 @@ class PushTile extends Tile {
             d: 1,
             h: 0.35,
             thickness: 0.05,
-            flatShading: true,
+            flatShading: false,
             topCap: false,
             bottomCap: true,
         })

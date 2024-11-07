@@ -14,30 +14,50 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
 	processing begun of mesh:  0-straight
 		processing begun of material:  Material
-		num positions      :  98
-		num normals        :  98
+		num positions      :  63
+		num normals        :  63
 		num tangents       :  0
-		num uvs            :  196
+		num uvs            :  126
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  44
 	processing begun of mesh:  1-top-cross
 		processing begun of material:  Material
 		registered as also a user of material:  Material
-		num positions      :  140
-		num normals        :  140
+		num positions      :  73
+		num normals        :  73
 		num tangents       :  0
-		num uvs            :  280
+		num uvs            :  146
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  60
 	processing begun of mesh:  2-double-cross
 		processing begun of material:  Material
 		registered as also a user of material:  Material
-		num positions      :  183
-		num normals        :  183
+		num positions      :  77
+		num normals        :  77
 		num tangents       :  0
-		num uvs            :  366
+		num uvs            :  154
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  76
+	processing begun of mesh:  3-top-cross-vert
+		processing begun of material:  Material
+		registered as also a user of material:  Material
+		num positions      :  73
+		num normals        :  73
+		num tangents       :  0
+		num uvs            :  146
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  60
+	processing begun of mesh:  4-double-cross-vert
+		processing begun of material:  Material
+		registered as also a user of material:  Material
+		num positions      :  77
+		num normals        :  77
+		num tangents       :  0
+		num uvs            :  154
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  76
@@ -45,6 +65,8 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	writing mesh:  0-straight
 	writing mesh:  1-top-cross
 	writing mesh:  2-double-cross
+	writing mesh:  3-top-cross-vert
+	writing mesh:  4-double-cross-vert
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0186 secs
+elapsed time:  0 min, 0.0287 secs

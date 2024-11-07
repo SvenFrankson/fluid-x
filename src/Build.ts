@@ -21,12 +21,14 @@ abstract class Build extends BABYLON.Mesh {
     }
     public set i(v: number) {
         this.position.x = v * 1.1;
+        this.freeze();
     }
     public get j(): number {
         return Math.round(this.position.z / 1.1);
     }
     public set j(v: number) {
         this.position.z = v * 1.1;
+        this.freeze();
     }
 
     constructor(public game: Game, protected props: BuildProps) {
@@ -41,7 +43,7 @@ abstract class Build extends BABYLON.Mesh {
         this.floor = new BABYLON.Mesh("building-floor");
         this.floor.parent = this;
 
-        this.floor.material = this.game.darkFloorMaterial;
+        this.floor.material = this.game.woodFloorMaterial;
 
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.y = 0.005;
@@ -75,6 +77,13 @@ abstract class Build extends BABYLON.Mesh {
         }
         super.dispose();
     }
+
+    public freeze(): void {
+        this.freezeWorldMatrix();
+        this.getChildMeshes().forEach(child => {
+            child.freezeWorldMatrix();
+        })
+    }
 }
 
 class Ramp extends Build {
@@ -84,17 +93,25 @@ class Ramp extends Build {
     
     constructor(game: Game, props: BuildProps) {
         super(game, props);
-        this.material = this.game.salmonMaterial;
+        this.material = this.game.brickWallMaterial;
 
         this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
         this.builtInBorderLeft.position.x = -0.55;
         this.builtInBorderLeft.parent = this;
         this.builtInBorderLeft.material = this.game.borderMaterial;
 
+        this.builtInBorderLeft.renderOutline = true;
+        this.builtInBorderLeft.outlineColor = BABYLON.Color3.Black();
+        this.builtInBorderLeft.outlineWidth = 0.01;
+
         this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
         this.builtInBorderRight.position.x = 1.5 * 1.1;
         this.builtInBorderRight.parent = this;
         this.builtInBorderRight.material = this.game.borderMaterial;
+
+        this.builtInBorderRight.renderOutline = true;
+        this.builtInBorderRight.outlineColor = BABYLON.Color3.Black();
+        this.builtInBorderRight.outlineWidth = 0.01;
     }
 
     public fillHeightmap() {
@@ -173,11 +190,23 @@ class Ramp extends Build {
 }
 
 class Box extends Build {
+
+    //public roof: BABYLON.Mesh;
+    public wall: BABYLON.Mesh;
     
     constructor(game: Game, props: BuildProps) {
         super(game, props);
 
-        this.material = this.game.salmonMaterial;
+        this.material = this.game.woodMaterial;
+
+        //this.roof = new BABYLON.Mesh("box-roof");
+        //this.roof.parent = this;
+        //this.roof.material = this.game.roofMaterial;
+
+        this.wall = new BABYLON.Mesh("box-wall");
+        this.wall.parent = this;
+    
+        this.wall.material = this.game.wallMaterial;
     }
 
     public fillHeightmap() {
@@ -257,8 +286,14 @@ class Box extends Build {
         }
         
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
-        data[6].applyToMesh(this);
+        let boxData = Mummu.CloneVertexData(data[6]);
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.whiteMaterial.diffuseColor, BABYLON.Color3.White());
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.blueMaterial.diffuseColor, BABYLON.Color3.Red());
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.brownMaterial.diffuseColor, BABYLON.Color3.Green());
+        boxData.applyToMesh(this);
         data[7].applyToMesh(this.floor);
+        //data[8].applyToMesh(this.roof);
+        data[9].applyToMesh(this.wall);
 
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
@@ -283,7 +318,7 @@ class Bridge extends Build {
     constructor(game: Game, props: BuildProps) {
         super(game, props);
         
-        this.material = this.game.salmonMaterial;
+        this.material = this.game.brickWallMaterial;
 
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
@@ -348,15 +383,7 @@ class Bridge extends Build {
         if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 2, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 3, this.j + 2) != 1) {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
-            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
-            
-
-            console.log("bridge " + this.i + " " + this.j);
-            let b1 = this.borders[this.borders.length - 2];
-            console.log("b1 " + b1.i + " " + b1.j);
-            let b2 = this.borders[this.borders.length - 1];
-            console.log("b2 " + b2.i + " " + b2.j);
-            
+            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));            
             this.borders.push(Border.BorderTop(this.game, this.i + 2, this.j + 1, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 3, this.j + 1, 1));
         }

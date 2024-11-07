@@ -23,23 +23,23 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num triangles      :  2
 	processing begun of mesh:  3-border-cross-cross
 		processing begun of material:  Material
-		num positions      :  259
-		num normals        :  259
+		num positions      :  125
+		num normals        :  125
 		num tangents       :  0
-		num uvs            :  518
+		num uvs            :  250
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  108
 	processing begun of mesh:  2-border-cross-straight
 		processing begun of material:  Material
 		registered as also a user of material:  Material
-		num positions      :  281
-		num normals        :  281
+		num positions      :  116
+		num normals        :  116
 		num tangents       :  0
-		num uvs            :  562
+		num uvs            :  232
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  116
+		num triangles      :  104
 	processing begun of mesh:  1-floor
 		WARNING: No materials have been assigned: 
 		num positions      :  4
@@ -56,4 +56,4 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	writing mesh:  1-floor
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0228 secs
+elapsed time:  0 min, 0.0215 secs

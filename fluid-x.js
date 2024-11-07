@@ -54,6 +54,9 @@ class Ball extends BABYLON.Mesh {
         this.ballTop.position.y = 0.3;
         this.ballTop.parent = this;
         this.material = this.game.brownMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02 / (this.radius * 2);
         this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = -0.015;
@@ -322,7 +325,7 @@ class Ball extends BABYLON.Mesh {
                         return 0.08 * f;
                         //return 0.01;
                     },
-                    color: new BABYLON.Color4(0.3, 0.3, 0.3, 1)
+                    color: new BABYLON.Color4(0.2, 0.2, 0.2, 1)
                 });
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
@@ -884,6 +887,8 @@ class Tile extends BABYLON.Mesh {
                 }
                 let animateY = Mummu.AnimationFactory.CreateNumber(star, star.position, "y");
                 animateY(star.position.y - dy, 0.4, Nabu.Easing.easeInOutSine).then(() => {
+                    star.freezeWorldMatrix();
+                    starTop.freezeWorldMatrix();
                     let flash = Mummu.Create9Slice("flash", {
                         width: 1.2,
                         height: 1.2,
@@ -912,6 +917,9 @@ class BlockTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.material = this.game.tileColorMaterials[this.color];
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
     }
     async instantiate() {
         await super.instantiate();
@@ -920,7 +928,7 @@ class BlockTile extends Tile {
             d: 1,
             h: 0.35,
             thickness: 0.05,
-            flatShading: true,
+            flatShading: false,
             topCap: false,
             bottomCap: true,
         });
@@ -937,6 +945,9 @@ class Border extends BABYLON.Mesh {
         this.w = 0;
         this.d = 1;
         this.material = this.game.borderMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.01;
     }
     get vertical() {
         return this.rotation.y === 0;
@@ -998,13 +1009,13 @@ class Border extends BABYLON.Mesh {
                     borderDatas[0].applyToMesh(this);
                 }
                 else if (jPlusConn) {
-                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[3]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
                 }
                 else if (jMinusConn) {
-                    borderDatas[1].applyToMesh(this);
+                    borderDatas[3].applyToMesh(this);
                 }
                 else {
-                    borderDatas[2].applyToMesh(this);
+                    borderDatas[4].applyToMesh(this);
                 }
             }
             else {
@@ -1073,7 +1084,7 @@ class Build extends BABYLON.Mesh {
         }
         this.floor = new BABYLON.Mesh("building-floor");
         this.floor.parent = this;
-        this.floor.material = this.game.darkFloorMaterial;
+        this.floor.material = this.game.woodFloorMaterial;
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.y = 0.005;
         this.shadow.parent = this;
@@ -1091,12 +1102,14 @@ class Build extends BABYLON.Mesh {
     }
     set i(v) {
         this.position.x = v * 1.1;
+        this.freeze();
     }
     get j() {
         return Math.round(this.position.z / 1.1);
     }
     set j(v) {
         this.position.z = v * 1.1;
+        this.freeze();
     }
     async instantiate() { }
     async bump() {
@@ -1113,19 +1126,31 @@ class Build extends BABYLON.Mesh {
         }
         super.dispose();
     }
+    freeze() {
+        this.freezeWorldMatrix();
+        this.getChildMeshes().forEach(child => {
+            child.freezeWorldMatrix();
+        });
+    }
 }
 class Ramp extends Build {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.salmonMaterial;
+        this.material = this.game.brickWallMaterial;
         this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
         this.builtInBorderLeft.position.x = -0.55;
         this.builtInBorderLeft.parent = this;
         this.builtInBorderLeft.material = this.game.borderMaterial;
+        this.builtInBorderLeft.renderOutline = true;
+        this.builtInBorderLeft.outlineColor = BABYLON.Color3.Black();
+        this.builtInBorderLeft.outlineWidth = 0.01;
         this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
         this.builtInBorderRight.position.x = 1.5 * 1.1;
         this.builtInBorderRight.parent = this;
         this.builtInBorderRight.material = this.game.borderMaterial;
+        this.builtInBorderRight.renderOutline = true;
+        this.builtInBorderRight.outlineColor = BABYLON.Color3.Black();
+        this.builtInBorderRight.outlineWidth = 0.01;
     }
     fillHeightmap() {
         for (let ii = 0; ii < 2; ii++) {
@@ -1194,7 +1219,13 @@ class Ramp extends Build {
 class Box extends Build {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.salmonMaterial;
+        this.material = this.game.woodMaterial;
+        //this.roof = new BABYLON.Mesh("box-roof");
+        //this.roof.parent = this;
+        //this.roof.material = this.game.roofMaterial;
+        this.wall = new BABYLON.Mesh("box-wall");
+        this.wall.parent = this;
+        this.wall.material = this.game.wallMaterial;
     }
     fillHeightmap() {
         for (let ii = 0; ii < 2; ii++) {
@@ -1257,8 +1288,14 @@ class Box extends Build {
             await this.borders[i].instantiate();
         }
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
-        data[6].applyToMesh(this);
+        let boxData = Mummu.CloneVertexData(data[6]);
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.whiteMaterial.diffuseColor, BABYLON.Color3.White());
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.blueMaterial.diffuseColor, BABYLON.Color3.Red());
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.brownMaterial.diffuseColor, BABYLON.Color3.Green());
+        boxData.applyToMesh(this);
         data[7].applyToMesh(this.floor);
+        //data[8].applyToMesh(this.roof);
+        data[9].applyToMesh(this.wall);
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
             width: 2.2 + 2 * m,
@@ -1277,7 +1314,7 @@ class Box extends Build {
 class Bridge extends Build {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.salmonMaterial;
+        this.material = this.game.brickWallMaterial;
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
         this.builtInBorder.material = this.game.blackMaterial;
@@ -1330,11 +1367,6 @@ class Bridge extends Build {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
-            console.log("bridge " + this.i + " " + this.j);
-            let b1 = this.borders[this.borders.length - 2];
-            console.log("b1 " + b1.i + " " + b1.j);
-            let b2 = this.borders[this.borders.length - 1];
-            console.log("b2 " + b2.i + " " + b2.j);
             this.borders.push(Border.BorderTop(this.game, this.i + 2, this.j + 1, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 3, this.j + 1, 1));
         }
@@ -2261,6 +2293,7 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
+        context.fillStyle = "black";
         context.font = "130px Shalimar";
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -2319,6 +2352,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.strokeStyle = "#473a2fFF";
+        context.strokeStyle = "black";
         context.lineWidth = 6;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;
@@ -2328,6 +2362,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
             context.stroke();
         }
         context.fillStyle = "#473a2fFF";
+        context.fillStyle = "black";
         context.font = "130px Shalimar";
         let l = context.measureText(this.playerName).width;
         for (let x = 0; x < 3; x++) {
@@ -3323,12 +3358,34 @@ class Game {
         this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.floorMaterial.diffuseColor.copyFromFloats(0.8, 0.8, 0.8);
-        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
-        this.darkFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
-        this.darkFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.darkFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.darkFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor.png");
+        this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_2.png");
+        this.woodFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
+        this.woodFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.woodFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.woodFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wood-plank.png");
+        this.roofMaterial = new BABYLON.StandardMaterial("roof-material");
+        this.roofMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.roofMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
+        this.roofMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
+        this.roofMaterial.diffuseTexture.uScale = 5;
+        this.roofMaterial.diffuseTexture.vScale = 5;
+        this.woodMaterial = new BABYLON.StandardMaterial("wood-material");
+        this.woodMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.woodMaterial.specularColor.copyFromFloats(0, 0, 0);
+        //this.woodMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/roof.png");
+        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).uScale = 10;
+        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).vScale = 10;
+        this.wallMaterial = new BABYLON.StandardMaterial("wall-material");
+        this.wallMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
+        this.wallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
+        this.brickWallMaterial = new BABYLON.StandardMaterial("wall-material");
+        this.brickWallMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.brickWallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_05.png");
+        this.holeMaterial = new BABYLON.StandardMaterial("roof-material");
+        this.holeMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.holeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_01.png");
         this.shadow9Material = new BABYLON.StandardMaterial("shadow-material");
         this.shadow9Material.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
         this.shadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
@@ -3418,6 +3475,25 @@ class Game {
         cubicNoiseTexture.randomize();
         cubicNoiseTexture.smooth();
         this.noiseTexture = cubicNoiseTexture.get3DTexture();
+        let borderDatas = await this.vertexDataLoader.get("./datas/meshes/border.babylon");
+        borderDatas.forEach(data => {
+            let positions = data.positions;
+            for (let i = 0; i < positions.length / 3; i++) {
+                let x = positions[3 * i];
+                let y = positions[3 * i + 1];
+                let z = positions[3 * i + 2];
+                let nx = data.normals[3 * i];
+                let ny = data.normals[3 * i + 1];
+                let nz = data.normals[3 * i + 2];
+                if (Math.abs(z - 0.55) < 0.01 || Math.abs(z + 0.55) < 0.01) {
+                    let n = new BABYLON.Vector3(nx, ny, 0);
+                    n.normalize();
+                    data.normals[3 * i] = n.x;
+                    data.normals[3 * i + 1] = n.y;
+                    data.normals[3 * i + 2] = n.z;
+                }
+            }
+        });
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
             if (dataString) {
@@ -3636,8 +3712,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            document.querySelector("#dev-pass-input").value = "Crillion";
+            DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4249,6 +4325,9 @@ class PushTile extends Tile {
         this.animateRotZ = Mummu.AnimationFactory.CreateNumber(this, this.rotation, "z");
         this.animateWait = Mummu.AnimationFactory.CreateWait(this);
         this.material = this.game.brownMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         let pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
@@ -4265,7 +4344,7 @@ class PushTile extends Tile {
             d: 1,
             h: 0.35,
             thickness: 0.05,
-            flatShading: true,
+            flatShading: false,
             topCap: false,
             bottomCap: true,
         });
@@ -4442,9 +4521,15 @@ class SwitchTile extends Tile {
     constructor(game, props) {
         super(game, props);
         this.material = this.game.brownMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
         this.tileFrame.material = this.game.blackMaterial;
+        this.tileFrame.renderOutline = true;
+        this.tileFrame.outlineColor = BABYLON.Color3.Black();
+        this.tileFrame.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.material = this.game.tileColorMaterials[this.color];
@@ -4693,6 +4778,7 @@ class WaterTile extends Tile {
         //DEBUG.parent = this;
         //DEBUG.position = this.position.scale(-1);
         if (this.iPlusWater && this.iMinusWater) {
+            console.log("alpha");
             let a = Math.PI * 0.5;
             if (this.iMinusWater.distFromSource < this.distFromSource) {
                 a = -Math.PI * 0.5;
@@ -4702,16 +4788,34 @@ class WaterTile extends Tile {
             Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[2]), a, BABYLON.Axis.Y).applyToMesh(this.floorMesh);
         }
         else if (!this.iPlusWater && !this.iMinusWater) {
-            datas[0].applyToMesh(this);
-            datas[1].applyToMesh(this.waterMesh);
-            datas[2].applyToMesh(this.floorMesh);
+            if (this.distFromSource === 0) {
+                if (!this.sculptMesh) {
+                    this.sculptMesh = new BABYLON.Mesh("sculpt");
+                    this.sculptMesh.parent = this;
+                    this.sculptMesh.material = this.game.grayMaterial;
+                    this.sculptMesh.renderOutline = true;
+                    this.sculptMesh.outlineColor = BABYLON.Color3.Black();
+                    this.sculptMesh.outlineWidth = 0.01;
+                }
+                datas[6].applyToMesh(this);
+                datas[7].applyToMesh(this.waterMesh);
+                datas[8].applyToMesh(this.floorMesh);
+                datas[9].applyToMesh(this.sculptMesh);
+            }
+            else {
+                datas[0].applyToMesh(this);
+                datas[1].applyToMesh(this.waterMesh);
+                datas[2].applyToMesh(this.floorMesh);
+            }
         }
         else if (this.iPlusWater && this.jPlusWater) {
+            console.log("charly");
             datas[3].applyToMesh(this);
             datas[4].applyToMesh(this.waterMesh);
             datas[5].applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jPlusWater) {
+            console.log("delta");
             Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[3])).applyToMesh(this);
             //Mummu.MirrorXVertexDataInPlace(
             //    Mummu.CloneVertexData(datas[4])
@@ -4720,6 +4824,7 @@ class WaterTile extends Tile {
             Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[5])).applyToMesh(this.floorMesh);
         }
         else if (this.iPlusWater && this.jMinusWater) {
+            console.log("echo");
             Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this);
             //Mummu.RotateAngleAxisVertexDataInPlace(
             //    Mummu.CloneVertexData(datas[4]), Math.PI * 0.5, BABYLON.Axis.Y
@@ -4728,6 +4833,7 @@ class WaterTile extends Tile {
             Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jMinusWater) {
+            console.log("foxtrot");
             Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this);
             //Mummu.MirrorXVertexDataInPlace(
             //    Mummu.RotateAngleAxisVertexDataInPlace(
@@ -4738,9 +4844,17 @@ class WaterTile extends Tile {
             Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this.floorMesh);
         }
         else {
-            datas[0].applyToMesh(this);
-            datas[1].applyToMesh(this.waterMesh);
-            datas[2].applyToMesh(this.floorMesh);
+            console.log("golf");
+            if (this.distFromSource === 0) {
+                datas[6].applyToMesh(this);
+                datas[7].applyToMesh(this.waterMesh);
+                datas[8].applyToMesh(this.floorMesh);
+            }
+            else {
+                datas[0].applyToMesh(this);
+                datas[1].applyToMesh(this.waterMesh);
+                datas[2].applyToMesh(this.floorMesh);
+            }
         }
     }
 }
@@ -5330,7 +5444,7 @@ class Puzzle {
         this.invisiFloorTM.position.z = 5 - 0.55;
         this.invisiFloorTM.isVisible = false;
         this.holeWall = new BABYLON.Mesh("hole-wall");
-        this.holeWall.material = this.game.grayMaterial;
+        this.holeWall.material = this.game.holeMaterial;
         this.puzzleUI = new PuzzleUI(this);
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
         this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 300, height: 100 });
@@ -5858,6 +5972,9 @@ class Puzzle {
         if (this.border) {
             this.border.dispose();
         }
+        if (this.holeOutline) {
+            this.holeOutline.dispose();
+        }
         while (this.winSlots.length > 0) {
             this.winSlots.pop().dispose();
         }
@@ -6019,13 +6136,15 @@ class Puzzle {
                 }
             }
         }
+        let holeOutlinePoints = [];
+        let holeOutlineColors = [];
         for (let n = 0; n < holes.length; n++) {
             let hole = holes[n];
             let i = hole.i;
             let j = hole.j;
             let left = holes.find(h => { return h.i === i - 1 && h.j === j; });
             if (!left) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -6035,10 +6154,18 @@ class Puzzle {
                 Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, -Math.PI * 0.5, 0));
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i - 0.5) * 1.1, -2.5, j * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 + 0.55),
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 - 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
             let right = holes.find(h => { return h.i === i + 1 && h.j === j; });
             if (!right) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -6048,10 +6175,18 @@ class Puzzle {
                 Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI * 0.5, 0));
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3((i + 0.5) * 1.1, -2.5, j * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 + 0.55),
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 - 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
             let up = holes.find(h => { return h.i === i && h.j === j + 1; });
             if (!up) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -6060,10 +6195,18 @@ class Puzzle {
                 ];
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j + 0.5) * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 + 0.55),
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 + 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
             let down = holes.find(h => { return h.i === i && h.j === j - 1; });
             if (!down) {
-                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5 });
+                let holeData = Mummu.CreateQuadVertexData({ width: 1.1, height: 5, uvInWorldSpace: true, uvSize: 1.1 });
                 holeData.colors = [
                     0, 0, 0, 1,
                     0, 0, 0, 1,
@@ -6073,9 +6216,26 @@ class Puzzle {
                 Mummu.RotateVertexDataInPlace(holeData, BABYLON.Quaternion.FromEulerAngles(0, Math.PI, 0));
                 Mummu.TranslateVertexDataInPlace(holeData, new BABYLON.Vector3(i * 1.1, -2.5, (j - 0.5) * 1.1));
                 holeDatas.push(holeData);
+                holeOutlinePoints.push([
+                    new BABYLON.Vector3(i * 1.1 + 0.55, 0, j * 1.1 - 0.55),
+                    new BABYLON.Vector3(i * 1.1 - 0.55, 0, j * 1.1 - 0.55),
+                ]);
+                holeOutlineColors.push([
+                    new BABYLON.Color4(0, 0, 0, 1),
+                    new BABYLON.Color4(0, 0, 0, 1)
+                ]);
             }
         }
-        Mummu.MergeVertexDatas(...floorDatas).applyToMesh(this.floor);
+        let floorData = Mummu.MergeVertexDatas(...floorDatas);
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            floorData.uvs[2 * i] = 0.5 * floorData.positions[3 * i];
+            floorData.uvs[2 * i + 1] = 0.5 * floorData.positions[3 * i + 2] - 0.5;
+        }
+        floorData.applyToMesh(this.floor);
+        this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
+            lines: holeOutlinePoints,
+            colors: holeOutlineColors
+        }, this.game.scene);
         if (holeDatas.length > 0) {
             Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
             this.holeWall.isVisible = true;

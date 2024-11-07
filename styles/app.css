@@ -91,7 +91,6 @@ a:active {
     width: min(100vw, 700px);
     pointer-events: none;
     text-align: center;
-    outline: 1px solid red;
 }
 
 @media (max-height: 700px) {

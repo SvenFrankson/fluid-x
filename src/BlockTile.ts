@@ -13,6 +13,10 @@ class BlockTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.material = this.game.tileColorMaterials[this.color];
+
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
     }
 
     public async instantiate(): Promise<void> {
@@ -23,7 +27,7 @@ class BlockTile extends Tile {
             d: 1,
             h: 0.35,
             thickness: 0.05,
-            flatShading: true,
+            flatShading: false,
             topCap: false,
             bottomCap: true,
         })

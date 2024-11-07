@@ -117,6 +117,9 @@ class Puzzle {
     }
 
     public buildings: Build[] = [];
+    public boxesWall: BABYLON.Mesh;
+    public boxesWood: BABYLON.Mesh;
+    public boxesFloor: BABYLON.Mesh;
 
     public fpsMaterial: BABYLON.StandardMaterial;
     public fpsTexture: BABYLON.DynamicTexture;
@@ -193,6 +196,15 @@ class Puzzle {
 
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.holeMaterial;
+
+        this.boxesWall = new BABYLON.Mesh("building-wall");
+        this.boxesWall.material = this.game.wallMaterial;
+
+        this.boxesWood = new BABYLON.Mesh("building-wood");
+        this.boxesWood.material = this.game.brownMaterial;
+
+        this.boxesFloor = new BABYLON.Mesh("building-floor");
+        this.boxesFloor.material = this.game.woodFloorMaterial;
 
         this.puzzleUI = new PuzzleUI(this);
 
@@ -524,7 +536,7 @@ class Puzzle {
                     });
                 }
                 if (c === "B") {
-                    let box = new Box(this.game, {
+                    let box = new BuildingBlock(this.game, {
                         i: i,
                         j: j,
                         borderBottom: true,
@@ -593,6 +605,11 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
+
+        let datas = await BuildingBlock.generateVertexDatas(this);
+        datas[0].applyToMesh(this.boxesWall);
+        datas[1].applyToMesh(this.boxesWood);
+        datas[2].applyToMesh(this.boxesFloor);
 
         for (let i = 0; i < this.ballsCount; i++) {
             await this.balls[i].instantiate();

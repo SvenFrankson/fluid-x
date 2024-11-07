@@ -603,7 +603,7 @@ class Ball extends BABYLON.Mesh {
                                     return;
                                 }
                             }
-                            else if (tile instanceof WaterTile) {
+                            else if (tile instanceof WaterTile && tile.distFromSource > 0) {
 
                             }
                             else {

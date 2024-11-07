@@ -522,7 +522,7 @@ class Ball extends BABYLON.Mesh {
                                     return;
                                 }
                             }
-                            else if (tile instanceof WaterTile) {
+                            else if (tile instanceof WaterTile && tile.distFromSource > 0) {
                             }
                             else {
                                 if (tile.tileState === TileState.Active) {
@@ -1216,7 +1216,7 @@ class Ramp extends Build {
         shadowData.applyToMesh(this.shadow);
     }
 }
-class Box extends Build {
+class BuildingBlock extends Build {
     constructor(game, props) {
         super(game, props);
         this.material = this.game.woodMaterial;
@@ -1287,6 +1287,7 @@ class Box extends Build {
         for (let i = 0; i < this.borders.length; i++) {
             await this.borders[i].instantiate();
         }
+        /*
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         let boxData = Mummu.CloneVertexData(data[6]);
         //Mummu.ColorizeVertexDataInPlace(boxData, this.game.whiteMaterial.diffuseColor, BABYLON.Color3.White());
@@ -1296,6 +1297,7 @@ class Box extends Build {
         data[7].applyToMesh(this.floor);
         //data[8].applyToMesh(this.roof);
         data[9].applyToMesh(this.wall);
+
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
             width: 2.2 + 2 * m,
@@ -1309,6 +1311,130 @@ class Box extends Build {
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 0.55));
         shadowData.applyToMesh(this.shadow);
+        */
+    }
+    static async generateVertexDatas(puzzle) {
+        let walls = [];
+        let woods = [];
+        let floors = [];
+        let boxChuncks = await puzzle.game.vertexDataLoader.get("./datas/meshes/building-unit.babylon");
+        let boxesGrid = [];
+        for (let i = 0; i <= puzzle.w + 1; i++) {
+            boxesGrid[i] = [];
+            for (let j = 0; j <= puzzle.h + 1; j++) {
+                boxesGrid[i][j] = 0;
+            }
+        }
+        puzzle.buildings.forEach(build => {
+            if (build instanceof BuildingBlock) {
+                boxesGrid[1 + build.i][1 + build.j] = 1;
+                boxesGrid[1 + build.i][1 + build.j + 1] = 1;
+                boxesGrid[1 + build.i + 1][1 + build.j] = 1;
+                boxesGrid[1 + build.i + 1][1 + build.j + 1] = 1;
+            }
+        });
+        for (let i = 0; i < boxesGrid.length - 1; i++) {
+            for (let j = 0; j < boxesGrid[i].length - 1; j++) {
+                let wall;
+                let wood;
+                let floor;
+                let ref = boxesGrid[i][j].toFixed(0) + "" + boxesGrid[i + 1][j].toFixed(0) + "" + boxesGrid[i + 1][j + 1].toFixed(0) + "" + boxesGrid[i][j + 1].toFixed(0);
+                if (ref === "1000") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[3]), Math.PI, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[4]), Math.PI, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[5]), Math.PI, BABYLON.Axis.Y);
+                }
+                if (ref === "0100") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[3]), Math.PI * 0.5, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[4]), Math.PI * 0.5, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[5]), Math.PI * 0.5, BABYLON.Axis.Y);
+                }
+                if (ref === "0010") {
+                    wall = Mummu.CloneVertexData(boxChuncks[3]);
+                    wood = Mummu.CloneVertexData(boxChuncks[4]);
+                    floor = Mummu.CloneVertexData(boxChuncks[5]);
+                }
+                if (ref === "0001") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[3]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[4]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[5]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                }
+                if (ref === "1100") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[0]), Math.PI, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[1]), Math.PI, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[2]), Math.PI, BABYLON.Axis.Y);
+                }
+                if (ref === "0110") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[0]), Math.PI * 0.5, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[1]), Math.PI * 0.5, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[2]), Math.PI * 0.5, BABYLON.Axis.Y);
+                }
+                if (ref === "0011") {
+                    wall = Mummu.CloneVertexData(boxChuncks[0]);
+                    wood = Mummu.CloneVertexData(boxChuncks[1]);
+                    floor = Mummu.CloneVertexData(boxChuncks[2]);
+                }
+                if (ref === "1001") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[0]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[1]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[2]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                }
+                if (ref === "1101") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[6]), Math.PI, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[7]), Math.PI, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[8]), Math.PI, BABYLON.Axis.Y);
+                }
+                if (ref === "1110") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[6]), Math.PI * 0.5, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[7]), Math.PI * 0.5, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[8]), Math.PI * 0.5, BABYLON.Axis.Y);
+                }
+                if (ref === "0111") {
+                    wall = Mummu.CloneVertexData(boxChuncks[6]);
+                    wood = Mummu.CloneVertexData(boxChuncks[7]);
+                    floor = Mummu.CloneVertexData(boxChuncks[8]);
+                }
+                if (ref === "1011") {
+                    wall = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[6]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                    wood = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[7]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                    floor = Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(boxChuncks[8]), -Math.PI * 0.5, BABYLON.Axis.Y);
+                }
+                if (ref === "1111") {
+                    floor = BABYLON.CreatePlaneVertexData({ size: 1.1 });
+                    Mummu.RotateAngleAxisVertexDataInPlace(floor, Math.PI * 0.5, BABYLON.Axis.X);
+                    Mummu.TranslateVertexDataInPlace(floor, BABYLON.Vector3.Up());
+                }
+                if (wall) {
+                    Mummu.TranslateVertexDataInPlace(wall, new BABYLON.Vector3((i - 0.5) * 1.1, 0, (j - 0.5) * 1.1));
+                    walls.push(wall);
+                }
+                if (wood) {
+                    Mummu.TranslateVertexDataInPlace(wood, new BABYLON.Vector3((i - 0.5) * 1.1, 0, (j - 0.5) * 1.1));
+                    woods.push(wood);
+                }
+                if (floor) {
+                    Mummu.TranslateVertexDataInPlace(floor, new BABYLON.Vector3((i - 0.5) * 1.1, 0, (j - 0.5) * 1.1));
+                    floors.push(floor);
+                }
+            }
+        }
+        if (walls.length > 0) {
+            let floorsData = Mummu.MergeVertexDatas(...floors);
+            for (let i = 0; i < floorsData.positions.length / 3; i++) {
+                floorsData.uvs[2 * i] = 0.55 * floorsData.positions[3 * i];
+                floorsData.uvs[2 * i + 1] = 0.55 * floorsData.positions[3 * i + 2];
+            }
+            return [
+                Mummu.MergeVertexDatas(...walls),
+                Mummu.MergeVertexDatas(...woods),
+                floorsData
+            ];
+        }
+        return [
+            new BABYLON.VertexData(),
+            new BABYLON.VertexData(),
+            new BABYLON.VertexData()
+        ];
     }
 }
 class Bridge extends Build {
@@ -1712,7 +1838,7 @@ class Editor {
                                 });
                             }
                             else if (this.brush === EditorBrush.Box) {
-                                let box = new Box(this.game, {
+                                let box = new BuildingBlock(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ
                                 });
@@ -5448,6 +5574,12 @@ class Puzzle {
         this.invisiFloorTM.isVisible = false;
         this.holeWall = new BABYLON.Mesh("hole-wall");
         this.holeWall.material = this.game.holeMaterial;
+        this.boxesWall = new BABYLON.Mesh("building-wall");
+        this.boxesWall.material = this.game.wallMaterial;
+        this.boxesWood = new BABYLON.Mesh("building-wood");
+        this.boxesWood.material = this.game.brownMaterial;
+        this.boxesFloor = new BABYLON.Mesh("building-floor");
+        this.boxesFloor.material = this.game.woodFloorMaterial;
         this.puzzleUI = new PuzzleUI(this);
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
         this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 300, height: 100 });
@@ -5873,7 +6005,7 @@ class Puzzle {
                     });
                 }
                 if (c === "B") {
-                    let box = new Box(this.game, {
+                    let box = new BuildingBlock(this.game, {
                         i: i,
                         j: j,
                         borderBottom: true,
@@ -5936,6 +6068,10 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
+        let datas = await BuildingBlock.generateVertexDatas(this);
+        datas[0].applyToMesh(this.boxesWall);
+        datas[1].applyToMesh(this.boxesWood);
+        datas[2].applyToMesh(this.boxesFloor);
         for (let i = 0; i < this.ballsCount; i++) {
             await this.balls[i].instantiate();
         }
@@ -6565,7 +6701,7 @@ function SaveAsText(puzzle) {
     puzzle.buildings.forEach(building => {
         let i = building.i;
         let j = building.j;
-        if (building instanceof Box) {
+        if (building instanceof BuildingBlock) {
             lines[j][i] = "B";
         }
         if (building instanceof Ramp) {

@@ -737,7 +737,7 @@ class Editor {
                             )
                         }
                         else if (this.brush === EditorBrush.Box) {
-                            let box = new Box(
+                            let box = new BuildingBlock(
                                 this.game,
                                 {
                                     i: this.cursorI,

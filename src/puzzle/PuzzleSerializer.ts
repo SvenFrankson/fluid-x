@@ -55,7 +55,7 @@ function SaveAsText(puzzle: Puzzle): string {
     puzzle.buildings.forEach(building => {
         let i = building.i;
         let j = building.j;
-        if (building instanceof Box) {
+        if (building instanceof BuildingBlock) {
             lines[j][i] = "B";
         }
         if (building instanceof Ramp) {

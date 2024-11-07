@@ -20,6 +20,10 @@ class WaterTile extends Tile {
 
         this.material = this.game.blackMaterial;
 
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.01;
+
         this.shoreMesh = new BABYLON.Mesh("shore");
         this.shoreMesh.parent = this;
         this.shoreMesh.material = this.game.whiteMaterial;

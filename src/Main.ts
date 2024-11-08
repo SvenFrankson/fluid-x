@@ -1083,6 +1083,7 @@ class Game {
     public fadeIntroDir: number = 0;
 
     public async fadeInIntro(duration: number = 1): Promise<void> {
+        console.log("fadin");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
     
@@ -1106,6 +1107,7 @@ class Game {
     }
 
     public async fadeOutIntro(duration: number = 1): Promise<void> {
+        console.log("fadout");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
     

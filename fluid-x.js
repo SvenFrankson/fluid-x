@@ -4013,6 +4013,7 @@ class Game {
         }
     }
     async fadeInIntro(duration = 1) {
+        console.log("fadin");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
             let t0 = performance.now();
@@ -4034,6 +4035,7 @@ class Game {
         }
     }
     async fadeOutIntro(duration = 1) {
+        console.log("fadout");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
             let t0 = performance.now();
@@ -4651,6 +4653,7 @@ class SoundManager {
 }
 class StrokeText extends HTMLElement {
     connectedCallback() {
+        this.style.position = "relative";
         let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
         o = "1px";
         this.style.textShadow = o + " " + o + " 0px #e3cfb4ff, -" + o + " " + o + " 0px #e3cfb4ff, -" + o + " -" + o + " 0px #e3cfb4ff, " + o + " -" + o + " 0px #e3cfb4ff";

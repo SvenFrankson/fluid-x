@@ -634,8 +634,8 @@ class Puzzle {
             }
         }
 
-        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
-        if (waterTiles.length > 2) {
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
+        while (waterTiles.length > 2) {
             waterTiles = waterTiles.sort((t1, t2) => {
                 if (t2.j === t1.j) {
                     return t1.i - t2.i;
@@ -645,6 +645,7 @@ class Puzzle {
             if (waterTiles[0]) {
                 (waterTiles[0] as WaterTile).recursiveConnect(0);
             }
+            waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; })
         }
 
         for (let i = 0; i < this.tiles.length; i++) {

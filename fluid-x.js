@@ -4892,29 +4892,33 @@ class WaterTile extends Tile {
     }
     recursiveConnect(d = 0) {
         this.distFromSource = d;
+        let down = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j - 1); });
+        if (down && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
+            this.jMinusWater = down;
+            down.jPlusWater = this;
+            down.recursiveConnect(d + 1);
+            return;
+        }
         let right = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i + 1) && tile.j === this.j; });
         if (right && (!this.iPlusWater || this.iPlusWater.distFromSource > d + 1)) {
             this.iPlusWater = right;
             right.iMinusWater = this;
             right.recursiveConnect(d + 1);
+            return;
         }
         let left = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i - 1) && tile.j === this.j; });
         if (left && (!this.iMinusWater || this.iMinusWater.distFromSource > d + 1)) {
             this.iMinusWater = left;
             left.iPlusWater = this;
             left.recursiveConnect(d + 1);
+            return;
         }
         let up = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j + 1); });
         if (up && (!this.jPlusWater || this.jPlusWater.distFromSource > d + 1)) {
             this.jPlusWater = up;
             up.jMinusWater = this;
             up.recursiveConnect(d + 1);
-        }
-        let down = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j - 1); });
-        if (down && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
-            this.jMinusWater = down;
-            down.jPlusWater = this;
-            down.recursiveConnect(d + 1);
+            return;
         }
     }
     async instantiate() {
@@ -6120,8 +6124,8 @@ class Puzzle {
                 t.position.y = this.hMapGet(t.i, t.j);
             }
         }
-        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
-        if (waterTiles.length > 2) {
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
+        while (waterTiles.length > 2) {
             waterTiles = waterTiles.sort((t1, t2) => {
                 if (t2.j === t1.j) {
                     return t1.i - t2.i;
@@ -6131,6 +6135,7 @@ class Puzzle {
             if (waterTiles[0]) {
                 waterTiles[0].recursiveConnect(0);
             }
+            waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
         }
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();

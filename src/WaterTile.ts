@@ -144,6 +144,7 @@ class WaterTile extends Tile {
 
         this.path = this._getPath();
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
+        let floorData: BABYLON.VertexData;
 
         //let DEBUG = BABYLON.CreateLines("debug", { points: this.path, colors: this.path.map(() => { return new BABYLON.Color4(1, 0, 0, 1); })});
         //DEBUG.parent = this;
@@ -162,9 +163,9 @@ class WaterTile extends Tile {
                 Mummu.CloneVertexData(datas[1]), a, BABYLON.Axis.Y
             ).applyToMesh(this.waterMesh);
             
-            Mummu.RotateAngleAxisVertexDataInPlace(
+            floorData = Mummu.RotateAngleAxisVertexDataInPlace(
                 Mummu.CloneVertexData(datas[2]), a, BABYLON.Axis.Y
-            ).applyToMesh(this.floorMesh);
+            )
         }
         else if (!this.iPlusWater && !this.iMinusWater) {
             if (this.distFromSource === 0) {
@@ -179,19 +180,19 @@ class WaterTile extends Tile {
                 }
                 datas[6].applyToMesh(this);
                 datas[7].applyToMesh(this.waterMesh);
-                datas[8].applyToMesh(this.floorMesh);
+                floorData = Mummu.CloneVertexData(datas[8]);
                 datas[9].applyToMesh(this.sculptMesh);
             }
             else {
                 datas[0].applyToMesh(this);
                 datas[1].applyToMesh(this.waterMesh);
-                datas[2].applyToMesh(this.floorMesh);
+                floorData = Mummu.CloneVertexData(datas[2]);
             }
         }
         else if (this.iPlusWater && this.jPlusWater) {
             datas[3].applyToMesh(this);
             datas[4].applyToMesh(this.waterMesh);
-            datas[5].applyToMesh(this.floorMesh);
+            floorData = Mummu.CloneVertexData(datas[5]);
         }
         else if (this.iMinusWater && this.jPlusWater) {
             Mummu.MirrorXVertexDataInPlace(
@@ -206,9 +207,9 @@ class WaterTile extends Tile {
                 Mummu.CloneVertexData(datas[4])
             ).applyToMesh(this.waterMesh);
 
-            Mummu.MirrorXVertexDataInPlace(
+            floorData = Mummu.MirrorXVertexDataInPlace(
                 Mummu.CloneVertexData(datas[5])
-            ).applyToMesh(this.floorMesh);
+            );
         }
         else if (this.iPlusWater && this.jMinusWater) {
             Mummu.RotateAngleAxisVertexDataInPlace(
@@ -223,9 +224,9 @@ class WaterTile extends Tile {
                 Mummu.CloneVertexData(datas[4]), Math.PI * 0.5, BABYLON.Axis.Y
             ).applyToMesh(this.waterMesh);
             
-            Mummu.RotateAngleAxisVertexDataInPlace(
+            floorData = Mummu.RotateAngleAxisVertexDataInPlace(
                 Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y
-            ).applyToMesh(this.floorMesh);
+            );
         }
         else if (this.iMinusWater && this.jMinusWater) {
             Mummu.MirrorXVertexDataInPlace(
@@ -246,23 +247,39 @@ class WaterTile extends Tile {
                 )
             ).applyToMesh(this.waterMesh);
             
-            Mummu.MirrorXVertexDataInPlace(
+            floorData = Mummu.MirrorXVertexDataInPlace(
                 Mummu.RotateAngleAxisVertexDataInPlace(
                     Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y
                 )
-            ).applyToMesh(this.floorMesh);
+            );
         }
         else {
             if (this.distFromSource === 0) {
+                if (!this.sculptMesh) {
+                    this.sculptMesh = new BABYLON.Mesh("sculpt");
+                    this.sculptMesh.parent = this;
+                    this.sculptMesh.material = this.game.grayMaterial;
+
+                    this.sculptMesh.renderOutline = true;
+                    this.sculptMesh.outlineColor = BABYLON.Color3.Black();
+                    this.sculptMesh.outlineWidth = 0.01;
+                }
                 datas[6].applyToMesh(this);
                 datas[7].applyToMesh(this.waterMesh);
-                datas[8].applyToMesh(this.floorMesh);
+                floorData = Mummu.CloneVertexData(datas[8]);
+                datas[9].applyToMesh(this.sculptMesh);
             }
             else {
                 datas[0].applyToMesh(this);
                 datas[1].applyToMesh(this.waterMesh);
-                datas[2].applyToMesh(this.floorMesh);
+                floorData = Mummu.CloneVertexData(datas[2]);
             }
         }
+
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            floorData.uvs[2 * i] = 0.5 * (floorData.positions[3 * i] + this.position.x);
+            floorData.uvs[2 * i + 1] = 0.5 * (floorData.positions[3 * i + 2] + this.position.z) - 0.5;
+        }
+        floorData.applyToMesh(this.floorMesh);
     }
 }

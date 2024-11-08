@@ -156,7 +156,13 @@ class Ramp extends Build {
         }
         let data = await this.game.vertexDataLoader.get("./datas/meshes/ramp.babylon");
         data[0].applyToMesh(this);
-        data[1].applyToMesh(this.floor);
+
+        let floorData = Mummu.CloneVertexData(data[1]);
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            floorData.uvs[2 * i] = 0.55 * (floorData.positions[3 * i] + this.position.x);
+            floorData.uvs[2 * i + 1] = 0.55 * (floorData.positions[3 * i + 2] + this.position.z);
+        }
+        floorData.applyToMesh(this.floor);
 
         let jPlusLeftStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j + 3);
         let jPlusLeftConn = jPlusLeftStack && jPlusLeftStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
@@ -536,7 +542,12 @@ class Bridge extends Build {
         
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         data[3].applyToMesh(this);
-        data[4].applyToMesh(this.floor);
+        let floorData = Mummu.CloneVertexData(data[4]);
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            floorData.uvs[2 * i] = 0.55 * (floorData.positions[3 * i] + this.position.x);
+            floorData.uvs[2 * i + 1] = 0.55 * (floorData.positions[3 * i + 2] + this.position.z);
+        }
+        floorData.applyToMesh(this.floor);
         data[5].applyToMesh(this.builtInBorder);
 
         let m = 0.2;

@@ -957,10 +957,20 @@ class Border extends BABYLON.Mesh {
         this.d = v ? 1 : 0;
     }
     get i() {
-        return Math.floor(this.position.x / 1.1);
+        if (this.vertical) {
+            return Math.floor(this.position.x / 1.1);
+        }
+        else {
+            return Math.round(this.position.x / 1.1);
+        }
     }
     get j() {
-        return Math.floor(this.position.z / 1.1);
+        if (this.vertical) {
+            return Math.round(this.position.z / 1.1);
+        }
+        else {
+            return Math.floor(this.position.z / 1.1);
+        }
     }
     static BorderLeft(game, i, j, y = 0, ghost = false) {
         let border = new Border(game, ghost);
@@ -998,6 +1008,12 @@ class Border extends BABYLON.Mesh {
     }
     async instantiate() {
         if (!this.ghost) {
+            /*
+            let haikuDebug = new HaikuDebug(this.game, this.i.toFixed(0) + "." + this.j.toFixed(0));
+            haikuDebug.parent = this;
+            haikuDebug.rotation.y = 0.5 * Math.PI;
+            haikuDebug.position.y = 0.5;
+            */
             let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
             if (this.vertical) {
                 let jPlusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j + 1);
@@ -2522,6 +2538,33 @@ class HaikuPlayerStart extends BABYLON.Mesh {
     }
     hide() {
         this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
+    }
+}
+class HaikuDebug extends BABYLON.Mesh {
+    constructor(game, text) {
+        super("haiku");
+        this.game = game;
+        this.text = text;
+        BABYLON.CreateGroundVertexData({ width: 1, height: 0.5 }).applyToMesh(this);
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 200, height: 100 });
+        this.dynamicTexture.hasAlpha = true;
+        haikuMaterial.diffuseTexture = this.dynamicTexture;
+        haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        this.material = haikuMaterial;
+        let context = this.dynamicTexture.getContext();
+        context.fillStyle = "#00000000";
+        context.fillRect(0, 0, 200, 100);
+        context.fillStyle = "#231d17FF";
+        context.font = "100px Shalimar";
+        let l = context.measureText(this.text).width;
+        for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 3; y++) {
+                context.fillText(this.text, Math.floor(100 - l * 0.5) + x, 80 + y);
+            }
+        }
+        this.dynamicTexture.update();
     }
 }
 /// <reference path="./Tile.ts"/>

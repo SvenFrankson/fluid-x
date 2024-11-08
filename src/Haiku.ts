@@ -308,3 +308,39 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
     }
 }
+
+class HaikuDebug extends BABYLON.Mesh {
+
+    public dynamicTexture: BABYLON.DynamicTexture;
+
+    constructor(
+        public game: Game,
+        public text: string
+    ) {
+        super("haiku");
+        BABYLON.CreateGroundVertexData({ width: 1, height: 0.5 }).applyToMesh(this);
+
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 200, height: 100 });
+        this.dynamicTexture.hasAlpha = true;
+        haikuMaterial.diffuseTexture = this.dynamicTexture;
+        haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        this.material = haikuMaterial;
+
+        let context = this.dynamicTexture.getContext();
+        context.fillStyle = "#00000000";
+        context.fillRect(0, 0, 200, 100);
+
+        context.fillStyle = "#231d17FF";
+        context.font = "100px Shalimar";
+        let l = context.measureText(this.text).width;
+        for (let x = 0; x < 3; x++) {
+            for (let y = 0; y < 3; y++) {
+                context.fillText(this.text, Math.floor(100 - l * 0.5) + x, 80 + y);
+            }
+        }
+
+        this.dynamicTexture.update();
+    }
+}

@@ -14,11 +14,21 @@ class Border extends BABYLON.Mesh {
     public d: number = 1;
 
     public get i(): number {
-        return Math.floor(this.position.x / 1.1);
+        if (this.vertical) {
+            return Math.floor(this.position.x / 1.1);
+        }
+        else {
+            return Math.round(this.position.x / 1.1);
+        }
     }
 
     public get j(): number {
-        return Math.floor(this.position.z / 1.1);
+        if (this.vertical) {
+            return Math.round(this.position.z / 1.1);
+        }
+        else {
+            return Math.floor(this.position.z / 1.1);
+        }
     }
 
     public static BorderLeft(game: Game, i: number, j: number, y: number = 0, ghost: boolean = false): Border {
@@ -79,6 +89,14 @@ class Border extends BABYLON.Mesh {
 
     public async instantiate(): Promise<void> {
         if (!this.ghost) {
+
+            /*
+            let haikuDebug = new HaikuDebug(this.game, this.i.toFixed(0) + "." + this.j.toFixed(0));
+            haikuDebug.parent = this;
+            haikuDebug.rotation.y = 0.5 * Math.PI;
+            haikuDebug.position.y = 0.5;
+            */
+
             let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
             if (this.vertical) {
                 let jPlusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j + 1);

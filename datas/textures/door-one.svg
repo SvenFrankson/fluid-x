@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="75"
+   height="75"
+   id="svg6065"
+   version="1.1"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="door-one.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\textures\door-one.png"
+   inkscape:export-xdpi="163.84"
+   inkscape:export-ydpi="163.84">
+  <defs
+     id="defs6067" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="61.476618"
+     inkscape:cy="33.830344"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:document-rotation="0" />
+  <metadata
+     id="metadata6070">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-273.82856,-427.79074)">
+    <rect
+       style="fill:#524f47;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect835"
+       width="75"
+       height="75"
+       x="273.82855"
+       y="427.79071" />
+    <path
+       class="st7"
+       d="m 320.19588,468.02071 c -2.75713,0.14261 -5.37165,1.28349 -7.93863,2.04408 0.95073,-0.95074 3.94555,-2.51945 5.41918,-2.85221 0.71305,-0.42783 1.47364,-0.85566 2.04408,-1.4261 -4.6586,0 -12.92999,0.23769 -17.01814,1.94901 -2.18669,0.9032 -4.04062,2.3293 -6.465,2.94727 -3.47018,0.85567 -5.89455,-1.33102 -7.55834,-3.47018 -0.61797,-0.85566 -1.66378,-1.47363 -1.52117,-2.51944 1.23595,0 2.42437,0.14261 3.66033,0 3.47018,-0.19015 6.98789,-0.99827 10.41054,-1.47364 6.6076,-0.95073 13.31028,-1.37857 19.82281,-2.51945 1.71132,-0.33275 5.13397,-1.28349 6.79775,-0.90319 1.09335,0.23768 5.89455,2.56698 6.84529,3.18496 4.51599,7.08297 -10.98098,3.47018 -14.4987,5.03889 z"
+       id="path29"
+       style="fill:#2b2821;stroke-width:1.99937008;fill-opacity:1;stroke:#e3cfb4;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round;paint-order:stroke fill markers" />
+  </g>
+</svg>

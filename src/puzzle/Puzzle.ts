@@ -589,6 +589,96 @@ class Puzzle {
                         h: 0
                     });
                 }
+                if (c === "I") {
+                    let button = new ButtonTile(this.game, {
+                        color: TileColor.North,
+                        value: 1,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "D") {
+                    let button = new ButtonTile(this.game, {
+                        color: TileColor.North,
+                        value: 2,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "T") {
+                    let button = new ButtonTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "i") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 1,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
+                if (c === "j") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 1,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    button.close(0);
+                }
+                if (c === "d") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 2,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
+                if (c === "f") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 2,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    button.close(0);
+                }
+                if (c === "t") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
+                if (c === "r") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    button.close(0);
+                }
                 if (c === "B") {
                     this.buildingBlocks[i][j] = 1;
                     this.buildingBlocks[i + 1][j] = 1;

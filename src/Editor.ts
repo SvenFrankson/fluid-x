@@ -3,6 +3,8 @@ enum EditorBrush {
     Delete,
     Tile,
     Switch,
+    Button,
+    Door,
     Push,
     Hole,
     Wall,
@@ -50,6 +52,12 @@ class Editor {
     public blockTileEastButton: HTMLButtonElement;
     public blockTileSouthButton: HTMLButtonElement;
     public blockTileWestButton: HTMLButtonElement;
+    public buttonTileOneButton: HTMLButtonElement;
+    public buttonTileTwoButton: HTMLButtonElement;
+    public buttonTileThreeButton: HTMLButtonElement;
+    public doorTileOneButton: HTMLButtonElement;
+    public doorTileTwoButton: HTMLButtonElement;
+    public doorTileThreeButton: HTMLButtonElement;
     public pushTileButton: HTMLButtonElement;
     public holeButton: HTMLButtonElement;
     public wallButton: HTMLButtonElement;
@@ -260,6 +268,12 @@ class Editor {
         this.blockTileEastButton = document.getElementById("tile-east-btn") as HTMLButtonElement;
         this.blockTileSouthButton = document.getElementById("tile-south-btn") as HTMLButtonElement;
         this.blockTileWestButton = document.getElementById("tile-west-btn") as HTMLButtonElement;
+        this.buttonTileOneButton = document.getElementById("button-one-btn") as HTMLButtonElement;
+        this.buttonTileTwoButton = document.getElementById("button-two-btn") as HTMLButtonElement;
+        this.buttonTileThreeButton = document.getElementById("button-three-btn") as HTMLButtonElement;
+        this.doorTileOneButton = document.getElementById("door-one-btn") as HTMLButtonElement;
+        this.doorTileTwoButton = document.getElementById("door-two-btn") as HTMLButtonElement;
+        this.doorTileThreeButton = document.getElementById("door-three-btn") as HTMLButtonElement;
         this.pushTileButton = document.getElementById("push-tile-btn") as HTMLButtonElement;
         this.holeButton = document.getElementById("hole-btn") as HTMLButtonElement;
         this.wallButton = document.getElementById("wall-btn") as HTMLButtonElement;
@@ -278,6 +292,12 @@ class Editor {
             this.blockTileEastButton,
             this.blockTileSouthButton,
             this.blockTileWestButton,
+            this.buttonTileOneButton,
+            this.buttonTileTwoButton,
+            this.buttonTileThreeButton,
+            this.doorTileOneButton,
+            this.doorTileTwoButton,
+            this.doorTileThreeButton,
             this.pushTileButton,
             this.holeButton,
             this.wallButton,
@@ -316,6 +336,14 @@ class Editor {
         makeBrushButton(this.blockTileEastButton, EditorBrush.Tile, TileColor.East);
         makeBrushButton(this.blockTileSouthButton, EditorBrush.Tile, TileColor.South);
         makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
+
+        makeBrushButton(this.buttonTileOneButton, EditorBrush.Button, 1);
+        makeBrushButton(this.buttonTileTwoButton, EditorBrush.Button, 2);
+        makeBrushButton(this.buttonTileThreeButton, EditorBrush.Button, 3);
+
+        makeBrushButton(this.doorTileOneButton, EditorBrush.Door, 1);
+        makeBrushButton(this.doorTileTwoButton, EditorBrush.Door, 2);
+        makeBrushButton(this.doorTileThreeButton, EditorBrush.Door, 3);
 
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
@@ -661,7 +689,10 @@ class Editor {
                     let tile = this.puzzle.tiles.find(tile => {
                         return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
-                    if (tile) {
+                    if (tile instanceof DoorTile && !tile.closed) {
+                        tile.close(0);
+                    }
+                    else if (tile) {
                         tile.dispose();
                         this.puzzle.rebuildFloor();
                     }
@@ -703,6 +734,30 @@ class Editor {
                                     j: this.cursorJ,
                                     h: this.cursorH,
                                     color: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Button) {
+                            tile = new ButtonTile(
+                                this.game,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
+                                    color: this.brushColor,
+                                    value: this.brushColor
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Door) {
+                            tile = new DoorTile(
+                                this.game,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
+                                    color: this.brushColor,
+                                    value: this.brushColor
                                 }
                             )
                         }

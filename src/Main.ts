@@ -250,6 +250,7 @@ class Game {
 
     public tileColorMaterials: BABYLON.StandardMaterial[];
     public tileColorShinyMaterials: BABYLON.StandardMaterial[];
+    public tileNumberMaterials: BABYLON.StandardMaterial[];
     public colorMaterials: BABYLON.Material[];
     public trueWhiteMaterial: BABYLON.StandardMaterial;
     public whiteMaterial: BABYLON.StandardMaterial;
@@ -503,6 +504,23 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+
+        let oneMaterial = new BABYLON.StandardMaterial("one-material");
+        oneMaterial.specularColor.copyFromFloats(0, 0, 0);
+        oneMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-one.png");
+            
+        let twoMaterial = new BABYLON.StandardMaterial("two-material");
+        twoMaterial.specularColor.copyFromFloats(0, 0, 0);
+        twoMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-two.png");
+
+        let threeMaterial = new BABYLON.StandardMaterial("three-material");
+        threeMaterial.specularColor.copyFromFloats(0, 0, 0);
+        threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
+
+        this.tileNumberMaterials = [];
+        this.tileNumberMaterials[0] = oneMaterial;
+        this.tileNumberMaterials[1] = twoMaterial;
+        this.tileNumberMaterials[2] = threeMaterial;
         
         this.tileColorShinyMaterials = [];
         this.tileColorShinyMaterials[TileColor.North] = northMaterial.clone(northMaterial.name + "-shiny");
@@ -597,6 +615,10 @@ class Game {
                 }
             }
         })
+
+        let doorDatas = await this.vertexDataLoader.get("./datas/meshes/door.babylon");
+        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
+        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
 
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));

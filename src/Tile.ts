@@ -1,5 +1,6 @@
 interface TileProps {
     color: TileColor;
+    value?: number;
     i?: number;
     j?: number;
     h?: number;

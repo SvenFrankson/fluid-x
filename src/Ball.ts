@@ -605,6 +605,9 @@ class Ball extends BABYLON.Mesh {
                             else if (tile instanceof WaterTile && tile.distFromSource > 0) {
 
                             }
+                            else if (tile instanceof DoorTile && tile.closed === false) {
+
+                            }
                             else {
                                 if (tile.tileState === TileState.Active) {
                                     if (tile.collide(this, impact)) {
@@ -635,6 +638,19 @@ class Ball extends BABYLON.Mesh {
                                             if (tile instanceof SwitchTile) {
                                                 tile.bump();
                                                 this.setColor(tile.color);
+                                            }
+                                            else if (tile instanceof ButtonTile) {
+                                                tile.bump();
+                                                this.puzzle.tiles.forEach(door => {
+                                                    if (door instanceof DoorTile && door.props.value === tile.props.value) {
+                                                        if (door.closed) {
+                                                            door.open();
+                                                        }
+                                                        else {
+                                                            door.close();
+                                                        }
+                                                    }
+                                                })
                                             }
                                             else if (tile instanceof BlockTile) {
                                                 if (tile.color === this.color) {

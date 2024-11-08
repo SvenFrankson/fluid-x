@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="75"
+   height="75"
+   id="svg6065"
+   version="1.1"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="door-three.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\textures\door-three.png"
+   inkscape:export-xdpi="327.67999"
+   inkscape:export-ydpi="327.67999">
+  <defs
+     id="defs6067" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="61.476618"
+     inkscape:cy="33.830344"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:document-rotation="0" />
+  <metadata
+     id="metadata6070">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-273.82856,-427.79074)">
+    <rect
+       style="fill:#524f47;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect835"
+       width="75"
+       height="75"
+       x="273.82855"
+       y="427.79071" />
+    <path
+       class="st7"
+       d="m 332.1875,479.72593 c -1.85505,0.0488 -7.17612,-1.56215 -9.71461,-1.7086 -7.07849,-0.53699 -17.42772,1.12279 -23.57868,4.19828 -1.65979,0.82989 -3.85656,1.65978 -5.85806,1.07397 -1.65979,-0.48817 -4.93054,-2.39204 -5.51634,-3.80774 -0.73226,-1.41569 -0.0488,-1.80623 1.65978,-1.36688 0.87871,0.19527 0.97635,0.34172 1.90387,0.19527 2.05032,-0.2929 4.14946,-0.87871 6.2486,-1.41569 6.78558,-1.56215 13.81525,-2.34323 20.74729,-3.17312 1.90386,-0.24408 3.80773,-0.43935 5.56515,-0.73226 2.58731,-0.43935 3.56365,-0.92752 6.19978,-0.0976 2.78258,0.87871 6.10214,2.78258 5.51634,5.51634 -0.73226,0.82989 -1.95269,1.36688 -3.17312,1.31806 z m -10.15397,-26.4589 c -0.34172,0.34172 -6.19977,2.78258 -6.98085,3.02667 -1.75742,0.53699 -3.75892,0.68344 -5.36988,1.56215 -2.14796,1.17161 -5.17462,2.63612 -6.68795,4.29591 0.43935,1.56215 10.8374,-0.87871 12.00901,-1.51334 2.48968,0.53699 5.46753,1.22043 6.49269,3.31957 0.78107,1.56215 0.0488,2.39204 -1.95269,2.58731 -6.63913,0.58581 -15.42622,6.63913 -21.77245,9.07999 l -1.17161,-0.0488 c 2.97785,-2.78257 7.07849,-4.44236 10.49569,-6.88322 l -0.39054,-0.14645 c -1.17161,-0.19527 -3.36838,-0.97634 -4.39354,-1.51333 -0.53699,-0.63462 -1.17162,-1.22043 -1.36688,-2.0015 -0.34172,-1.17161 -0.14646,-2.73376 0.8787,-3.66129 2.48968,-2.2944 5.36989,-4.29591 7.76193,-6.78558 -2.58731,-1.61097 -5.71161,-3.17312 -6.98085,-5.76043 0.73226,0 1.51333,-0.0488 2.14795,0.19527 0.97635,-0.14645 2.05032,0 3.07548,-0.0976 0.97635,-0.0488 1.95269,-0.39054 2.8314,-0.68344 2.09914,-0.73226 2.09914,-1.07398 4.58881,-1.1228 4.00301,-0.0976 4.58881,0.0488 7.22494,2.58731 0.39054,0.97635 0.48817,2.68495 -0.43936,3.56365 z"
+       id="path29"
+       style="fill:#2b2821;stroke-width:1.99937008;fill-opacity:1;stroke:#e3cfb4;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round;paint-order:stroke fill markers" />
+  </g>
+</svg>

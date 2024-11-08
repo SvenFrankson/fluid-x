@@ -523,6 +523,8 @@ class Ball extends BABYLON.Mesh {
                             }
                             else if (tile instanceof WaterTile && tile.distFromSource > 0) {
                             }
+                            else if (tile instanceof DoorTile && tile.closed === false) {
+                            }
                             else {
                                 if (tile.tileState === TileState.Active) {
                                     if (tile.collide(this, impact)) {
@@ -553,6 +555,19 @@ class Ball extends BABYLON.Mesh {
                                             if (tile instanceof SwitchTile) {
                                                 tile.bump();
                                                 this.setColor(tile.color);
+                                            }
+                                            else if (tile instanceof ButtonTile) {
+                                                tile.bump();
+                                                this.puzzle.tiles.forEach(door => {
+                                                    if (door instanceof DoorTile && door.props.value === tile.props.value) {
+                                                        if (door.closed) {
+                                                            door.open();
+                                                        }
+                                                        else {
+                                                            door.close();
+                                                        }
+                                                    }
+                                                });
                                             }
                                             else if (tile instanceof BlockTile) {
                                                 if (tile.color === this.color) {
@@ -1732,13 +1747,15 @@ var EditorBrush;
     EditorBrush[EditorBrush["Delete"] = 1] = "Delete";
     EditorBrush[EditorBrush["Tile"] = 2] = "Tile";
     EditorBrush[EditorBrush["Switch"] = 3] = "Switch";
-    EditorBrush[EditorBrush["Push"] = 4] = "Push";
-    EditorBrush[EditorBrush["Hole"] = 5] = "Hole";
-    EditorBrush[EditorBrush["Wall"] = 6] = "Wall";
-    EditorBrush[EditorBrush["Water"] = 7] = "Water";
-    EditorBrush[EditorBrush["Box"] = 8] = "Box";
-    EditorBrush[EditorBrush["Ramp"] = 9] = "Ramp";
-    EditorBrush[EditorBrush["Bridge"] = 10] = "Bridge";
+    EditorBrush[EditorBrush["Button"] = 4] = "Button";
+    EditorBrush[EditorBrush["Door"] = 5] = "Door";
+    EditorBrush[EditorBrush["Push"] = 6] = "Push";
+    EditorBrush[EditorBrush["Hole"] = 7] = "Hole";
+    EditorBrush[EditorBrush["Wall"] = 8] = "Wall";
+    EditorBrush[EditorBrush["Water"] = 9] = "Water";
+    EditorBrush[EditorBrush["Box"] = 10] = "Box";
+    EditorBrush[EditorBrush["Ramp"] = 11] = "Ramp";
+    EditorBrush[EditorBrush["Bridge"] = 12] = "Bridge";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -1799,7 +1816,10 @@ class Editor {
                         let tile = this.puzzle.tiles.find(tile => {
                             return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
-                        if (tile) {
+                        if (tile instanceof DoorTile && !tile.closed) {
+                            tile.close(0);
+                        }
+                        else if (tile) {
                             tile.dispose();
                             this.puzzle.rebuildFloor();
                         }
@@ -1836,6 +1856,24 @@ class Editor {
                                     j: this.cursorJ,
                                     h: this.cursorH,
                                     color: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Button) {
+                                tile = new ButtonTile(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
+                                    color: this.brushColor,
+                                    value: this.brushColor
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Door) {
+                                tile = new DoorTile(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
+                                    color: this.brushColor,
+                                    value: this.brushColor
                                 });
                             }
                             else if (this.brush === EditorBrush.Push) {
@@ -2054,6 +2092,12 @@ class Editor {
         this.blockTileEastButton = document.getElementById("tile-east-btn");
         this.blockTileSouthButton = document.getElementById("tile-south-btn");
         this.blockTileWestButton = document.getElementById("tile-west-btn");
+        this.buttonTileOneButton = document.getElementById("button-one-btn");
+        this.buttonTileTwoButton = document.getElementById("button-two-btn");
+        this.buttonTileThreeButton = document.getElementById("button-three-btn");
+        this.doorTileOneButton = document.getElementById("door-one-btn");
+        this.doorTileTwoButton = document.getElementById("door-two-btn");
+        this.doorTileThreeButton = document.getElementById("door-three-btn");
         this.pushTileButton = document.getElementById("push-tile-btn");
         this.holeButton = document.getElementById("hole-btn");
         this.wallButton = document.getElementById("wall-btn");
@@ -2071,6 +2115,12 @@ class Editor {
             this.blockTileEastButton,
             this.blockTileSouthButton,
             this.blockTileWestButton,
+            this.buttonTileOneButton,
+            this.buttonTileTwoButton,
+            this.buttonTileThreeButton,
+            this.doorTileOneButton,
+            this.doorTileTwoButton,
+            this.doorTileThreeButton,
             this.pushTileButton,
             this.holeButton,
             this.wallButton,
@@ -2106,6 +2156,12 @@ class Editor {
         makeBrushButton(this.blockTileEastButton, EditorBrush.Tile, TileColor.East);
         makeBrushButton(this.blockTileSouthButton, EditorBrush.Tile, TileColor.South);
         makeBrushButton(this.blockTileWestButton, EditorBrush.Tile, TileColor.West);
+        makeBrushButton(this.buttonTileOneButton, EditorBrush.Button, 1);
+        makeBrushButton(this.buttonTileTwoButton, EditorBrush.Button, 2);
+        makeBrushButton(this.buttonTileThreeButton, EditorBrush.Button, 3);
+        makeBrushButton(this.doorTileOneButton, EditorBrush.Door, 1);
+        makeBrushButton(this.doorTileTwoButton, EditorBrush.Door, 2);
+        makeBrushButton(this.doorTileThreeButton, EditorBrush.Door, 3);
         makeBrushButton(this.pushTileButton, EditorBrush.Push);
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.wallButton, EditorBrush.Wall);
@@ -3606,6 +3662,19 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        let oneMaterial = new BABYLON.StandardMaterial("one-material");
+        oneMaterial.specularColor.copyFromFloats(0, 0, 0);
+        oneMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-one.png");
+        let twoMaterial = new BABYLON.StandardMaterial("two-material");
+        twoMaterial.specularColor.copyFromFloats(0, 0, 0);
+        twoMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-two.png");
+        let threeMaterial = new BABYLON.StandardMaterial("three-material");
+        threeMaterial.specularColor.copyFromFloats(0, 0, 0);
+        threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
+        this.tileNumberMaterials = [];
+        this.tileNumberMaterials[0] = oneMaterial;
+        this.tileNumberMaterials[1] = twoMaterial;
+        this.tileNumberMaterials[2] = threeMaterial;
         this.tileColorShinyMaterials = [];
         this.tileColorShinyMaterials[TileColor.North] = northMaterial.clone(northMaterial.name + "-shiny");
         this.tileColorShinyMaterials[TileColor.East] = eastMaterial.clone(eastMaterial.name + "-shiny");
@@ -3681,6 +3750,9 @@ class Game {
                 }
             }
         });
+        let doorDatas = await this.vertexDataLoader.get("./datas/meshes/door.babylon");
+        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
+        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
             if (dataString) {
@@ -4734,6 +4806,92 @@ class SwitchTile extends Tile {
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);
         tileData[3].applyToMesh(this.tileBottom);
+    }
+}
+class ButtonTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        if (isNaN(this.props.value)) {
+            this.props.value = 0;
+        }
+        this.material = this.game.blackMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+        this.tileFrame = new BABYLON.Mesh("tile-frame");
+        this.tileFrame.parent = this;
+        this.tileFrame.material = this.game.blackMaterial;
+        this.tileFrame.renderOutline = true;
+        this.tileFrame.outlineColor = BABYLON.Color3.Black();
+        this.tileFrame.outlineWidth = 0.02;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.tileBottom = new BABYLON.Mesh("tile-bottom");
+        this.tileBottom.parent = this;
+        this.tileBottom.material = this.game.grayMaterial;
+    }
+    async instantiate() {
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
+        tileData[0].applyToMesh(this);
+        tileData[1].applyToMesh(this.tileFrame);
+        tileData[2].applyToMesh(this.tileTop);
+        tileData[3].applyToMesh(this.tileBottom);
+    }
+}
+class DoorTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.closed = false;
+        this.animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.animateTopRotY = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.animateBoxPosY = Mummu.AnimationFactory.EmptyNumberCallback;
+        if (isNaN(this.props.value)) {
+            this.props.value = 0;
+        }
+        this.material = this.game.grayMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+        this.tileBox = new BABYLON.Mesh("tile-frame");
+        this.tileBox.position.y = 0.02;
+        this.tileBox.parent = this;
+        this.tileBox.material = this.game.brownMaterial;
+        this.tileBox.renderOutline = true;
+        this.tileBox.outlineColor = BABYLON.Color3.Black();
+        this.tileBox.outlineWidth = 0.01;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.animateTopPosY = Mummu.AnimationFactory.CreateNumber(this, this.tileTop.position, "y");
+        this.animateTopRotY = Mummu.AnimationFactory.CreateNumber(this.tileTop, this.tileTop.rotation, "y");
+        this.animateBoxPosY = Mummu.AnimationFactory.CreateNumber(this.tileBox, this.tileBox.position, "y");
+    }
+    async instantiate() {
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/door.babylon");
+        //tileData[0].applyToMesh(this);
+        tileData[1].applyToMesh(this.tileBox);
+        tileData[2].applyToMesh(this.tileTop);
+    }
+    async open(duration = 1) {
+        this.animateTopPosY(0, duration, Nabu.Easing.easeInOutSine);
+        this.animateTopRotY(0, duration, Nabu.Easing.easeInOutSine);
+        setTimeout(() => {
+            this.tileBox.material = this.game.brownMaterial;
+        }, duration * 500);
+        await this.animateBoxPosY(0.02, duration, Nabu.Easing.easeInOutSine);
+        this.closed = false;
+    }
+    async close(duration = 1) {
+        this.closed = true;
+        this.animateTopPosY(0.15, duration, Nabu.Easing.easeInOutSine);
+        this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeInOutSine);
+        setTimeout(() => {
+            this.tileBox.material = this.game.blackMaterial;
+        }, duration * 500);
+        await this.animateBoxPosY(0.3, duration, Nabu.Easing.easeInOutSine);
     }
 }
 class UserInterfaceInputManager {
@@ -6131,6 +6289,96 @@ class Puzzle {
                         h: 0
                     });
                 }
+                if (c === "I") {
+                    let button = new ButtonTile(this.game, {
+                        color: TileColor.North,
+                        value: 1,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "D") {
+                    let button = new ButtonTile(this.game, {
+                        color: TileColor.North,
+                        value: 2,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "T") {
+                    let button = new ButtonTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
+                if (c === "i") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 1,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
+                if (c === "j") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 1,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    button.close(0);
+                }
+                if (c === "d") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 2,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
+                if (c === "f") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 2,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    button.close(0);
+                }
+                if (c === "t") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                }
+                if (c === "r") {
+                    let button = new DoorTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    button.close(0);
+                }
                 if (c === "B") {
                     this.buildingBlocks[i][j] = 1;
                     this.buildingBlocks[i + 1][j] = 1;
@@ -6849,6 +7097,28 @@ function SaveAsText(puzzle) {
             }
             else if (tile.color === TileColor.West) {
                 lines[j][i] = "W";
+            }
+        }
+        else if (tile instanceof ButtonTile) {
+            if (tile.props.value === 1) {
+                lines[j][i] = "I";
+            }
+            else if (tile.props.value === 2) {
+                lines[j][i] = "D";
+            }
+            else if (tile.props.value === 3) {
+                lines[j][i] = "T";
+            }
+        }
+        else if (tile instanceof DoorTile) {
+            if (tile.props.value === 1) {
+                lines[j][i] = tile.closed ? "j" : "i";
+            }
+            else if (tile.props.value === 2) {
+                lines[j][i] = tile.closed ? "f" : "d";
+            }
+            else if (tile.props.value === 3) {
+                lines[j][i] = tile.closed ? "r" : "t";
             }
         }
         else if (tile instanceof PushTile) {

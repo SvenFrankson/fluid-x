@@ -38,6 +38,28 @@ function SaveAsText(puzzle: Puzzle): string {
                 lines[j][i] = "W";
             }
         }
+        else if (tile instanceof ButtonTile) {
+            if (tile.props.value === 1) {
+                lines[j][i] = "I";
+            }
+            else if (tile.props.value === 2) {
+                lines[j][i] = "D";
+            }
+            else if (tile.props.value === 3) {
+                lines[j][i] = "T";
+            }
+        }
+        else if (tile instanceof DoorTile) {
+            if (tile.props.value === 1) {
+                lines[j][i] = tile.closed ? "j" : "i";
+            }
+            else if (tile.props.value === 2) {
+                lines[j][i] = tile.closed ? "f" : "d";
+            }
+            else if (tile.props.value === 3) {
+                lines[j][i] = tile.closed ? "r" : "t";
+            }
+        }
         else if (tile instanceof PushTile) {
             lines[j][i] = "p";
         }

@@ -443,7 +443,6 @@ class Ball extends BABYLON.Mesh {
             }
             else {
                 let path = this.water.path;
-                console.log(path);
                 let proj = {
                     point: BABYLON.Vector3.Zero(),
                     index: 0

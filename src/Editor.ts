@@ -198,6 +198,7 @@ class Editor {
         this.widthInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
             text = text.replaceAll("x", "xo");
+            text = text.replaceAll("xoBB", "xBB");
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -208,7 +209,7 @@ class Editor {
             let text = SaveAsText(this.puzzle);
 
             let split = text.split("x");
-            for (let i = 1; i < split.length; i++) {
+            for (let i = 1; i < split.length - 1; i++) {
                 split[i] = split[i].substring(1);
             }
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
@@ -228,7 +229,11 @@ class Editor {
         this.heightInsert = document.getElementById("editor-height-insert") as HTMLButtonElement;
         this.heightInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
-            text += "x" + ("").padStart(this.puzzle.w, "o");
+            let split = text.split("x");
+            let last = split.pop();
+            split.push("x" + ("").padStart(this.puzzle.w, "o"));
+            split.push(last);
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -238,7 +243,9 @@ class Editor {
         this.heightDelete.onclick = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
+            let last = split.pop();
             split.pop();
+            split.push(last);
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             this.puzzle.data.content = text;
             this.puzzle.reset();
@@ -314,7 +321,7 @@ class Editor {
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.waterButton, EditorBrush.Water);
-        makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
+        makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 1, h: 1, d: 1 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
 
@@ -658,6 +665,10 @@ class Editor {
                         tile.dispose();
                         this.puzzle.rebuildFloor();
                     }
+                    else if (this.puzzle.buildingBlockGet(this.cursorI, this.cursorJ) === 1) {
+                        this.puzzle.buildingBlockSet(0, this.cursorI, this.cursorJ);
+                        this.puzzle.editorRegenerateBuildings();
+                    }
                     else {
                         let building = this.puzzle.buildings.find(build => {
                             return build.i === this.cursorI && build.j === this.cursorJ;
@@ -737,13 +748,7 @@ class Editor {
                             )
                         }
                         else if (this.brush === EditorBrush.Box) {
-                            let box = new BuildingBlock(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ
-                                }
-                            );
+                            this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
                             this.puzzle.editorRegenerateBuildings();
                         }
                         else if (this.brush === EditorBrush.Ramp) {

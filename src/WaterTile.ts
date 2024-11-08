@@ -150,7 +150,6 @@ class WaterTile extends Tile {
         //DEBUG.position = this.position.scale(-1);
 
         if (this.iPlusWater && this.iMinusWater) {
-            console.log("alpha");
             let a = Math.PI * 0.5;
             if (this.iMinusWater.distFromSource < this.distFromSource) {
                 a = - Math.PI * 0.5;
@@ -190,13 +189,11 @@ class WaterTile extends Tile {
             }
         }
         else if (this.iPlusWater && this.jPlusWater) {
-            console.log("charly");
             datas[3].applyToMesh(this);
             datas[4].applyToMesh(this.waterMesh);
             datas[5].applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jPlusWater) {
-            console.log("delta");
             Mummu.MirrorXVertexDataInPlace(
                 Mummu.CloneVertexData(datas[3])
             ).applyToMesh(this);
@@ -214,7 +211,6 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else if (this.iPlusWater && this.jMinusWater) {
-            console.log("echo");
             Mummu.RotateAngleAxisVertexDataInPlace(
                 Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y
             ).applyToMesh(this);
@@ -232,7 +228,6 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jMinusWater) {
-            console.log("foxtrot");
             Mummu.MirrorXVertexDataInPlace(
                 Mummu.RotateAngleAxisVertexDataInPlace(
                     Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y
@@ -258,7 +253,6 @@ class WaterTile extends Tile {
             ).applyToMesh(this.floorMesh);
         }
         else {
-            console.log("golf");
             if (this.distFromSource === 0) {
                 datas[6].applyToMesh(this);
                 datas[7].applyToMesh(this.waterMesh);

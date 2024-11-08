@@ -177,7 +177,6 @@ class CarillonRouter extends Nabu.Router {
             })
         }
         else if (page.startsWith("#multiplayer-levels")) {
-            console.log("!");
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }

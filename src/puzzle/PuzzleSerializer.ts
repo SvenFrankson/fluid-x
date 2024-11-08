@@ -55,9 +55,6 @@ function SaveAsText(puzzle: Puzzle): string {
     puzzle.buildings.forEach(building => {
         let i = building.i;
         let j = building.j;
-        if (building instanceof BuildingBlock) {
-            lines[j][i] = "B";
-        }
         if (building instanceof Ramp) {
             lines[j][i] = "R";
         }
@@ -78,6 +75,15 @@ function SaveAsText(puzzle: Puzzle): string {
         }
     }
     lines2.splice(0, 0, ballLine);
+
+    let buildingBlocksLine = "BB";
+    for (let j = 0; j < puzzle.h; j++) {
+        for (let i = 0; i < puzzle.w; i++) {
+            buildingBlocksLine = buildingBlocksLine + puzzle.buildingBlockGet(i, j).toFixed(0);
+        }
+    }
+
+    lines2.push(buildingBlocksLine);
 
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
 }

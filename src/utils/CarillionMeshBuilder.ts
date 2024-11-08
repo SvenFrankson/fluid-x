@@ -404,8 +404,6 @@ function CreateBiDiscVertexData(props: IBiDiscProps): BABYLON.VertexData {
         data.colors = colors;
     }
 
-    console.log(data);
-
     if (d + r2 > r1) {
         let rot = Mummu.AngleFromToAround(new BABYLON.Vector3(-1, 0, 0), props.p2.subtract(props.p1), BABYLON.Axis.Y);
         Mummu.RotateAngleAxisVertexDataInPlace(data, rot, BABYLON.Axis.Y);

@@ -370,7 +370,6 @@ class Ball extends BABYLON.Mesh {
             }
             else {
                 let path = this.water.path;
-                console.log(path);
                 let proj = {
                     point: BABYLON.Vector3.Zero(),
                     index: 0
@@ -1216,104 +1215,8 @@ class Ramp extends Build {
         shadowData.applyToMesh(this.shadow);
     }
 }
-class BuildingBlock extends Build {
-    constructor(game, props) {
-        super(game, props);
-        this.material = this.game.woodMaterial;
-        //this.roof = new BABYLON.Mesh("box-roof");
-        //this.roof.parent = this;
-        //this.roof.material = this.game.roofMaterial;
-        this.wall = new BABYLON.Mesh("box-wall");
-        this.wall.parent = this;
-        this.wall.material = this.game.wallMaterial;
-    }
-    fillHeightmap() {
-        for (let ii = 0; ii < 2; ii++) {
-            for (let jj = 0; jj < 2; jj++) {
-                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
-            }
-        }
-    }
-    regenerateBorders() {
-        while (this.borders.length > 0) {
-            this.borders.pop().dispose();
-        }
-        this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
-        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0, true));
-        this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 0, true));
-        this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 0, true));
-        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 0, true));
-        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 0, true));
-        this.props.borderLeft = false;
-        this.props.borderRight = false;
-        this.props.borderBottom = false;
-        this.props.borderTop = false;
-        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1) {
-            this.props.borderLeft = true;
-            this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
-            this.props.borderLeft = true;
-            this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1) {
-            this.props.borderRight = true;
-            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
-            this.props.borderRight = true;
-            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 1));
-        }
-        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1) {
-            this.props.borderBottom = true;
-            this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
-            this.props.borderBottom = true;
-            this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1) {
-            this.props.borderTop = true;
-            this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
-            this.props.borderTop = true;
-            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
-        }
-    }
-    async instantiate() {
-        for (let i = 0; i < this.borders.length; i++) {
-            await this.borders[i].instantiate();
-        }
-        /*
-        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
-        let boxData = Mummu.CloneVertexData(data[6]);
-        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.whiteMaterial.diffuseColor, BABYLON.Color3.White());
-        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.blueMaterial.diffuseColor, BABYLON.Color3.Red());
-        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.brownMaterial.diffuseColor, BABYLON.Color3.Green());
-        boxData.applyToMesh(this);
-        data[7].applyToMesh(this.floor);
-        //data[8].applyToMesh(this.roof);
-        data[9].applyToMesh(this.wall);
-
-        let m = 0.2;
-        let shadowData = Mummu.Create9SliceVertexData({
-            width: 2.2 + 2 * m,
-            height: 2.2 + 2 * m,
-            margin: m,
-            cutTop: this.props.borderTop ? false : true,
-            cutRight: this.props.borderRight ? false : true,
-            cutBottom: this.props.borderBottom ? false : true,
-            cutLeft: this.props.borderLeft ? false : true,
-        });
-        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 0.55));
-        shadowData.applyToMesh(this.shadow);
-        */
-    }
-    static async generateVertexDatas(puzzle) {
+class BuildingBlock {
+    static async GenerateVertexDatas(puzzle) {
         let walls = [];
         let woods = [];
         let floors = [];
@@ -1325,14 +1228,14 @@ class BuildingBlock extends Build {
                 boxesGrid[i][j] = 0;
             }
         }
-        puzzle.buildings.forEach(build => {
-            if (build instanceof BuildingBlock) {
-                boxesGrid[1 + build.i][1 + build.j] = 1;
-                boxesGrid[1 + build.i][1 + build.j + 1] = 1;
-                boxesGrid[1 + build.i + 1][1 + build.j] = 1;
-                boxesGrid[1 + build.i + 1][1 + build.j + 1] = 1;
+        for (let i = 0; i < puzzle.w; i++) {
+            for (let j = 0; j < puzzle.h; j++) {
+                let b = puzzle.buildingBlockGet(i, j);
+                if (b > 0) {
+                    boxesGrid[1 + i][1 + j] = 1;
+                }
             }
-        });
+        }
         for (let i = 0; i < boxesGrid.length - 1; i++) {
             for (let j = 0; j < boxesGrid[i].length - 1; j++) {
                 let wall;
@@ -1435,6 +1338,104 @@ class BuildingBlock extends Build {
             new BABYLON.VertexData(),
             new BABYLON.VertexData()
         ];
+    }
+}
+class OldBoxDeprecated extends Build {
+    constructor(game, props) {
+        super(game, props);
+        this.material = this.game.woodMaterial;
+        //this.roof = new BABYLON.Mesh("box-roof");
+        //this.roof.parent = this;
+        //this.roof.material = this.game.roofMaterial;
+        this.wall = new BABYLON.Mesh("box-wall");
+        this.wall.parent = this;
+        this.wall.material = this.game.wallMaterial;
+    }
+    fillHeightmap() {
+        for (let ii = 0; ii < 2; ii++) {
+            for (let jj = 0; jj < 2; jj++) {
+                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
+            }
+        }
+    }
+    regenerateBorders() {
+        while (this.borders.length > 0) {
+            this.borders.pop().dispose();
+        }
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0, true));
+        this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 0, true));
+        this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 0, true));
+        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 0, true));
+        this.props.borderLeft = false;
+        this.props.borderRight = false;
+        this.props.borderBottom = false;
+        this.props.borderTop = false;
+        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1) {
+            this.props.borderLeft = true;
+            this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
+            this.props.borderLeft = true;
+            this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1) {
+            this.props.borderRight = true;
+            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
+            this.props.borderRight = true;
+            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 1));
+        }
+        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1) {
+            this.props.borderBottom = true;
+            this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
+            this.props.borderBottom = true;
+            this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
+        }
+        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1) {
+            this.props.borderTop = true;
+            this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
+        }
+        if (this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
+            this.props.borderTop = true;
+            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
+        }
+    }
+    async instantiate() {
+        for (let i = 0; i < this.borders.length; i++) {
+            await this.borders[i].instantiate();
+        }
+        /*
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
+        let boxData = Mummu.CloneVertexData(data[6]);
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.whiteMaterial.diffuseColor, BABYLON.Color3.White());
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.blueMaterial.diffuseColor, BABYLON.Color3.Red());
+        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.brownMaterial.diffuseColor, BABYLON.Color3.Green());
+        boxData.applyToMesh(this);
+        data[7].applyToMesh(this.floor);
+        //data[8].applyToMesh(this.roof);
+        data[9].applyToMesh(this.wall);
+
+        let m = 0.2;
+        let shadowData = Mummu.Create9SliceVertexData({
+            width: 2.2 + 2 * m,
+            height: 2.2 + 2 * m,
+            margin: m,
+            cutTop: this.props.borderTop ? false : true,
+            cutRight: this.props.borderRight ? false : true,
+            cutBottom: this.props.borderBottom ? false : true,
+            cutLeft: this.props.borderLeft ? false : true,
+        });
+        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 0.55));
+        shadowData.applyToMesh(this.shadow);
+        */
     }
 }
 class Bridge extends Build {
@@ -1673,7 +1674,6 @@ class CarillonRouter extends Nabu.Router {
             });
         }
         else if (page.startsWith("#multiplayer-levels")) {
-            console.log("!");
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
@@ -1777,6 +1777,10 @@ class Editor {
                             tile.dispose();
                             this.puzzle.rebuildFloor();
                         }
+                        else if (this.puzzle.buildingBlockGet(this.cursorI, this.cursorJ) === 1) {
+                            this.puzzle.buildingBlockSet(0, this.cursorI, this.cursorJ);
+                            this.puzzle.editorRegenerateBuildings();
+                        }
                         else {
                             let building = this.puzzle.buildings.find(build => {
                                 return build.i === this.cursorI && build.j === this.cursorJ;
@@ -1838,10 +1842,7 @@ class Editor {
                                 });
                             }
                             else if (this.brush === EditorBrush.Box) {
-                                let box = new BuildingBlock(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ
-                                });
+                                this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
                                 this.puzzle.editorRegenerateBuildings();
                             }
                             else if (this.brush === EditorBrush.Ramp) {
@@ -1972,6 +1973,7 @@ class Editor {
         this.widthInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
             text = text.replaceAll("x", "xo");
+            text = text.replaceAll("xoBB", "xBB");
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -1980,7 +1982,7 @@ class Editor {
         this.widthDelete.onclick = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
-            for (let i = 1; i < split.length; i++) {
+            for (let i = 1; i < split.length - 1; i++) {
                 split[i] = split[i].substring(1);
             }
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
@@ -1997,7 +1999,11 @@ class Editor {
         this.heightInsert = document.getElementById("editor-height-insert");
         this.heightInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
-            text += "x" + ("").padStart(this.puzzle.w, "o");
+            let split = text.split("x");
+            let last = split.pop();
+            split.push("x" + ("").padStart(this.puzzle.w, "o"));
+            split.push(last);
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -2006,7 +2012,9 @@ class Editor {
         this.heightDelete.onclick = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
+            let last = split.pop();
             split.pop();
+            split.push(last);
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             this.puzzle.data.content = text;
             this.puzzle.reset();
@@ -2076,7 +2084,7 @@ class Editor {
         makeBrushButton(this.holeButton, EditorBrush.Hole);
         makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.waterButton, EditorBrush.Water);
-        makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 2, h: 1, d: 2 });
+        makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 1, h: 1, d: 1 });
         makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
@@ -4907,7 +4915,6 @@ class WaterTile extends Tile {
         //DEBUG.parent = this;
         //DEBUG.position = this.position.scale(-1);
         if (this.iPlusWater && this.iMinusWater) {
-            console.log("alpha");
             let a = Math.PI * 0.5;
             if (this.iMinusWater.distFromSource < this.distFromSource) {
                 a = -Math.PI * 0.5;
@@ -4938,13 +4945,11 @@ class WaterTile extends Tile {
             }
         }
         else if (this.iPlusWater && this.jPlusWater) {
-            console.log("charly");
             datas[3].applyToMesh(this);
             datas[4].applyToMesh(this.waterMesh);
             datas[5].applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jPlusWater) {
-            console.log("delta");
             Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[3])).applyToMesh(this);
             //Mummu.MirrorXVertexDataInPlace(
             //    Mummu.CloneVertexData(datas[4])
@@ -4953,7 +4958,6 @@ class WaterTile extends Tile {
             Mummu.MirrorXVertexDataInPlace(Mummu.CloneVertexData(datas[5])).applyToMesh(this.floorMesh);
         }
         else if (this.iPlusWater && this.jMinusWater) {
-            console.log("echo");
             Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this);
             //Mummu.RotateAngleAxisVertexDataInPlace(
             //    Mummu.CloneVertexData(datas[4]), Math.PI * 0.5, BABYLON.Axis.Y
@@ -4962,7 +4966,6 @@ class WaterTile extends Tile {
             Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y).applyToMesh(this.floorMesh);
         }
         else if (this.iMinusWater && this.jMinusWater) {
-            console.log("foxtrot");
             Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[3]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this);
             //Mummu.MirrorXVertexDataInPlace(
             //    Mummu.RotateAngleAxisVertexDataInPlace(
@@ -4973,7 +4976,6 @@ class WaterTile extends Tile {
             Mummu.MirrorXVertexDataInPlace(Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(datas[5]), Math.PI * 0.5, BABYLON.Axis.Y)).applyToMesh(this.floorMesh);
         }
         else {
-            console.log("golf");
             if (this.distFromSource === 0) {
                 datas[6].applyToMesh(this);
                 datas[7].applyToMesh(this.waterMesh);
@@ -5551,6 +5553,8 @@ class Puzzle {
         this.griddedTiles = [];
         this.griddedBorders = [];
         this.buildings = [];
+        this.buildingBlocks = [];
+        this.buildingBlocksBorders = [];
         this.w = 10;
         this.h = 10;
         this._pendingPublish = false;
@@ -5672,6 +5676,29 @@ class Puzzle {
                     }
                 });
             });
+        }
+    }
+    buildingBlockGet(i, j) {
+        if (i >= 0 && i < this.buildingBlocks.length) {
+            if (!this.buildingBlocks[i]) {
+                return 0;
+            }
+            if (j >= 0 && j < this.buildingBlocks[i].length) {
+                if (isFinite(this.buildingBlocks[i][j])) {
+                    return this.buildingBlocks[i][j];
+                }
+            }
+        }
+        return 0;
+    }
+    buildingBlockSet(v, i, j) {
+        if (i >= 0 && i < this.w) {
+            if (j >= 0 && j < this.h) {
+                if (!this.buildingBlocks[i]) {
+                    this.buildingBlocks[i] = [];
+                }
+                this.buildingBlocks[i][j] = v;
+            }
         }
     }
     getScene() {
@@ -5893,8 +5920,33 @@ class Puzzle {
         this.ballCollision.copyFromFloats(-10, 0, -10);
         this.ballCollisionDone = [true, true];
         this.fishingPolesCount = 3;
+        let buildingBlocksLine = lines[lines.length - 1];
+        if (buildingBlocksLine.startsWith("BB")) {
+            lines.pop();
+        }
+        else {
+            buildingBlocksLine = "";
+        }
         this.h = lines.length;
         this.w = lines[0].length;
+        this.buildingBlocks = [];
+        for (let i = 0; i < this.w; i++) {
+            this.buildingBlocks[i] = [];
+            for (let j = 0; j < this.h; j++) {
+                this.buildingBlocks[i][j] = 0;
+            }
+        }
+        if (buildingBlocksLine != "") {
+            buildingBlocksLine = buildingBlocksLine.replace("BB", "");
+            for (let j = 0; j < this.h; j++) {
+                for (let i = 0; i < this.w; i++) {
+                    let n = i + j * this.w;
+                    if (n < buildingBlocksLine.length) {
+                        this.buildingBlocks[i][j] = parseInt(buildingBlocksLine[n]);
+                    }
+                }
+            }
+        }
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {
@@ -6005,14 +6057,10 @@ class Puzzle {
                     });
                 }
                 if (c === "B") {
-                    let box = new BuildingBlock(this.game, {
-                        i: i,
-                        j: j,
-                        borderBottom: true,
-                        borderRight: true,
-                        borderLeft: true,
-                        borderTop: true
-                    });
+                    this.buildingBlocks[i][j] = 1;
+                    this.buildingBlocks[i + 1][j] = 1;
+                    this.buildingBlocks[i][j + 1] = 1;
+                    this.buildingBlocks[i + 1][j + 1] = 1;
                 }
                 if (c === "R") {
                     let ramp = new Ramp(this.game, {
@@ -6065,10 +6113,14 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             this.buildings[i].regenerateBorders();
         }
+        this.regenerateBuildingBlocksBorders();
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
-        let datas = await BuildingBlock.generateVertexDatas(this);
+        for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
+            await this.buildingBlocksBorders[i].instantiate();
+        }
+        let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
         datas[1].applyToMesh(this.boxesWood);
         datas[2].applyToMesh(this.boxesFloor);
@@ -6086,19 +6138,57 @@ class Puzzle {
         for (let i = 0; i < this.w; i++) {
             this.heightMap[i] = [];
             for (let j = 0; j < this.h; j++) {
-                this.heightMap[i][j] = 0;
+                this.heightMap[i][j] = this.buildingBlockGet(i, j);
             }
         }
         this.buildings.forEach(building => {
             building.fillHeightmap();
         });
     }
+    regenerateBuildingBlocksBorders() {
+        while (this.buildingBlocksBorders.length > 0) {
+            this.buildingBlocksBorders.pop().dispose();
+        }
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
+                let b = this.buildingBlockGet(i, j);
+                if (b === 1) {
+                    if (this.hMapGet(i - 1, j) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderLeft(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderLeft(this.game, i, j, 0, true));
+                    }
+                    if (this.hMapGet(i + 1, j) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderRight(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderRight(this.game, i, j, 0, true));
+                    }
+                    if (this.hMapGet(i, j + 1) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderTop(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderTop(this.game, i, j, 0, true));
+                    }
+                    if (this.hMapGet(i, j - 1) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderBottom(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderBottom(this.game, i, j, 0, true));
+                    }
+                }
+            }
+        }
+    }
     async editorRegenerateBuildings() {
         this.regenerateHeightMap();
         for (let i = 0; i < this.buildings.length; i++) {
             this.buildings[i].regenerateBorders();
+        }
+        this.regenerateBuildingBlocksBorders();
+        for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
+        for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
+            await this.buildingBlocksBorders[i].instantiate();
+        }
+        let datas = await BuildingBlock.GenerateVertexDatas(this);
+        datas[0].applyToMesh(this.boxesWall);
+        datas[1].applyToMesh(this.boxesWood);
+        datas[2].applyToMesh(this.boxesFloor);
     }
     updateInvisifloorTM() {
         let w = Math.max(100, 2 * (this.xMax - this.xMin));
@@ -6701,9 +6791,6 @@ function SaveAsText(puzzle) {
     puzzle.buildings.forEach(building => {
         let i = building.i;
         let j = building.j;
-        if (building instanceof BuildingBlock) {
-            lines[j][i] = "B";
-        }
         if (building instanceof Ramp) {
             lines[j][i] = "R";
         }
@@ -6721,6 +6808,13 @@ function SaveAsText(puzzle) {
         }
     }
     lines2.splice(0, 0, ballLine);
+    let buildingBlocksLine = "BB";
+    for (let j = 0; j < puzzle.h; j++) {
+        for (let i = 0; i < puzzle.w; i++) {
+            buildingBlocksLine = buildingBlocksLine + puzzle.buildingBlockGet(i, j).toFixed(0);
+        }
+    }
+    lines2.push(buildingBlocksLine);
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
 }
 class PuzzleUI {
@@ -7282,7 +7376,6 @@ function CreateBiDiscVertexData(props) {
         }
         data.colors = colors;
     }
-    console.log(data);
     if (d + r2 > r1) {
         let rot = Mummu.AngleFromToAround(new BABYLON.Vector3(-1, 0, 0), props.p2.subtract(props.p1), BABYLON.Axis.Y);
         Mummu.RotateAngleAxisVertexDataInPlace(data, rot, BABYLON.Axis.Y);

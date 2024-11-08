@@ -117,6 +117,31 @@ class Puzzle {
     }
 
     public buildings: Build[] = [];
+    public buildingBlocks: number[][] = [];
+    public buildingBlockGet(i: number, j: number): number {
+        if (i >= 0 && i < this.buildingBlocks.length) {
+            if (!this.buildingBlocks[i]) {
+                return 0;
+            }
+            if (j >= 0 && j < this.buildingBlocks[i].length) {
+                if (isFinite(this.buildingBlocks[i][j])) {
+                    return this.buildingBlocks[i][j];
+                }
+            }
+        }
+        return 0;
+    }
+    public buildingBlockSet(v: number, i: number, j: number): void {
+        if (i >= 0 && i < this.w) {
+            if (j >= 0 && j < this.h) {
+                if (!this.buildingBlocks[i]) {
+                    this.buildingBlocks[i] = [];
+                }
+                this.buildingBlocks[i][j] = v;
+            }
+        }
+    }
+    public buildingBlocksBorders: Border[] = [];
     public boxesWall: BABYLON.Mesh;
     public boxesWood: BABYLON.Mesh;
     public boxesFloor: BABYLON.Mesh;
@@ -424,8 +449,37 @@ class Puzzle {
         
         this.fishingPolesCount = 3;
 
+        let buildingBlocksLine = lines[lines.length - 1];
+        if (buildingBlocksLine.startsWith("BB")) {
+            lines.pop();
+        }
+        else {
+            buildingBlocksLine = "";
+        }
+
         this.h = lines.length;
         this.w = lines[0].length;
+
+        this.buildingBlocks = [];
+        for (let i = 0; i < this.w; i++) {
+            this.buildingBlocks[i] = [];
+            for (let j = 0; j < this.h; j++) {
+                this.buildingBlocks[i][j] = 0;
+            }
+        }
+
+        if (buildingBlocksLine != "") {
+            buildingBlocksLine = buildingBlocksLine.replace("BB", "");
+            for (let j = 0; j < this.h; j++) {
+                for (let i = 0; i < this.w; i++) {
+                    let n = i + j * this.w;
+                    if (n < buildingBlocksLine.length) {
+                        this.buildingBlocks[i][j] = parseInt(buildingBlocksLine[n]);
+                    }
+                }
+            }
+        }
+
         for (let j = 0; j < lines.length; j++) {
             let line = lines[lines.length - 1 - j];
             for (let i = 0; i < line.length; i++) {
@@ -536,14 +590,10 @@ class Puzzle {
                     });
                 }
                 if (c === "B") {
-                    let box = new BuildingBlock(this.game, {
-                        i: i,
-                        j: j,
-                        borderBottom: true,
-                        borderRight: true,
-                        borderLeft: true,
-                        borderTop: true
-                    });
+                    this.buildingBlocks[i][j] = 1;
+                    this.buildingBlocks[i + 1][j] = 1;
+                    this.buildingBlocks[i][j + 1] = 1;
+                    this.buildingBlocks[i + 1][j + 1] = 1;
                 }
                 if (c === "R") {
                     let ramp = new Ramp(this.game, {
@@ -570,6 +620,7 @@ class Puzzle {
 
     public async instantiate(): Promise<void> {
         this.regenerateHeightMap();
+        
         for (let i = 0; i < this.tiles.length; i++) {
             let t = this.tiles[i];
             if (t instanceof WaterTile) {
@@ -602,11 +653,15 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             this.buildings[i].regenerateBorders();
         }
+        this.regenerateBuildingBlocksBorders();
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
+        for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
+            await this.buildingBlocksBorders[i].instantiate();
+        }
 
-        let datas = await BuildingBlock.generateVertexDatas(this);
+        let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
         datas[1].applyToMesh(this.boxesWood);
         datas[2].applyToMesh(this.boxesFloor);
@@ -628,7 +683,7 @@ class Puzzle {
         for (let i = 0; i < this.w; i++) {
             this.heightMap[i] = [];
             for (let j = 0; j < this.h; j++) {
-                this.heightMap[i][j] = 0;
+                this.heightMap[i][j] = this.buildingBlockGet(i, j);
             }
         }
 
@@ -637,13 +692,57 @@ class Puzzle {
         })
     }
 
+    public regenerateBuildingBlocksBorders(): void {
+        while (this.buildingBlocksBorders.length > 0) {
+            this.buildingBlocksBorders.pop().dispose();
+        }
+
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
+                let b = this.buildingBlockGet(i, j);
+                if (b === 1) {
+                    if (this.hMapGet(i - 1, j) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderLeft(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderLeft(this.game, i, j, 0, true));
+                    }
+            
+                    if (this.hMapGet(i + 1, j) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderRight(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderRight(this.game, i, j, 0, true));
+                    }
+            
+                    if (this.hMapGet(i, j + 1) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderTop(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderTop(this.game, i, j, 0, true));
+                    }
+            
+                    if (this.hMapGet(i, j - 1) != 1) {
+                        this.buildingBlocksBorders.push(Border.BorderBottom(this.game, i, j, 1));
+                        this.buildingBlocksBorders.push(Border.BorderBottom(this.game, i, j, 0, true));
+                    }
+                }
+            }
+        }
+    }
+
     public async editorRegenerateBuildings(): Promise<void> {
         this.regenerateHeightMap();
 
         for (let i = 0; i < this.buildings.length; i++) {
             this.buildings[i].regenerateBorders();
+        }
+        this.regenerateBuildingBlocksBorders();
+        for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
+        for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
+            await this.buildingBlocksBorders[i].instantiate();
+        }
+
+        let datas = await BuildingBlock.GenerateVertexDatas(this);
+        datas[0].applyToMesh(this.boxesWall);
+        datas[1].applyToMesh(this.boxesWood);
+        datas[2].applyToMesh(this.boxesFloor);
     }
 
     public updateInvisifloorTM(): void {

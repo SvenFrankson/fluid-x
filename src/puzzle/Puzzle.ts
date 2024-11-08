@@ -668,7 +668,7 @@ class Puzzle {
                         noShadow: true
                     });
                 }
-                if (c === "r") {
+                if (c === "u") {
                     let button = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 3,

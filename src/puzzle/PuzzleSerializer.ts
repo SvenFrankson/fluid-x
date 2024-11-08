@@ -57,7 +57,7 @@ function SaveAsText(puzzle: Puzzle): string {
                 lines[j][i] = tile.closed ? "f" : "d";
             }
             else if (tile.props.value === 3) {
-                lines[j][i] = tile.closed ? "r" : "t";
+                lines[j][i] = tile.closed ? "u" : "t";
             }
         }
         else if (tile instanceof PushTile) {

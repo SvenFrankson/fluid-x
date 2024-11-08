@@ -2509,7 +2509,7 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
-        context.fillStyle = "black";
+        context.fillStyle = "#231d17FF";
         context.font = "130px Shalimar";
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -2568,7 +2568,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.strokeStyle = "#473a2fFF";
-        context.strokeStyle = "black";
+        context.fillStyle = "#231d17FF";
         context.lineWidth = 6;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;
@@ -2578,7 +2578,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
             context.stroke();
         }
         context.fillStyle = "#473a2fFF";
-        context.fillStyle = "black";
+        context.fillStyle = "#231d17FF";
         context.font = "130px Shalimar";
         let l = context.measureText(this.playerName).width;
         for (let x = 0; x < 3; x++) {
@@ -3238,7 +3238,7 @@ class MultiplayerLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 21;
+var CRL_VERSION3 = 22;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3275,7 +3275,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -3663,14 +3663,26 @@ class Game {
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
         let oneMaterial = new BABYLON.StandardMaterial("one-material");
+        //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272838");
+        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272932").scale(0.8);
         oneMaterial.specularColor.copyFromFloats(0, 0, 0);
         oneMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-one.png");
         let twoMaterial = new BABYLON.StandardMaterial("two-material");
+        //twoMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5D536B");
+        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#828489").scale(1.2);
         twoMaterial.specularColor.copyFromFloats(0, 0, 0);
         twoMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-two.png");
         let threeMaterial = new BABYLON.StandardMaterial("three-material");
+        //threeMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //threeMaterial.diffuseColor = BABYLON.Color3.FromHexString("#7D6B91");
+        //threeMaterial.diffuseColor = BABYLON.Color3.Lerp(oneMaterial.diffuseColor, twoMaterial.diffuseColor, 0.3);
         threeMaterial.specularColor.copyFromFloats(0, 0, 0);
         threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
+        console.log("1 " + oneMaterial.diffuseColor.toHexString());
+        console.log("2 " + twoMaterial.diffuseColor.toHexString());
+        console.log("3 " + threeMaterial.diffuseColor.toHexString());
         this.tileNumberMaterials = [];
         this.tileNumberMaterials[0] = oneMaterial;
         this.tileNumberMaterials[1] = twoMaterial;
@@ -3691,7 +3703,7 @@ class Game {
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
-        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d7275");
+        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d6265");
         this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
         this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
@@ -3971,8 +3983,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4814,7 +4826,7 @@ class ButtonTile extends Tile {
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
-        this.material = this.game.blackMaterial;
+        this.material = this.game.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
@@ -4855,15 +4867,21 @@ class DoorTile extends Tile {
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
         this.tileBox = new BABYLON.Mesh("tile-frame");
-        this.tileBox.position.y = 0.02;
+        this.tileBox.position.y = -0.26;
         this.tileBox.parent = this;
-        this.tileBox.material = this.game.brownMaterial;
-        this.tileBox.renderOutline = true;
-        this.tileBox.outlineColor = BABYLON.Color3.Black();
-        this.tileBox.outlineWidth = 0.01;
+        this.tileBox.material = this.game.blackMaterial;
+        //this.tileBox.renderOutline = true;
+        //this.tileBox.outlineColor = BABYLON.Color3.Black();
+        //this.tileBox.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.tileTopFrame = new BABYLON.Mesh("tile-top-frame");
+        this.tileTopFrame.parent = this.tileTop;
+        this.tileTopFrame.material = this.game.blackMaterial;
+        this.tileTopFrame.renderOutline = true;
+        this.tileTopFrame.outlineColor = BABYLON.Color3.Black();
+        this.tileTopFrame.outlineWidth = 0.02;
         this.animateTopPosY = Mummu.AnimationFactory.CreateNumber(this, this.tileTop.position, "y");
         this.animateTopRotY = Mummu.AnimationFactory.CreateNumber(this.tileTop, this.tileTop.rotation, "y");
         this.animateBoxPosY = Mummu.AnimationFactory.CreateNumber(this.tileBox, this.tileBox.position, "y");
@@ -4872,26 +4890,29 @@ class DoorTile extends Tile {
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/door.babylon");
         //tileData[0].applyToMesh(this);
-        tileData[1].applyToMesh(this.tileBox);
-        tileData[2].applyToMesh(this.tileTop);
+        CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.3,
+            thickness: 0.05,
+            innerHeight: 0.22,
+            flatShading: true,
+            topCap: true
+        }).applyToMesh(this.tileBox);
+        tileData[0].applyToMesh(this.tileTop);
+        tileData[1].applyToMesh(this.tileTopFrame);
     }
     async open(duration = 1) {
         this.animateTopPosY(0, duration, Nabu.Easing.easeInOutSine);
         this.animateTopRotY(0, duration, Nabu.Easing.easeInOutSine);
-        setTimeout(() => {
-            this.tileBox.material = this.game.brownMaterial;
-        }, duration * 500);
-        await this.animateBoxPosY(0.02, duration, Nabu.Easing.easeInOutSine);
+        await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeInOutSine);
         this.closed = false;
     }
     async close(duration = 1) {
         this.closed = true;
-        this.animateTopPosY(0.15, duration, Nabu.Easing.easeInOutSine);
+        this.animateTopPosY(0.1, duration, Nabu.Easing.easeInOutSine);
         this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeInOutSine);
-        setTimeout(() => {
-            this.tileBox.material = this.game.blackMaterial;
-        }, duration * 500);
-        await this.animateBoxPosY(0.3, duration, Nabu.Easing.easeInOutSine);
+        await this.animateBoxPosY(0, duration, Nabu.Easing.easeInOutSine);
     }
 }
 class UserInterfaceInputManager {
@@ -6368,7 +6389,7 @@ class Puzzle {
                         noShadow: true
                     });
                 }
-                if (c === "r") {
+                if (c === "u") {
                     let button = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 3,
@@ -7118,7 +7139,7 @@ function SaveAsText(puzzle) {
                 lines[j][i] = tile.closed ? "f" : "d";
             }
             else if (tile.props.value === 3) {
-                lines[j][i] = tile.closed ? "r" : "t";
+                lines[j][i] = tile.closed ? "u" : "t";
             }
         }
         else if (tile instanceof PushTile) {

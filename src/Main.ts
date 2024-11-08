@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 21;
+var CRL_VERSION3: number = 22;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -506,16 +506,29 @@ class Game {
         this.tileColorMaterials[TileColor.West] = westMaterial;
 
         let oneMaterial = new BABYLON.StandardMaterial("one-material");
+        //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272838");
+        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272932").scale(0.8);
         oneMaterial.specularColor.copyFromFloats(0, 0, 0);
         oneMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-one.png");
             
         let twoMaterial = new BABYLON.StandardMaterial("two-material");
+        //twoMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5D536B");
+        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#828489").scale(1.2);
         twoMaterial.specularColor.copyFromFloats(0, 0, 0);
         twoMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-two.png");
 
         let threeMaterial = new BABYLON.StandardMaterial("three-material");
+        //threeMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //threeMaterial.diffuseColor = BABYLON.Color3.FromHexString("#7D6B91");
+        //threeMaterial.diffuseColor = BABYLON.Color3.Lerp(oneMaterial.diffuseColor, twoMaterial.diffuseColor, 0.3);
         threeMaterial.specularColor.copyFromFloats(0, 0, 0);
         threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
+
+        console.log("1 " + oneMaterial.diffuseColor.toHexString());
+        console.log("2 " + twoMaterial.diffuseColor.toHexString());
+        console.log("3 " + threeMaterial.diffuseColor.toHexString());
 
         this.tileNumberMaterials = [];
         this.tileNumberMaterials[0] = oneMaterial;
@@ -542,7 +555,7 @@ class Game {
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
-        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d7275");
+        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d6265");
         this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.blackMaterial = new BABYLON.StandardMaterial("black-material");
@@ -874,8 +887,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
 	}
 

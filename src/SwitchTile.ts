@@ -58,7 +58,7 @@ class ButtonTile extends Tile {
             this.props.value = 0;
         }
 
-        this.material = this.game.blackMaterial;
+        this.material = this.game.brownMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -98,6 +98,7 @@ class DoorTile extends Tile {
 
     public closed: boolean = false;
     public tileTop: BABYLON.Mesh;
+    public tileTopFrame: BABYLON.Mesh;
     public tileBox: BABYLON.Mesh;
 
     public animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -118,19 +119,25 @@ class DoorTile extends Tile {
         this.outlineWidth = 0.02;
 
         this.tileBox = new BABYLON.Mesh("tile-frame");
-        this.tileBox.position.y = 0.02;
+        this.tileBox.position.y = -0.26;
         this.tileBox.parent = this;
+        this.tileBox.material = this.game.blackMaterial;
 
-        this.tileBox.material = this.game.brownMaterial;
-
-        this.tileBox.renderOutline = true;
-        this.tileBox.outlineColor = BABYLON.Color3.Black();
-        this.tileBox.outlineWidth = 0.01;
+        //this.tileBox.renderOutline = true;
+        //this.tileBox.outlineColor = BABYLON.Color3.Black();
+        //this.tileBox.outlineWidth = 0.02;
 
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        
         this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+
+        this.tileTopFrame = new BABYLON.Mesh("tile-top-frame");
+        this.tileTopFrame.parent = this.tileTop;
+        this.tileTopFrame.material = this.game.blackMaterial;
+
+        this.tileTopFrame.renderOutline = true;
+        this.tileTopFrame.outlineColor = BABYLON.Color3.Black();
+        this.tileTopFrame.outlineWidth = 0.02;
         
         this.animateTopPosY = Mummu.AnimationFactory.CreateNumber(this, this.tileTop.position, "y");
         this.animateTopRotY = Mummu.AnimationFactory.CreateNumber(this.tileTop, this.tileTop.rotation, "y");
@@ -141,27 +148,32 @@ class DoorTile extends Tile {
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/door.babylon");
         //tileData[0].applyToMesh(this);
-        tileData[1].applyToMesh(this.tileBox);
-        tileData[2].applyToMesh(this.tileTop);
+
+        CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.3,
+            thickness: 0.05,
+            innerHeight: 0.22,
+            flatShading: true,
+            topCap: true
+        }).applyToMesh(this.tileBox);
+
+        tileData[0].applyToMesh(this.tileTop);
+        tileData[1].applyToMesh(this.tileTopFrame);
     }
 
     public async open(duration: number = 1): Promise<void> {
         this.animateTopPosY(0, duration, Nabu.Easing.easeInOutSine);
         this.animateTopRotY(0, duration, Nabu.Easing.easeInOutSine);
-        setTimeout(() => {
-            this.tileBox.material = this.game.brownMaterial;
-        }, duration * 500);
-        await this.animateBoxPosY(0.02, duration, Nabu.Easing.easeInOutSine);
+        await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeInOutSine);
         this.closed = false;
     }
 
     public async close(duration: number = 1): Promise<void> {
         this.closed = true;
-        this.animateTopPosY(0.15, duration, Nabu.Easing.easeInOutSine);
+        this.animateTopPosY(0.1, duration, Nabu.Easing.easeInOutSine);
         this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeInOutSine);
-        setTimeout(() => {
-            this.tileBox.material = this.game.blackMaterial;
-        }, duration * 500);
-        await this.animateBoxPosY(0.3, duration, Nabu.Easing.easeInOutSine);
+        await this.animateBoxPosY(0, duration, Nabu.Easing.easeInOutSine);
     }
 }

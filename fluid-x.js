@@ -7179,6 +7179,9 @@ class PuzzleMiniatureMaker {
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
+        if (lines[lines.length - 1].startsWith("BB")) {
+            lines.pop();
+        }
         let h = 4;
         let w = 4;
         if (lines.length > 3) {

@@ -286,6 +286,7 @@ class Game {
     public player2Name: string = "";
 
     public tiaratumGameTutorialLevels: IPuzzlesData;
+    public tiaratumGameExpertLevels: IPuzzlesData;
     public tiaratumGameOfflinePuzzleLevels: IPuzzlesData;
     public router: CarillonRouter;
     public editor: Editor;
@@ -680,6 +681,48 @@ class Game {
         this.tiaratumGameTutorialLevels = tutorialPuzzles;
         for (let i = 0; i < this.tiaratumGameTutorialLevels.puzzles.length; i++) {
             this.tiaratumGameTutorialLevels.puzzles[i].numLevel = (i + 1);
+        }
+
+        let expertPuzzles: IPuzzlesData;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            expertPuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(expertPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                expertPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(expertPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                expertPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(expertPuzzles);
+            }
+        }
+        
+        for (let i = 0; i < expertPuzzles.puzzles.length; i++) {
+            expertPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + expertPuzzles.puzzles[i].title;
+        }
+
+        this.tiaratumGameExpertLevels = expertPuzzles;
+        for (let i = 0; i < this.tiaratumGameExpertLevels.puzzles.length; i++) {
+            this.tiaratumGameExpertLevels.puzzles[i].numLevel = (i + 1);
         }
 
         if (OFFLINE_MODE) {
@@ -1195,6 +1238,21 @@ async function DEV_GENERATE_TUTORIAL_LEVEL_FILE(): Promise<void> {
     }
 }
 
+async function DEV_GENERATE_EXPERT_LEVEL_FILE(): Promise<void> {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/4", {
+        method: "GET",
+        mode: "cors"
+    });
+
+    if (response.status === 200) {
+        let data = await response.json();
+        Nabu.download("tiaratum_expert_levels.json", JSON.stringify(data));
+    }
+    else {
+        console.error(await response.text());
+    }
+}
+
 async function DEV_GENERATE_PUZZLE_LEVEL_FILE(): Promise<void> {
     const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/40/1", {
         method: "GET",
@@ -1246,7 +1304,7 @@ function DEV_ACTIVATE(): void {
         devStateBtns[i].style.display = "block";
         let state = i;
         devStateBtns[i].onclick = async () => {
-            let id = parseInt(location.hash.replace("#play-community-", ""));
+            let id = parseInt(location.hash.replace("#puzzle-", ""));
             if (isFinite(id)) {
                 let data = {
                     id: id,
@@ -1281,7 +1339,7 @@ function DEV_ACTIVATE(): void {
     }
     let devStoryOrderSend = devStoryOrderBtns[2] as HTMLButtonElement;
     devStoryOrderSend.onclick = async () => {
-        let id = parseInt(location.hash.replace("#play-community-", ""));
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
                 id: id,
@@ -1324,7 +1382,7 @@ function DEV_ACTIVATE(): void {
     }
     let devDifficultySend = devDifficulty.querySelector("#dev-difficulty-send") as HTMLButtonElement;
     devDifficultySend.onclick = async () => {
-        let id = parseInt(location.hash.replace("#play-community-", ""));
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
                 id: id,

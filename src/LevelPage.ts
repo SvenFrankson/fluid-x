@@ -426,6 +426,59 @@ class BaseLevelPage extends LevelPage {
     }
 }
 
+class ExpertLevelPage extends LevelPage {
+    
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.className = "ExpertLevelPage";
+    }
+
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+        let data = this.router.game.tiaratumGameExpertLevels;
+        CLEAN_IPuzzlesData(data);
+
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                let locked = true;
+                if (n === 0) {
+                    locked = false;
+                }
+                else if (data.puzzles[n - 1]) {
+                    let prevId = data.puzzles[n - 1].id;
+                    if (this.router.game.isPuzzleCompleted(prevId)) {
+                        locked = false;
+                    }
+                }
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onclick: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "expert-level-" + (n + 1).toFixed(0);
+                    },
+                    locked: locked
+                }
+            }
+            else if (n === data.puzzles.length) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Puzzles and Challenges !",
+                        author: "Tiaratum Games",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onclick: () => {
+                        location.hash = "#community"
+                    }
+                }
+            }
+        }
+
+        return puzzleData;
+    }
+}
+
 class CommunityLevelPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
@@ -454,7 +507,7 @@ class CommunityLevelPage extends LevelPage {
                     data: data.puzzles[i],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "play-community-" + id;
+                        location.hash = "puzzle-" + id;
                     }
                 }
             }
@@ -477,7 +530,7 @@ class CommunityLevelPage extends LevelPage {
                     data: data.puzzles[n],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
-                        location.hash = "play-community-" + data.puzzles[n].id;
+                        location.hash = "puzzle-" + data.puzzles[n].id;
                     }
                 }
             }
@@ -519,7 +572,7 @@ class DevLevelPage extends LevelPage {
                     data: data.puzzles[i],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "play-community-" + id;
+                        location.hash = "puzzle-" + id;
                     }
                 }
             }
@@ -561,7 +614,7 @@ class MultiplayerLevelPage extends LevelPage {
                     data: data.puzzles[i],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "play-community-" + id;
+                        location.hash = "puzzle-" + id;
                     }
                 }
             }

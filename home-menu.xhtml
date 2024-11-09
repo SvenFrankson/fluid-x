@@ -4,12 +4,28 @@
 <div id="title-version">v0.0.15</div>
 <div>
     <button class="large-btn spacer"></button>
-    <button id="home-play-btn" class="large-btn bluegrey" onpointerup="location.href='#levels';"><stroke-text>PLAY TUTORIAL</stroke-text></button>
-    <button id="home-custom-btn" class="large-btn bluegrey" onpointerup="location.href='#community';"><stroke-text>PLAY PUZZLES</stroke-text></button>
-    <button id="home-multi-btn" class="large-btn bluegrey locked" onpointerup="location.href='#multiplayer';"><stroke-text>MULTIPLAYER</stroke-text></button>
+    <button id="home-play-btn" class="large-btn lightblue" onpointerup="location.href='#levels';">
+        <stroke-text style="padding-right: 100px;">PLAY !</stroke-text>
+        <div style="position: absolute; width: 100px; top: 0px; right: 20px; line-height: 20px; text-align: right;">
+            <stroke-text style="font-size: 24px; width: 100px;">story mode</stroke-text>
+        </div>
+    </button>
+    <button id="home-custom-btn" class="large-btn red" onpointerup="location.href='#expert-levels';">
+        <stroke-text style="padding-right: 100px;">PLAY !</stroke-text>
+        <div style="position: absolute; width: 100px; top: 0px; right: 20px; line-height: 20px; text-align: right;">
+            <stroke-text style="font-size: 24px; width: 100px;">expert mode</stroke-text>
+        </div>
+    </button>
+    <button id="home-multi-btn" class="large-btn green" onpointerup="location.href='#community';">
+        <stroke-text style="padding-right: 100px;">PLAY !</stroke-text>
+        <div style="position: absolute; width: 100px; top: 0px; right: 20px; line-height: 20px; text-align: right;">
+            <stroke-text style="font-size: 24px; width: 100px;">community puzzles</stroke-text>
+        </div>
+    </button>
 </div>
 <div>
-    <button id="home-board-btn" class="large-btn locked"><stroke-text>LEADERBOARD</stroke-text></button>
+    <button id="home-multi-btn" class="large-btn bluegrey locked" onpointerup="location.href='#multiplayer';"><stroke-text>MULTIPLAYER</stroke-text></button>
+    <button id="home-board-btn" class="large-btn locked" style="display: none;"><stroke-text>LEADERBOARD</stroke-text></button>
     <button id="home-editor-btn" class="large-btn orange" onpointerup="location.href='#editor';"><stroke-text>PUZZLE EDITOR</stroke-text></button>
     <button id="home-options-btn" class="large-btn bluegrey locked"><stroke-text>OPTIONS</stroke-text></button>
     <button id="home-credits-btn" class="large-btn bluegrey" onpointerup="location.href='#credits';"><stroke-text>CREDITS</stroke-text></button>

@@ -1,6 +1,7 @@
 class CarillonRouter extends Nabu.Router {
     public homeMenu: HomePage;
     public baseLevelsPage: BaseLevelPage;
+    public expertLevelsPage: ExpertLevelPage;
     public communityLevelPage: CommunityLevelPage;
     public devLevelPage: DevLevelPage;
     public multiplayerLevelsPage: MultiplayerLevelPage;
@@ -27,6 +28,7 @@ class CarillonRouter extends Nabu.Router {
 
         this.homeMenu = new HomePage("#home-menu", this);
         this.baseLevelsPage = new BaseLevelPage("#base-levels-page", this);
+        this.expertLevelsPage = new ExpertLevelPage("#expert-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
@@ -137,8 +139,27 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
         }
-        else if (page.startsWith("#play-community-")) {
-            let puzzleId = parseInt(page.replace("#play-community-", ""));
+        else if (page.startsWith("#expert-level-")) {
+            let numLevel = parseInt(page.replace("#expert-level-", ""));
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#expert-level-" + (numLevel + 1).toFixed(0);
+            if (this.game.puzzle.data.numLevel != numLevel) {
+                let data = this.game.tiaratumGameExpertLevels;
+                if (data.puzzles[numLevel - 1]) {
+                    this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
+                }
+                else {
+                    location.hash = "#expert-levels";
+                    return;
+                }
+            }
+            this.show(this.playUI, false, showTime);
+            await this.game.puzzle.reset();
+            (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
+        }
+        else if (page.startsWith("#puzzle-")) {
+            let puzzleId = parseInt(page.replace("#puzzle-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
                 let headers = {};
                 if (var1) {
@@ -174,6 +195,15 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.baseLevelsPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.baseLevelsPage.redraw();
+            })
+        }
+        else if (page.startsWith("#expert-levels")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.expertLevelsPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.expertLevelsPage.redraw();
             })
         }
         else if (page.startsWith("#multiplayer-levels")) {

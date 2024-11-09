@@ -1571,6 +1571,7 @@ class CarillonRouter extends Nabu.Router {
         }
         this.homeMenu = new HomePage("#home-menu", this);
         this.baseLevelsPage = new BaseLevelPage("#base-levels-page", this);
+        this.expertLevelsPage = new ExpertLevelPage("#expert-levels-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
@@ -1675,8 +1676,27 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
         }
-        else if (page.startsWith("#play-community-")) {
-            let puzzleId = parseInt(page.replace("#play-community-", ""));
+        else if (page.startsWith("#expert-level-")) {
+            let numLevel = parseInt(page.replace("#expert-level-", ""));
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-level-" + (numLevel + 1).toFixed(0);
+            if (this.game.puzzle.data.numLevel != numLevel) {
+                let data = this.game.tiaratumGameExpertLevels;
+                if (data.puzzles[numLevel - 1]) {
+                    this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
+                }
+                else {
+                    location.hash = "#expert-levels";
+                    return;
+                }
+            }
+            this.show(this.playUI, false, showTime);
+            await this.game.puzzle.reset();
+            document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
+            this.game.mode = GameMode.Preplay;
+            this.game.globalTimer = 0;
+        }
+        else if (page.startsWith("#puzzle-")) {
+            let puzzleId = parseInt(page.replace("#puzzle-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
                 let headers = {};
                 if (var1) {
@@ -1712,6 +1732,15 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.baseLevelsPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.baseLevelsPage.redraw();
+            });
+        }
+        else if (page.startsWith("#expert-levels")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.expertLevelsPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.expertLevelsPage.redraw();
             });
         }
         else if (page.startsWith("#multiplayer-levels")) {
@@ -2291,7 +2320,7 @@ class Editor {
                 });
                 let text = await response.text();
                 let id = parseInt(text);
-                let url = "https://carillion.tiaratum.com/#play-community-" + id.toFixed(0);
+                let url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 document.querySelector("#publish-generated-url-go").parentElement.href = url;
                 document.querySelector("#publish-generated-url-copy").onclick = () => { navigator.clipboard.writeText(url); };
@@ -3167,6 +3196,54 @@ class BaseLevelPage extends LevelPage {
         return puzzleData;
     }
 }
+class ExpertLevelPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.className = "ExpertLevelPage";
+    }
+    async getPuzzlesData(page, levelsPerPage) {
+        let puzzleData = [];
+        let data = this.router.game.tiaratumGameExpertLevels;
+        CLEAN_IPuzzlesData(data);
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                let locked = true;
+                if (n === 0) {
+                    locked = false;
+                }
+                else if (data.puzzles[n - 1]) {
+                    let prevId = data.puzzles[n - 1].id;
+                    if (this.router.game.isPuzzleCompleted(prevId)) {
+                        locked = false;
+                    }
+                }
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onclick: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "expert-level-" + (n + 1).toFixed(0);
+                    },
+                    locked: locked
+                };
+            }
+            else if (n === data.puzzles.length) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Puzzles and Challenges !",
+                        author: "Tiaratum Games",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onclick: () => {
+                        location.hash = "#community";
+                    }
+                };
+            }
+        }
+        return puzzleData;
+    }
+}
 class CommunityLevelPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
@@ -3190,7 +3267,7 @@ class CommunityLevelPage extends LevelPage {
                     data: data.puzzles[i],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "play-community-" + id;
+                        location.hash = "puzzle-" + id;
                     }
                 };
             }
@@ -3210,7 +3287,7 @@ class CommunityLevelPage extends LevelPage {
                     data: data.puzzles[n],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
-                        location.hash = "play-community-" + data.puzzles[n].id;
+                        location.hash = "puzzle-" + data.puzzles[n].id;
                     }
                 };
             }
@@ -3243,7 +3320,7 @@ class DevLevelPage extends LevelPage {
                     data: data.puzzles[i],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "play-community-" + id;
+                        location.hash = "puzzle-" + id;
                     }
                 };
             }
@@ -3276,7 +3353,7 @@ class MultiplayerLevelPage extends LevelPage {
                     data: data.puzzles[i],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "play-community-" + id;
+                        location.hash = "puzzle-" + id;
                     }
                 };
             }
@@ -3864,6 +3941,45 @@ class Game {
         for (let i = 0; i < this.tiaratumGameTutorialLevels.puzzles.length; i++) {
             this.tiaratumGameTutorialLevels.puzzles[i].numLevel = (i + 1);
         }
+        let expertPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            expertPuzzles = await response.json();
+            CLEAN_IPuzzlesData(expertPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                expertPuzzles = await response.json();
+                CLEAN_IPuzzlesData(expertPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                expertPuzzles = await response.json();
+                CLEAN_IPuzzlesData(expertPuzzles);
+            }
+        }
+        for (let i = 0; i < expertPuzzles.puzzles.length; i++) {
+            expertPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + expertPuzzles.puzzles[i].title;
+        }
+        this.tiaratumGameExpertLevels = expertPuzzles;
+        for (let i = 0; i < this.tiaratumGameExpertLevels.puzzles.length; i++) {
+            this.tiaratumGameExpertLevels.puzzles[i].numLevel = (i + 1);
+        }
         if (OFFLINE_MODE) {
             let offlinePuzzles;
             const response = await fetch("./datas/levels/tiaratum_offline_levels.json", {
@@ -4264,6 +4380,19 @@ async function DEV_GENERATE_TUTORIAL_LEVEL_FILE() {
         console.error(await response.text());
     }
 }
+async function DEV_GENERATE_EXPERT_LEVEL_FILE() {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/4", {
+        method: "GET",
+        mode: "cors"
+    });
+    if (response.status === 200) {
+        let data = await response.json();
+        Nabu.download("tiaratum_expert_levels.json", JSON.stringify(data));
+    }
+    else {
+        console.error(await response.text());
+    }
+}
 async function DEV_GENERATE_PUZZLE_LEVEL_FILE() {
     const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/40/1", {
         method: "GET",
@@ -4310,7 +4439,7 @@ function DEV_ACTIVATE() {
         devStateBtns[i].style.display = "block";
         let state = i;
         devStateBtns[i].onclick = async () => {
-            let id = parseInt(location.hash.replace("#play-community-", ""));
+            let id = parseInt(location.hash.replace("#puzzle-", ""));
             if (isFinite(id)) {
                 let data = {
                     id: id,
@@ -4344,7 +4473,7 @@ function DEV_ACTIVATE() {
     };
     let devStoryOrderSend = devStoryOrderBtns[2];
     devStoryOrderSend.onclick = async () => {
-        let id = parseInt(location.hash.replace("#play-community-", ""));
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
                 id: id,
@@ -4386,7 +4515,7 @@ function DEV_ACTIVATE() {
     };
     let devDifficultySend = devDifficulty.querySelector("#dev-difficulty-send");
     devDifficultySend.onclick = async () => {
-        let id = parseInt(location.hash.replace("#play-community-", ""));
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
                 id: id,

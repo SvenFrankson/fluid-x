@@ -4866,7 +4866,7 @@ class ButtonTile extends Tile {
     }
     async instantiate() {
         await super.instantiate();
-        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/buttonbox.babylon");
         tileData[0].applyToMesh(this);
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);

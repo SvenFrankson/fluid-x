@@ -254,10 +254,17 @@ class Editor {
         this.heightInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
-            let last = split.pop();
-            split.push("x" + ("").padStart(this.puzzle.w, "o"));
-            split.push(last);
+            split.pop();
+            split.push(("").padStart(this.puzzle.w, "o"));
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+
+            this.puzzle.forceFullBuildingBlockGrid();
+            let buildingBlocks = this.puzzle.buildingBlocks;
+            buildingBlocks.forEach(col => {
+                col.splice(0, 0, 0);
+            })
+            text = text + "x" + SerializeBuildingBlocks(buildingBlocks);
+
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -267,10 +274,17 @@ class Editor {
         this.heightDelete.onclick = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
-            let last = split.pop();
             split.pop();
-            split.push(last);
+            split.pop();
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+
+            this.puzzle.forceFullBuildingBlockGrid();
+            let buildingBlocks = this.puzzle.buildingBlocks;
+            buildingBlocks.forEach(col => {
+                col.splice(0, 1);
+            })
+            text = text + "x" + SerializeBuildingBlocks(buildingBlocks);
+
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();

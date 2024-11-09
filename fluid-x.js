@@ -3262,7 +3262,7 @@ class MultiplayerLevelPage extends LevelPage {
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/3", {
+        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/4", {
             method: "GET",
             mode: "cors"
         });
@@ -4302,7 +4302,7 @@ function DEV_ACTIVATE() {
         e.appendChild(info);
     });
     let devStateBtns = [];
-    for (let i = 0; i <= 6; i++) {
+    for (let i = 0; i <= 7; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
         devStateBtns.push(btn);
     }
@@ -4406,7 +4406,7 @@ function DEV_ACTIVATE() {
 }
 function DEV_UPDATE_STATE_UI() {
     let devStateBtns = [];
-    for (let i = 0; i <= 6; i++) {
+    for (let i = 0; i <= 7; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
         devStateBtns.push(btn);
     }

@@ -1237,7 +1237,7 @@ function DEV_ACTIVATE(): void {
         e.appendChild(info);
     });
     let devStateBtns: HTMLButtonElement[] = [];
-    for (let i = 0; i <= 6; i++) {
+    for (let i = 0; i <= 7; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
         devStateBtns.push(btn);
     }
@@ -1345,7 +1345,7 @@ function DEV_ACTIVATE(): void {
 
 function DEV_UPDATE_STATE_UI(): void {
     let devStateBtns: HTMLButtonElement[] = [];
-    for (let i = 0; i <= 6; i++) {
+    for (let i = 0; i <= 7; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
         devStateBtns.push(btn);
     }

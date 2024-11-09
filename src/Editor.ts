@@ -205,8 +205,18 @@ class Editor {
         this.widthInsert = document.getElementById("editor-width-insert") as HTMLButtonElement;
         this.widthInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
+
+            let split = text.split("x");
+            split.pop();
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+
             text = text.replaceAll("x", "xo");
-            text = text.replaceAll("xoBB", "xBB");
+
+            this.puzzle.forceFullBuildingBlockGrid();
+            let buildingBlocks = this.puzzle.buildingBlocks;
+            buildingBlocks = [new Array<number>(this.puzzle.h).fill(0, 0, this.puzzle.h), ...buildingBlocks];
+            text = text + "x" + SerializeBuildingBlocks(buildingBlocks);
+
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -217,10 +227,16 @@ class Editor {
             let text = SaveAsText(this.puzzle);
 
             let split = text.split("x");
+            split.pop();
             for (let i = 1; i < split.length - 1; i++) {
                 split[i] = split[i].substring(1);
             }
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+
+            this.puzzle.forceFullBuildingBlockGrid();
+            let buildingBlocks = this.puzzle.buildingBlocks;
+            buildingBlocks.splice(0, 1);
+            text = text + "x" + SerializeBuildingBlocks(buildingBlocks);
 
             this.puzzle.data.content = text;
             this.puzzle.reset();

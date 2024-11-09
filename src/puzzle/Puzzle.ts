@@ -141,6 +141,14 @@ class Puzzle {
             }
         }
     }
+    public forceFullBuildingBlockGrid(): void {
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
+                this.buildingBlockSet(this.buildingBlockGet(i, j), i, j);
+            }
+        }
+    }
+
     public buildingBlocksBorders: Border[] = [];
     public boxesWall: BABYLON.Mesh;
     public boxesWood: BABYLON.Mesh;

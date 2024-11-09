@@ -2036,8 +2036,14 @@ class Editor {
         this.widthInsert = document.getElementById("editor-width-insert");
         this.widthInsert.onclick = () => {
             let text = SaveAsText(this.puzzle);
+            let split = text.split("x");
+            split.pop();
+            text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             text = text.replaceAll("x", "xo");
-            text = text.replaceAll("xoBB", "xBB");
+            this.puzzle.forceFullBuildingBlockGrid();
+            let buildingBlocks = this.puzzle.buildingBlocks;
+            buildingBlocks = [new Array(this.puzzle.h).fill(0, 0, this.puzzle.h), ...buildingBlocks];
+            text = text + "x" + SerializeBuildingBlocks(buildingBlocks);
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -2046,10 +2052,15 @@ class Editor {
         this.widthDelete.onclick = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
+            split.pop();
             for (let i = 1; i < split.length - 1; i++) {
                 split[i] = split[i].substring(1);
             }
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+            this.puzzle.forceFullBuildingBlockGrid();
+            let buildingBlocks = this.puzzle.buildingBlocks;
+            buildingBlocks.splice(0, 1);
+            text = text + "x" + SerializeBuildingBlocks(buildingBlocks);
             this.puzzle.data.content = text;
             this.puzzle.reset();
             this.initValues();
@@ -2509,7 +2520,7 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
-        context.fillStyle = "#231d17FF";
+        context.fillStyle = "#e3cfb4ff";
         context.font = "130px Shalimar";
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -2568,7 +2579,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 1000, 1000);
         context.strokeStyle = "#473a2fFF";
-        context.fillStyle = "#231d17FF";
+        context.fillStyle = "#e3cfb4ff";
         context.lineWidth = 6;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;
@@ -5955,6 +5966,13 @@ class Puzzle {
             }
         }
     }
+    forceFullBuildingBlockGrid() {
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
+                this.buildingBlockSet(this.buildingBlockGet(i, j), i, j);
+            }
+        }
+    }
     getScene() {
         return this.game.scene;
     }
@@ -7183,6 +7201,18 @@ function SaveAsText(puzzle) {
     }
     lines2.push(buildingBlocksLine);
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
+}
+function SerializeBuildingBlocks(buildingBlocks) {
+    let buildingBlocksLine = "BB";
+    let w = buildingBlocks.length;
+    let h = buildingBlocks[0].length;
+    console.log(w + " " + h);
+    for (let j = 0; j < h; j++) {
+        for (let i = 0; i < w; i++) {
+            buildingBlocksLine = buildingBlocksLine + buildingBlocks[i][j].toFixed(0);
+        }
+    }
+    return buildingBlocksLine;
 }
 class PuzzleUI {
     constructor(puzzle) {

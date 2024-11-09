@@ -109,3 +109,16 @@ function SaveAsText(puzzle: Puzzle): string {
 
     return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
 }
+
+function SerializeBuildingBlocks(buildingBlocks: number[][]): string {
+    let buildingBlocksLine = "BB";
+    let w = buildingBlocks.length;
+    let h = buildingBlocks[0].length;
+    console.log(w + " " + h);
+    for (let j = 0; j < h; j++) {
+        for (let i = 0; i < w; i++) {
+            buildingBlocksLine = buildingBlocksLine + buildingBlocks[i][j].toFixed(0);
+        }
+    }
+    return buildingBlocksLine;
+}

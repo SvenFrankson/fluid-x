@@ -203,7 +203,7 @@ class Haiku extends BABYLON.Mesh {
         context.fillRect(0, 0, 1000, 1000);
 
         context.fillStyle = "#473a2fFF";
-        context.fillStyle = "#231d17FF";
+        context.fillStyle = "#e3cfb4ff";
         context.font = "130px Shalimar";
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -275,7 +275,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         context.fillRect(0, 0, 1000, 1000);
 
         context.strokeStyle = "#473a2fFF";
-        context.fillStyle = "#231d17FF";
+        context.fillStyle = "#e3cfb4ff";
         context.lineWidth = 6;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1;

@@ -8,6 +8,7 @@ interface IPuzzleData {
     player?: string;
     state?: number;
     story_order?: number;
+    difficulty?: number;
 }
 
 function CLEAN_IPuzzleData(data: any): any {
@@ -22,6 +23,9 @@ function CLEAN_IPuzzleData(data: any): any {
     }
     if (data.story_order != null && typeof(data.story_order) === "string") {
         data.story_order = parseInt(data.story_order);
+    }
+    if (data.difficulty != null && typeof(data.difficulty) === "string") {
+        data.difficulty = parseInt(data.difficulty);
     }
 }
 
@@ -42,6 +46,9 @@ function CLEAN_IPuzzlesData(data: any): any {
         }
         if (data.puzzles[i].story_order != null && typeof(data.puzzles[i].story_order) === "string") {
             data.puzzles[i].story_order = parseInt(data.puzzles[i].story_order);
+        }
+        if (data.puzzles[i].difficulty != null && typeof(data.puzzles[i].difficulty) === "string") {
+            data.puzzles[i].difficulty = parseInt(data.puzzles[i].difficulty);
         }
     }
 }

@@ -88,6 +88,38 @@ abstract class LevelPage {
                     miniature.classList.add("square-btn-miniature");
                     squareButton.appendChild(miniature);
 
+                    let difficultyField = document.createElement("div");
+                    difficultyField.classList.add("square-btn-difficulty");
+
+                    let difficulty = puzzleTileData[n].data.difficulty;
+                    if (difficulty === 0 && DEV_MODE_ACTIVATED) {
+                        if (DEV_MODE_ACTIVATED) {
+                            difficultyField.classList.add("beige");
+                            difficultyField.innerHTML = "UKNWN";
+                        }
+                        else {
+                            difficultyField.classList.add("yellow");
+                            difficultyField.innerHTML = "MID";
+                        }
+                    }
+                    else if (difficulty === 1) {
+                        difficultyField.classList.add("green");
+                        difficultyField.innerHTML = "EASY";
+                    }
+                    else if (difficulty === 2) {
+                        difficultyField.classList.add("yellow");
+                        difficultyField.innerHTML = "MID";
+                    }
+                    else if (difficulty === 3) {
+                        difficultyField.classList.add("orange");
+                        difficultyField.innerHTML = "HARD";
+                    }
+                    else if (difficulty === 4) {
+                        difficultyField.classList.add("red");
+                        difficultyField.innerHTML = "HARD*";
+                    }
+                    squareButton.appendChild(difficultyField);
+
                     let authorField = document.createElement("div");
                     authorField.classList.add("square-btn-author");
                     let authorText = document.createElement("stroke-text") as StrokeText;

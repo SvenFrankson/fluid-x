@@ -135,6 +135,9 @@ class Editor {
         this.heightInput.setValue(this.puzzle.h);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
+        this.puzzle.haikus.forEach(haiku => {
+            haiku.visibility = 1;
+        })
     }
 
     public activate(): void {

@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -887,8 +887,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            DEV_ACTIVATE();
         }
 	}
 
@@ -1118,7 +1118,6 @@ class Game {
     public fadeIntroDir: number = 0;
 
     public async fadeInIntro(duration: number = 1): Promise<void> {
-        console.log("fadin");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
     
@@ -1142,7 +1141,6 @@ class Game {
     }
 
     public async fadeOutIntro(duration: number = 1): Promise<void> {
-        console.log("fadout");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
     
@@ -1227,9 +1225,14 @@ function DEV_ACTIVATE(): void {
 
         let info = document.createElement("div");
         info.innerHTML = "[dev mode ON] with great power comes great responsibilities";
+        info.style.position = "absolute";
+        info.style.left = "0";
+        info.style.width = "100%";
+        info.style.bottom = "0px";
         info.style.fontSize = "16px";
-        info.style.color = "lime";
-        info.style.paddingBottom = "5px";
+        info.style.color = "white";
+        info.style.textAlign = "center";
+        info.style.backgroundColor = "#000000A0";
 
         e.appendChild(info);
     });
@@ -1295,6 +1298,49 @@ function DEV_ACTIVATE(): void {
             });
         }
     }
+    
+    let devDifficulty = (document.querySelector("#dev-difficulty") as HTMLDivElement);
+    devDifficulty.style.display = "block";
+    let devDifficultyInput = devDifficulty.querySelector("num-value-input") as NumValueInput;
+    devDifficultyInput.onValueChange = (v: number) => {
+        Game.Instance.puzzle.data.difficulty = v;
+    }
+    devDifficultyInput.valueToString = (v: number) => {
+        if (v === 0) {
+            return "UKNWN";
+        }
+        if (v === 1) {
+            return "EASY";
+        }
+        if (v === 2) {
+            return "MID";
+        }
+        if (v === 3) {
+            return "HARD";
+        }
+        if (v === 4) {
+            return "HARD*";
+        }
+    }
+    let devDifficultySend = devDifficulty.querySelector("#dev-difficulty-send") as HTMLButtonElement;
+    devDifficultySend.onclick = async () => {
+        let id = parseInt(location.hash.replace("#play-community-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                difficulty: Game.Instance.puzzle.data.difficulty
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_difficulty", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+        }
+    }
 }
 
 function DEV_UPDATE_STATE_UI(): void {
@@ -1312,6 +1358,9 @@ function DEV_UPDATE_STATE_UI(): void {
 
     let storyOrderVal = document.querySelector("#dev-story-order span stroke-text") as StrokeText;
     storyOrderVal.setContent(isFinite(Game.Instance.puzzle.data.story_order) ? Game.Instance.puzzle.data.story_order.toFixed(0) : "0");
+
+    let difficultyInput = document.querySelector("#dev-difficulty num-value-input") as NumValueInput;
+    difficultyInput.setValue(isFinite(Game.Instance.puzzle.data.difficulty) ? Game.Instance.puzzle.data.difficulty : 0);
 }
 
 let createAndInit = async () => {

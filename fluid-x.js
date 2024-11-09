@@ -1975,6 +1975,9 @@ class Editor {
         this.heightInput.setValue(this.puzzle.h);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
+        this.puzzle.haikus.forEach(haiku => {
+            haiku.visibility = 1;
+        });
     }
     activate() {
         this.ballCountButton = document.getElementById("ball-count-btn");
@@ -2958,6 +2961,36 @@ class LevelPage {
                     let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].data.content);
                     miniature.classList.add("square-btn-miniature");
                     squareButton.appendChild(miniature);
+                    let difficultyField = document.createElement("div");
+                    difficultyField.classList.add("square-btn-difficulty");
+                    let difficulty = puzzleTileData[n].data.difficulty;
+                    if (difficulty === 0 && DEV_MODE_ACTIVATED) {
+                        if (DEV_MODE_ACTIVATED) {
+                            difficultyField.classList.add("beige");
+                            difficultyField.innerHTML = "UKNWN";
+                        }
+                        else {
+                            difficultyField.classList.add("yellow");
+                            difficultyField.innerHTML = "MID";
+                        }
+                    }
+                    else if (difficulty === 1) {
+                        difficultyField.classList.add("green");
+                        difficultyField.innerHTML = "EASY";
+                    }
+                    else if (difficulty === 2) {
+                        difficultyField.classList.add("yellow");
+                        difficultyField.innerHTML = "MID";
+                    }
+                    else if (difficulty === 3) {
+                        difficultyField.classList.add("orange");
+                        difficultyField.innerHTML = "HARD";
+                    }
+                    else if (difficulty === 4) {
+                        difficultyField.classList.add("red");
+                        difficultyField.innerHTML = "HARD*";
+                    }
+                    squareButton.appendChild(difficultyField);
                     let authorField = document.createElement("div");
                     authorField.classList.add("square-btn-author");
                     let authorText = document.createElement("stroke-text");
@@ -3296,7 +3329,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -4004,8 +4037,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            document.querySelector("#dev-pass-input").value = "Crillion";
+            DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4161,7 +4194,6 @@ class Game {
         }
     }
     async fadeInIntro(duration = 1) {
-        console.log("fadin");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
             let t0 = performance.now();
@@ -4183,7 +4215,6 @@ class Game {
         }
     }
     async fadeOutIntro(duration = 1) {
-        console.log("fadout");
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
             let t0 = performance.now();
@@ -4260,9 +4291,14 @@ function DEV_ACTIVATE() {
         e.style.backgroundColor = "black";
         let info = document.createElement("div");
         info.innerHTML = "[dev mode ON] with great power comes great responsibilities";
+        info.style.position = "absolute";
+        info.style.left = "0";
+        info.style.width = "100%";
+        info.style.bottom = "0px";
         info.style.fontSize = "16px";
-        info.style.color = "lime";
-        info.style.paddingBottom = "5px";
+        info.style.color = "white";
+        info.style.textAlign = "center";
+        info.style.backgroundColor = "#000000A0";
         e.appendChild(info);
     });
     let devStateBtns = [];
@@ -4325,6 +4361,48 @@ function DEV_ACTIVATE() {
             });
         }
     };
+    let devDifficulty = document.querySelector("#dev-difficulty");
+    devDifficulty.style.display = "block";
+    let devDifficultyInput = devDifficulty.querySelector("num-value-input");
+    devDifficultyInput.onValueChange = (v) => {
+        Game.Instance.puzzle.data.difficulty = v;
+    };
+    devDifficultyInput.valueToString = (v) => {
+        if (v === 0) {
+            return "UKNWN";
+        }
+        if (v === 1) {
+            return "EASY";
+        }
+        if (v === 2) {
+            return "MID";
+        }
+        if (v === 3) {
+            return "HARD";
+        }
+        if (v === 4) {
+            return "HARD*";
+        }
+    };
+    let devDifficultySend = devDifficulty.querySelector("#dev-difficulty-send");
+    devDifficultySend.onclick = async () => {
+        let id = parseInt(location.hash.replace("#play-community-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                difficulty: Game.Instance.puzzle.data.difficulty
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_difficulty", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+        }
+    };
 }
 function DEV_UPDATE_STATE_UI() {
     let devStateBtns = [];
@@ -4340,6 +4418,8 @@ function DEV_UPDATE_STATE_UI() {
     }
     let storyOrderVal = document.querySelector("#dev-story-order span stroke-text");
     storyOrderVal.setContent(isFinite(Game.Instance.puzzle.data.story_order) ? Game.Instance.puzzle.data.story_order.toFixed(0) : "0");
+    let difficultyInput = document.querySelector("#dev-difficulty num-value-input");
+    difficultyInput.setValue(isFinite(Game.Instance.puzzle.data.difficulty) ? Game.Instance.puzzle.data.difficulty : 0);
 }
 let createAndInit = async () => {
     try {
@@ -6942,6 +7022,9 @@ function CLEAN_IPuzzleData(data) {
     if (data.story_order != null && typeof (data.story_order) === "string") {
         data.story_order = parseInt(data.story_order);
     }
+    if (data.difficulty != null && typeof (data.difficulty) === "string") {
+        data.difficulty = parseInt(data.difficulty);
+    }
 }
 function CLEAN_IPuzzlesData(data) {
     for (let i = 0; i < data.puzzles.length; i++) {
@@ -6956,6 +7039,9 @@ function CLEAN_IPuzzlesData(data) {
         }
         if (data.puzzles[i].story_order != null && typeof (data.puzzles[i].story_order) === "string") {
             data.puzzles[i].story_order = parseInt(data.puzzles[i].story_order);
+        }
+        if (data.puzzles[i].difficulty != null && typeof (data.puzzles[i].difficulty) === "string") {
+            data.puzzles[i].difficulty = parseInt(data.puzzles[i].difficulty);
         }
     }
 }

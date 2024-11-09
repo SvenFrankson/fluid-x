@@ -519,6 +519,27 @@ button:hover, .hovered {
     opacity: 0.4;
 }
 
+.square-btn-difficulty {
+    display: block;
+    position: absolute;
+    font-size: 16px;
+    font-weight: 900;
+    bottom: 8px;
+    left: 0px;
+    padding-left: 4px;
+    padding-right: 4px;
+    z-index: 1;
+    transform-origin: 0% 0%;
+    transform: rotate(-90deg);
+    border: 2px solid #624c3cff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: none;
+    opacity: 80%;
+    text-align: center;
+    width: 60px;
+}
+
 .square-btn-author {
     display: block;
     position: absolute;
@@ -609,11 +630,11 @@ input[type="text"] {
 .dev-btn {
     position: fixed;
     right: 5px;
+    font-family: Julee;
 }
 
 #dev-story-order{
     text-align: right;
-    font-family: Julee;
 }
 
 #dev-back-btn {

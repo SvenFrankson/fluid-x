@@ -78,32 +78,32 @@ class PushTile extends Tile {
                     let borderBlock = false;
                     if (dir.x > 0) {
                         let stack = this.game.puzzle.getGriddedBorderStack(this.i, this.j);
-                        if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                        if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
                             borderBlock = true;
                         }
                     }
                     else if (dir.x < 0) {
                         let stack = this.game.puzzle.getGriddedBorderStack(newI, this.j);
-                        if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                        if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
                             borderBlock = true;
                         }
                     }
                     else if (dir.z > 0) {
                         let stack = this.game.puzzle.getGriddedBorderStack(this.i, this.j);
-                        if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                        if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
                             borderBlock = true;
                         }
                     }
                     else if (dir.z < 0) {
                         let stack = this.game.puzzle.getGriddedBorderStack(this.i, newJ);
-                        if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) > 0.6; })) {
+                        if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
                             borderBlock = true;
                         }
                     }
 
                     if (!borderBlock) {
                         let tileAtDestination = this.game.puzzle.tiles.find(tile => {
-                            return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.5;
+                            return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.6;
                         })
                         if (tileAtDestination instanceof HoleTile) {
                             let newPos = this.position.clone();

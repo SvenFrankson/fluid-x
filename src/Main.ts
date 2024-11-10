@@ -1145,7 +1145,8 @@ class Game {
 
     private _storyExpertTable = [
         { story: 74, expert: 105 },
-        { story: 75, expert: 106 }
+        { story: 75, expert: 106 },
+        { story: 76, expert: 107 }
     ];
     public storyIdToExpertId(storyId: number): number {
         let element = this._storyExpertTable.find(e => { return e.story === storyId; });

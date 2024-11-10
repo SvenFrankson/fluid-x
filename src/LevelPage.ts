@@ -373,7 +373,7 @@ abstract class LevelPage {
     }
 }
 
-class BaseLevelPage extends LevelPage {
+class StoryPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
@@ -416,7 +416,7 @@ class BaseLevelPage extends LevelPage {
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
-                        location.hash = "#community"
+                        location.hash = "#community-puzzles"
                     }
                 }
             }
@@ -426,7 +426,7 @@ class BaseLevelPage extends LevelPage {
     }
 }
 
-class ExpertLevelPage extends LevelPage {
+class ExpertPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
@@ -465,7 +465,7 @@ class ExpertLevelPage extends LevelPage {
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
-                        location.hash = "#community"
+                        location.hash = "#community-puzzles"
                     }
                 }
             }
@@ -475,7 +475,7 @@ class ExpertLevelPage extends LevelPage {
     }
 }
 
-class CommunityLevelPage extends LevelPage {
+class CommunityPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
@@ -536,7 +536,7 @@ class CommunityLevelPage extends LevelPage {
     }
 }
 
-class DevLevelPage extends LevelPage {
+class DevPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
@@ -581,7 +581,7 @@ class DevLevelPage extends LevelPage {
     }
 }
 
-class MultiplayerLevelPage extends LevelPage {
+class MultiplayerPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);

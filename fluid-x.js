@@ -1570,11 +1570,11 @@ class CarillonRouter extends Nabu.Router {
             await this.pages[i].waitLoaded();
         }
         this.homeMenu = new HomePage("#home-menu", this);
-        this.baseLevelsPage = new BaseLevelPage("#base-levels-page", this);
-        this.expertLevelsPage = new ExpertLevelPage("#expert-puzzles-page", this);
-        this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
-        this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
-        this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
+        this.storyPuzzlesPage = new StoryPuzzlesPage("#base-puzzles-page", this);
+        this.expertPuzzlesPage = new ExpertPuzzlesPage("#expert-puzzles-page", this);
+        this.communityPuzzlesPage = new CommunityPuzzlesPage("#community-puzzles-page", this);
+        this.devPuzzlesPage = new DevPuzzlesPage("#dev-puzzles-page", this);
+        this.multiplayerPuzzlesPage = new MultiplayerPuzzlesPage("#multiplayer-puzzles-page", this);
         this.creditsPage = document.querySelector("#credits-page");
         this.multiplayerPage = new MultiplayerPage("#multiplayer-page", this);
         this.playUI = document.querySelector("#play-ui");
@@ -1612,35 +1612,6 @@ class CarillonRouter extends Nabu.Router {
                 PokiGameplayStop();
             }
             await this.show(this.devPage, false, showTime);
-        }
-        else if (page.startsWith("#community")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
-            this.show(this.communityLevelPage.nabuPage, false, showTime);
-            requestAnimationFrame(() => {
-                this.communityLevelPage.redraw();
-            });
-        }
-        else if (page.startsWith("#dev-levels")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
-            if (!DEV_MODE_ACTIVATED) {
-                location.hash = "#dev";
-                return;
-            }
-            this.show(this.devLevelPage.nabuPage, false, showTime);
-            if (page.indexOf("#dev-levels-") != -1) {
-                let state = parseInt(page.replace("#dev-levels-", ""));
-                this.devLevelPage.levelStateToFetch = state;
-            }
-            else {
-                this.devLevelPage.levelStateToFetch = 0;
-            }
-            requestAnimationFrame(() => {
-                this.devLevelPage.redraw();
-            });
         }
         else if (page.startsWith("#editor-preview")) {
             this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#editor";
@@ -1695,13 +1666,13 @@ class CarillonRouter extends Nabu.Router {
                 this.game.puzzle.resetFromData(data);
             }
             if (this.game.puzzle.data.state === 4) {
-                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#multiplayer-levels";
+                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#multiplayer-puzzles";
             }
             else if (this.game.puzzle.data.state === 3) {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-puzzles";
             }
             else {
-                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community";
+                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community-puzzles";
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
@@ -1713,27 +1684,36 @@ class CarillonRouter extends Nabu.Router {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
-            this.show(this.baseLevelsPage.nabuPage, false, showTime);
+            this.show(this.storyPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
-                this.baseLevelsPage.redraw();
+                this.storyPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#expert-puzzles")) {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
-            this.show(this.expertLevelsPage.nabuPage, false, showTime);
+            this.show(this.expertPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
-                this.expertLevelsPage.redraw();
+                this.expertPuzzlesPage.redraw();
             });
         }
-        else if (page.startsWith("#multiplayer-levels")) {
+        else if (page.startsWith("#community-puzzles")) {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
-            this.show(this.multiplayerLevelsPage.nabuPage, false, showTime);
+            this.show(this.communityPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
-                this.multiplayerLevelsPage.redraw();
+                this.communityPuzzlesPage.redraw();
+            });
+        }
+        else if (page.startsWith("#multiplayer-puzzles")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.multiplayerPuzzlesPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.multiplayerPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#multiplayer")) {
@@ -1741,6 +1721,26 @@ class CarillonRouter extends Nabu.Router {
                 PokiGameplayStop();
             }
             await this.show(this.multiplayerPage.nabuPage, false, showTime);
+        }
+        else if (page.startsWith("#dev-puzzles")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            if (!DEV_MODE_ACTIVATED) {
+                location.hash = "#dev";
+                return;
+            }
+            this.show(this.devPuzzlesPage.nabuPage, false, showTime);
+            if (page.indexOf("#dev-puzzles-") != -1) {
+                let state = parseInt(page.replace("#dev-puzzles-", ""));
+                this.devPuzzlesPage.levelStateToFetch = state;
+            }
+            else {
+                this.devPuzzlesPage.levelStateToFetch = 0;
+            }
+            requestAnimationFrame(() => {
+                this.devPuzzlesPage.redraw();
+            });
         }
         else if (page.startsWith("#home")) {
             if (USE_POKI_SDK) {
@@ -3132,7 +3132,7 @@ class LevelPage {
         this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
 }
-class BaseLevelPage extends LevelPage {
+class StoryPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.className = "BaseLevelPage";
@@ -3172,7 +3172,7 @@ class BaseLevelPage extends LevelPage {
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
-                        location.hash = "#community";
+                        location.hash = "#community-puzzles";
                     }
                 };
             }
@@ -3180,7 +3180,7 @@ class BaseLevelPage extends LevelPage {
         return puzzleData;
     }
 }
-class ExpertLevelPage extends LevelPage {
+class ExpertPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.className = "ExpertLevelPage";
@@ -3215,7 +3215,7 @@ class ExpertLevelPage extends LevelPage {
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
-                        location.hash = "#community";
+                        location.hash = "#community-puzzles";
                     }
                 };
             }
@@ -3223,7 +3223,7 @@ class ExpertLevelPage extends LevelPage {
         return puzzleData;
     }
 }
-class CommunityLevelPage extends LevelPage {
+class CommunityPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.className = "CommunityLevelPage";
@@ -3274,7 +3274,7 @@ class CommunityLevelPage extends LevelPage {
         return puzzleData;
     }
 }
-class DevLevelPage extends LevelPage {
+class DevPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.levelStateToFetch = 0;
@@ -3310,7 +3310,7 @@ class DevLevelPage extends LevelPage {
         return puzzleData;
     }
 }
-class MultiplayerLevelPage extends LevelPage {
+class MultiplayerPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.levelStateToFetch = 0;
@@ -3593,7 +3593,8 @@ class Game {
         };
         this._storyExpertTable = [
             { story: 74, expert: 105 },
-            { story: 75, expert: 106 }
+            { story: 75, expert: 106 },
+            { story: 76, expert: 107 }
         ];
         this._curtainOpacity = 0;
         this.fadeIntroDir = 0;

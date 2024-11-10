@@ -280,6 +280,7 @@ class Puzzle {
             PokiGameplayStop();
         }
         let score = Math.floor(this.playTimer * 100);
+        let firstTimeCompleted = !this.game.isPuzzleCompleted(this.data.id);
         this.game.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
@@ -300,7 +301,7 @@ class Puzzle {
                 }
             }
             this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
-            this.puzzleUI.win();
+            this.puzzleUI.win(firstTimeCompleted);
             if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
             }

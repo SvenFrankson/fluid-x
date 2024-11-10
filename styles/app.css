@@ -677,7 +677,7 @@ body.vertical #play-timer {
 #play-success-panel {
     width: 310px;
     left: calc((100vw - 338px) * 0.5);
-    top: calc((100svh - 300px) * 0.5);
+    bottom: 51svh;
     text-align: center;
 }
 
@@ -688,14 +688,14 @@ body.vertical #play-timer {
 #play-gameover-panel {
     width: 310px;
     left: calc((100vw - 360px) * 0.5);
-    top: calc((100svh - 148px) * 0.5);
+    bottom: calc((100svh - 148px) * 0.5);
     text-align: center;
 }
 
 #play-unlock-panel {
     width: 310px;
-    left: calc((100vw - 360px) * 0.5);
-    top: calc((100svh - 148px) * 0.5);
+    left: calc((100vw - 338px) * 0.5);
+    top: 51svh;
     text-align: center;
 }
 

@@ -1571,7 +1571,7 @@ class CarillonRouter extends Nabu.Router {
         }
         this.homeMenu = new HomePage("#home-menu", this);
         this.baseLevelsPage = new BaseLevelPage("#base-levels-page", this);
-        this.expertLevelsPage = new ExpertLevelPage("#expert-levels-page", this);
+        this.expertLevelsPage = new ExpertLevelPage("#expert-puzzles-page", this);
         this.communityLevelPage = new CommunityLevelPage("#community-levels-page", this);
         this.devLevelPage = new DevLevelPage("#dev-levels-page", this);
         this.multiplayerLevelsPage = new MultiplayerLevelPage("#multiplayer-levels-page", this);
@@ -1676,25 +1676,6 @@ class CarillonRouter extends Nabu.Router {
             this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
         }
-        else if (page.startsWith("#expert-level-")) {
-            let numLevel = parseInt(page.replace("#expert-level-", ""));
-            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-levels";
-            if (this.game.puzzle.data.numLevel != numLevel) {
-                let data = this.game.tiaratumGameExpertLevels;
-                if (data.puzzles[numLevel - 1]) {
-                    this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
-                }
-                else {
-                    location.hash = "#expert-levels";
-                    return;
-                }
-            }
-            this.show(this.playUI, false, showTime);
-            await this.game.puzzle.reset();
-            document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Preplay;
-            this.game.globalTimer = 0;
-        }
         else if (page.startsWith("#puzzle-")) {
             let puzzleId = parseInt(page.replace("#puzzle-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
@@ -1713,8 +1694,11 @@ class CarillonRouter extends Nabu.Router {
                 CLEAN_IPuzzleData(data);
                 this.game.puzzle.resetFromData(data);
             }
-            if (this.game.puzzle.data.state === 3) {
+            if (this.game.puzzle.data.state === 4) {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#multiplayer-levels";
+            }
+            else if (this.game.puzzle.data.state === 3) {
+                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-puzzles";
             }
             else {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community";
@@ -1734,7 +1718,7 @@ class CarillonRouter extends Nabu.Router {
                 this.baseLevelsPage.redraw();
             });
         }
-        else if (page.startsWith("#expert-levels")) {
+        else if (page.startsWith("#expert-puzzles")) {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
@@ -3217,7 +3201,7 @@ class ExpertLevelPage extends LevelPage {
                     data: data.puzzles[n],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
-                        location.hash = "expert-level-" + (n + 1).toFixed(0);
+                        location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     },
                     locked: locked
                 };
@@ -3364,7 +3348,7 @@ class MultiplayerLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 23;
+var CRL_VERSION3 = 24;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -4297,11 +4281,15 @@ class Game {
     }
     storyIdToExpertId(storyId) {
         let element = this._storyExpertTable.find(e => { return e.story === storyId; });
-        return element.expert;
+        if (element) {
+            return element.expert;
+        }
     }
     expertIdToStoryId(expertId) {
         let element = this._storyExpertTable.find(e => { return e.expert === expertId; });
-        return element.story;
+        if (element) {
+            return element.story;
+        }
     }
     get curtainOpacity() {
         return this._curtainOpacity;
@@ -6261,6 +6249,7 @@ class Puzzle {
             PokiGameplayStop();
         }
         let score = Math.floor(this.playTimer * 100);
+        let firstTimeCompleted = !this.game.isPuzzleCompleted(this.data.id);
         this.game.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         let highscore = this.data.score;
@@ -6279,7 +6268,7 @@ class Puzzle {
                 }
             }
             this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
-            this.puzzleUI.win();
+            this.puzzleUI.win(firstTimeCompleted);
             if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
             }
@@ -7578,6 +7567,7 @@ class PuzzleUI {
         };
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
+        this.unlockPanel = document.querySelector("#play-unlock-panel");
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
     }
@@ -7596,8 +7586,14 @@ class PuzzleUI {
     get game() {
         return this.puzzle.game;
     }
-    win() {
+    win(firstTimeCompleted) {
         this.successPanel.style.display = "";
+        if (firstTimeCompleted || true) {
+            this.tryShowUnlockPanel();
+        }
+        else {
+            this.unlockPanel.style.display = "none";
+        }
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
@@ -7606,6 +7602,7 @@ class PuzzleUI {
     }
     lose() {
         this.successPanel.style.display = "none";
+        this.unlockPanel.style.display = "none";
         this.gameoverPanel.style.display = "";
         this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
@@ -7616,11 +7613,49 @@ class PuzzleUI {
         if (this.successPanel) {
             this.successPanel.style.display = "none";
         }
+        if (this.unlockPanel) {
+            this.unlockPanel.style.display = "none";
+        }
         if (this.gameoverPanel) {
             this.gameoverPanel.style.display = "none";
         }
         if (this.ingameTimer) {
             this.ingameTimer.style.display = "";
+        }
+    }
+    async tryShowUnlockPanel() {
+        let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
+        console.log(expertId);
+        if (isFinite(expertId)) {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + expertId.toFixed(0), {
+                    method: "GET",
+                    mode: "cors"
+                });
+                let data = await response.json();
+                CLEAN_IPuzzleData(data);
+                let squareBtn = this.unlockPanel.querySelector(".square-btn-panel");
+                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
+                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+                let existingImg = squareBtn.querySelector(".square-btn-miniature");
+                if (existingImg) {
+                    squareBtn.removeChild(existingImg);
+                }
+                let newIcon = PuzzleMiniatureMaker.Generate(data.content);
+                newIcon.classList.add("square-btn-miniature");
+                squareBtn.appendChild(newIcon);
+                document.querySelector("#play-unlock-try-btn").onclick = () => {
+                    location.href = "#puzzle-" + expertId.toFixed(0);
+                };
+                this.unlockPanel.style.display = "";
+            }
+            catch (e) {
+                console.error(e);
+                this.unlockPanel.style.display = "none";
+            }
+        }
+        else {
+            this.unlockPanel.style.display = "none";
         }
     }
     setHighscoreState(state) {

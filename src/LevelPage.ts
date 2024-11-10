@@ -451,7 +451,7 @@ class ExpertLevelPage extends LevelPage {
                     data: data.puzzles[n],
                     onclick: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
-                        location.hash = "expert-level-" + (n + 1).toFixed(0);
+                        location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     },
                     locked: locked
                 }

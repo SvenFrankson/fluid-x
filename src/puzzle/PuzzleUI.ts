@@ -3,6 +3,7 @@ class PuzzleUI {
     public ingameTimer: HTMLDivElement;
     public successPanel: HTMLDivElement;
     public gameoverPanel: HTMLDivElement;
+    public unlockPanel: HTMLDivElement;
     public failMessage: HTMLDivElement;
 
     public highscoreContainer: HTMLDivElement;
@@ -14,6 +15,7 @@ class PuzzleUI {
     public scoreDoneBtn: HTMLButtonElement;
     public successReplayButton: HTMLButtonElement;
     public successNextButton: HTMLButtonElement;
+
     public gameoverBackButton: HTMLButtonElement;
     public gameoverReplayButton: HTMLButtonElement;
 
@@ -60,13 +62,20 @@ class PuzzleUI {
         
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
+        this.unlockPanel = document.querySelector("#play-unlock-panel");
 
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
     }
 
-    public win(): void {
+    public win(firstTimeCompleted: boolean): void {
         this.successPanel.style.display = "";
+        if (firstTimeCompleted || true) {
+            this.tryShowUnlockPanel();
+        }
+        else {
+            this.unlockPanel.style.display = "none";
+        }
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
@@ -76,6 +85,7 @@ class PuzzleUI {
 
     public lose(): void {
         this.successPanel.style.display = "none";
+        this.unlockPanel.style.display = "none";
         this.gameoverPanel.style.display = "";
         this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
@@ -87,11 +97,54 @@ class PuzzleUI {
         if (this.successPanel) {
             this.successPanel.style.display = "none";
         }
+        if (this.unlockPanel) {
+            this.unlockPanel.style.display = "none";
+        }
         if (this.gameoverPanel) {
             this.gameoverPanel.style.display = "none";
         }
         if (this.ingameTimer) {
             this.ingameTimer.style.display = "";
+        }
+    }
+
+    public async tryShowUnlockPanel(): Promise<void> {
+        let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
+        console.log(expertId);
+        if (isFinite(expertId)) {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + expertId.toFixed(0), {
+                    method: "GET",
+                    mode: "cors"
+                });
+                let data: IPuzzleData = await response.json();
+                CLEAN_IPuzzleData(data);
+
+                let squareBtn = this.unlockPanel.querySelector(".square-btn-panel");
+                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
+                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+            
+                let existingImg = squareBtn.querySelector(".square-btn-miniature");
+                if (existingImg) {
+                    squareBtn.removeChild(existingImg);
+                }
+                let newIcon = PuzzleMiniatureMaker.Generate(data.content);
+                newIcon.classList.add("square-btn-miniature");
+                squareBtn.appendChild(newIcon);
+
+                (document.querySelector("#play-unlock-try-btn") as HTMLButtonElement).onclick = () => {
+                    location.href = "#puzzle-" + expertId.toFixed(0);
+                }
+
+                this.unlockPanel.style.display = "";
+            }
+            catch (e) {
+                console.error(e);
+                this.unlockPanel.style.display = "none";
+            }
+        }
+        else {
+            this.unlockPanel.style.display = "none";
         }
     }
 

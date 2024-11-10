@@ -64,7 +64,12 @@ function SaveAsText(puzzle: Puzzle): string {
             lines[j][i] = "p";
         }
         else if (tile instanceof HoleTile) {
-            lines[j][i] = "O";
+            if (tile.covered) {
+                lines[j][i] = "Q";
+            }
+            else {
+                lines[j][i] = "O";
+            }
         }
         else if (tile instanceof WallTile) {
             lines[j][i] = "a";

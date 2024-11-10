@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 24;
+var CRL_VERSION3: number = 25;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -930,8 +930,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
 	}
 
@@ -1146,7 +1146,8 @@ class Game {
     private _storyExpertTable = [
         { story: 74, expert: 105 },
         { story: 75, expert: 106 },
-        { story: 76, expert: 107 }
+        { story: 76, expert: 107 },
+        { story: 108, expert: 109 }
     ];
     public storyIdToExpertId(storyId: number): number {
         let element = this._storyExpertTable.find(e => { return e.story === storyId; });
@@ -1241,6 +1242,12 @@ function DEBUG_LOG_MESHES_NAMES(): void {
     console.log(countedMeshNames);
 }
 
+async function DEV_GENERATE_ALL_LEVEL_FILES(): Promise<void> {
+    await DEV_GENERATE_TUTORIAL_LEVEL_FILE();
+    await DEV_GENERATE_EXPERT_LEVEL_FILE();
+    await DEV_GENERATE_PUZZLE_LEVEL_FILE();
+}
+
 async function DEV_GENERATE_TUTORIAL_LEVEL_FILE(): Promise<void> {
     const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         method: "GET",
@@ -1257,7 +1264,7 @@ async function DEV_GENERATE_TUTORIAL_LEVEL_FILE(): Promise<void> {
 }
 
 async function DEV_GENERATE_EXPERT_LEVEL_FILE(): Promise<void> {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/4", {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
         method: "GET",
         mode: "cors"
     });

@@ -515,10 +515,15 @@ class Ball extends BABYLON.Mesh {
                             let tile = tiles[i];
                             if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                                 if (tile.fallsIn(this)) {
-                                    this.ballState = BallState.Fall;
-                                    this.fallTimer = 0;
-                                    this.hole = tile;
-                                    return;
+                                    if (tile.covered) {
+                                        tile.rumble();
+                                    }
+                                    else {
+                                        this.ballState = BallState.Fall;
+                                        this.fallTimer = 0;
+                                        this.hole = tile;
+                                        return;
+                                    }
                                 }
                             }
                             else if (tile instanceof WaterTile && tile.distFromSource > 0) {
@@ -1832,6 +1837,10 @@ class Editor {
                         if (tile instanceof DoorTile && !tile.closed) {
                             tile.close(0);
                         }
+                        else if (tile instanceof HoleTile && !tile.covered) {
+                            tile.covered = true;
+                            tile.instantiate();
+                        }
                         else if (tile) {
                             tile.dispose();
                             this.puzzle.rebuildFloor();
@@ -1900,14 +1909,16 @@ class Editor {
                                 tile = new HoleTile(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ,
-                                    color: this.brushColor
+                                    color: this.brushColor,
+                                    noShadow: true
                                 });
                             }
                             else if (this.brush === EditorBrush.Wall) {
                                 tile = new WallTile(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ,
-                                    color: this.brushColor
+                                    color: this.brushColor,
+                                    noShadow: true
                                 });
                             }
                             else if (this.brush === EditorBrush.Water) {
@@ -2663,9 +2674,10 @@ class HaikuDebug extends BABYLON.Mesh {
 /// <reference path="./Tile.ts"/>
 class HoleTile extends Tile {
     constructor(game, props) {
-        props.noShadow = true;
         super(game, props);
         this.covered = false;
+        this.rumbling = false;
+        this.cracking = false;
         this.color = props.color;
     }
     async instantiate() {
@@ -2679,11 +2691,19 @@ class HoleTile extends Tile {
                     this.covers[n] = new BABYLON.Mesh("cover");
                     this.covers[n].parent = this;
                     this.covers[n].material = this.game.floorMaterial;
+                }
+                this.covers[0].position.copyFromFloats(-0.15, 0, 0.25);
+                Mummu.RotateInPlace(this.covers[0].position, BABYLON.Axis.Y, r);
+                this.covers[1].position.copyFromFloats(0.3, 0, -0.15);
+                Mummu.RotateInPlace(this.covers[1].position, BABYLON.Axis.Y, r);
+                this.covers[2].position.copyFromFloats(-0.25, 0, -0.25);
+                Mummu.RotateInPlace(this.covers[2].position, BABYLON.Axis.Y, r);
+                for (let n = 0; n < 3; n++) {
                     let data = Mummu.CloneVertexData(datas[n]);
                     Mummu.RotateAngleAxisVertexDataInPlace(data, r, BABYLON.Axis.Y);
                     for (let i = 0; i < data.positions.length / 3; i++) {
-                        data.uvs[2 * i] = 0.5 * (data.positions[3 * i] + this.position.x);
-                        data.uvs[2 * i + 1] = 0.5 * (data.positions[3 * i + 2] + this.position.z) - 0.5;
+                        data.uvs[2 * i] = 0.5 * (data.positions[3 * i] + this.position.x + this.covers[n].position.x);
+                        data.uvs[2 * i + 1] = 0.5 * (data.positions[3 * i + 2] + this.position.z + this.covers[n].position.z) - 0.5;
                     }
                     data.applyToMesh(this.covers[n]);
                 }
@@ -2704,6 +2724,65 @@ class HoleTile extends Tile {
             return false;
         }
         return true;
+    }
+    async rumble() {
+        if (this.rumbling) {
+            return;
+        }
+        this.rumbling = true;
+        let t0 = performance.now() / 1000;
+        let rumblingLoop = () => {
+            if (this.cracking || this.isDisposed()) {
+                return;
+            }
+            else {
+                let dt = performance.now() / 1000 - t0;
+                for (let i = 0; i < this.covers.length; i++) {
+                    this.covers[i].position.y = 0.02 * Math.sin(i * Math.PI / 1.5 + 4 * 2 * Math.PI * dt);
+                }
+                let onePuckStillOn = false;
+                let puzzle = this.game.puzzle;
+                for (let i = 0; i < puzzle.ballsCount; i++) {
+                    if (this.fallsIn(puzzle.balls[i])) {
+                        onePuckStillOn = true;
+                    }
+                }
+                if (onePuckStillOn) {
+                    requestAnimationFrame(rumblingLoop);
+                }
+                else {
+                    this.destroyCover();
+                }
+            }
+        };
+        rumblingLoop();
+    }
+    async destroyCover() {
+        if (this.cracking) {
+            return;
+        }
+        this.rumbling = false;
+        this.cracking = true;
+        this.covered = false;
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+        let axisUp = BABYLON.Vector3.Cross(this.covers[0].position, BABYLON.Axis.Y);
+        let dropUp = Mummu.AnimationFactory.CreateNumber(this.covers[0], this.covers[0].position, "y", () => {
+            this.covers[0].rotate(axisUp, 0.02);
+        });
+        let axisRight = BABYLON.Vector3.Cross(this.covers[1].position, BABYLON.Axis.Y);
+        let dropRight = Mummu.AnimationFactory.CreateNumber(this.covers[1], this.covers[1].position, "y", () => {
+            this.covers[1].rotate(axisRight, 0.02);
+        });
+        let axisBottom = BABYLON.Vector3.Cross(this.covers[2].position, BABYLON.Axis.Y);
+        let dropBottom = Mummu.AnimationFactory.CreateNumber(this.covers[2], this.covers[2].position, "y", () => {
+            this.covers[2].rotate(axisBottom, 0.02);
+        });
+        dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); });
+        await wait(0.3);
+        dropRight(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[1].dispose(); });
+        await wait(0.3);
+        await dropBottom(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[2].dispose(); });
+        this.covers = [];
     }
 }
 class HomePage {
@@ -3366,7 +3445,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 24;
+var CRL_VERSION3 = 25;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3403,7 +3482,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -3612,7 +3691,8 @@ class Game {
         this._storyExpertTable = [
             { story: 74, expert: 105 },
             { story: 75, expert: 106 },
-            { story: 76, expert: 107 }
+            { story: 76, expert: 107 },
+            { story: 108, expert: 109 }
         ];
         this._curtainOpacity = 0;
         this.fadeIntroDir = 0;
@@ -4155,8 +4235,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4381,6 +4461,11 @@ function DEBUG_LOG_MESHES_NAMES() {
     countedMeshNames.sort((e1, e2) => { return e1.count - e2.count; });
     console.log(countedMeshNames);
 }
+async function DEV_GENERATE_ALL_LEVEL_FILES() {
+    await DEV_GENERATE_TUTORIAL_LEVEL_FILE();
+    await DEV_GENERATE_EXPERT_LEVEL_FILE();
+    await DEV_GENERATE_PUZZLE_LEVEL_FILE();
+}
 async function DEV_GENERATE_TUTORIAL_LEVEL_FILE() {
     const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
         method: "GET",
@@ -4395,7 +4480,7 @@ async function DEV_GENERATE_TUTORIAL_LEVEL_FILE() {
     }
 }
 async function DEV_GENERATE_EXPERT_LEVEL_FILE() {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/4", {
+    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
         method: "GET",
         mode: "cors"
     });
@@ -4919,6 +5004,11 @@ class PushTile extends Tile {
                             newPos.z = (this.j + dir.z * 0.75) * 1.1;
                             this.tileState = TileState.Moving;
                             this.pushSound.play();
+                            if (tileAtDestination.covered) {
+                                this.animateWait(0.1).then(() => {
+                                    tileAtDestination.destroyCover();
+                                });
+                            }
                             await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
                             if (dir.x === 1) {
                                 this.animateRotZ(-Math.PI, 0.4);
@@ -6046,7 +6136,7 @@ class Puzzle {
         this.ballCollision = BABYLON.Vector3.Zero();
         this.ballCollisionDone = [true, true];
         this.playTimer = 0;
-        this.fishingPolesCount = 3;
+        this.fishingPolesCount = 0;
         this.tiles = [];
         this.griddedTiles = [];
         this.griddedBorders = [];
@@ -6425,7 +6515,7 @@ class Puzzle {
         }
         this.ballCollision.copyFromFloats(-10, 0, -10);
         this.ballCollisionDone = [true, true];
-        this.fishingPolesCount = 3;
+        this.fishingPolesCount = 0;
         let buildingBlocksLine = lines[lines.length - 1];
         if (buildingBlocksLine.startsWith("BB")) {
             lines.pop();
@@ -6470,8 +6560,19 @@ class Puzzle {
                         color: TileColor.North,
                         i: i,
                         j: j,
-                        h: 0
+                        h: 0,
+                        noShadow: true
                     });
+                }
+                if (c === "Q") {
+                    let hole = new HoleTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    hole.covered = true;
                 }
                 if (c === "r") {
                     let rock = new WallTile(this.game, {
@@ -7407,7 +7508,12 @@ function SaveAsText(puzzle) {
             lines[j][i] = "p";
         }
         else if (tile instanceof HoleTile) {
-            lines[j][i] = "O";
+            if (tile.covered) {
+                lines[j][i] = "Q";
+            }
+            else {
+                lines[j][i] = "O";
+            }
         }
         else if (tile instanceof WallTile) {
             lines[j][i] = "a";

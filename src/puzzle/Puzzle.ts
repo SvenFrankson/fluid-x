@@ -20,7 +20,7 @@ class Puzzle {
     public ballCollisionDone: boolean[] = [true, true];
 
     public playTimer: number = 0;
-    public fishingPolesCount: number = 3;
+    public fishingPolesCount: number = 0;
     public fishingPole: FishingPole;
     public border: BABYLON.Mesh;
     public floor: BABYLON.Mesh;
@@ -456,7 +456,7 @@ class Puzzle {
         this.ballCollision.copyFromFloats(- 10, 0, -10);
         this.ballCollisionDone = [true, true];
         
-        this.fishingPolesCount = 3;
+        this.fishingPolesCount = 0;
 
         let buildingBlocksLine = lines[lines.length - 1];
         if (buildingBlocksLine.startsWith("BB")) {
@@ -506,8 +506,19 @@ class Puzzle {
                         color: TileColor.North,
                         i: i,
                         j: j,
-                        h: 0
+                        h: 0,
+                        noShadow: true
                     });
+                }
+                if (c === "Q") {
+                    let hole = new HoleTile(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
+                    hole.covered = true;
                 }
                 if (c === "r") {
                     let rock = new WallTile(this.game, {

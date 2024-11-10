@@ -596,10 +596,15 @@ class Ball extends BABYLON.Mesh {
                             let tile = tiles[i];
                             if (this.ballState === BallState.Move && tile instanceof HoleTile) {
                                 if (tile.fallsIn(this)) {
-                                    this.ballState = BallState.Fall;
-                                    this.fallTimer = 0;
-                                    this.hole = tile;
-                                    return;
+                                    if (tile.covered) {
+                                        tile.rumble();
+                                    }
+                                    else {
+                                        this.ballState = BallState.Fall;
+                                        this.fallTimer = 0;
+                                        this.hole = tile;
+                                        return;
+                                    }
                                 }
                             }
                             else if (tile instanceof WaterTile && tile.distFromSource > 0) {

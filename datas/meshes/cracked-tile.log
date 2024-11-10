@@ -12,48 +12,47 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		Texture directory   :  C:\Users\svent\Documents\sven-frankson\fluid-x\datas\meshes\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  Cube
+	processing begun of mesh:  0-up
 		processing begun of material:  white
 		processing begun of material:  black
 		processing begun of multimaterial:  cracked_tile.Multimaterial#0
-		num positions      :  71
-		num normals        :  71
+		num positions      :  78
+		num normals        :  78
 		num tangents       :  0
-		num uvs            :  142
+		num uvs            :  156
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  34
-		WARNING: # of 0 area faces found:  1
-	processing begun of mesh:  Cube.001
+	processing begun of mesh:  1-right
 		processing begun of material:  white
 		processing begun of material:  black
 		registered as also a user of material:  white
 		registered as also a user of material:  black
 		processing begun of multimaterial:  cracked_tile.Multimaterial#1
-		num positions      :  84
-		num normals        :  84
+		num positions      :  100
+		num normals        :  100
 		num tangents       :  0
-		num uvs            :  168
+		num uvs            :  200
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  42
-	processing begun of mesh:  Cube.002
+	processing begun of mesh:  2-bottom
 		processing begun of material:  white
 		processing begun of material:  black
 		registered as also a user of material:  white
 		registered as also a user of material:  black
 		processing begun of multimaterial:  cracked_tile.Multimaterial#2
-		num positions      :  64
-		num normals        :  64
+		num positions      :  70
+		num normals        :  70
 		num tangents       :  0
-		num uvs            :  128
+		num uvs            :  140
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  32
+		num triangles      :  28
 ========= Writing of JSON file started =========
-	writing mesh:  Cube
-	writing mesh:  Cube.001
-	writing mesh:  Cube.002
+	writing mesh:  0-up
+	writing mesh:  1-right
+	writing mesh:  2-bottom
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0176 secs
+elapsed time:  0 min, 0.0148 secs

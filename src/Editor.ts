@@ -725,6 +725,10 @@ class Editor {
                     if (tile instanceof DoorTile && !tile.closed) {
                         tile.close(0);
                     }
+                    else if (tile instanceof HoleTile && !tile.covered) {
+                        tile.covered = true;
+                        tile.instantiate();
+                    }
                     else if (tile) {
                         tile.dispose();
                         this.puzzle.rebuildFloor();
@@ -810,7 +814,8 @@ class Editor {
                                 {
                                     i: this.cursorI,
                                     j: this.cursorJ,
-                                    color: this.brushColor
+                                    color: this.brushColor,
+                                    noShadow: true
                                 }
                             )
                         }
@@ -820,7 +825,8 @@ class Editor {
                                 {
                                     i: this.cursorI,
                                     j: this.cursorJ,
-                                    color: this.brushColor
+                                    color: this.brushColor,
+                                    noShadow: true
                                 }
                             )
                         }

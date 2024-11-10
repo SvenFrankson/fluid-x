@@ -112,6 +112,11 @@ class PushTile extends Tile {
             
                             this.tileState = TileState.Moving;
                             this.pushSound.play();
+                            if (tileAtDestination.covered) {
+                                this.animateWait(0.1).then(() => {
+                                    (tileAtDestination as HoleTile).destroyCover();
+                                })
+                            }
                             await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
 
                             if (dir.x === 1) {

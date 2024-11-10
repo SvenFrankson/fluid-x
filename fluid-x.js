@@ -2665,12 +2665,30 @@ class HoleTile extends Tile {
     constructor(game, props) {
         props.noShadow = true;
         super(game, props);
+        this.covered = false;
         this.color = props.color;
-        this.scaling.copyFromFloats(1.1, 1, 1.1);
-        this.material = this.game.blackMaterial;
-        this.tileDark = new BABYLON.Mesh("tile-top");
-        this.tileDark.parent = this;
-        this.tileDark.material = this.game.grayMaterial;
+    }
+    async instantiate() {
+        await super.instantiate();
+        if (this.covered) {
+            if (!this.covers) {
+                let datas = await this.game.vertexDataLoader.get("./datas/meshes/cracked-tile.babylon");
+                let r = Math.floor(4 * Math.random()) * Math.PI * 0.5;
+                this.covers = [];
+                for (let n = 0; n < 3; n++) {
+                    this.covers[n] = new BABYLON.Mesh("cover");
+                    this.covers[n].parent = this;
+                    this.covers[n].material = this.game.floorMaterial;
+                    let data = Mummu.CloneVertexData(datas[n]);
+                    Mummu.RotateAngleAxisVertexDataInPlace(data, r, BABYLON.Axis.Y);
+                    for (let i = 0; i < data.positions.length / 3; i++) {
+                        data.uvs[2 * i] = 0.5 * (data.positions[3 * i] + this.position.x);
+                        data.uvs[2 * i + 1] = 0.5 * (data.positions[3 * i + 2] + this.position.z) - 0.5;
+                    }
+                    data.applyToMesh(this.covers[n]);
+                }
+            }
+        }
     }
     fallsIn(ball) {
         if (ball.position.x < this.position.x - 0.55) {
@@ -7589,7 +7607,7 @@ class PuzzleUI {
     }
     win(firstTimeCompleted) {
         this.successPanel.style.display = "";
-        if (firstTimeCompleted || true) {
+        if (firstTimeCompleted) {
             this.tryShowUnlockPanel();
         }
         else {

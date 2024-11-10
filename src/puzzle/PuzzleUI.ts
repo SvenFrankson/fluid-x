@@ -70,7 +70,7 @@ class PuzzleUI {
 
     public win(firstTimeCompleted: boolean): void {
         this.successPanel.style.display = "";
-        if (firstTimeCompleted || true) {
+        if (firstTimeCompleted) {
             this.tryShowUnlockPanel();
         }
         else {

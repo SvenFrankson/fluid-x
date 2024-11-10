@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 25;
+var CRL_VERSION3: number = 27;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 

@@ -411,7 +411,7 @@ class StoryPuzzlesPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "Puzzles and Challenges !",
+                        title: "Community Puzzles",
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
@@ -460,12 +460,12 @@ class ExpertPuzzlesPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "Puzzles and Challenges !",
+                        title: "Story Puzzles",
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
-                        location.hash = "#community-puzzles"
+                        location.hash = "#levels"
                     }
                 }
             }

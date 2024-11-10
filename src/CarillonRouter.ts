@@ -113,19 +113,39 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#puzzle-")) {
             let puzzleId = parseInt(page.replace("#puzzle-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
-                let headers = {};
-                if (var1) {
-                    headers = { 
-                        "Authorization": 'Basic ' + btoa("carillon:" + var1)
-                    };
+                let data: IPuzzleData;
+                if (OFFLINE_MODE) {
+                    data = this.game.tiaratumGameOfflinePuzzleLevels.puzzles.find(puzzle => { return puzzle.id === puzzleId; });
+                    if (!data) {
+                        data = this.game.tiaratumGameExpertLevels.puzzles.find(puzzle => { return puzzle.id === puzzleId; });
+                    }
+                    if (!data) {
+                        location.hash = "#home";
+                        return;
+                    }
                 }
-                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
-                    method: "GET",
-                    mode: "cors",
-                    headers: headers
-                });
-                let data = await response.json();
-                CLEAN_IPuzzleData(data);
+                else {
+                    try {
+                        let headers = {};
+                        if (var1) {
+                            headers = { 
+                                "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                            };
+                        }
+                        const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
+                            method: "GET",
+                            mode: "cors",
+                            headers: headers
+                        });
+                        data = await response.json();
+                        CLEAN_IPuzzleData(data);
+                    }
+                    catch (e) {
+                        console.error(e);
+                        location.hash = "#home";
+                        return;
+                    }
+                }
                 this.game.puzzle.resetFromData(data);
             }
             if (this.game.puzzle.data.state === 4) {

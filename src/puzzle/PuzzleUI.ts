@@ -110,15 +110,24 @@ class PuzzleUI {
 
     public async tryShowUnlockPanel(): Promise<void> {
         let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
-        console.log(expertId);
         if (isFinite(expertId)) {
             try {
-                const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + expertId.toFixed(0), {
-                    method: "GET",
-                    mode: "cors"
-                });
-                let data: IPuzzleData = await response.json();
-                CLEAN_IPuzzleData(data);
+                let data: IPuzzleData;
+                if (OFFLINE_MODE) {
+                    data = this.game.tiaratumGameExpertLevels.puzzles.find(puzzle => { return puzzle.id === expertId; });
+                }
+                else {
+                    let url = SHARE_SERVICE_PATH + "puzzle/" + expertId.toFixed(0);
+                    const response = await fetch(url, {
+                        method: "GET",
+                        mode: "cors"
+                    });
+                    if (!response.ok) {
+                        throw new Error(url + " status: " + response.status);
+                    }
+                    data = await response.json();
+                    CLEAN_IPuzzleData(data);
+                }
 
                 let squareBtn = this.unlockPanel.querySelector(".square-btn-panel");
                 squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;

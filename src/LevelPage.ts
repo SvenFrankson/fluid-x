@@ -442,15 +442,11 @@ class ExpertLevelPage extends LevelPage {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
-                if (n === 0) {
+                let storyId = this.router.game.expertIdToStoryId(data.puzzles[n].id);
+                if (this.router.game.isPuzzleCompleted(storyId)) {
                     locked = false;
                 }
-                else if (data.puzzles[n - 1]) {
-                    let prevId = data.puzzles[n - 1].id;
-                    if (this.router.game.isPuzzleCompleted(prevId)) {
-                        locked = false;
-                    }
-                }
+                
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onclick: () => {

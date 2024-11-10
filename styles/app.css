@@ -540,6 +540,18 @@ button:hover, .hovered {
     width: 60px;
 }
 
+.square-btn-title {
+    display: block;
+    position: absolute;
+    font-size: 16px;
+    font-weight: 700;
+    top: 5px;
+    left: 5px;
+    width: calc(100% - 10px);
+    z-index: 2;
+    text-align: left;
+}
+
 .square-btn-author {
     display: block;
     position: absolute;
@@ -674,6 +686,13 @@ body.vertical #play-timer {
 }
 
 #play-gameover-panel {
+    width: 310px;
+    left: calc((100vw - 360px) * 0.5);
+    top: calc((100svh - 148px) * 0.5);
+    text-align: center;
+}
+
+#play-unlock-panel {
     width: 310px;
     left: calc((100vw - 360px) * 0.5);
     top: calc((100svh - 148px) * 0.5);

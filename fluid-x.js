@@ -1678,7 +1678,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#expert-level-")) {
             let numLevel = parseInt(page.replace("#expert-level-", ""));
-            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-level-" + (numLevel + 1).toFixed(0);
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameExpertLevels;
                 if (data.puzzles[numLevel - 1]) {
@@ -3209,14 +3209,9 @@ class ExpertLevelPage extends LevelPage {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
-                if (n === 0) {
+                let storyId = this.router.game.expertIdToStoryId(data.puzzles[n].id);
+                if (this.router.game.isPuzzleCompleted(storyId)) {
                     locked = false;
-                }
-                else if (data.puzzles[n - 1]) {
-                    let prevId = data.puzzles[n - 1].id;
-                    if (this.router.game.isPuzzleCompleted(prevId)) {
-                        locked = false;
-                    }
                 }
                 puzzleData[i] = {
                     data: data.puzzles[n],
@@ -3369,7 +3364,7 @@ class MultiplayerLevelPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 22;
+var CRL_VERSION3 = 23;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3612,6 +3607,10 @@ class Game {
         };
         this.onWheelEvent = (event) => {
         };
+        this._storyExpertTable = [
+            { story: 74, expert: 105 },
+            { story: 75, expert: 106 }
+        ];
         this._curtainOpacity = 0;
         this.fadeIntroDir = 0;
         Game.Instance = this;
@@ -4295,6 +4294,14 @@ class Game {
             return comp.score;
         }
         return Infinity;
+    }
+    storyIdToExpertId(storyId) {
+        let element = this._storyExpertTable.find(e => { return e.story === storyId; });
+        return element.expert;
+    }
+    expertIdToStoryId(expertId) {
+        let element = this._storyExpertTable.find(e => { return e.expert === expertId; });
+        return element.story;
     }
     get curtainOpacity() {
         return this._curtainOpacity;

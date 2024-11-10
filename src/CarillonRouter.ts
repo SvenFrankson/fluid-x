@@ -141,7 +141,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#expert-level-")) {
             let numLevel = parseInt(page.replace("#expert-level-", ""));
-            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#expert-level-" + (numLevel + 1).toFixed(0);
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#expert-levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.tiaratumGameExpertLevels;
                 if (data.puzzles[numLevel - 1]) {

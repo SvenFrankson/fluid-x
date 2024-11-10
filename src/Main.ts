@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 22;
+var CRL_VERSION3: number = 23;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -1141,6 +1141,19 @@ class Game {
             return comp.score;
         }
         return Infinity;
+    }
+
+    private _storyExpertTable = [
+        { story: 74, expert: 105 },
+        { story: 75, expert: 106 }
+    ];
+    public storyIdToExpertId(storyId: number): number {
+        let element = this._storyExpertTable.find(e => { return e.story === storyId; });
+        return element.expert; 
+    }
+    public expertIdToStoryId(expertId: number): number {
+        let element = this._storyExpertTable.find(e => { return e.expert === expertId; });
+        return element.story; 
     }
 
     private _curtainOpacity: number = 0;

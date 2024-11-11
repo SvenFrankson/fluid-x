@@ -65,6 +65,8 @@ class ButtonTile extends Tile {
         this.outlineWidth = 0.02;
 
         this.tileFrame = new BABYLON.Mesh("tile-frame");
+        this.tileFrame.position.y = 0.25;
+        this.tileFrame.rotation.y = Math.PI * 0.25;
         this.tileFrame.parent = this;
 
         this.tileFrame.material = this.game.blackMaterial;
@@ -74,7 +76,7 @@ class ButtonTile extends Tile {
         this.tileFrame.outlineWidth = 0.02;
 
         this.tileTop = new BABYLON.Mesh("tile-top");
-        this.tileTop.parent = this;
+        this.tileTop.parent = this.tileFrame;
         
         this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
 
@@ -91,6 +93,33 @@ class ButtonTile extends Tile {
         tileData[1].applyToMesh(this.tileFrame);
         tileData[2].applyToMesh(this.tileTop);
         tileData[3].applyToMesh(this.tileBottom);
+    }
+
+    public async clicClack(): Promise<void> {
+        this.bump();
+        let animateWait = Mummu.AnimationFactory.CreateWait(this);
+        let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
+        this.game.toonSoundManager.start({
+            text: "cric",
+            pos: this.absolutePosition.add(new BABYLON.Vector3(- 0.3, 0, 0.3)),
+            color: "#2b2821",
+            size: 0.3,
+            duration: 0.5,
+            type: ToonSoundType.Poc
+        });
+        this.game.puzzle.cricSound.play();
+        await animateRotation(- Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
+        await animateWait(0.1);
+        this.game.toonSoundManager.start({
+            text: "crac",
+            pos: this.absolutePosition.add(new BABYLON.Vector3(0.3, 0, 0.3)),
+            color: "#2b2821",
+            size: 0.3,
+            duration: 0.5,
+            type: ToonSoundType.Poc
+        });
+        this.game.puzzle.cracSound.play();
+        await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
     }
 }
 
@@ -163,17 +192,17 @@ class DoorTile extends Tile {
         tileData[1].applyToMesh(this.tileTopFrame);
     }
 
-    public async open(duration: number = 1): Promise<void> {
-        this.animateTopPosY(0, duration, Nabu.Easing.easeInOutSine);
-        this.animateTopRotY(0, duration, Nabu.Easing.easeInOutSine);
-        await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeInOutSine);
+    public async open(duration: number = 0.5): Promise<void> {
+        this.animateTopPosY(0, duration, Nabu.Easing.easeOutCubic);
+        this.animateTopRotY(0, duration, Nabu.Easing.easeOutCubic);
+        await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeOutCubic);
         this.closed = false;
     }
 
-    public async close(duration: number = 1): Promise<void> {
+    public async close(duration: number = 0.5): Promise<void> {
         this.closed = true;
-        this.animateTopPosY(0.1, duration, Nabu.Easing.easeInOutSine);
-        this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeInOutSine);
-        await this.animateBoxPosY(0, duration, Nabu.Easing.easeInOutSine);
+        this.animateTopPosY(0.1, duration, Nabu.Easing.easeOutCubic);
+        this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeOutCubic);
+        await this.animateBoxPosY(0, duration, Nabu.Easing.easeOutCubic);
     }
 }

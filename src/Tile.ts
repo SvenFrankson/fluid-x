@@ -280,12 +280,12 @@ abstract class Tile extends BABYLON.Mesh {
                     this.game.toonSoundManager.start({
                         text: "clic",
                         pos: star.absolutePosition.clone(),
-                        color: "#e3cfb4",
+                        color: "#e0c872",
                         size: 0.2,
-                        duration: 0.5,
+                        duration: 0.4,
                         type: ToonSoundType.Poc
                     });
-                    this.game.puzzle.clickSound.play();
+                    this.game.puzzle.cricSound.play();
                 });
             }
         }

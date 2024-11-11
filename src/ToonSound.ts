@@ -35,6 +35,7 @@ class ToonSound extends BABYLON.Mesh {
     ) {
         super("haiku");
         BABYLON.CreateGroundVertexData({ width: 5, height: 1 }).applyToMesh(this);
+        this.renderingGroupId = 1;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.isVisible = false;
 
@@ -61,6 +62,7 @@ class ToonSound extends BABYLON.Mesh {
         }
 
         this.position.copyFrom(this.soundProp.pos);
+        this.rotDir = ((this.soundProp.pos.x - this.game.camera.target.x) > 0) ? 1 : - 1;
 
         this._timer = 0;
         this.scale = 0;
@@ -94,11 +96,10 @@ class ToonSound extends BABYLON.Mesh {
         this.dynamicTexture.update();
     }
 
+    public rotDir: number = 1;
     private _lastDrawnTextIndex: number = 0;
     private _dir: BABYLON.Vector3 = BABYLON.Vector3.Up();
     public update(dt: number): void {
-        this._dir.copyFrom(this.game.camera.globalPosition).subtractInPlace(this.position);
-        Mummu.QuaternionFromYZAxisToRef(this._dir, BABYLON.Axis.Z, this.rotationQuaternion);
 
         this._timer += dt;
         if (this._timer >= this.soundProp.duration) {
@@ -113,18 +114,26 @@ class ToonSound extends BABYLON.Mesh {
                 }
             }
             if (this.soundProp.type === ToonSoundType.Poc) {
-                let f = 2 * this._timer / this.soundProp.duration;
-                f = Nabu.MinMax(f, 0, 1);
-                f = Nabu.Easing.easeOutCubic(f);
-                this.scale = f * this.soundProp.size;
+                let fScale = 4 * this._timer / this.soundProp.duration;
+                fScale = Nabu.MinMax(fScale, 0, 1);
+                this.scale = fScale * this.soundProp.size;
+
+                let fPos = 2 * this._timer / this.soundProp.duration;
+                fPos = Nabu.MinMax(fPos, 0, 1);
+                fPos = Nabu.Easing.easeOutSine(fPos);
                 this.position.copyFrom(this.soundProp.pos);
-                this.position.y += f * 0.5;
-    
-                let fOut = 1 - (this._timer / this.soundProp.duration - 0.8) / 0.2;
-                fOut = Nabu.MinMax(fOut, 0, 1);
-                this.visibility = fOut;
+                this.position.x += fPos * this.rotDir * this.soundProp.size * 0.5;
+                this.position.z += fPos * this.soundProp.size * 0.5;
+
+                this._dir.copyFrom(this.game.camera.globalPosition).subtractInPlace(this.position);
+                Mummu.QuaternionFromYZAxisToRef(this._dir, BABYLON.Axis.Z.add(BABYLON.Axis.X.scale(0.1 * fPos * this.rotDir)), this.rotationQuaternion);
+
+                this.visibility = 1;
             }
             else if (this.soundProp.type === ToonSoundType.Rumble) {
+                this._dir.copyFrom(this.game.camera.globalPosition).subtractInPlace(this.position);
+                Mummu.QuaternionFromYZAxisToRef(this._dir, BABYLON.Axis.Z.add(BABYLON.Axis.X.scale(0.1 * Math.sin(4 * 2 * Math.PI * this._timer))), this.rotationQuaternion);
+
                 let f = 4 * this._timer / this.soundProp.duration;
                 f = Nabu.MinMax(f, 0, 1);
                 f = Nabu.Easing.easeOutCubic(f);
@@ -132,9 +141,7 @@ class ToonSound extends BABYLON.Mesh {
                 this.position.copyFrom(this.soundProp.pos);
                 this.position.y += f * 0.5 + 0.05 * Math.sin(6 * 2 * Math.PI * this._timer);
     
-                let fOut = 1 - (this._timer / this.soundProp.duration - 0.95) / 0.05;
-                fOut = Nabu.MinMax(fOut, 0, 1);
-                this.visibility = fOut;
+                this.visibility = 1;
             }
         }
     }
@@ -154,6 +161,7 @@ class ToonSoundManager {
     }
 
     public start(soundProps: IToonSoundProp): void {
+        return;
         for (let i = 0; i < 10; i++) {
             if (!this.sounds[i].active) {
                 this.sounds[i].start(soundProps);
@@ -163,6 +171,7 @@ class ToonSoundManager {
     }
 
     public update(dt: number): void {
+        return;
         for (let i = 0; i < 10; i++) {
             if (this.sounds[i].active) {
                 this.sounds[i].update(dt);

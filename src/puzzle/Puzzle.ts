@@ -157,7 +157,8 @@ class Puzzle {
     public fpsMaterial: BABYLON.StandardMaterial;
     public fpsTexture: BABYLON.DynamicTexture;
 
-    public clickSound: MySound;
+    public cricSound: MySound;
+    public cracSound: MySound;
     public wooshSound: MySound;
 
     public getScene(): BABYLON.Scene {
@@ -248,7 +249,8 @@ class Puzzle {
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
         
-        this.clickSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15, playbackRate: 0.9 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
     }
 

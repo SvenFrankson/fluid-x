@@ -469,6 +469,16 @@ class Ball extends BABYLON.Mesh {
                 this.position.z = this.puzzle.zMax - this.radius;
                 this.vZ = -1;
                 if (!this.water) {
+                    let impact = this.position.clone();
+                    impact.z = this.puzzle.zMax;
+                    this.game.toonSoundManager.start({
+                        text: "POC",
+                        pos: impact,
+                        color: "#e3cfb4",
+                        size: 0.3,
+                        duration: 0.5,
+                        type: ToonSoundType.Poc
+                    });
                     this.woodChocSound2.play();
                 }
             }
@@ -476,6 +486,16 @@ class Ball extends BABYLON.Mesh {
                 this.position.z = this.puzzle.zMin + this.radius;
                 this.vZ = 1;
                 if (!this.water) {
+                    let impact = this.position.clone();
+                    impact.z = this.puzzle.zMin;
+                    this.game.toonSoundManager.start({
+                        text: "POC",
+                        pos: impact,
+                        color: "#e3cfb4",
+                        size: 0.3,
+                        duration: 0.5,
+                        type: ToonSoundType.Poc
+                    });
                     this.woodChocSound2.play();
                 }
             }
@@ -484,12 +504,32 @@ class Ball extends BABYLON.Mesh {
                 this.position.x = this.puzzle.xMax - this.radius;
                 this.bounceXValue = - 1;
                 this.bounceXTimer = this.bounceXDelay;
+                let impact = this.position.clone();
+                impact.x = this.puzzle.xMax;
+                this.game.toonSoundManager.start({
+                    text: "POC",
+                    pos: impact,
+                    color: "#e3cfb4",
+                    size: 0.3,
+                    duration: 0.5,
+                    type: ToonSoundType.Poc
+                });
                 this.woodChocSound2.play();
             }
             else if (this.position.x - this.radius < this.puzzle.xMin) {
                 this.position.x = this.puzzle.xMin + this.radius;
                 this.bounceXValue = 1;
                 this.bounceXTimer = this.bounceXDelay;
+                let impact = this.position.clone();
+                impact.x = this.puzzle.xMin;
+                this.game.toonSoundManager.start({
+                    text: "POC",
+                    pos: impact,
+                    color: "#e3cfb4",
+                    size: 0.3,
+                    duration: 0.5,
+                    type: ToonSoundType.Poc
+                });
                 this.woodChocSound2.play();
             }
 
@@ -522,6 +562,14 @@ class Ball extends BABYLON.Mesh {
                                         this.vZ = - 1;
                                     }
                                 }
+                                this.game.toonSoundManager.start({
+                                    text: "POC",
+                                    pos: impact,
+                                    color: "#e3cfb4",
+                                    size: 0.3,
+                                    duration: 0.5,
+                                    type: ToonSoundType.Poc
+                                });
                                 this.woodChocSound2.play();
                                 break;
                             }
@@ -572,6 +620,14 @@ class Ball extends BABYLON.Mesh {
                             this.bounceXValue = - 1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
+                        this.game.toonSoundManager.start({
+                            text: "POC",
+                            pos: impact,
+                            color: "#e3cfb4",
+                            size: 0.3,
+                            duration: 0.5,
+                            type: ToonSoundType.Poc
+                        });
                         this.woodChocSound.play();
                     }
                     else {
@@ -581,6 +637,14 @@ class Ball extends BABYLON.Mesh {
                         else {
                             this.vZ = -1;
                         }
+                        this.game.toonSoundManager.start({
+                            text: "POC",
+                            pos: impact,
+                            color: "#e3cfb4",
+                            size: 0.3,
+                            duration: 0.5,
+                            type: ToonSoundType.Poc
+                        });
                         this.woodChocSound.play();
                     }
                     this.puzzle.ballCollisionDone[this.ballIndex] = true;
@@ -628,6 +692,14 @@ class Ball extends BABYLON.Mesh {
                                                 this.bounceXValue = - 1;
                                                 this.bounceXTimer = this.bounceXDelay;
                                             }
+                                            this.game.toonSoundManager.start({
+                                                text: "POC",
+                                                pos: impact,
+                                                color: "#e3cfb4",
+                                                size: 0.3,
+                                                duration: 0.5,
+                                                type: ToonSoundType.Poc
+                                            });
                                             this.woodChocSound.play();
                                         }
                                         else {
@@ -637,6 +709,14 @@ class Ball extends BABYLON.Mesh {
                                             else {
                                                 this.vZ = -1;
                                             }
+                                            this.game.toonSoundManager.start({
+                                                text: "POC",
+                                                pos: impact,
+                                                color: "#e3cfb4",
+                                                size: 0.3,
+                                                duration: 0.5,
+                                                type: ToonSoundType.Poc
+                                            });
                                             this.woodChocSound.play();
                                         }
                                         if (this.ballState === BallState.Move) {

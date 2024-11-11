@@ -66,6 +66,15 @@ class HoleTile extends Tile {
         if (this.rumbling) {
             return;
         }
+        this.game.toonSoundManager.start({
+            texts: ["R", "RR", "RRR", "RRRR", "RRRRR", "RRRRRR", "RRRRRRR"],
+            pos: this.covers[0].absolutePosition.clone(),
+            color: "#606060",
+            size: 0.2,
+            duration: 0.7,
+            type: ToonSoundType.Rumble
+        });
+
         this.rumbling = true;
         let t0 = performance.now() / 1000;
         let rumblingLoop = () => {
@@ -118,10 +127,34 @@ class HoleTile extends Tile {
             this.covers[2].rotate(axisBottom, 0.02);
         });
 
+        this.game.toonSoundManager.start({
+            text: "CRACK !",
+            pos: this.covers[0].absolutePosition.clone(),
+            color: "#202020",
+            size: 0.2,
+            duration: 0.3,
+            type: ToonSoundType.Poc
+        });
         dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); });
         await wait(0.3);
+        this.game.toonSoundManager.start({
+            text: "CRACK !",
+            pos: this.covers[1].absolutePosition.clone(),
+            color: "#202020",
+            size: 0.2,
+            duration: 0.3,
+            type: ToonSoundType.Poc
+        });
         dropRight(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[1].dispose(); });
         await wait(0.3);
+        this.game.toonSoundManager.start({
+            text: "CRACK !",
+            pos: this.covers[2].absolutePosition.clone(),
+            color: "#202020",
+            size: 0.2,
+            duration: 0.3,
+            type: ToonSoundType.Poc
+        });
         await dropBottom(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[2].dispose(); });
 
         this.covers = [];

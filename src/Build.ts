@@ -151,9 +151,6 @@ class Ramp extends Build {
     }
 
     public async instantiate(): Promise<void> {
-        for (let i = 0; i < this.borders.length; i++) {
-            await this.borders[i].instantiate();
-        }
         let data = await this.game.vertexDataLoader.get("./datas/meshes/ramp.babylon");
         data[0].applyToMesh(this);
 
@@ -425,10 +422,6 @@ class OldBoxDeprecated extends Build {
     }
 
     public async instantiate(): Promise<void> {
-        for (let i = 0; i < this.borders.length; i++) {
-            await this.borders[i].instantiate();
-        }
-        
         /*
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         let boxData = Mummu.CloneVertexData(data[6]);
@@ -536,10 +529,6 @@ class Bridge extends Build {
     }
 
     public async instantiate(): Promise<void> {
-        for (let i = 0; i < this.borders.length; i++) {
-            await this.borders[i].instantiate();
-        }
-        
         let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
         data[3].applyToMesh(this);
         let floorData = Mummu.CloneVertexData(data[4]);

@@ -1,11 +1,13 @@
 
-class Border extends BABYLON.Mesh {
+class Border {
 
+    public position: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public rotationY: number = 0;
     public get vertical(): boolean {
-        return this.rotation.y === 0;
+        return this.rotationY === 0;
     }
     public set vertical(v: boolean) {
-        this.rotation.y = v ? 0 : Math.PI * 0.5;
+        this.rotationY = v ? 0 : Math.PI * 0.5;
         this.w = v ? 0 : 1;
         this.d = v ? 1 : 0;
     }
@@ -78,25 +80,11 @@ class Border extends BABYLON.Mesh {
     }
 
     constructor(public game: Game, public ghost = false) {
-        super("tile");
-
-        this.material = this.game.borderMaterial;
-
-        this.renderOutline = true;
-        this.outlineColor = BABYLON.Color3.Black();
-        this.outlineWidth = 0.01;
+        
     }
 
-    public async instantiate(): Promise<void> {
+    public async getVertexData(): Promise<BABYLON.VertexData> {
         if (!this.ghost) {
-
-            /*
-            let haikuDebug = new HaikuDebug(this.game, this.i.toFixed(0) + "." + this.j.toFixed(0));
-            haikuDebug.parent = this;
-            haikuDebug.rotation.y = 0.5 * Math.PI;
-            haikuDebug.position.y = 0.5;
-            */
-
             let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
             if (this.vertical) {
                 let jPlusStack = this.game.puzzle.getGriddedBorderStack(this.i, this.j + 1);
@@ -106,16 +94,16 @@ class Border extends BABYLON.Mesh {
                 let jMinusConn = jMinusStack && jMinusStack.array.find(brd => { return brd.position.y === this.position.y && brd.vertical === this.vertical; });
 
                 if (jPlusConn && jMinusConn) {
-                    borderDatas[0].applyToMesh(this);
+                    return Mummu.CloneVertexData(borderDatas[0]);
                 }
                 else if (jPlusConn) {
-                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[3]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                    return Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[3]), Math.PI, BABYLON.Axis.Y);
                 }
                 else if (jMinusConn) {
-                    borderDatas[3].applyToMesh(this);
+                    return Mummu.CloneVertexData(borderDatas[3]);
                 }
                 else {
-                    borderDatas[4].applyToMesh(this);
+                    return Mummu.CloneVertexData(borderDatas[4]);
                 }
             }
             else {
@@ -126,16 +114,16 @@ class Border extends BABYLON.Mesh {
                 let iMinusConn = iMinusStack && iMinusStack.array.find(brd => { return brd.position.y === this.position.y && !brd.vertical });
 
                 if (iPlusConn && iMinusConn) {
-                    borderDatas[0].applyToMesh(this);
+                    return Mummu.CloneVertexData(borderDatas[0]);
                 }
                 else if (iPlusConn) {
-                    Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y).applyToMesh(this);
+                    return Mummu.RotateAngleAxisVertexDataInPlace(Mummu.CloneVertexData(borderDatas[1]), Math.PI, BABYLON.Axis.Y);
                 }
                 else if (iMinusConn) {
-                    borderDatas[1].applyToMesh(this);
+                    return Mummu.CloneVertexData(borderDatas[1]);
                 }
                 else {
-                    borderDatas[2].applyToMesh(this);
+                    return Mummu.CloneVertexData(borderDatas[2]);
                 }
             }
         }
@@ -144,7 +132,6 @@ class Border extends BABYLON.Mesh {
 
     public dispose(): void {
         this.game.puzzle.removeFromGriddedBorderStack(this);
-        super.dispose();
     }
 
     public collide(ball: Ball, impact: BABYLON.Vector3): boolean {

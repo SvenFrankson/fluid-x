@@ -153,6 +153,7 @@ class Puzzle {
     public boxesWall: BABYLON.Mesh;
     public boxesWood: BABYLON.Mesh;
     public boxesFloor: BABYLON.Mesh;
+    public bordersMesh: BABYLON.Mesh;
 
     public fpsMaterial: BABYLON.StandardMaterial;
     public fpsTexture: BABYLON.DynamicTexture;
@@ -239,6 +240,12 @@ class Puzzle {
 
         this.boxesFloor = new BABYLON.Mesh("building-floor");
         this.boxesFloor.material = this.game.woodFloorMaterial;
+
+        this.bordersMesh = new BABYLON.Mesh("borders-mesh");
+        this.bordersMesh.material = this.game.borderMaterial;
+        this.bordersMesh.renderOutline = true;
+        this.bordersMesh.outlineColor = BABYLON.Color3.Black();
+        this.bordersMesh.outlineWidth = 0.01;
 
         this.puzzleUI = new PuzzleUI(this);
 
@@ -770,9 +777,30 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
-        for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
-            await this.buildingBlocksBorders[i].instantiate();
+
+        let bordersVertexDatas: BABYLON.VertexData[] = [];
+        for (let i = 0; i < this.buildings.length; i++) {
+            let building = this.buildings[i];
+            for (let j = 0; j < building.borders.length; j++) {
+                let border = building.borders[j];
+                let data = await border.getVertexData();
+                if (data) {
+                    Mummu.RotateAngleAxisVertexDataInPlace(data, border.rotationY, BABYLON.Axis.Y);
+                    Mummu.TranslateVertexDataInPlace(data, border.position);
+                    bordersVertexDatas.push(data);
+                }
+            }
         }
+        for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
+            let data = await this.buildingBlocksBorders[i].getVertexData();
+            if (data) {
+                Mummu.RotateAngleAxisVertexDataInPlace(data, this.buildingBlocksBorders[i].rotationY, BABYLON.Axis.Y);
+                Mummu.TranslateVertexDataInPlace(data, this.buildingBlocksBorders[i].position);
+                bordersVertexDatas.push(data);
+            }
+        }
+        Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
+        this.bordersMesh.freezeWorldMatrix();
 
         let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
@@ -848,9 +876,18 @@ class Puzzle {
         for (let i = 0; i < this.buildings.length; i++) {
             await this.buildings[i].instantiate();
         }
+        
+        let bordersVertexDatas: BABYLON.VertexData[] = [];
         for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
-            await this.buildingBlocksBorders[i].instantiate();
+            let data = await this.buildingBlocksBorders[i].getVertexData();
+            if (data) {
+                Mummu.RotateAngleAxisVertexDataInPlace(data, this.buildingBlocksBorders[i].rotationY, BABYLON.Axis.Y);
+                Mummu.TranslateVertexDataInPlace(data, this.buildingBlocksBorders[i].position);
+                bordersVertexDatas.push(data);
+            }
         }
+        Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
+        this.bordersMesh.freezeWorldMatrix();
 
         let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);

@@ -3,7 +3,7 @@ class PuzzleUI {
     public ingameTimer: HTMLDivElement;
     public successPanel: HTMLDivElement;
     public gameoverPanel: HTMLDivElement;
-    public unlockPanel: HTMLDivElement;
+    public unlockContainer: HTMLDivElement;
     public failMessage: HTMLDivElement;
 
     public highscoreContainer: HTMLDivElement;
@@ -62,7 +62,7 @@ class PuzzleUI {
         
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
-        this.unlockPanel = document.querySelector("#play-unlock-panel");
+        this.unlockContainer = document.querySelector("#play-unlock-container");
 
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
@@ -74,7 +74,7 @@ class PuzzleUI {
             this.tryShowUnlockPanel();
         }
         else {
-            this.unlockPanel.style.display = "none";
+            this.unlockContainer.style.display = "none";
         }
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
@@ -85,7 +85,7 @@ class PuzzleUI {
 
     public lose(): void {
         this.successPanel.style.display = "none";
-        this.unlockPanel.style.display = "none";
+        this.unlockContainer.style.display = "none";
         this.gameoverPanel.style.display = "";
         this.ingameTimer.style.display = "none";
         if (this.game.uiInputManager.inControl) {
@@ -97,8 +97,8 @@ class PuzzleUI {
         if (this.successPanel) {
             this.successPanel.style.display = "none";
         }
-        if (this.unlockPanel) {
-            this.unlockPanel.style.display = "none";
+        if (this.unlockContainer) {
+            this.unlockContainer.style.display = "none";
         }
         if (this.gameoverPanel) {
             this.gameoverPanel.style.display = "none";
@@ -129,7 +129,7 @@ class PuzzleUI {
                     CLEAN_IPuzzleData(data);
                 }
 
-                let squareBtn = this.unlockPanel.querySelector(".square-btn-panel");
+                let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
                 squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
                 squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
             
@@ -145,15 +145,15 @@ class PuzzleUI {
                     location.href = "#puzzle-" + expertId.toFixed(0);
                 }
 
-                this.unlockPanel.style.display = "";
+                this.unlockContainer.style.display = "";
             }
             catch (e) {
                 console.error(e);
-                this.unlockPanel.style.display = "none";
+                this.unlockContainer.style.display = "none";
             }
         }
         else {
-            this.unlockPanel.style.display = "none";
+            this.unlockContainer.style.display = "none";
         }
     }
 

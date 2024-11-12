@@ -52,27 +52,53 @@
 </div>
 
 <div id="play-success-panel" class="panel" style="display: none;">
-    <h2><stroke-text>SUCCESS !</stroke-text></h2>
-    <h2 id="success-timer"><stroke-text>00:42:00</stroke-text><div class="stamp" style="top: 50px; right: 10px; margin-left: 20px"><div>☆<br>☆☆</div></div></h2>
+    <div id="play-success-container">
+        <h2><stroke-text>SUCCESS !</stroke-text></h2>
+        <h2 id="success-timer"><stroke-text>00:42:00</stroke-text><div class="stamp" style="top: 10px; right: 10px; margin-left: 20px"><div>☆<br>☆☆</div></div></h2>
+        
+        <div id="success-highscore-container">
+            <div class="editor-line hoverable">
+                <span class="editor-label">player</span><input id="score-player-input" class="p1-name-input" style="width: 150px;" type="text"/>
+            </div>
+            <div class="editor-line hoverable">
+                <span class="editor-label">players</span><input id="score-2-players-input" class="p1-name-input" style="width: 150px;" type="text"/>
+            </div>
+            <div class="editor-line">
+                <button id="success-score-submit-btn" class="medium-btn inline orange locked" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
+                <button id="success-score-pending-btn" class="medium-btn inline bluegrey" style="width: 220px"><stroke-text>Sending...</stroke-text></button>
+                <button id="success-score-done-btn" class="medium-btn inline green" style="width: 220px;"><stroke-text>Well Played !</stroke-text></button>
+                <div id="success-score-fail-message" style="color: #b03a48; font-weight: 900; display: none;"><stroke-text>Error - Server not found</stroke-text></div>
+            </div>
+        </div>
     
-    <div id="success-highscore-container">
-        <div class="editor-line hoverable">
-            <span class="editor-label">player</span><input id="score-player-input" class="p1-name-input" style="width: 150px;" type="text"/>
-        </div>
-        <div class="editor-line hoverable">
-            <span class="editor-label">players</span><input id="score-2-players-input" class="p1-name-input" style="width: 150px;" type="text"/>
-        </div>
         <div class="editor-line">
-            <button id="success-score-submit-btn" class="medium-btn inline orange locked" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
-            <button id="success-score-pending-btn" class="medium-btn inline bluegrey" style="width: 220px"><stroke-text>Sending...</stroke-text></button>
-            <button id="success-score-done-btn" class="medium-btn inline green" style="width: 220px;"><stroke-text>Well Played !</stroke-text></button>
-            <div id="success-score-fail-message" style="color: #b03a48; font-weight: 900; display: none;"><stroke-text>Error - Server not found</stroke-text></div>
+            <button id="success-replay-btn" class="medium-btn red inline"><stroke-text>REPLAY</stroke-text></button>
+            <a href="#home"><button id="success-next-btn" class="medium-btn lightblue inline"><stroke-text>NEXT</stroke-text></button></a>
         </div>
     </div>
 
-    <div class="editor-line">
-        <button id="success-replay-btn" class="medium-btn red inline"><stroke-text>REPLAY</stroke-text></button>
-        <a href="#home"><button id="success-next-btn" class="medium-btn lightblue inline"><stroke-text>NEXT</stroke-text></button></a>
+    <div id="play-unlock-container" style="display: none;">
+        <div class="editor-line">
+            <stroke-text style="font-size: 22px; font-weight: 900; color: red">EXPERT </stroke-text>
+            <stroke-text style="font-size: 22px; font-weight: 900;">puzzle unlocked</stroke-text>
+        </div>
+        <div class="editor-line">
+            <button class="square-btn-panel bluegrey" style="width: 140px; height: 140px; display: inline-block; vertical-align: top;">
+                <div class="square-btn-title">
+                    <stroke-text>1. The Expert's Intro</stroke-text>
+                </div>
+                <img class="square-btn-miniature" src="./datas/icons/zoom-in.svg">
+                <div class="square-btn-difficulty red">
+                    EXPERT
+                </div>
+                <div class="square-btn-author">
+                    <stroke-text>by TiaratumGames</stroke-text>
+                </div>
+            </button>
+            <div class="inline">
+                <button id="play-unlock-try-btn" class="medium-btn red" style="width: 100px;"><stroke-text>TRY IT</stroke-text></button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -81,27 +107,5 @@
     <div class="editor-line">
         <a href="#home"><button id="gameover-back-btn" class="medium-btn inline bluegrey"><stroke-text>MENU</stroke-text></button></a>
         <button id="gameover-replay-btn" class="medium-btn red inline"><stroke-text>REPLAY</stroke-text></button>
-    </div>
-</div>
-
-<div id="play-unlock-panel" class="panel" style="display: none;">
-    <div class="editor-line">
-        <stroke-text style="font-size: 22px; font-weight: 900; color: red">EXPERT </stroke-text>
-        <stroke-text style="font-size: 22px; font-weight: 900;">puzzle unlocked</stroke-text>
-    </div>
-    <div class="editor-line">
-        <button class="square-btn-panel bluegrey" style="width: 140px; height: 140px; display: inline-block; vertical-align: top;">
-            <div class="square-btn-title">
-                <stroke-text>1. The Expert's Intro</stroke-text>
-            </div>
-            <img class="square-btn-miniature" src="./datas/icons/zoom-in.svg">
-            <div class="square-btn-difficulty red">
-                EXPERT
-            </div>
-            <div class="square-btn-author">
-                <stroke-text>by TiaratumGames</stroke-text>
-            </div>
-        </button>
-        <button id="play-unlock-try-btn" class="medium-btn red inline" style="width: 100px; margin-top: 50px"><stroke-text>TRY IT</stroke-text></button>
     </div>
 </div>

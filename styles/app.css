@@ -34,6 +34,19 @@ body:not(.touchscreen) .touchscreen-show {
     display: none;
 }
 
+.landscape-show {
+    display: none;
+}
+
+@media (max-height: 540px) {
+    .landscape-hide {
+        display: none;
+    }
+    .landscape-show {
+        display: inherit;
+    }
+}
+
 a:link { 
     text-decoration: none; 
 }
@@ -733,10 +746,55 @@ body.vertical #play-timer {
 }
 
 #play-success-panel {
-    width: 310px;
-    left: calc((100vw - 338px) * 0.5);
-    bottom: 51svh;
+    width: 280px;
+    left: calc((100vw - 310px) * 0.5);
+    top: calc((100svh - 490px) * 0.5);
     text-align: center;
+    background-color: #5d7275D0;
+}
+
+body.vertical #play-success-panel {
+    top: calc((100svh - 400px) * 0.5);
+}
+
+#play-success-container {
+
+}
+
+#play-unlock-container {
+    margin: 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-radius: 10px;
+    background-color: #00000020;
+    border: 1px solid #FFFFFF80;
+}
+
+#play-unlock-try-btn {
+    margin-top: 50px;
+}
+
+@media (max-height: 540px) {
+    #play-success-panel {
+        width: fit-content;
+        right: calc((100vw - 500px) * 0.5);
+        left: auto;
+        top: calc((100svh - 310px) * 0.5);
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #play-success-container {
+        display: inline-block;
+        width: 260px;
+        vertical-align: bottom;
+    }
+
+    #play-unlock-container {
+        display: inline-block;
+        width: 280px;
+        vertical-align: bottom;
+    }
 }
 
 #score-player-input {
@@ -747,13 +805,6 @@ body.vertical #play-timer {
     width: 310px;
     left: calc((100vw - 360px) * 0.5);
     bottom: calc((100svh - 148px) * 0.5);
-    text-align: center;
-}
-
-#play-unlock-panel {
-    width: 310px;
-    left: calc((100vw - 338px) * 0.5);
-    top: 51svh;
     text-align: center;
 }
 

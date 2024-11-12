@@ -767,6 +767,30 @@ class Game {
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
 
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let table = await response.json();
+            console.log(table);
+            for (let n  = 0; n < table.length; n++) {
+                if (typeof(table[n].story_id) === "string") {
+                    table[n].story_id = parseInt(table[n].story_id);
+                }
+                if (typeof(table[n].expert_id) === "string") {
+                    table[n].expert_id = parseInt(table[n].expert_id);
+                }
+            }
+            this._storyExpertTable = table;
+            console.log(this._storyExpertTable);
+        }
+        catch (e) {
+            console.error(e);
+        }
 
         this.editor = new Editor(this);
 
@@ -956,8 +980,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
 	}
 
@@ -1172,22 +1196,17 @@ class Game {
         return Infinity;
     }
 
-    private _storyExpertTable = [
-        { story: 74, expert: 105 },
-        { story: 75, expert: 106 },
-        { story: 76, expert: 107 },
-        { story: 108, expert: 109 }
-    ];
+    private _storyExpertTable: { story_id: number, expert_id: number }[] = [];
     public storyIdToExpertId(storyId: number): number {
-        let element = this._storyExpertTable.find(e => { return e.story === storyId; });
+        let element = this._storyExpertTable.find(e => { return e.story_id === storyId; });
         if (element) {
-            return element.expert; 
+            return element.expert_id; 
         }
     }
     public expertIdToStoryId(expertId: number): number {
-        let element = this._storyExpertTable.find(e => { return e.expert === expertId; });
+        let element = this._storyExpertTable.find(e => { return e.expert_id === expertId; });
         if (element) {
-            return element.story; 
+            return element.story_id; 
         }
     }
 
@@ -1463,6 +1482,32 @@ function DEV_ACTIVATE(): void {
             });
         }
     }
+
+    let devXpertPuzzle = (document.querySelector("#dev-xpert-puzzle")) as HTMLDivElement;
+    devXpertPuzzle.style.display = "block";
+    let devXpertPuzzleInput = devXpertPuzzle.querySelector("#dev-xpert-puzzle-input") as HTMLInputElement;
+    devXpertPuzzleInput.onchange = () => {
+        Game.Instance.puzzle.data.expert_puzzle_id = parseInt(devXpertPuzzleInput.value);
+    }
+    let devXpertPuzzleSend = devXpertPuzzle.querySelector("#dev-xpert-puzzle-send") as HTMLButtonElement;
+    devXpertPuzzleSend.onclick = async () => {
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                expert_puzzle_id: Game.Instance.puzzle.data.expert_puzzle_id
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_expert_puzzle_id", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+        }
+    }
 }
 
 function DEV_UPDATE_STATE_UI(): void {
@@ -1483,6 +1528,9 @@ function DEV_UPDATE_STATE_UI(): void {
 
     let difficultyInput = document.querySelector("#dev-difficulty num-value-input") as NumValueInput;
     difficultyInput.setValue(isFinite(Game.Instance.puzzle.data.difficulty) ? Game.Instance.puzzle.data.difficulty : 0);
+
+    let devXpertPuzzleInput = document.querySelector("#dev-xpert-puzzle-input") as HTMLInputElement;
+    devXpertPuzzleInput.value = isFinite(Game.Instance.puzzle.data.expert_puzzle_id) ? Game.Instance.puzzle.data.expert_puzzle_id.toFixed(0) : "0";
 }
 
 let createAndInit = async () => {

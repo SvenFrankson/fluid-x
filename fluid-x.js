@@ -3756,12 +3756,7 @@ class Game {
         };
         this.onWheelEvent = (event) => {
         };
-        this._storyExpertTable = [
-            { story: 74, expert: 105 },
-            { story: 75, expert: 106 },
-            { story: 76, expert: 107 },
-            { story: 108, expert: 109 }
-        ];
+        this._storyExpertTable = [];
         this._curtainOpacity = 0;
         this.fadeIntroDir = 0;
         Game.Instance = this;
@@ -4167,6 +4162,30 @@ class Game {
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let table = await response.json();
+            console.log(table);
+            for (let n = 0; n < table.length; n++) {
+                if (typeof (table[n].story_id) === "string") {
+                    table[n].story_id = parseInt(table[n].story_id);
+                }
+                if (typeof (table[n].expert_id) === "string") {
+                    table[n].expert_id = parseInt(table[n].expert_id);
+                }
+            }
+            this._storyExpertTable = table;
+            console.log(this._storyExpertTable);
+        }
+        catch (e) {
+            console.error(e);
+        }
         this.editor = new Editor(this);
         /*
         let bridge = new Bridge(this, {
@@ -4327,8 +4346,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "Crillion";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
         }
     }
     static ScoreToString(t) {
@@ -4474,15 +4493,15 @@ class Game {
         return Infinity;
     }
     storyIdToExpertId(storyId) {
-        let element = this._storyExpertTable.find(e => { return e.story === storyId; });
+        let element = this._storyExpertTable.find(e => { return e.story_id === storyId; });
         if (element) {
-            return element.expert;
+            return element.expert_id;
         }
     }
     expertIdToStoryId(expertId) {
-        let element = this._storyExpertTable.find(e => { return e.expert === expertId; });
+        let element = this._storyExpertTable.find(e => { return e.expert_id === expertId; });
         if (element) {
-            return element.story;
+            return element.story_id;
         }
     }
     get curtainOpacity() {
@@ -4736,6 +4755,31 @@ function DEV_ACTIVATE() {
             });
         }
     };
+    let devXpertPuzzle = (document.querySelector("#dev-xpert-puzzle"));
+    devXpertPuzzle.style.display = "block";
+    let devXpertPuzzleInput = devXpertPuzzle.querySelector("#dev-xpert-puzzle-input");
+    devXpertPuzzleInput.onchange = () => {
+        Game.Instance.puzzle.data.expert_puzzle_id = parseInt(devXpertPuzzleInput.value);
+    };
+    let devXpertPuzzleSend = devXpertPuzzle.querySelector("#dev-xpert-puzzle-send");
+    devXpertPuzzleSend.onclick = async () => {
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                expert_puzzle_id: Game.Instance.puzzle.data.expert_puzzle_id
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_expert_puzzle_id", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+        }
+    };
 }
 function DEV_UPDATE_STATE_UI() {
     let devStateBtns = [];
@@ -4753,6 +4797,8 @@ function DEV_UPDATE_STATE_UI() {
     storyOrderVal.setContent(isFinite(Game.Instance.puzzle.data.story_order) ? Game.Instance.puzzle.data.story_order.toFixed(0) : "0");
     let difficultyInput = document.querySelector("#dev-difficulty num-value-input");
     difficultyInput.setValue(isFinite(Game.Instance.puzzle.data.difficulty) ? Game.Instance.puzzle.data.difficulty : 0);
+    let devXpertPuzzleInput = document.querySelector("#dev-xpert-puzzle-input");
+    devXpertPuzzleInput.value = isFinite(Game.Instance.puzzle.data.expert_puzzle_id) ? Game.Instance.puzzle.data.expert_puzzle_id.toFixed(0) : "0";
 }
 let createAndInit = async () => {
     try {
@@ -7578,24 +7624,13 @@ function CLEAN_IPuzzleData(data) {
     if (data.difficulty != null && typeof (data.difficulty) === "string") {
         data.difficulty = parseInt(data.difficulty);
     }
+    if (data.expert_puzzle_id != null && typeof (data.expert_puzzle_id) === "string") {
+        data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
+    }
 }
 function CLEAN_IPuzzlesData(data) {
     for (let i = 0; i < data.puzzles.length; i++) {
-        if (data.puzzles[i].id != null && typeof (data.puzzles[i].id) === "string") {
-            data.puzzles[i].id = parseInt(data.puzzles[i].id);
-        }
-        if (data.puzzles[i].score != null && typeof (data.puzzles[i].score) === "string") {
-            data.puzzles[i].score = parseInt(data.puzzles[i].score);
-        }
-        if (data.puzzles[i].state != null && typeof (data.puzzles[i].state) === "string") {
-            data.puzzles[i].state = parseInt(data.puzzles[i].state);
-        }
-        if (data.puzzles[i].story_order != null && typeof (data.puzzles[i].story_order) === "string") {
-            data.puzzles[i].story_order = parseInt(data.puzzles[i].story_order);
-        }
-        if (data.puzzles[i].difficulty != null && typeof (data.puzzles[i].difficulty) === "string") {
-            data.puzzles[i].difficulty = parseInt(data.puzzles[i].difficulty);
-        }
+        CLEAN_IPuzzleData(data.puzzles[i]);
     }
 }
 class PuzzleMiniatureMaker {

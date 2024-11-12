@@ -9,6 +9,7 @@ interface IPuzzleData {
     state?: number;
     story_order?: number;
     difficulty?: number;
+    expert_puzzle_id?: number;
 }
 
 function CLEAN_IPuzzleData(data: any): any {
@@ -27,6 +28,9 @@ function CLEAN_IPuzzleData(data: any): any {
     if (data.difficulty != null && typeof(data.difficulty) === "string") {
         data.difficulty = parseInt(data.difficulty);
     }
+    if (data.expert_puzzle_id != null && typeof(data.expert_puzzle_id) === "string") {
+        data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
+    }
 }
 
 interface IPuzzlesData {
@@ -35,20 +39,6 @@ interface IPuzzlesData {
 
 function CLEAN_IPuzzlesData(data: any): any {
     for (let i = 0; i < data.puzzles.length; i++) {
-        if (data.puzzles[i].id != null && typeof(data.puzzles[i].id) === "string") {
-            data.puzzles[i].id = parseInt(data.puzzles[i].id);
-        }
-        if (data.puzzles[i].score != null && typeof(data.puzzles[i].score) === "string") {
-            data.puzzles[i].score = parseInt(data.puzzles[i].score);
-        }
-        if (data.puzzles[i].state != null && typeof(data.puzzles[i].state) === "string") {
-            data.puzzles[i].state = parseInt(data.puzzles[i].state);
-        }
-        if (data.puzzles[i].story_order != null && typeof(data.puzzles[i].story_order) === "string") {
-            data.puzzles[i].story_order = parseInt(data.puzzles[i].story_order);
-        }
-        if (data.puzzles[i].difficulty != null && typeof(data.puzzles[i].difficulty) === "string") {
-            data.puzzles[i].difficulty = parseInt(data.puzzles[i].difficulty);
-        }
+        CLEAN_IPuzzleData(data.puzzles[i]);
     }
 }

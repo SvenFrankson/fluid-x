@@ -291,8 +291,8 @@ class Puzzle {
             PokiGameplayStop();
         }
         let score = Math.floor(this.playTimer * 100);
-        let firstTimeCompleted = !this.game.isPuzzleCompleted(this.data.id);
-        this.game.completePuzzle(this.data.id, score);
+        let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
+        this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
         let highscore = this.data.score;

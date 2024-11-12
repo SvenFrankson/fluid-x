@@ -138,14 +138,14 @@ abstract class LevelPage {
                 authorText.setContent("by " + puzzleTileDatas[n].data.author);
             }
 
-            if (puzzleTileDatas[n].data.id != null && this.router.game.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
+            if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
                 let completedStamp = document.createElement("div");
                 completedStamp.classList.add("stamp");
                 let stars = document.createElement("div");
                 completedStamp.appendChild(stars);
                 squareButton.appendChild(completedStamp);
 
-                let score = this.router.game.getPersonalBestScore(puzzleTileDatas[n].data.id);
+                let score = this.router.game.puzzleCompletion.getPersonalBestScore(puzzleTileDatas[n].data.id);
                 let highscore = puzzleTileDatas[n].data.score;
                 let ratio = 1;
                 if (highscore != null) {
@@ -367,7 +367,7 @@ class StoryPuzzlesPage extends LevelPage {
                 }
                 else if (data.puzzles[n - 1]) {
                     let prevId = data.puzzles[n - 1].id;
-                    if (this.router.game.isPuzzleCompleted(prevId)) {
+                    if (this.router.game.puzzleCompletion.isPuzzleCompleted(prevId)) {
                         locked = false;
                     }
                 }
@@ -423,7 +423,7 @@ class ExpertPuzzlesPage extends LevelPage {
             if (data.puzzles[n]) {
                 let locked = true;
                 let storyId = this.router.game.expertIdToStoryId(data.puzzles[n].id);
-                if (this.router.game.isPuzzleCompleted(storyId)) {
+                if (this.router.game.puzzleCompletion.isPuzzleCompleted(storyId)) {
                     locked = false;
                 }
                 

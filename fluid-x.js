@@ -1818,13 +1818,13 @@ class CarillonRouter extends Nabu.Router {
     }
 }
 class PuzzleCompletionElement {
-    constructor(puzzleId, score = null, highscore = null) {
+    constructor(puzzleId, score = Infinity, highscore = null) {
         this.puzzleId = puzzleId;
         this.score = score;
         this.highscore = highscore;
     }
     getStarsCount() {
-        if (this.score === null) {
+        if (!isFinite(this.score) || this.score === null) {
             return 0;
         }
         if (this.highscore === null) {
@@ -1841,9 +1841,30 @@ class PuzzleCompletionElement {
 class PuzzleCompletion {
     constructor(game) {
         this.game = game;
+        this.completedPuzzles = [];
         this.storyPuzzles = [];
         this.expertPuzzles = [];
         this.communityPuzzles = [];
+        if (HasLocalStorage) {
+            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
+            if (dataString) {
+                this.completedPuzzles = JSON.parse(dataString);
+            }
+        }
+    }
+    getPuzzleCompletionElementById(id) {
+        let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
+        if (storyElement) {
+            return storyElement;
+        }
+        let expertElement = this.expertPuzzles.find(e => { return e.puzzleId === id; });
+        if (expertElement) {
+            return expertElement;
+        }
+        let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
+        if (communityElement) {
+            return communityElement;
+        }
     }
     getStoryPuzzleCompletion() {
         let max = this.storyPuzzles.length * 4;
@@ -1854,6 +1875,7 @@ class PuzzleCompletion {
         this.storyPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
+        console.log("max story " + max);
         return totalStarsCount / max;
     }
     getExpertPuzzleCompletion() {
@@ -1865,6 +1887,7 @@ class PuzzleCompletion {
         this.expertPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
+        console.log("max expert " + max);
         return totalStarsCount / max;
     }
     getCommunityPuzzleCompletion() {
@@ -1876,6 +1899,7 @@ class PuzzleCompletion {
         this.communityPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
+        console.log("max community " + max);
         return totalStarsCount / max;
     }
     async initialize() {
@@ -1890,7 +1914,7 @@ class PuzzleCompletion {
             let storyPuzzles = await response.json();
             CLEAN_IPuzzlesData(storyPuzzles);
             storyPuzzles.puzzles.forEach(puzzle => {
-                let score = this.game.getPersonalBestScore(puzzle.id);
+                let score = this.getPersonalBestScore(puzzle.id);
                 this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
             });
         }
@@ -1907,7 +1931,7 @@ class PuzzleCompletion {
             let communityPuzzles = await response.json();
             CLEAN_IPuzzlesData(communityPuzzles);
             communityPuzzles.puzzles.forEach(puzzle => {
-                let score = this.game.getPersonalBestScore(puzzle.id);
+                let score = this.getPersonalBestScore(puzzle.id);
                 this.communityPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
             });
         }
@@ -1924,12 +1948,39 @@ class PuzzleCompletion {
             let expertPuzzles = await response.json();
             CLEAN_IPuzzlesData(expertPuzzles);
             expertPuzzles.puzzles.forEach(puzzle => {
-                let score = this.game.getPersonalBestScore(puzzle.id);
+                let score = this.getPersonalBestScore(puzzle.id);
                 this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
             });
         }
         catch (e) {
         }
+    }
+    completePuzzle(id, score) {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+        if (!comp) {
+            comp = { id: id, score: score };
+            this.completedPuzzles.push(comp);
+        }
+        else if (comp.score > score) {
+            comp.score = Math.min(comp.score, score);
+        }
+        let e = this.getPuzzleCompletionElementById(id);
+        if (e) {
+            e.score = Math.min(e.score, score);
+        }
+        if (HasLocalStorage) {
+            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+        }
+    }
+    isPuzzleCompleted(id) {
+        return this.completedPuzzles.findIndex(comp => { return comp.id === id; }) != -1;
+    }
+    getPersonalBestScore(id) {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+        if (comp) {
+            return comp.score;
+        }
+        return Infinity;
     }
 }
 var EditorBrush;
@@ -3325,13 +3376,13 @@ class LevelPage {
             else {
                 authorText.setContent("by " + puzzleTileDatas[n].data.author);
             }
-            if (puzzleTileDatas[n].data.id != null && this.router.game.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
+            if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
                 let completedStamp = document.createElement("div");
                 completedStamp.classList.add("stamp");
                 let stars = document.createElement("div");
                 completedStamp.appendChild(stars);
                 squareButton.appendChild(completedStamp);
-                let score = this.router.game.getPersonalBestScore(puzzleTileDatas[n].data.id);
+                let score = this.router.game.puzzleCompletion.getPersonalBestScore(puzzleTileDatas[n].data.id);
                 let highscore = puzzleTileDatas[n].data.score;
                 let ratio = 1;
                 if (highscore != null) {
@@ -3428,7 +3479,7 @@ class StoryPuzzlesPage extends LevelPage {
                 }
                 else if (data.puzzles[n - 1]) {
                     let prevId = data.puzzles[n - 1].id;
-                    if (this.router.game.isPuzzleCompleted(prevId)) {
+                    if (this.router.game.puzzleCompletion.isPuzzleCompleted(prevId)) {
                         locked = false;
                     }
                 }
@@ -3478,7 +3529,7 @@ class ExpertPuzzlesPage extends LevelPage {
             if (data.puzzles[n]) {
                 let locked = true;
                 let storyId = this.router.game.expertIdToStoryId(data.puzzles[n].id);
-                if (this.router.game.isPuzzleCompleted(storyId)) {
+                if (this.router.game.puzzleCompletion.isPuzzleCompleted(storyId)) {
                     locked = false;
                 }
                 puzzleData[i] = {
@@ -3718,7 +3769,7 @@ let onFirstPlayerInteractionTouch = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
         location.hash = "#level-1";
     }
 };
@@ -3742,7 +3793,7 @@ let onFirstPlayerInteractionClick = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
         location.hash = "#level-1";
     }
 };
@@ -3766,7 +3817,7 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
         location.hash = "#level-1";
     }
 };
@@ -3849,7 +3900,6 @@ class Game {
         this.player1Name = "";
         this.player2Name = "";
         this._mode = GameMode.Menu;
-        this.completedPuzzles = [];
         this.gameLoaded = false;
         this._bodyColorIndex = 0;
         this._bodyPatternIndex = 0;
@@ -4192,12 +4242,6 @@ class Game {
         let doorDatas = await this.vertexDataLoader.get("./datas/meshes/door.babylon");
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
-        if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
-            if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
-            }
-        }
         let tutorialPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
@@ -4457,9 +4501,6 @@ class Game {
             autoplay: true,
             loop: true
         });
-        if (this.completedPuzzles.length > 0) {
-            //page = "#home";
-        }
         let puzzleId;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
@@ -4600,29 +4641,6 @@ class Game {
                 this.skybox.rotation.y += 0.02 * rawDT;
             }
         }
-    }
-    completePuzzle(id, score) {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
-        if (!comp) {
-            comp = { id: id, score: score };
-            this.completedPuzzles.push(comp);
-        }
-        else if (comp.score > score) {
-            comp.score = Math.min(comp.score, score);
-        }
-        if (HasLocalStorage) {
-            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
-        }
-    }
-    isPuzzleCompleted(id) {
-        return this.completedPuzzles.findIndex(comp => { return comp.id === id; }) != -1;
-    }
-    getPersonalBestScore(id) {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
-        if (comp) {
-            return comp.score;
-        }
-        return Infinity;
     }
     storyIdToExpertId(storyId) {
         let element = this._storyExpertTable.find(e => { return e.story_id === storyId; });
@@ -6817,8 +6835,8 @@ class Puzzle {
             PokiGameplayStop();
         }
         let score = Math.floor(this.playTimer * 100);
-        let firstTimeCompleted = !this.game.isPuzzleCompleted(this.data.id);
-        this.game.completePuzzle(this.data.id, score);
+        let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
+        this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
         let highscore = this.data.score;
         let ratio = 1;

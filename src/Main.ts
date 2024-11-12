@@ -86,7 +86,7 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
         location.hash = "#level-1";
     }
 }
@@ -112,7 +112,7 @@ let onFirstPlayerInteractionClick = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
         location.hash = "#level-1";
     }
 }
@@ -138,7 +138,7 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
         location.hash = "#level-1";
     }
 }
@@ -304,7 +304,6 @@ class Game {
         }
     }
 
-    public completedPuzzles: { id: number, score: number }[] = [];
     public gameLoaded: boolean = false;
 
     private _bodyColorIndex = 0;
@@ -662,13 +661,6 @@ class Game {
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
 
-        if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
-            if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
-            }
-        }
-
         let tutorialPuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
@@ -964,9 +956,6 @@ class Game {
             }
         );
 
-        if (this.completedPuzzles.length > 0) {
-            //page = "#home";
-        }
         let puzzleId: number;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
@@ -1175,33 +1164,6 @@ class Game {
 
     public onWheelEvent = (event: WheelEvent) => {
         
-    }
-
-    public completePuzzle(id: number, score: number): void {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id });
-        if (!comp) {
-            comp = { id: id, score: score };
-            this.completedPuzzles.push(comp)
-        }
-        else if (comp.score > score) {
-            comp.score = Math.min(comp.score, score);
-        }
-
-        if (HasLocalStorage) {
-            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
-        }
-    }
-
-    public isPuzzleCompleted(id: number): boolean {
-        return this.completedPuzzles.findIndex(comp => { return comp.id === id }) != -1;
-    }
-
-    public getPersonalBestScore(id: number): number {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id });
-        if (comp) {
-            return comp.score;
-        }
-        return Infinity;
     }
 
     private _storyExpertTable: { story_id: number, expert_id: number }[] = [];

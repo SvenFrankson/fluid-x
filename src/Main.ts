@@ -9,7 +9,7 @@ var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
 var observed_progress_speed_percent_second;
-var USE_POKI_SDK: boolean = true;
+var USE_POKI_SDK: boolean = false;
 var PokiSDK: any;
 
 var PokiSDKPlaying: boolean = false;
@@ -956,8 +956,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            DEV_ACTIVATE();
         }
 	}
 
@@ -1322,6 +1322,16 @@ async function DEV_GENERATE_PUZZLE_LEVEL_FILE(): Promise<void> {
     }
 }
 
+var DEV_MODES_NAMES = [
+    "TBD",
+    "OKAY",
+    "STORY",
+    "XPERT",
+    "MULTI",
+    "TRASH",
+    "PRBLM",
+    "INFO"
+];
 var DEV_MODE_ACTIVATED: boolean = false;
 var var1: string = "";
 function DEV_ACTIVATE(): void {

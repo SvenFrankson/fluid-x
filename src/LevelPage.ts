@@ -9,8 +9,8 @@ interface IPuzzleTileData {
 abstract class LevelPage {
 
     public className: string = "LevelPage";
-    public page: number = 0;
-    public levelsPerPage: number = 9;
+    //public page: number = 0;
+    //public levelsPerPage: number = 9;
     public levelCount: number = 0;
 
     public nabuPage: Nabu.DefaultPage;
@@ -41,6 +41,10 @@ abstract class LevelPage {
 
     protected abstract getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]>;
 
+    public onPageRedrawn(): void {
+
+    }
+
     public async redraw(): Promise<void> {
         this.buttons = [];
 
@@ -48,166 +52,128 @@ abstract class LevelPage {
         container.innerHTML = "";
 
         let rect = container.getBoundingClientRect();
-        this.colCount = Math.round(rect.width / 140);
-        this.rowCount = Math.round((Math.round(rect.height / (140 / 3))) / 3);
+        this.colCount = Math.floor(rect.width / 156);
+        this.rowCount = Math.floor(rect.height / 156);
         while (this.colCount < 2) {
             this.colCount++;
         }
         while (this.rowCount < 3) {
             this.rowCount++;
         }
+        let size = Math.floor(rect.width / this.colCount - 16);
 
-        this.levelsPerPage = this.colCount * (this.rowCount - 1);
-        let puzzleTileData = await this.getPuzzlesData(this.page, this.levelsPerPage);
+        //this.levelsPerPage = this.colCount * (this.rowCount - 1);
+        let puzzleTileDatas = await this.getPuzzlesData(0, 200);
 
-        let n = 0;
-        for (let i = 0; i < this.rowCount - 1; i++) {
-            let line = document.createElement("div");
-            line.classList.add("square-btn-container-line");
-            container.appendChild(line);
-            for (let j = 0; j < this.colCount; j++) {
-                let squareButton = document.createElement("button");
-                this.buttons.push(squareButton);
-                squareButton.classList.add("square-btn-panel", "bluegrey");
-                if (n >= puzzleTileData.length) {
-                    squareButton.classList.add("locked");
-                    squareButton.style.opacity = "0.2";
+        for (let n = 0; n < puzzleTileDatas.length; n++) {
+            let squareButton = document.createElement("button");
+            squareButton.style.width = size.toFixed(0) + "px";
+            squareButton.style.height = size.toFixed(0) + "px";
+            container.appendChild(squareButton);
+            this.buttons.push(squareButton);
+            squareButton.classList.add("square-btn-panel", "bluegrey");
+            
+            if (puzzleTileDatas[n].locked) {
+                squareButton.classList.add("locked");
+            }
+            if (puzzleTileDatas[n].classList) {
+                squareButton.classList.add(...puzzleTileDatas[n].classList);
+            }
+
+            squareButton.onclick = puzzleTileDatas[n].onclick;
+
+            let titleField = document.createElement("div");
+            titleField.classList.add("square-btn-title");
+            let titleText = document.createElement("stroke-text") as StrokeText;
+            titleText.setContent(puzzleTileDatas[n].data.title);
+            titleField.appendChild(titleText);
+            squareButton.appendChild(titleField);
+
+            let miniature = PuzzleMiniatureMaker.Generate(puzzleTileDatas[n].data.content)
+            miniature.classList.add("square-btn-miniature");
+            squareButton.appendChild(miniature);
+
+            let difficultyField = document.createElement("div");
+            difficultyField.classList.add("square-btn-difficulty");
+
+            let difficulty = puzzleTileDatas[n].data.difficulty;
+            if (difficulty === 0 && DEV_MODE_ACTIVATED) {
+                if (DEV_MODE_ACTIVATED) {
+                    difficultyField.classList.add("beige");
+                    difficultyField.innerHTML = "UKNWN";
                 }
                 else {
-                    if (puzzleTileData[n].locked) {
-                        squareButton.classList.add("locked");
-                    }
-                    if (puzzleTileData[n].classList) {
-                        squareButton.classList.add(...puzzleTileData[n].classList);
-                    }
-
-                    squareButton.innerHTML = "<stroke-text>" + puzzleTileData[n].data.title + "</stroke-text>";
-                    squareButton.onclick = puzzleTileData[n].onclick;
-
-                    let miniature = PuzzleMiniatureMaker.Generate(puzzleTileData[n].data.content)
-                    miniature.classList.add("square-btn-miniature");
-                    squareButton.appendChild(miniature);
-
-                    let difficultyField = document.createElement("div");
-                    difficultyField.classList.add("square-btn-difficulty");
-
-                    let difficulty = puzzleTileData[n].data.difficulty;
-                    if (difficulty === 0 && DEV_MODE_ACTIVATED) {
-                        if (DEV_MODE_ACTIVATED) {
-                            difficultyField.classList.add("beige");
-                            difficultyField.innerHTML = "UKNWN";
-                        }
-                        else {
-                            difficultyField.classList.add("yellow");
-                            difficultyField.innerHTML = "MID";
-                        }
-                    }
-                    else if (difficulty === 1) {
-                        difficultyField.classList.add("green");
-                        difficultyField.innerHTML = "EASY";
-                    }
-                    else if (difficulty === 2) {
-                        difficultyField.classList.add("yellow");
-                        difficultyField.innerHTML = "MID";
-                    }
-                    else if (difficulty === 3) {
-                        difficultyField.classList.add("orange");
-                        difficultyField.innerHTML = "HARD";
-                    }
-                    else if (difficulty === 4) {
-                        difficultyField.classList.add("red");
-                        difficultyField.innerHTML = "HARD*";
-                    }
-                    squareButton.appendChild(difficultyField);
-
-                    let authorField = document.createElement("div");
-                    authorField.classList.add("square-btn-author");
-                    let authorText = document.createElement("stroke-text") as StrokeText;
-                    authorField.appendChild(authorText);
-                    squareButton.appendChild(authorField);
-                    if (puzzleTileData[n].data.score != null) {
-                        let val = "# 1 " + puzzleTileData[n].data.player + " " + Game.ScoreToString(puzzleTileData[n].data.score);
-                        authorText.setContent(val);
-                    }
-                    else {
-                        authorText.setContent("by " + puzzleTileData[n].data.author);
-                    }
-
-                    if (puzzleTileData[n].data.id != null && this.router.game.isPuzzleCompleted(puzzleTileData[n].data.id)) {
-                        let completedStamp = document.createElement("div");
-                        completedStamp.classList.add("stamp");
-                        let stars = document.createElement("div");
-                        completedStamp.appendChild(stars);
-                        squareButton.appendChild(completedStamp);
-
-                        let score = this.router.game.getPersonalBestScore(puzzleTileData[n].data.id);
-                        let highscore = puzzleTileData[n].data.score;
-                        let ratio = 1;
-                        if (highscore != null) {
-                            ratio = highscore / score;
-                        }
-                        let s1 = ratio > 0.3 ? "★" : "☆";
-                        let s2 = ratio > 0.6 ? "★" : "☆";
-                        let s3 = ratio > 0.9 ? "★" : "☆";
-                        stars.innerHTML = s1 + "</br>" + s2 + s3;
-                    }
+                    difficultyField.classList.add("yellow");
+                    difficultyField.innerHTML = "MID";
                 }
-                n++;
-                line.appendChild(squareButton);
+            }
+            else if (difficulty === 1) {
+                difficultyField.classList.add("green");
+                difficultyField.innerHTML = "EASY";
+            }
+            else if (difficulty === 2) {
+                difficultyField.classList.add("yellow");
+                difficultyField.innerHTML = "MID";
+            }
+            else if (difficulty === 3) {
+                difficultyField.classList.add("orange");
+                difficultyField.innerHTML = "HARD";
+            }
+            else if (difficulty === 4) {
+                difficultyField.classList.add("red");
+                difficultyField.innerHTML = "HARD*";
+            }
+            squareButton.appendChild(difficultyField);
+
+            let authorField = document.createElement("div");
+            authorField.classList.add("square-btn-author");
+            let authorText = document.createElement("stroke-text") as StrokeText;
+            authorField.appendChild(authorText);
+            squareButton.appendChild(authorField);
+            if (puzzleTileDatas[n].data.score != null) {
+                let val = "# 1 " + puzzleTileDatas[n].data.player + " " + Game.ScoreToString(puzzleTileDatas[n].data.score);
+                authorText.setContent(val);
+            }
+            else {
+                authorText.setContent("by " + puzzleTileDatas[n].data.author);
+            }
+
+            if (puzzleTileDatas[n].data.id != null && this.router.game.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
+                let completedStamp = document.createElement("div");
+                completedStamp.classList.add("stamp");
+                let stars = document.createElement("div");
+                completedStamp.appendChild(stars);
+                squareButton.appendChild(completedStamp);
+
+                let score = this.router.game.getPersonalBestScore(puzzleTileDatas[n].data.id);
+                let highscore = puzzleTileDatas[n].data.score;
+                let ratio = 1;
+                if (highscore != null) {
+                    ratio = highscore / score;
+                }
+                let s1 = ratio > 0.3 ? "★" : "☆";
+                let s2 = ratio > 0.6 ? "★" : "☆";
+                let s3 = ratio > 0.9 ? "★" : "☆";
+                stars.innerHTML = s1 + "</br>" + s2 + s3;
+            }
+        }
+
+        if (puzzleTileDatas.length % this.colCount > 0) {
+            for (let i = puzzleTileDatas.length; i < Math.ceil(puzzleTileDatas.length / this.colCount) * this.colCount; i++) {
+                let squareButton = document.createElement("button");
+                squareButton.classList.add("square-btn-panel", "locked");
+                squareButton.style.width = size.toFixed(0) + "px";
+                squareButton.style.height = size.toFixed(0) + "px";
+                squareButton.style.opacity = "0.2";
+                container.appendChild(squareButton);
             }
         }
         
-        let line = document.createElement("div");
-        line.classList.add("square-btn-container-halfline");
-        container.appendChild(line);
-
-        let prevButton = document.createElement("button");
-        this.buttons.push(prevButton);
-        prevButton.classList.add("square-btn", "bluegrey");
-        prevButton.style.margin = "10px";
-        if (this.page === 0) {
-            prevButton.innerHTML = "<stroke-text>MENU</stroke-text>";
-            prevButton.onclick = () => {
-                location.hash = "#home";
-            }
-        }
-        else {
-            prevButton.innerHTML = "<stroke-text>&lt; PAGE " + (this.page - 1 + 1).toFixed(0) + "</stroke-text>";
-            prevButton.onclick = () => {
-                this.page--;
-                this.redraw();
-            }
-        }
-        line.appendChild(prevButton);
-        
-        for (let j = 1; j < this.colCount - 1; j++) {
-            let squareButton = document.createElement("button");
-            squareButton.style.margin = "10px";
-            this.buttons.push(squareButton);
-            squareButton.classList.add("square-btn");
-            squareButton.style.visibility = "hidden";
-            line.appendChild(squareButton);
-        }
-
-        let nextButton = document.createElement("button");
-        nextButton.style.margin = "10px";
-        this.buttons.push(nextButton);
-        nextButton.classList.add("square-btn", "bluegrey");
-        if (puzzleTileData.length === this.levelsPerPage) {
-            nextButton.innerHTML = "<stroke-text>PAGE " + (this.page + 1 + 1).toFixed(0) + " &gt;</stroke-text>";
-            nextButton.onclick = () => {
-                this.page++;
-                this.redraw();
-            }
-        }
-        else {
-            nextButton.style.visibility = "hidden";
-        }
-        line.appendChild(nextButton);
-
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
         }
+
+        this.onPageRedrawn();
     }
 
     private _hoveredButtonIndex: number = 0;
@@ -377,6 +343,7 @@ class StoryPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Story Mode";
         this.className = "BaseLevelPage";
     }
 
@@ -430,6 +397,7 @@ class ExpertPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Expert Mode";
         this.className = "ExpertLevelPage";
     }
 
@@ -479,6 +447,7 @@ class CommunityPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Community Puzzles";
         this.className = "CommunityLevelPage";
     }
     
@@ -540,10 +509,15 @@ class DevPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Dev Puzzles";
         this.className = "DevLevelPage";
     }
 
     public levelStateToFetch: number = 0;
+
+    public onPageRedrawn(): void {
+        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
+    }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
@@ -585,6 +559,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Multiplayer Mode";
         this.className = "MultiplayerLevelPage";
     }
 

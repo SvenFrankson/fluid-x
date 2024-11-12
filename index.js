@@ -127,7 +127,7 @@ async function doLoad() {
     setProgressIndex(pIndex++);
     await loadCSS("./styles/app.css");
     setProgressIndex(pIndex++);
-    await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
+    //await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
     setProgressIndex(pIndex++);
     await loadScript("./lib/babylon.js");
     setProgressIndex(pIndex++);
@@ -140,6 +140,8 @@ async function doLoad() {
     await loadScript("./fluid-x.js");
     setProgressIndex(pIndex++);
     await gameLoaded();
+    setProgressIndex(pIndex++);
+    setProgressIndex(pIndex++);
     setProgressIndex(pIndex++);
     setProgressIndex(pIndex++);
 }

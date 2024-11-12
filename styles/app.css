@@ -358,10 +358,11 @@ button:hover, .hovered {
 }
 
 .square-btn-panel {
-    display: flex;
+    display: inline-block;
+    width: 140px;
+    height: 140px;
     text-align: left;
     font-size: 18px;
-    flex: 1;
     border: 2px solid #624c3cff;
     font-weight: 900;
     padding: 3px;
@@ -467,10 +468,42 @@ button:hover, .hovered {
     display: none;
 }
 
+.puzzle-level-navgraph {
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-top: 5px;
+    min-height: 50px;
+    text-align: left;
+    color: #2b2821;
+    font-family: Julee;
+    font-weight: 900;
+}
+
+.puzzle-level-navgraph button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+
+.puzzle-level-navgraph-1 {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 30px;
+    vertical-align: middle;
+}
+
+.puzzle-level-navgraph-2 {
+    display: inline-block;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
 .square-btn-container {
-    display: flex;
-    flex-direction: column;
     height: calc(100svh - 90px);
+    overflow-y: auto;
+    scrollbar-color: #2b2821 #5d7275;
+    scrollbar-width: thin;
+    text-align: center;
 }
 
 @media (max-height: 540px) {
@@ -479,28 +512,8 @@ button:hover, .hovered {
     }
 
     .square-btn-container {
-        height: 100svh;
+        height: calc(100svh - 60px);
     }
-}
-
-.square-btn-container-line {
-    display: flex;
-    flex: 3;
-    flex-direction: row;
-}
-
-.square-btn-container-halfline {
-    display: flex;
-    flex: 1;
-    flex-direction: row;
-}
-
-.square-btn-container-halfline .square-btn {
-    font-size: 20px;
-}
-
-.square-btn-panel stroke-text {
-    z-index: 2;
 }
 
 .square-btn-miniature {

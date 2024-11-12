@@ -3541,7 +3541,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 27;
+var CRL_VERSION3 = 28;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3972,6 +3972,32 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
+        let northTexture = new Image(256, 256);
+        northTexture.src = "./datas/textures/red-north-wind.png";
+        northTexture.onload = () => {
+            let eastTexture = new Image(256, 256);
+            eastTexture.src = "./datas/textures/yellow-east-wind.png";
+            eastTexture.onload = () => {
+                let southTexture = new Image(256, 256);
+                southTexture.src = "./datas/textures/blue-south-wind.png";
+                southTexture.onload = () => {
+                    let greenTexture = new Image(256, 256);
+                    greenTexture.src = "./datas/textures/green-west-wind.png";
+                    greenTexture.onload = () => {
+                        let context = collectedTileTexture.getContext();
+                        context.drawImage(northTexture, 0, 0, 256, 256, 0, 0, 256, 256);
+                        context.drawImage(eastTexture, 0, 0, 256, 256, 256, 0, 256, 256);
+                        context.drawImage(southTexture, 0, 0, 256, 256, 0, 256, 256, 256);
+                        context.drawImage(greenTexture, 0, 0, 256, 256, 256, 256, 256, 256);
+                        collectedTileTexture.update();
+                    };
+                };
+            };
+        };
+        this.collectedTileMaterial = new BABYLON.StandardMaterial("collected-tile-material");
+        this.collectedTileMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.collectedTileMaterial.diffuseTexture = collectedTileTexture;
         let oneMaterial = new BABYLON.StandardMaterial("one-material");
         //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
         //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272838");
@@ -3990,9 +4016,6 @@ class Game {
         //threeMaterial.diffuseColor = BABYLON.Color3.Lerp(oneMaterial.diffuseColor, twoMaterial.diffuseColor, 0.3);
         threeMaterial.specularColor.copyFromFloats(0, 0, 0);
         threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
-        console.log("1 " + oneMaterial.diffuseColor.toHexString());
-        console.log("2 " + twoMaterial.diffuseColor.toHexString());
-        console.log("3 " + threeMaterial.diffuseColor.toHexString());
         this.tileNumberMaterials = [];
         this.tileNumberMaterials[0] = oneMaterial;
         this.tileNumberMaterials[1] = twoMaterial;
@@ -4265,7 +4288,7 @@ class Game {
         document.querySelector("#eula-back-btn").onclick = () => {
             this.router.eulaPage.hide(0);
         };
-        document.querySelector("#title-version").innerHTML = "confidential build - v" + CRL_VERSION + "." + CRL_VERSION2 + "." + CRL_VERSION3;
+        document.querySelector("#title-version").innerHTML = "version " + CRL_VERSION + "." + CRL_VERSION2 + "." + CRL_VERSION3;
         let devSecret = 0;
         let devSecretTimout = 0;
         document.querySelector("#home-menu h1").style.pointerEvents = "auto";
@@ -7858,7 +7881,6 @@ function SerializeBuildingBlocks(buildingBlocks) {
     let buildingBlocksLine = "BB";
     let w = buildingBlocks.length;
     let h = buildingBlocks[0].length;
-    console.log(w + " " + h);
     for (let j = 0; j < h; j++) {
         for (let i = 0; i < w; i++) {
             buildingBlocksLine = buildingBlocksLine + buildingBlocks[i][j].toFixed(0);

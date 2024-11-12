@@ -3513,7 +3513,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 28;
+var CRL_VERSION3 = 29;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;

@@ -977,7 +977,7 @@ class Tile extends BABYLON.Mesh {
                         duration: 0.4,
                         type: ToonSoundType.Poc
                     });
-                    this.game.puzzle.cricSound.play();
+                    this.game.puzzle.clicSound.play();
                 });
             }
         };
@@ -3177,7 +3177,7 @@ class LevelPage {
                     difficultyField.innerHTML = "UKNWN";
                 }
                 else {
-                    difficultyField.classList.add("yellow");
+                    difficultyField.classList.add("blue");
                     difficultyField.innerHTML = "MID";
                 }
             }
@@ -3186,7 +3186,7 @@ class LevelPage {
                 difficultyField.innerHTML = "EASY";
             }
             else if (difficulty === 2) {
-                difficultyField.classList.add("yellow");
+                difficultyField.classList.add("blue");
                 difficultyField.innerHTML = "MID";
             }
             else if (difficulty === 3) {
@@ -3195,7 +3195,7 @@ class LevelPage {
             }
             else if (difficulty === 4) {
                 difficultyField.classList.add("red");
-                difficultyField.innerHTML = "HARD*";
+                difficultyField.innerHTML = "EXPERT";
             }
             squareButton.appendChild(difficultyField);
             let authorField = document.createElement("div");
@@ -3292,7 +3292,7 @@ class LevelPage {
 class StoryPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Story Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Story Mode";
         this.className = "BaseLevelPage";
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3341,7 +3341,7 @@ class StoryPuzzlesPage extends LevelPage {
 class ExpertPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Expert Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Expert Mode";
         this.className = "ExpertLevelPage";
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3385,7 +3385,7 @@ class ExpertPuzzlesPage extends LevelPage {
 class CommunityPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Community Puzzles";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Community Puzzles";
         this.className = "CommunityLevelPage";
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3438,11 +3438,11 @@ class DevPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.levelStateToFetch = 0;
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Dev Puzzles";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Dev Puzzles";
         this.className = "DevLevelPage";
     }
     onPageRedrawn() {
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
@@ -3478,7 +3478,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
         this.levelStateToFetch = 0;
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Multiplayer Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Multiplayer Mode";
         this.className = "MultiplayerLevelPage";
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3788,9 +3788,9 @@ class Game {
         return this._bodyColorIndex;
     }
     set bodyColorIndex(v) {
-        document.body.classList.remove(cssColors[this._bodyColorIndex]);
         this._bodyColorIndex = v;
-        document.body.classList.add(cssColors[this._bodyColorIndex]);
+        this.scene.clearColor = BABYLON.Color4.FromHexString(hexColors[5] + "FF");
+        this.scene.clearColor.a = 1;
         this.bottom.material.diffuseColor = BABYLON.Color3.FromHexString(hexColors[this._bodyColorIndex]);
     }
     get bodyPatternIndex() {
@@ -3802,11 +3802,11 @@ class Game {
         //document.body.classList.add(cssPatterns[this._bodyPatternIndex]);
         if (v === 0) {
             this.bottom.material.emissiveTexture = new BABYLON.Texture("./datas/textures/cube_pattern_emissive.png");
-            this.bottom.scaling.copyFromFloats(1.12, 1.95, 1);
+            this.bottom.material.emissiveTexture.vScale = 1 / (195 / 112);
         }
         else {
             this.bottom.material.emissiveTexture = new BABYLON.Texture("./datas/textures/rainbow_pattern_emissive.png");
-            this.bottom.scaling.copyFromFloats(0.98, 1.11, 1);
+            this.bottom.material.emissiveTexture.vScale = 1 / (111 / 98);
         }
     }
     async createScene() {
@@ -3828,25 +3828,22 @@ class Game {
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
-        /*
+        let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
+        skyBoxHolder.rotation.x = Math.PI * 0.3;
         this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
-        this.skybox.rotation.x = Math.PI * 0.3;
-        let skyboxMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+        this.skybox.parent = skyBoxHolder;
+        let skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
         skyboxMaterial.backFaceCulling = false;
-        let skyTexture = new BABYLON.CubeTexture(
-            "./datas/skyboxes/cloud",
-            this.scene,
-            ["-px.jpg", "-py.jpg", "-pz.jpg", "-nx.jpg", "-ny.jpg", "-nz.jpg"]);
+        let skyTexture = new BABYLON.CubeTexture("./datas/skyboxes/cloud", this.scene, ["-px.jpg", "-py.jpg", "-pz.jpg", "-nx.jpg", "-ny.jpg", "-nz.jpg"]);
         skyboxMaterial.reflectionTexture = skyTexture;
         skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
         skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
         skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-        skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.75);
+        skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.7);
         this.skybox.material = skyboxMaterial;
-        */
         this.bottom = Mummu.CreateQuad("bottom", { width: 100, height: 100, uvInWorldSpace: true });
         this.bottom.rotation.x = Math.PI * 0.5;
-        this.bottom.position.y = -5.1;
+        this.bottom.position.y = -5.05;
         let bottomMaterial = new BABYLON.StandardMaterial("bottom-material");
         bottomMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.bottom.material = bottomMaterial;
@@ -4466,6 +4463,9 @@ class Game {
             }
             if (this.toonSoundManager) {
                 this.toonSoundManager.update(rawDT);
+            }
+            if (this.skybox) {
+                this.skybox.rotation.y += 0.02 * rawDT;
             }
         }
     }
@@ -5350,8 +5350,8 @@ class ButtonTile extends Tile {
             duration: 0.5,
             type: ToonSoundType.Poc
         });
-        this.game.puzzle.cricSound.play();
         await animateRotation(-Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
+        this.game.puzzle.cricSound.play();
         await animateWait(0.1);
         this.game.toonSoundManager.start({
             text: "crac",
@@ -5361,8 +5361,8 @@ class ButtonTile extends Tile {
             duration: 0.5,
             type: ToonSoundType.Poc
         });
-        this.game.puzzle.cracSound.play();
         await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
+        this.game.puzzle.cracSound.play();
     }
 }
 class DoorTile extends Tile {
@@ -6504,8 +6504,9 @@ class Puzzle {
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
-        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
-        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15, playbackRate: 0.9 }, 3);
+        this.clicSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
+        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
     }
     _getOrCreateGriddedStack(i, j) {
@@ -6797,7 +6798,21 @@ class Puzzle {
         this.data = data;
         DEV_UPDATE_STATE_UI();
         if (isFinite(data.id)) {
-            this.game.bodyColorIndex = 5;
+            if (data.difficulty === 1) {
+                this.game.bodyColorIndex = 10;
+            }
+            if (data.difficulty === 2) {
+                this.game.bodyColorIndex = 3;
+            }
+            if (data.difficulty === 3) {
+                this.game.bodyColorIndex = 8;
+            }
+            if (data.difficulty === 4) {
+                this.game.bodyColorIndex = 7;
+            }
+            if (data.difficulty === 0) {
+                this.game.bodyColorIndex = 5;
+            }
             this.game.bodyPatternIndex = Math.floor(Math.random() * 2);
         }
         let content = this.data.content;
@@ -7284,7 +7299,7 @@ class Puzzle {
         if (lSouth > depth || lWest > depth) {
             this.winSlotRows = 2;
         }
-        let data = CreateBoxFrameVertexData({
+        let puzzleFrame = CreateBoxFrameVertexData({
             w: width + 2 * this.winSlotRows * bThickness,
             d: depth + 2 * this.winSlotRows * bThickness,
             wTop: width + 2 * this.winSlotRows * bThickness - 0.1,
@@ -7294,10 +7309,29 @@ class Puzzle {
             innerHeight: bHeight,
             flatShading: true
         });
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, -5.5, 0));
+        Mummu.TranslateVertexDataInPlace(puzzleFrame, new BABYLON.Vector3(0, -5.5, 0));
+        let groundFrame = CreateBoxFrameVertexData({
+            w: width + 2 * this.winSlotRows * bThickness + 2,
+            d: depth + 2 * this.winSlotRows * bThickness + 2,
+            h: 2 + bHeight * 0.5,
+            thickness: this.winSlotRows * bThickness * 0.5,
+            innerHeight: bHeight * 0.5,
+            flatShading: true,
+            topCap: false,
+            bottomCap: false
+        });
+        Mummu.TranslateVertexDataInPlace(groundFrame, new BABYLON.Vector3(0, -7, 0));
         this.border.position.copyFromFloats((this.xMax + this.xMin) * 0.5, 0, (this.zMax + this.zMin) * 0.5);
         this.border.material = this.game.blackMaterial;
-        data.applyToMesh(this.border);
+        Mummu.MergeVertexDatas(puzzleFrame, groundFrame).applyToMesh(this.border);
+        Mummu.CreateQuadVertexData({
+            width: width + 2 * this.winSlotRows * bThickness + 2,
+            height: depth + 2 * this.winSlotRows * bThickness + 2,
+            uvInWorldSpace: true,
+            uvSize: 0.5
+        }).applyToMesh(this.game.bottom);
+        this.game.bottom.position.x = this.border.position.x;
+        this.game.bottom.position.z = this.border.position.z;
         /*
         let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
         Mummu.TranslateVertexDataInPlace(plaqueData, new BABYLON.Vector3(-1.25, 0, 0.16));

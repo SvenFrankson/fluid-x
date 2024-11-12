@@ -285,7 +285,7 @@ abstract class Tile extends BABYLON.Mesh {
                         duration: 0.4,
                         type: ToonSoundType.Poc
                     });
-                    this.game.puzzle.cricSound.play();
+                    this.game.puzzle.clicSound.play();
                 });
             }
         }

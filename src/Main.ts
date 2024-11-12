@@ -311,10 +311,10 @@ class Game {
         return this._bodyColorIndex;
     }
     public set bodyColorIndex(v: number) {
-        document.body.classList.remove(cssColors[this._bodyColorIndex]);
         this._bodyColorIndex = v;
-        document.body.classList.add(cssColors[this._bodyColorIndex]);
 
+        this.scene.clearColor = BABYLON.Color4.FromHexString(hexColors[5] + "FF");
+        this.scene.clearColor.a = 1;
         (this.bottom.material as BABYLON.StandardMaterial).diffuseColor = BABYLON.Color3.FromHexString(hexColors[this._bodyColorIndex]);
     }
 
@@ -329,11 +329,11 @@ class Game {
 
         if (v === 0) {
             (this.bottom.material as BABYLON.StandardMaterial).emissiveTexture = new BABYLON.Texture("./datas/textures/cube_pattern_emissive.png");
-            this.bottom.scaling.copyFromFloats(1.12, 1.95, 1);
+            ((this.bottom.material as BABYLON.StandardMaterial).emissiveTexture as BABYLON.Texture).vScale = 1 / (195 / 112);
         }
         else {
             (this.bottom.material as BABYLON.StandardMaterial).emissiveTexture = new BABYLON.Texture("./datas/textures/rainbow_pattern_emissive.png");
-            this.bottom.scaling.copyFromFloats(0.98, 1.11, 1);
+            ((this.bottom.material as BABYLON.StandardMaterial).emissiveTexture as BABYLON.Texture).vScale = 1 / (111 / 98);
         }
     }
 
@@ -373,9 +373,11 @@ class Game {
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
 
-        /*
+        let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
+        skyBoxHolder.rotation.x = Math.PI * 0.3;
+
         this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
-        this.skybox.rotation.x = Math.PI * 0.3;
+        this.skybox.parent = skyBoxHolder;
         let skyboxMaterial: BABYLON.StandardMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
         skyboxMaterial.backFaceCulling = false;
         let skyTexture = new BABYLON.CubeTexture(
@@ -386,13 +388,12 @@ class Game {
         skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
         skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
         skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-        skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.75);
+        skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.7);
         this.skybox.material = skyboxMaterial;
-        */
 
         this.bottom = Mummu.CreateQuad("bottom", { width: 100, height: 100, uvInWorldSpace: true });
         this.bottom.rotation.x = Math.PI * 0.5;
-        this.bottom.position.y = -5.1;
+        this.bottom.position.y = -5.05;
 
         let bottomMaterial = new BABYLON.StandardMaterial("bottom-material");
         bottomMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -1145,6 +1146,9 @@ class Game {
             }
             if (this.toonSoundManager) {
                 this.toonSoundManager.update(rawDT);
+            }
+            if (this.skybox) {
+                this.skybox.rotation.y += 0.02 * rawDT;
             }
         }
     }

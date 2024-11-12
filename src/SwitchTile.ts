@@ -107,8 +107,8 @@ class ButtonTile extends Tile {
             duration: 0.5,
             type: ToonSoundType.Poc
         });
-        this.game.puzzle.cricSound.play();
         await animateRotation(- Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
+        this.game.puzzle.cricSound.play();
         await animateWait(0.1);
         this.game.toonSoundManager.start({
             text: "crac",
@@ -118,8 +118,8 @@ class ButtonTile extends Tile {
             duration: 0.5,
             type: ToonSoundType.Poc
         });
-        this.game.puzzle.cracSound.play();
         await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
+        this.game.puzzle.cracSound.play();
     }
 }
 

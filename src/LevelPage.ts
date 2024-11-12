@@ -103,7 +103,7 @@ abstract class LevelPage {
                     difficultyField.innerHTML = "UKNWN";
                 }
                 else {
-                    difficultyField.classList.add("yellow");
+                    difficultyField.classList.add("blue");
                     difficultyField.innerHTML = "MID";
                 }
             }
@@ -112,7 +112,7 @@ abstract class LevelPage {
                 difficultyField.innerHTML = "EASY";
             }
             else if (difficulty === 2) {
-                difficultyField.classList.add("yellow");
+                difficultyField.classList.add("blue");
                 difficultyField.innerHTML = "MID";
             }
             else if (difficulty === 3) {
@@ -121,7 +121,7 @@ abstract class LevelPage {
             }
             else if (difficulty === 4) {
                 difficultyField.classList.add("red");
-                difficultyField.innerHTML = "HARD*";
+                difficultyField.innerHTML = "EXPERT";
             }
             squareButton.appendChild(difficultyField);
 
@@ -343,7 +343,7 @@ class StoryPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Story Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Story Mode";
         this.className = "BaseLevelPage";
     }
 
@@ -397,7 +397,7 @@ class ExpertPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Expert Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Expert Mode";
         this.className = "ExpertLevelPage";
     }
 
@@ -447,7 +447,7 @@ class CommunityPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Community Puzzles";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Community Puzzles";
         this.className = "CommunityLevelPage";
     }
     
@@ -509,14 +509,14 @@ class DevPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Dev Puzzles";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Dev Puzzles";
         this.className = "DevLevelPage";
     }
 
     public levelStateToFetch: number = 0;
 
     public onPageRedrawn(): void {
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
     }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
@@ -559,7 +559,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-navgraph-2 stroke-text").innerHTML = "Multiplayer Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Multiplayer Mode";
         this.className = "MultiplayerLevelPage";
     }
 

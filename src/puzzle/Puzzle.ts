@@ -158,6 +158,7 @@ class Puzzle {
     public fpsMaterial: BABYLON.StandardMaterial;
     public fpsTexture: BABYLON.DynamicTexture;
 
+    public clicSound: MySound;
     public cricSound: MySound;
     public cracSound: MySound;
     public wooshSound: MySound;
@@ -256,8 +257,9 @@ class Puzzle {
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
         
-        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
-        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15, playbackRate: 0.9 }, 3);
+        this.clicSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
+        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
     }
 
@@ -412,7 +414,21 @@ class Puzzle {
         DEV_UPDATE_STATE_UI();
 
         if (isFinite(data.id)) {
-            this.game.bodyColorIndex = 5;
+            if (data.difficulty === 1) {
+                this.game.bodyColorIndex = 10;
+            }
+            if (data.difficulty === 2) {
+                this.game.bodyColorIndex = 3;
+            }
+            if (data.difficulty === 3) {
+                this.game.bodyColorIndex = 8;
+            }
+            if (data.difficulty === 4) {
+                this.game.bodyColorIndex = 7;
+            }
+            if (data.difficulty === 0) {
+                this.game.bodyColorIndex = 5;
+            }
             this.game.bodyPatternIndex = Math.floor(Math.random() * 2);
         }
 
@@ -942,7 +958,7 @@ class Puzzle {
             this.winSlotRows = 2;
         }
 
-        let data = CreateBoxFrameVertexData({
+        let puzzleFrame = CreateBoxFrameVertexData({
             w: width + 2 * this.winSlotRows * bThickness,
             d: depth + 2 * this.winSlotRows * bThickness,
             wTop: width + 2 * this.winSlotRows * bThickness - 0.1,
@@ -952,12 +968,33 @@ class Puzzle {
             innerHeight: bHeight,
             flatShading: true
         })
-
-        Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, -5.5, 0));
+        Mummu.TranslateVertexDataInPlace(puzzleFrame, new BABYLON.Vector3(0, -5.5, 0));
+        
+        let groundFrame = CreateBoxFrameVertexData({
+            w: width + 2 * this.winSlotRows * bThickness + 2,
+            d: depth + 2 * this.winSlotRows * bThickness + 2,
+            h: 2 + bHeight * 0.5,
+            thickness: this.winSlotRows * bThickness * 0.5,
+            innerHeight: bHeight * 0.5,
+            flatShading: true,
+            topCap: false,
+            bottomCap: false
+        })
+        Mummu.TranslateVertexDataInPlace(groundFrame, new BABYLON.Vector3(0, -7, 0));
 
         this.border.position.copyFromFloats((this.xMax + this.xMin) * 0.5, 0, (this.zMax + this.zMin) * 0.5)
         this.border.material = this.game.blackMaterial;
-        data.applyToMesh(this.border);
+
+        Mummu.MergeVertexDatas(puzzleFrame, groundFrame).applyToMesh(this.border);
+
+        Mummu.CreateQuadVertexData({
+            width: width + 2 * this.winSlotRows * bThickness + 2,
+            height: depth + 2 * this.winSlotRows * bThickness + 2,
+            uvInWorldSpace: true,
+            uvSize: 0.5
+        }).applyToMesh(this.game.bottom);
+        this.game.bottom.position.x = this.border.position.x;
+        this.game.bottom.position.z = this.border.position.z;
 
         /*
         let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);

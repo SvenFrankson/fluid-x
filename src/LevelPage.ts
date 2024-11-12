@@ -347,6 +347,12 @@ class StoryPuzzlesPage extends LevelPage {
         this.className = "BaseLevelPage";
     }
 
+    public onPageRedrawn(): void {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getStoryPuzzleCompletion() * 100).toFixed(0) + "% completed";
+        }
+    }
+
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.tiaratumGameTutorialLevels;
@@ -401,6 +407,12 @@ class ExpertPuzzlesPage extends LevelPage {
         this.className = "ExpertLevelPage";
     }
 
+    public onPageRedrawn(): void {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getExpertPuzzleCompletion() * 100).toFixed(0) + "% completed";
+        }
+    }
+
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.tiaratumGameExpertLevels;
@@ -449,6 +461,12 @@ class CommunityPuzzlesPage extends LevelPage {
         super(queryString, router);
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Community Puzzles";
         this.className = "CommunityLevelPage";
+    }
+
+    public onPageRedrawn(): void {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getCommunityPuzzleCompletion() * 100).toFixed(0) + "% completed";
+        }
     }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {

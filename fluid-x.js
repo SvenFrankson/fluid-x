@@ -1817,6 +1817,121 @@ class CarillonRouter extends Nabu.Router {
         }
     }
 }
+class PuzzleCompletionElement {
+    constructor(puzzleId, score = null, highscore = null) {
+        this.puzzleId = puzzleId;
+        this.score = score;
+        this.highscore = highscore;
+    }
+    getStarsCount() {
+        if (this.score === null) {
+            return 0;
+        }
+        if (this.highscore === null) {
+            return 4;
+        }
+        let ratio = this.highscore / this.score;
+        let starsCount = 1;
+        let s1 = ratio > 0.3 ? 1 : 0;
+        let s2 = ratio > 0.6 ? 1 : 0;
+        let s3 = ratio > 0.9 ? 1 : 0;
+        return starsCount + s1 + s2 + s3;
+    }
+}
+class PuzzleCompletion {
+    constructor(game) {
+        this.game = game;
+        this.storyPuzzles = [];
+        this.expertPuzzles = [];
+        this.communityPuzzles = [];
+    }
+    getStoryPuzzleCompletion() {
+        let max = this.storyPuzzles.length * 4;
+        if (max < 1) {
+            return 0;
+        }
+        let totalStarsCount = 0;
+        this.storyPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        return totalStarsCount / max;
+    }
+    getExpertPuzzleCompletion() {
+        let max = this.expertPuzzles.length * 4;
+        if (max < 1) {
+            return 0;
+        }
+        let totalStarsCount = 0;
+        this.expertPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        return totalStarsCount / max;
+    }
+    getCommunityPuzzleCompletion() {
+        let max = this.communityPuzzles.length * 4;
+        if (max < 1) {
+            return 0;
+        }
+        let totalStarsCount = 0;
+        this.communityPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        return totalStarsCount / max;
+    }
+    async initialize() {
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let storyPuzzles = await response.json();
+            CLEAN_IPuzzlesData(storyPuzzles);
+            storyPuzzles.puzzles.forEach(puzzle => {
+                let score = this.game.getPersonalBestScore(puzzle.id);
+                this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+            });
+        }
+        catch (e) {
+        }
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let communityPuzzles = await response.json();
+            CLEAN_IPuzzlesData(communityPuzzles);
+            communityPuzzles.puzzles.forEach(puzzle => {
+                let score = this.game.getPersonalBestScore(puzzle.id);
+                this.communityPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+            });
+        }
+        catch (e) {
+        }
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let expertPuzzles = await response.json();
+            CLEAN_IPuzzlesData(expertPuzzles);
+            expertPuzzles.puzzles.forEach(puzzle => {
+                let score = this.game.getPersonalBestScore(puzzle.id);
+                this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+            });
+        }
+        catch (e) {
+        }
+    }
+}
 var EditorBrush;
 (function (EditorBrush) {
     EditorBrush[EditorBrush["None"] = 0] = "None";
@@ -3295,6 +3410,11 @@ class StoryPuzzlesPage extends LevelPage {
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Story Mode";
         this.className = "BaseLevelPage";
     }
+    onPageRedrawn() {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getStoryPuzzleCompletion() * 100).toFixed(0) + "% completed";
+        }
+    }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
         let data = this.router.game.tiaratumGameTutorialLevels;
@@ -3344,6 +3464,11 @@ class ExpertPuzzlesPage extends LevelPage {
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Expert Mode";
         this.className = "ExpertLevelPage";
     }
+    onPageRedrawn() {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getExpertPuzzleCompletion() * 100).toFixed(0) + "% completed";
+        }
+    }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
         let data = this.router.game.tiaratumGameExpertLevels;
@@ -3387,6 +3512,11 @@ class CommunityPuzzlesPage extends LevelPage {
         super(queryString, router);
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Community Puzzles";
         this.className = "CommunityLevelPage";
+    }
+    onPageRedrawn() {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getCommunityPuzzleCompletion() * 100).toFixed(0) + "% completed";
+        }
     }
     async getPuzzlesData(page, levelsPerPage) {
         if (OFFLINE_MODE) {
@@ -4183,6 +4313,8 @@ class Game {
         catch (e) {
             console.error(e);
         }
+        this.puzzleCompletion = new PuzzleCompletion(this);
+        await this.puzzleCompletion.initialize();
         this.editor = new Editor(this);
         /*
         let bridge = new Bridge(this, {

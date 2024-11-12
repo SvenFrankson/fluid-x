@@ -290,6 +290,7 @@ class Game {
     public tiaratumGameTutorialLevels: IPuzzlesData;
     public tiaratumGameExpertLevels: IPuzzlesData;
     public tiaratumGameOfflinePuzzleLevels: IPuzzlesData;
+    public puzzleCompletion: PuzzleCompletion;
     public router: CarillonRouter;
     public editor: Editor;
     private _mode: GameMode = GameMode.Menu;
@@ -792,6 +793,9 @@ class Game {
         catch (e) {
             console.error(e);
         }
+
+        this.puzzleCompletion = new PuzzleCompletion(this);
+        await this.puzzleCompletion.initialize();
 
         this.editor = new Editor(this);
 

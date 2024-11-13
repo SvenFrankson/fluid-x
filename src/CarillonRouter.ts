@@ -229,6 +229,7 @@ class CarillonRouter extends Nabu.Router {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
+            this.homeMenu.updateCompletionBars();
             await this.show(this.homeMenu.nabuPage, false, showTime);
         }
         else {

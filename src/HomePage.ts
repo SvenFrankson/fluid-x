@@ -23,6 +23,17 @@ class HomePage {
         return this.nabuPage.hide(duration);
     }
 
+    public updateCompletionBars(): void {
+        if (this.router.game.puzzleCompletion) {
+            let storyCompletion = this.router.game.puzzleCompletion.getStoryPuzzleCompletion();
+            (document.querySelector("#home-story-btn completion-bar") as CompletionBar).setAttribute("value", storyCompletion.toFixed(2));
+            let expertCompletion = this.router.game.puzzleCompletion.getExpertPuzzleCompletion();
+            (document.querySelector("#home-expert-btn completion-bar") as CompletionBar).setAttribute("value", expertCompletion.toFixed(2));
+            let communityCompletion = this.router.game.puzzleCompletion.getCommunityPuzzleCompletion();
+            (document.querySelector("#home-community-btn completion-bar") as CompletionBar).setAttribute("value", communityCompletion.toFixed(2));
+        }
+    }
+
     private _hoveredButtonIndex: number = 0;
     public get hoveredButtonIndex(): number {
         return this._hoveredButtonIndex;

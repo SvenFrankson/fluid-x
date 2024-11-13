@@ -1809,6 +1809,7 @@ class CarillonRouter extends Nabu.Router {
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
+            this.homeMenu.updateCompletionBars();
             await this.show(this.homeMenu.nabuPage, false, showTime);
         }
         else {
@@ -1817,176 +1818,71 @@ class CarillonRouter extends Nabu.Router {
         }
     }
 }
-class PuzzleCompletionElement {
-    constructor(puzzleId, score = Infinity, highscore = null) {
-        this.puzzleId = puzzleId;
-        this.score = score;
-        this.highscore = highscore;
+class CompletionBar extends HTMLElement {
+    constructor() {
+        super(...arguments);
+        this.value = 0;
     }
-    getStarsCount() {
-        if (!isFinite(this.score) || this.score === null) {
-            return 0;
+    static get observedAttributes() {
+        return ["value"];
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "value") {
+            this.setValue(parseFloat(newValue));
         }
-        if (this.highscore === null) {
-            return 4;
+    }
+    connectedCallback() {
+        this.completedBar = document.createElement("div");
+        this.completedBar.classList.add("completed");
+        this.completedBar.style.position = "absolute";
+        this.completedBar.style.top = "-1px";
+        this.completedBar.style.left = "-1px";
+        this.completedBar.style.height = "inherit";
+        this.completedBar.style.border = "inherit";
+        this.completedBar.style.borderRadius = "inherit";
+        this.appendChild(this.completedBar);
+        this.valueText = document.createElement("span");
+        this.valueText.classList.add("completed-text");
+        this.valueText.style.display = "none";
+        this.valueText.style.marginRight = "10px";
+        this.valueText.style.transform = "translateY(-1px)";
+        this.appendChild(this.valueText);
+        if (this.hasAttribute("value")) {
+            this.setValue(parseFloat(this.getAttribute("value")));
         }
-        let ratio = this.highscore / this.score;
-        let starsCount = 1;
-        let s1 = ratio > 0.3 ? 1 : 0;
-        let s2 = ratio > 0.6 ? 1 : 0;
-        let s3 = ratio > 0.9 ? 1 : 0;
-        return starsCount + s1 + s2 + s3;
+    }
+    setValue(v) {
+        if (this.completedBar && this.valueText) {
+            this.value = v;
+            let percent = Math.floor(v * 100);
+            let percentString = percent.toFixed(0) + "%";
+            if (percent === 0) {
+                this.completedBar.style.display = "none";
+            }
+            else {
+                let invPercentString = (100 - percent).toFixed(0) + "%";
+                this.completedBar.style.display = "block";
+                this.completedBar.style.width = percentString;
+                this.completedBar.style.backgroundColor = "color-mix(in srgb, #d4804d " + percentString + ", #5d7275 " + invPercentString + ")";
+                this.completedBar.style.backgroundColor = "#d4804d";
+            }
+            this.valueText.innerHTML = percentString + " completed";
+            if (percent > 50) {
+                this.completedBar.appendChild(this.valueText);
+                this.valueText.style.display = "inline-block";
+                this.valueText.style.color = "black";
+                this.valueText.style.fontWeight = "900";
+            }
+            else {
+                this.appendChild(this.valueText);
+                this.valueText.style.display = "inline-block";
+                this.valueText.style.color = "white";
+                this.valueText.style.fontWeight = "500";
+            }
+        }
     }
 }
-class PuzzleCompletion {
-    constructor(game) {
-        this.game = game;
-        this.completedPuzzles = [];
-        this.storyPuzzles = [];
-        this.expertPuzzles = [];
-        this.communityPuzzles = [];
-        if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
-            if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
-            }
-        }
-    }
-    getPuzzleCompletionElementById(id) {
-        let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
-        if (storyElement) {
-            return storyElement;
-        }
-        let expertElement = this.expertPuzzles.find(e => { return e.puzzleId === id; });
-        if (expertElement) {
-            return expertElement;
-        }
-        let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
-        if (communityElement) {
-            return communityElement;
-        }
-    }
-    getStarCount(id) {
-        let element = this.getPuzzleCompletionElementById(id);
-        if (element) {
-            return element.getStarsCount();
-        }
-        return 0;
-    }
-    getStoryPuzzleCompletion() {
-        let max = this.storyPuzzles.length * 4;
-        if (max < 1) {
-            return 0;
-        }
-        let totalStarsCount = 0;
-        this.storyPuzzles.forEach(e => {
-            totalStarsCount += e.getStarsCount();
-        });
-        return totalStarsCount / max;
-    }
-    getExpertPuzzleCompletion() {
-        let max = this.expertPuzzles.length * 4;
-        if (max < 1) {
-            return 0;
-        }
-        let totalStarsCount = 0;
-        this.expertPuzzles.forEach(e => {
-            totalStarsCount += e.getStarsCount();
-        });
-        return totalStarsCount / max;
-    }
-    getCommunityPuzzleCompletion() {
-        let max = this.communityPuzzles.length * 4;
-        if (max < 1) {
-            return 0;
-        }
-        let totalStarsCount = 0;
-        this.communityPuzzles.forEach(e => {
-            totalStarsCount += e.getStarsCount();
-        });
-        return totalStarsCount / max;
-    }
-    async initialize() {
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let storyPuzzles = await response.json();
-            CLEAN_IPuzzlesData(storyPuzzles);
-            storyPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
-            });
-        }
-        catch (e) {
-        }
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let communityPuzzles = await response.json();
-            CLEAN_IPuzzlesData(communityPuzzles);
-            communityPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.communityPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
-            });
-        }
-        catch (e) {
-        }
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let expertPuzzles = await response.json();
-            CLEAN_IPuzzlesData(expertPuzzles);
-            expertPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
-            });
-        }
-        catch (e) {
-        }
-    }
-    completePuzzle(id, score) {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
-        if (!comp) {
-            comp = { id: id, score: score };
-            this.completedPuzzles.push(comp);
-        }
-        else if (comp.score > score) {
-            comp.score = Math.min(comp.score, score);
-        }
-        let e = this.getPuzzleCompletionElementById(id);
-        if (e) {
-            e.score = Math.min(e.score, score);
-        }
-        if (HasLocalStorage) {
-            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
-        }
-    }
-    isPuzzleCompleted(id) {
-        return this.completedPuzzles.findIndex(comp => { return comp.id === id; }) != -1;
-    }
-    getPersonalBestScore(id) {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
-        if (comp) {
-            return comp.score;
-        }
-        return Infinity;
-    }
-}
+customElements.define("completion-bar", CompletionBar);
 var EditorBrush;
 (function (EditorBrush) {
     EditorBrush[EditorBrush["None"] = 0] = "None";
@@ -3132,6 +3028,16 @@ class HomePage {
     }
     async hide(duration) {
         return this.nabuPage.hide(duration);
+    }
+    updateCompletionBars() {
+        if (this.router.game.puzzleCompletion) {
+            let storyCompletion = this.router.game.puzzleCompletion.getStoryPuzzleCompletion();
+            document.querySelector("#home-story-btn completion-bar").setAttribute("value", storyCompletion.toFixed(2));
+            let expertCompletion = this.router.game.puzzleCompletion.getExpertPuzzleCompletion();
+            document.querySelector("#home-expert-btn completion-bar").setAttribute("value", expertCompletion.toFixed(2));
+            let communityCompletion = this.router.game.puzzleCompletion.getCommunityPuzzleCompletion();
+            document.querySelector("#home-community-btn completion-bar").setAttribute("value", communityCompletion.toFixed(2));
+        }
     }
     get hoveredButtonIndex() {
         return this._hoveredButtonIndex;
@@ -5349,6 +5255,176 @@ class PushTile extends Tile {
                 }
             }
         }
+    }
+}
+class PuzzleCompletionElement {
+    constructor(puzzleId, score = Infinity, highscore = null) {
+        this.puzzleId = puzzleId;
+        this.score = score;
+        this.highscore = highscore;
+    }
+    getStarsCount() {
+        if (!isFinite(this.score) || this.score === null) {
+            return 0;
+        }
+        if (this.highscore === null) {
+            return 4;
+        }
+        let ratio = this.highscore / this.score;
+        let starsCount = 1;
+        let s1 = ratio > 0.3 ? 1 : 0;
+        let s2 = ratio > 0.6 ? 1 : 0;
+        let s3 = ratio > 0.9 ? 1 : 0;
+        return starsCount + s1 + s2 + s3;
+    }
+}
+class PuzzleCompletion {
+    constructor(game) {
+        this.game = game;
+        this.completedPuzzles = [];
+        this.storyPuzzles = [];
+        this.expertPuzzles = [];
+        this.communityPuzzles = [];
+        if (HasLocalStorage) {
+            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
+            if (dataString) {
+                this.completedPuzzles = JSON.parse(dataString);
+            }
+        }
+    }
+    getPuzzleCompletionElementById(id) {
+        let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
+        if (storyElement) {
+            return storyElement;
+        }
+        let expertElement = this.expertPuzzles.find(e => { return e.puzzleId === id; });
+        if (expertElement) {
+            return expertElement;
+        }
+        let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
+        if (communityElement) {
+            return communityElement;
+        }
+    }
+    getStarCount(id) {
+        let element = this.getPuzzleCompletionElementById(id);
+        if (element) {
+            return element.getStarsCount();
+        }
+        return 0;
+    }
+    getStoryPuzzleCompletion() {
+        let max = this.storyPuzzles.length * 4;
+        if (max < 1) {
+            return 0;
+        }
+        let totalStarsCount = 0;
+        this.storyPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        return totalStarsCount / max;
+    }
+    getExpertPuzzleCompletion() {
+        let max = this.expertPuzzles.length * 4;
+        if (max < 1) {
+            return 0;
+        }
+        let totalStarsCount = 0;
+        this.expertPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        return totalStarsCount / max;
+    }
+    getCommunityPuzzleCompletion() {
+        let max = this.communityPuzzles.length * 4;
+        if (max < 1) {
+            return 0;
+        }
+        let totalStarsCount = 0;
+        this.communityPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        return totalStarsCount / max;
+    }
+    async initialize() {
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let storyPuzzles = await response.json();
+            CLEAN_IPuzzlesData(storyPuzzles);
+            storyPuzzles.puzzles.forEach(puzzle => {
+                let score = this.getPersonalBestScore(puzzle.id);
+                this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+            });
+        }
+        catch (e) {
+        }
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let communityPuzzles = await response.json();
+            CLEAN_IPuzzlesData(communityPuzzles);
+            communityPuzzles.puzzles.forEach(puzzle => {
+                let score = this.getPersonalBestScore(puzzle.id);
+                this.communityPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+            });
+        }
+        catch (e) {
+        }
+        try {
+            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
+                method: "GET",
+                mode: "cors"
+            });
+            if (!response.ok) {
+                throw new Error("Response status: " + response.status);
+            }
+            let expertPuzzles = await response.json();
+            CLEAN_IPuzzlesData(expertPuzzles);
+            expertPuzzles.puzzles.forEach(puzzle => {
+                let score = this.getPersonalBestScore(puzzle.id);
+                this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+            });
+        }
+        catch (e) {
+        }
+    }
+    completePuzzle(id, score) {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+        if (!comp) {
+            comp = { id: id, score: score };
+            this.completedPuzzles.push(comp);
+        }
+        else if (comp.score > score) {
+            comp.score = Math.min(comp.score, score);
+        }
+        let e = this.getPuzzleCompletionElementById(id);
+        if (e) {
+            e.score = Math.min(e.score, score);
+        }
+        if (HasLocalStorage) {
+            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+        }
+    }
+    isPuzzleCompleted(id) {
+        return this.completedPuzzles.findIndex(comp => { return comp.id === id; }) != -1;
+    }
+    getPersonalBestScore(id) {
+        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+        if (comp) {
+            return comp.score;
+        }
+        return Infinity;
     }
 }
 class MySound {

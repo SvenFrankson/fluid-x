@@ -121,7 +121,7 @@ a:active {
         top: calc((100svh - 390px) * 0.5);
     }
 
-    #home-menu div {
+    #home-menu .button-group {
         display: inline-block;
         margin-left: 5px;
         margin-right: 5px;
@@ -145,7 +145,7 @@ a:active {
         visibility: hidden;
     }
 
-    #home-menu div {
+    #home-menu .button-group {
         display: inline-block;
         margin-left: 5px;
         margin-right: 5px;
@@ -776,10 +776,6 @@ body.vertical #play-success-panel {
     top: calc((100svh - 400px) * 0.5);
 }
 
-#play-success-container {
-
-}
-
 #play-unlock-container {
     margin: 0;
     padding-top: 5px;
@@ -826,6 +822,30 @@ body.vertical #play-success-panel {
     left: calc((100vw - 360px) * 0.5);
     bottom: calc((100svh - 148px) * 0.5);
     text-align: center;
+}
+
+completion-bar {
+    left: 15px;
+    bottom: -11px;
+    position: absolute;
+    width: 260px;
+    height: 12px;
+    background-color: #2b2821;
+    border-radius: 3px;
+    border: 1px solid #624c3c;
+    
+    background-image: url("../datas/textures/cube_pattern.png");
+    background-size: 30px;
+
+    color: white;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+completion-bar .completed {
+    background-image: url("../datas/textures/rainbow_pattern.png");
+    background-size: 30px;
 }
 
 #editor-ui {

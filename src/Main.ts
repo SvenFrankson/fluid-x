@@ -902,46 +902,24 @@ class Game {
         let devSecret = 0;
         let devSecretTimout: number = 0;
         (document.querySelector("#home-menu h1") as HTMLHeadingElement).style.pointerEvents = "auto";
-        (document.querySelector("#home-menu h1") as HTMLDivElement).onclick = () => {
+        (document.querySelector("#home-menu h1") as HTMLHeadingElement).onclick = () => {
             if (devSecret < 6) {
                 devSecret++;
             }
-            console.log(devSecret);
+            else {
+                (document.querySelector("#home-menu h1 span") as HTMLHeadingElement).classList.add("secret-dev-mode");
+                (document.querySelector("#credits-tiaratum-anchor") as HTMLAnchorElement).href = "#dev";
+                (document.querySelector("#credits-tiaratum-anchor") as HTMLAnchorElement).target = "";
+            }
             clearTimeout(devSecretTimout);
-            devSecretTimout = setTimeout(() => {
-                devSecret = 0;
-            }, 3000);
-        }
 
-        document.addEventListener("keyup", ev => {
-            if (devSecret === 6 && ev.code === "KeyD") {
-                devSecret++;
-            } 
-            else if (devSecret === 7 && ev.code === "KeyE") {
-                devSecret++;
-            } 
-            else if (devSecret === 8 && ev.code === "KeyV") {
-                devSecret++;
-            } 
-            else if (devSecret === 9 && ev.code === "Numpad1") {
-                devSecret++;
-            }
-            else if (devSecret === 10 && ev.code === "Numpad9") {
-                devSecret++;
-            }
-            else if (devSecret === 11 && ev.code === "Numpad9") {
-                devSecret++;
-            }
-            else if (devSecret === 12 && ev.code === "Numpad1") {
-                clearTimeout(devSecretTimout);
-                devSecret = 0;
-                location.hash = "#dev";
-            }
-            clearTimeout(devSecretTimout);
             devSecretTimout = setTimeout(() => {
+                (document.querySelector("#home-menu h1 span") as HTMLHeadingElement).classList.remove("secret-dev-mode");
+                (document.querySelector("#credits-tiaratum-anchor") as HTMLAnchorElement).href = "https://tiaratum.com/";
+                (document.querySelector("#credits-tiaratum-anchor") as HTMLAnchorElement).target = "_blank";
                 devSecret = 0;
-            }, 3000);
-        })
+            }, devSecret < 6 ? 1000 : 6000);
+        }
 
         let ambient = this.soundManager.createSound(
             "ambient",
@@ -1329,24 +1307,22 @@ function DEV_ACTIVATE(): void {
     (document.querySelector("#dev-page .dev-active") as HTMLDivElement).style.display = "block";
     (document.querySelector("#dev-back-btn") as HTMLButtonElement).style.display = "block";
     (document.querySelector("#dev-page .dev-not-active") as HTMLDivElement).style.display = "none";
-    document.querySelectorAll("h1").forEach(e => {
-        e.style.fontFamily = "Consolas";
-        e.style.color = "lime";
-        e.style.backgroundColor = "black";
+    
+    let info = document.createElement("div");
+    info.innerHTML = "[DEV MODE : ON] with great power comes great responsibilities";
+    info.style.position = "fixed";
+    info.style.left = "0px";
+    info.style.width = "fit-content";
+    info.style.bottom = "0px";
+    info.style.fontSize = "14px";
+    info.style.fontFamily = "monospace";
+    info.style.color = "lime";
+    info.style.textAlign = "left";
+    info.style.padding = "2px 2px 2px 2px";
+    info.style.pointerEvents = "none";
 
-        let info = document.createElement("div");
-        info.innerHTML = "[dev mode ON] with great power comes great responsibilities";
-        info.style.position = "absolute";
-        info.style.left = "0";
-        info.style.width = "100%";
-        info.style.bottom = "0px";
-        info.style.fontSize = "16px";
-        info.style.color = "white";
-        info.style.textAlign = "center";
-        info.style.backgroundColor = "#000000A0";
+    document.body.appendChild(info);
 
-        e.appendChild(info);
-    });
     let devStateBtns: HTMLButtonElement[] = [];
     for (let i = 0; i <= 7; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;

@@ -4360,41 +4360,19 @@ class Game {
             if (devSecret < 6) {
                 devSecret++;
             }
-            console.log(devSecret);
+            else {
+                document.querySelector("#home-menu h1 span").classList.add("secret-dev-mode");
+                document.querySelector("#credits-tiaratum-anchor").href = "#dev";
+                document.querySelector("#credits-tiaratum-anchor").target = "";
+            }
             clearTimeout(devSecretTimout);
             devSecretTimout = setTimeout(() => {
+                document.querySelector("#home-menu h1 span").classList.remove("secret-dev-mode");
+                document.querySelector("#credits-tiaratum-anchor").href = "https://tiaratum.com/";
+                document.querySelector("#credits-tiaratum-anchor").target = "_blank";
                 devSecret = 0;
-            }, 3000);
+            }, devSecret < 6 ? 1000 : 6000);
         };
-        document.addEventListener("keyup", ev => {
-            if (devSecret === 6 && ev.code === "KeyD") {
-                devSecret++;
-            }
-            else if (devSecret === 7 && ev.code === "KeyE") {
-                devSecret++;
-            }
-            else if (devSecret === 8 && ev.code === "KeyV") {
-                devSecret++;
-            }
-            else if (devSecret === 9 && ev.code === "Numpad1") {
-                devSecret++;
-            }
-            else if (devSecret === 10 && ev.code === "Numpad9") {
-                devSecret++;
-            }
-            else if (devSecret === 11 && ev.code === "Numpad9") {
-                devSecret++;
-            }
-            else if (devSecret === 12 && ev.code === "Numpad1") {
-                clearTimeout(devSecretTimout);
-                devSecret = 0;
-                location.hash = "#dev";
-            }
-            clearTimeout(devSecretTimout);
-            devSecretTimout = setTimeout(() => {
-                devSecret = 0;
-            }, 3000);
-        });
         let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
             ambient.setVolume(0.15);
         }, {
@@ -4687,22 +4665,19 @@ function DEV_ACTIVATE() {
     document.querySelector("#dev-page .dev-active").style.display = "block";
     document.querySelector("#dev-back-btn").style.display = "block";
     document.querySelector("#dev-page .dev-not-active").style.display = "none";
-    document.querySelectorAll("h1").forEach(e => {
-        e.style.fontFamily = "Consolas";
-        e.style.color = "lime";
-        e.style.backgroundColor = "black";
-        let info = document.createElement("div");
-        info.innerHTML = "[dev mode ON] with great power comes great responsibilities";
-        info.style.position = "absolute";
-        info.style.left = "0";
-        info.style.width = "100%";
-        info.style.bottom = "0px";
-        info.style.fontSize = "16px";
-        info.style.color = "white";
-        info.style.textAlign = "center";
-        info.style.backgroundColor = "#000000A0";
-        e.appendChild(info);
-    });
+    let info = document.createElement("div");
+    info.innerHTML = "[DEV MODE : ON] with great power comes great responsibilities";
+    info.style.position = "fixed";
+    info.style.left = "0px";
+    info.style.width = "fit-content";
+    info.style.bottom = "0px";
+    info.style.fontSize = "14px";
+    info.style.fontFamily = "monospace";
+    info.style.color = "lime";
+    info.style.textAlign = "left";
+    info.style.padding = "2px 2px 2px 2px";
+    info.style.pointerEvents = "none";
+    document.body.appendChild(info);
     let devStateBtns = [];
     for (let i = 0; i <= 7; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");

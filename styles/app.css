@@ -31,6 +31,11 @@ body {
     text-shadow: 1px 1px 0px rgb(236, 224, 208), -1px 1px 0px rgb(236, 224, 208), -1px -1px 0px rgb(236, 224, 208), 1px -1px 0px rgb(236, 224, 208), 1px 0px 0px rgb(236, 224, 208), -1px 0px 0px rgb(236, 224, 208), 0px -1px 0px rgb(236, 224, 208), 0px -1px 0px rgb(236, 224, 208);
 }
 
+.secret-dev-mode {
+    color: lime;
+    text-shadow: none;
+}
+
 .black-stroke {
     color: rgb(236, 224, 208);
     text-shadow: 1px 1px 0px #2b2821, -1px 1px 0px #2b2821, -1px -1px 0px #2b2821, 1px -1px 0px #2b2821, 1px 0px 0px #2b2821, -1px 0px 0px #2b2821, 0px -1px 0px #2b2821, 0px -1px 0px #2b2821;
@@ -912,7 +917,11 @@ completion-bar .completed {
     text-align: center;
     width: 300px;
     left: calc((100vw - 328px) * 0.5);
-    top: calc((100svh - 450px) * 0.5);
+    top: calc((100svh - 320px) * 0.5);
+}
+
+#dev-page .editor-line {
+    height: 42px;
 }
 
 #credits-page {

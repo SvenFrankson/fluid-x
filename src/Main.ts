@@ -4,7 +4,7 @@
 
 var CRL_VERSION: number = 0;
 var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 30;
+var CRL_VERSION3: number = 31;
 var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 
@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -669,31 +669,6 @@ class Game {
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
 
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let table = await response.json();
-            console.log(table);
-            for (let n  = 0; n < table.length; n++) {
-                if (typeof(table[n].story_id) === "string") {
-                    table[n].story_id = parseInt(table[n].story_id);
-                }
-                if (typeof(table[n].expert_id) === "string") {
-                    table[n].expert_id = parseInt(table[n].expert_id);
-                }
-            }
-            this._storyExpertTable = table;
-            console.log(this._storyExpertTable);
-        }
-        catch (e) {
-            console.error(e);
-        }
-
         this.puzzleCompletion = new PuzzleCompletion(this);
         await this.puzzleCompletion.initialize();
 
@@ -868,7 +843,7 @@ class Game {
     public async loadPuzzles(): Promise<void> {
         let storyModePuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
-            const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+            const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
                 method: "GET",
                 mode: "cors"
             });
@@ -890,7 +865,7 @@ class Game {
             catch (e) {
                 console.error(e);
                 OFFLINE_MODE = true;
-                const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+                const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
                     method: "GET",
                     mode: "cors"
                 });
@@ -1012,6 +987,44 @@ class Game {
         }
 
         this.loadedMultiplayerPuzzles = multiplayerPuzzles;
+
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/story_expert_table.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            this.storyExpertTable = await response.json();
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                let table = await response.json();
+                for (let n  = 0; n < table.length; n++) {
+                    if (typeof(table[n].story_id) === "string") {
+                        table[n].story_id = parseInt(table[n].story_id);
+                    }
+                    if (typeof(table[n].expert_id) === "string") {
+                        table[n].expert_id = parseInt(table[n].expert_id);
+                    }
+                }
+                this.storyExpertTable = table;
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/story_expert_table.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                this.storyExpertTable = await response.json();
+            }
+        }
     }
 
     public async getPuzzleDataById(id: number): Promise<IPuzzleData> {
@@ -1243,15 +1256,15 @@ class Game {
         
     }
 
-    private _storyExpertTable: { story_id: number, expert_id: number }[] = [];
+    public storyExpertTable: { story_id: number, expert_id: number }[] = [];
     public storyIdToExpertId(storyId: number): number {
-        let element = this._storyExpertTable.find(e => { return e.story_id === storyId; });
+        let element = this.storyExpertTable.find(e => { return e.story_id === storyId; });
         if (element) {
             return element.expert_id; 
         }
     }
     public expertIdToStoryId(expertId: number): number {
-        let element = this._storyExpertTable.find(e => { return e.expert_id === expertId; });
+        let element = this.storyExpertTable.find(e => { return e.expert_id === expertId; });
         if (element) {
             return element.story_id; 
         }
@@ -1338,54 +1351,11 @@ function DEBUG_LOG_MESHES_NAMES(): void {
 }
 
 async function DEV_GENERATE_ALL_LEVEL_FILES(): Promise<void> {
-    await DEV_GENERATE_TUTORIAL_LEVEL_FILE();
-    await DEV_GENERATE_EXPERT_LEVEL_FILE();
-    await DEV_GENERATE_PUZZLE_LEVEL_FILE();
-}
-
-async function DEV_GENERATE_TUTORIAL_LEVEL_FILE(): Promise<void> {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-        method: "GET",
-        mode: "cors"
-    });
-
-    if (response.status === 200) {
-        let data = await response.json();
-        Nabu.download("tiaratum_tutorial_levels.json", JSON.stringify(data));
-    }
-    else {
-        console.error(await response.text());
-    }
-}
-
-async function DEV_GENERATE_EXPERT_LEVEL_FILE(): Promise<void> {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
-        method: "GET",
-        mode: "cors"
-    });
-
-    if (response.status === 200) {
-        let data = await response.json();
-        Nabu.download("tiaratum_expert_levels.json", JSON.stringify(data));
-    }
-    else {
-        console.error(await response.text());
-    }
-}
-
-async function DEV_GENERATE_PUZZLE_LEVEL_FILE(): Promise<void> {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/40/1", {
-        method: "GET",
-        mode: "cors"
-    });
-
-    if (response.status === 200) {
-        let data = await response.json();
-        Nabu.download("tiaratum_offline_levels.json", JSON.stringify(data));
-    }
-    else {
-        console.error(await response.text());
-    }
+    Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
+    Nabu.download("tiaratum_expert_levels.json", JSON.stringify(Game.Instance.loadedExpertPuzzles));
+    Nabu.download("tiaratum_community_levels.json", JSON.stringify(Game.Instance.loadedCommunityPuzzles));
+    Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
+    Nabu.download("story_expert_table.json", JSON.stringify(Game.Instance.storyExpertTable));
 }
 
 var DEV_MODES_NAMES = [

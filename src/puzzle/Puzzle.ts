@@ -966,10 +966,10 @@ class Puzzle {
         Mummu.TranslateVertexDataInPlace(puzzleFrame, new BABYLON.Vector3(0, -5.5, 0));
         
         let groundFrame = CreateBoxFrameVertexData({
-            w: width + 2 * this.winSlotRows * bThickness + 2,
-            d: depth + 2 * this.winSlotRows * bThickness + 2,
-            h: 2 + bHeight * 0.5,
-            thickness: this.winSlotRows * bThickness * 0.5,
+            w: width + 2 * this.winSlotRows * bThickness + 1,
+            d: depth + 2 * this.winSlotRows * bThickness + 1,
+            h: 2 + bHeight * 0.25,
+            thickness: this.winSlotRows * bThickness * 0.25,
             innerHeight: bHeight * 0.5,
             flatShading: true,
             topCap: false,
@@ -983,8 +983,8 @@ class Puzzle {
         Mummu.MergeVertexDatas(puzzleFrame, groundFrame).applyToMesh(this.border);
 
         Mummu.CreateQuadVertexData({
-            width: width + 2 * this.winSlotRows * bThickness + 2,
-            height: depth + 2 * this.winSlotRows * bThickness + 2,
+            width: width + 2 * this.winSlotRows * bThickness + 1,
+            height: depth + 2 * this.winSlotRows * bThickness + 1,
             uvInWorldSpace: true,
             uvSize: 0.5
         }).applyToMesh(this.game.bottom);

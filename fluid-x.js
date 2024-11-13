@@ -3559,7 +3559,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 30;
+var CRL_VERSION3 = 31;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -3596,7 +3596,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -3801,7 +3801,7 @@ class Game {
         };
         this.onWheelEvent = (event) => {
         };
-        this._storyExpertTable = [];
+        this.storyExpertTable = [];
         this._curtainOpacity = 0;
         this.fadeIntroDir = 0;
         Game.Instance = this;
@@ -4111,30 +4111,6 @@ class Game {
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let table = await response.json();
-            console.log(table);
-            for (let n = 0; n < table.length; n++) {
-                if (typeof (table[n].story_id) === "string") {
-                    table[n].story_id = parseInt(table[n].story_id);
-                }
-                if (typeof (table[n].expert_id) === "string") {
-                    table[n].expert_id = parseInt(table[n].expert_id);
-                }
-            }
-            this._storyExpertTable = table;
-            console.log(this._storyExpertTable);
-        }
-        catch (e) {
-            console.error(e);
-        }
         this.puzzleCompletion = new PuzzleCompletion(this);
         await this.puzzleCompletion.initialize();
         this.editor = new Editor(this);
@@ -4279,7 +4255,7 @@ class Game {
     async loadPuzzles() {
         let storyModePuzzles;
         if (OFFLINE_MODE) {
-            const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+            const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
                 method: "GET",
                 mode: "cors"
             });
@@ -4301,7 +4277,7 @@ class Game {
             catch (e) {
                 console.error(e);
                 OFFLINE_MODE = true;
-                const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+                const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
                     method: "GET",
                     mode: "cors"
                 });
@@ -4415,6 +4391,43 @@ class Game {
             }
         }
         this.loadedMultiplayerPuzzles = multiplayerPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/story_expert_table.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            this.storyExpertTable = await response.json();
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                let table = await response.json();
+                for (let n = 0; n < table.length; n++) {
+                    if (typeof (table[n].story_id) === "string") {
+                        table[n].story_id = parseInt(table[n].story_id);
+                    }
+                    if (typeof (table[n].expert_id) === "string") {
+                        table[n].expert_id = parseInt(table[n].expert_id);
+                    }
+                }
+                this.storyExpertTable = table;
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/story_expert_table.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                this.storyExpertTable = await response.json();
+            }
+        }
     }
     async getPuzzleDataById(id) {
         if (id === null || isNaN(id)) {
@@ -4579,13 +4592,13 @@ class Game {
         }
     }
     storyIdToExpertId(storyId) {
-        let element = this._storyExpertTable.find(e => { return e.story_id === storyId; });
+        let element = this.storyExpertTable.find(e => { return e.story_id === storyId; });
         if (element) {
             return element.expert_id;
         }
     }
     expertIdToStoryId(expertId) {
-        let element = this._storyExpertTable.find(e => { return e.expert_id === expertId; });
+        let element = this.storyExpertTable.find(e => { return e.expert_id === expertId; });
         if (element) {
             return element.story_id;
         }
@@ -4662,48 +4675,11 @@ function DEBUG_LOG_MESHES_NAMES() {
     console.log(countedMeshNames);
 }
 async function DEV_GENERATE_ALL_LEVEL_FILES() {
-    await DEV_GENERATE_TUTORIAL_LEVEL_FILE();
-    await DEV_GENERATE_EXPERT_LEVEL_FILE();
-    await DEV_GENERATE_PUZZLE_LEVEL_FILE();
-}
-async function DEV_GENERATE_TUTORIAL_LEVEL_FILE() {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-        method: "GET",
-        mode: "cors"
-    });
-    if (response.status === 200) {
-        let data = await response.json();
-        Nabu.download("tiaratum_tutorial_levels.json", JSON.stringify(data));
-    }
-    else {
-        console.error(await response.text());
-    }
-}
-async function DEV_GENERATE_EXPERT_LEVEL_FILE() {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
-        method: "GET",
-        mode: "cors"
-    });
-    if (response.status === 200) {
-        let data = await response.json();
-        Nabu.download("tiaratum_expert_levels.json", JSON.stringify(data));
-    }
-    else {
-        console.error(await response.text());
-    }
-}
-async function DEV_GENERATE_PUZZLE_LEVEL_FILE() {
-    const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/40/1", {
-        method: "GET",
-        mode: "cors"
-    });
-    if (response.status === 200) {
-        let data = await response.json();
-        Nabu.download("tiaratum_offline_levels.json", JSON.stringify(data));
-    }
-    else {
-        console.error(await response.text());
-    }
+    Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
+    Nabu.download("tiaratum_expert_levels.json", JSON.stringify(Game.Instance.loadedExpertPuzzles));
+    Nabu.download("tiaratum_community_levels.json", JSON.stringify(Game.Instance.loadedCommunityPuzzles));
+    Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
+    Nabu.download("story_expert_table.json", JSON.stringify(Game.Instance.storyExpertTable));
 }
 var DEV_MODES_NAMES = [
     "TBD",
@@ -7529,10 +7505,10 @@ class Puzzle {
         });
         Mummu.TranslateVertexDataInPlace(puzzleFrame, new BABYLON.Vector3(0, -5.5, 0));
         let groundFrame = CreateBoxFrameVertexData({
-            w: width + 2 * this.winSlotRows * bThickness + 2,
-            d: depth + 2 * this.winSlotRows * bThickness + 2,
-            h: 2 + bHeight * 0.5,
-            thickness: this.winSlotRows * bThickness * 0.5,
+            w: width + 2 * this.winSlotRows * bThickness + 1,
+            d: depth + 2 * this.winSlotRows * bThickness + 1,
+            h: 2 + bHeight * 0.25,
+            thickness: this.winSlotRows * bThickness * 0.25,
             innerHeight: bHeight * 0.5,
             flatShading: true,
             topCap: false,
@@ -7543,8 +7519,8 @@ class Puzzle {
         this.border.material = this.game.blackMaterial;
         Mummu.MergeVertexDatas(puzzleFrame, groundFrame).applyToMesh(this.border);
         Mummu.CreateQuadVertexData({
-            width: width + 2 * this.winSlotRows * bThickness + 2,
-            height: depth + 2 * this.winSlotRows * bThickness + 2,
+            width: width + 2 * this.winSlotRows * bThickness + 1,
+            height: depth + 2 * this.winSlotRows * bThickness + 1,
             uvInWorldSpace: true,
             uvSize: 0.5
         }).applyToMesh(this.game.bottom);

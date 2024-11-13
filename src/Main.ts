@@ -48,7 +48,7 @@ var HasLocalStorage = false;
 var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -1383,6 +1383,27 @@ function DEV_ACTIVATE(): void {
     (document.querySelector("#dev-back-btn") as HTMLButtonElement).style.display = "block";
     (document.querySelector("#dev-page .dev-not-active") as HTMLDivElement).style.display = "none";
     
+    let devPuzzleId = document.createElement("div");
+    devPuzzleId.id = "dev-puzzle-id";
+    if (Game.Instance.puzzle.data.id != null) {
+        devPuzzleId.innerHTML = "puzzle_id #" + Game.Instance.puzzle.data.id.toFixed(0);
+    }
+    else {
+        devPuzzleId.innerHTML = "puzzle_id #null";
+    }
+    devPuzzleId.style.position = "fixed";
+    devPuzzleId.style.left = "50%";
+    devPuzzleId.style.width = "fit-content";
+    devPuzzleId.style.top = "0px";
+    devPuzzleId.style.fontSize = "20px";
+    devPuzzleId.style.fontFamily = "monospace";
+    devPuzzleId.style.color = "lime";
+    devPuzzleId.style.textAlign = "left";
+    devPuzzleId.style.padding = "2px 2px 2px 2px";
+    devPuzzleId.style.pointerEvents = "none";
+
+    document.body.appendChild(devPuzzleId);
+    
     let info = document.createElement("div");
     info.innerHTML = "[DEV MODE : ON] with great power comes great responsibilities";
     info.style.position = "fixed";
@@ -1552,6 +1573,16 @@ function DEV_UPDATE_STATE_UI(): void {
 
     let devXpertPuzzleInput = document.querySelector("#dev-xpert-puzzle-input") as HTMLInputElement;
     devXpertPuzzleInput.value = isFinite(Game.Instance.puzzle.data.expert_puzzle_id) ? Game.Instance.puzzle.data.expert_puzzle_id.toFixed(0) : "0";
+
+    let devPuzzleId = document.querySelector("#dev-puzzle-id");
+    if (devPuzzleId) {
+        if (Game.Instance.puzzle.data.id != null) {
+            devPuzzleId.innerHTML = "puzzle_id #" + Game.Instance.puzzle.data.id.toFixed(0);
+        }
+        else {
+            devPuzzleId.innerHTML = "puzzle_id #null";
+        }
+    }
 }
 
 let createAndInit = async () => {

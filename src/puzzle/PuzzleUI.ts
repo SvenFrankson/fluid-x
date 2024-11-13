@@ -2,6 +2,7 @@ class PuzzleUI {
 
     public ingameTimer: HTMLDivElement;
     public successPanel: HTMLDivElement;
+    public successNextLabel: HTMLDivElement;
     public gameoverPanel: HTMLDivElement;
     public unlockContainer: HTMLDivElement;
     public failMessage: HTMLDivElement;
@@ -13,12 +14,13 @@ class PuzzleUI {
     public scoreSubmitBtn: HTMLButtonElement;
     public scorePendingBtn: HTMLButtonElement;
     public scoreDoneBtn: HTMLButtonElement;
-    public successReplayButton: HTMLButtonElement;
     public successNextButton: HTMLButtonElement;
+    public unlockTryButton: HTMLButtonElement;
 
     public gameoverBackButton: HTMLButtonElement;
     public gameoverReplayButton: HTMLButtonElement;
 
+    private _hoverableElements: HTMLElement[];
     private _hoveredElement: HTMLElement;
     public get hoveredElement(): HTMLElement {
         return this._hoveredElement;
@@ -40,6 +42,7 @@ class PuzzleUI {
     constructor(public puzzle: Puzzle) {
         this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
+        this.successNextLabel = document.querySelector("#success-next-label");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement as HTMLDivElement;
         this.highscoreTwoPlayersLine = document.querySelector("#score-2-players-input").parentElement as HTMLDivElement;
@@ -47,12 +50,8 @@ class PuzzleUI {
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
         
-        this.successReplayButton = document.querySelector("#success-replay-btn") as HTMLButtonElement;
-        this.successReplayButton.onclick = () => {
-            this.puzzle.reset();
-            this.puzzle.skipIntro();
-        }
         this.successNextButton = document.querySelector("#success-next-btn") as HTMLButtonElement;
+        this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
         this.gameoverReplayButton.onclick = () => {
@@ -66,6 +65,14 @@ class PuzzleUI {
 
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
+
+        this._hoverableElements = [
+            this.highscorePlayerLine,
+            this.highscoreTwoPlayersLine,
+            this.scoreSubmitBtn,
+            this.successNextButton,
+            this.unlockTryButton
+        ]
     }
 
     public win(firstTimeCompleted: boolean): void {
@@ -78,6 +85,14 @@ class PuzzleUI {
         }
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
+        this.successNextLabel.style.display = "none";
+        if (this.puzzle.data.state === 2) {
+            let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];
+            if (nextPuzzle) {
+                this.successNextLabel.innerHTML = "Next - " + nextPuzzle.title;
+                this.successNextLabel.style.display = "";
+            }
+        }
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
@@ -183,9 +198,7 @@ class PuzzleUI {
 
     private _registerToInputManager(): void {
         this.game.uiInputManager.onUpCallbacks.push(this._inputUp);
-        this.game.uiInputManager.onLeftCallbacks.push(this._inputLat);
         this.game.uiInputManager.onDownCallbacks.push(this._inputDown);
-        this.game.uiInputManager.onRightCallbacks.push(this._inputLat);
         this.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
         this.game.uiInputManager.onBackCallbacks.push(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
@@ -193,9 +206,7 @@ class PuzzleUI {
 
     private _unregisterFromInputManager(): void {
         this.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
-        this.game.uiInputManager.onLeftCallbacks.remove(this._inputLat);
         this.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
-        this.game.uiInputManager.onRightCallbacks.remove(this._inputLat);
         this.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
         this.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
@@ -207,9 +218,6 @@ class PuzzleUI {
                 this.setHoveredElement(this.successNextButton);
             }
             else if (this.hoveredElement === this.successNextButton) {
-                this.setHoveredElement(this.successReplayButton);
-            }
-            else if (this.hoveredElement === this.successReplayButton) {
                 if (this.highscoreContainer.style.display === "block") {
                     if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
                         this.setHoveredElement(this.scoreSubmitBtn);
@@ -218,41 +226,27 @@ class PuzzleUI {
                         this.setHoveredElement(this.highscorePlayerLine);
                     }
                 }
+                else if (this.unlockContainer.style.display != "none") {
+                    this.setHoveredElement(this.unlockTryButton);
+                }
             }
             else if (this.hoveredElement === this.scoreSubmitBtn) {
                 this.setHoveredElement(this.highscorePlayerLine);
             }
             else if (this.hoveredElement === this.highscorePlayerLine) {
+                if (this.unlockContainer.style.display != "none") {
+                    this.setHoveredElement(this.unlockTryButton);
+                }
+                else {
+                    this.setHoveredElement(this.successNextButton);
+                }
+            }
+            else if (this.hoveredElement === this.unlockTryButton) {
                 this.setHoveredElement(this.successNextButton);
             }
         }
         else if (this.gameoverPanel.style.display === "") {
             
-        }
-    }
-
-    private _inputLat = () => {
-        if (this.successPanel.style.display === "") {
-            if (this.hoveredElement === undefined) {
-                this.setHoveredElement(this.successNextButton);
-            }
-            else if (this.hoveredElement === this.successReplayButton) {
-                this.setHoveredElement(this.successNextButton);
-            } 
-            else if (this.hoveredElement === this.successNextButton) {
-                this.setHoveredElement(this.successReplayButton);
-            }
-        }
-        else if (this.gameoverPanel.style.display === "") {
-            if (this.hoveredElement === undefined) {
-                this.setHoveredElement(this.gameoverReplayButton);
-            }
-            else if (this.hoveredElement === this.gameoverBackButton) {
-                this.setHoveredElement(this.gameoverReplayButton);
-            } 
-            else if (this.hoveredElement === this.gameoverReplayButton) {
-                this.setHoveredElement(this.gameoverBackButton);
-            }
         }
     }
 
@@ -266,18 +260,26 @@ class PuzzleUI {
                     this.setHoveredElement(this.scoreSubmitBtn);
                 }
                 else {
-                    this.setHoveredElement(this.successReplayButton);
+                    this.setHoveredElement(this.successNextButton);
                 }
             }
             else if (this.hoveredElement === this.scoreSubmitBtn) {
-                this.setHoveredElement(this.successReplayButton);
-            }
-            else if (this.hoveredElement === this.successReplayButton) {
                 this.setHoveredElement(this.successNextButton);
             }
             else if (this.hoveredElement === this.successNextButton) {
+                if (this.unlockContainer.style.display != "none") {
+                    this.setHoveredElement(this.unlockTryButton);
+                }
+                else if (this.highscoreContainer.style.display === "block") {
+                    this.setHoveredElement(this.highscorePlayerLine);
+                }
+            }
+            else if (this.hoveredElement === this.unlockTryButton) {
                 if (this.highscoreContainer.style.display === "block") {
                     this.setHoveredElement(this.highscorePlayerLine);
+                }
+                else {
+                    this.setHoveredElement(this.successNextButton);
                 }
             }
         }

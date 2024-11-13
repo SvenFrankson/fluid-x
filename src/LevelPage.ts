@@ -347,7 +347,7 @@ class StoryPuzzlesPage extends LevelPage {
         let data = this.router.game.loadedStoryPuzzles;
         CLEAN_IPuzzlesData(data);
 
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
@@ -373,13 +373,28 @@ class StoryPuzzlesPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "Community Puzzles",
+                        title: "Try the Expert Mode",
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
+                        location.hash = "#expert-puzzles"
+                    },
+                    classList: ["red"]
+                }
+            }
+            else if (n === data.puzzles.length + 1) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Enjoy many more Custom Puzzles !",
+                        author: "Community",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onclick: () => {
                         location.hash = "#community-puzzles"
-                    }
+                    },
+                    classList: ["green"]
                 }
             }
         }
@@ -407,7 +422,7 @@ class ExpertPuzzlesPage extends LevelPage {
         let data = this.router.game.loadedExpertPuzzles;
         CLEAN_IPuzzlesData(data);
 
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
@@ -429,13 +444,28 @@ class ExpertPuzzlesPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "Story Puzzles",
+                        title: "Back to Story Mode",
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onclick: () => {
                         location.hash = "#levels"
-                    }
+                    },
+                    classList: ["lightblue"]
+                }
+            }
+            else if (n === data.puzzles.length + 1) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Enjoy many more Custom Puzzles !",
+                        author: "Community",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onclick: () => {
+                        location.hash = "#community-puzzles"
+                    },
+                    classList: ["green"]
                 }
             }
         }

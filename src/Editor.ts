@@ -475,8 +475,13 @@ class Editor {
                 let headers: any = {
                     "Content-Type": "application/json",
                 };
-                if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
-                    data.id = this.puzzle.data.id;
+                if (DEV_MODE_ACTIVATED) {
+                    let puzzleId = null;
+                    let idStr = (document.querySelector("#id-input") as HTMLInputElement).value;
+                    if (idStr != "") {
+                        puzzleId = parseInt(idStr);
+                    }
+                    data.id = puzzleId;
                     console.log("ID found, going into update mode");
                     console.log(data.id);
                     if (var1) {
@@ -597,15 +602,13 @@ class Editor {
     }
 
     public updatePublishText(): void {
-        if (DEV_MODE_ACTIVATED && this.puzzle.data.id != null) {
-            document.querySelector("#publish-btn stroke-text").innerHTML = "Update";
-            this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Update";
+        if (DEV_MODE_ACTIVATED) {
+            document.querySelector("#id-input").parentElement.style.display = "";
             this.titleInput.value = this.puzzle.data.title;
             this.authorInput.value = this.puzzle.data.author;
         }
         else {
-            document.querySelector("#publish-btn stroke-text").innerHTML = "Publish";
-            this.publishConfirmButton.querySelector("stroke-text").innerHTML = "Publish";
+            document.querySelector("#id-input").parentElement.style.display = "none";
         }
     }
 

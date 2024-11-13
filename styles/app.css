@@ -520,8 +520,6 @@ button:hover, .hovered {
     vertical-align: middle;
 }
 
-
-
 .puzzle-level-navgraph completion-bar {
     display: inline-block;
     position: relative;
@@ -849,6 +847,12 @@ body.vertical #play-success-panel {
         display: inline-block;
         width: 280px;
         vertical-align: bottom;
+    }
+
+    #play-success-panel .stamp {
+        top: 40px;
+        right: auto;
+        left: 210px;
     }
 }
 

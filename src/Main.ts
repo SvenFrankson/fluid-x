@@ -2,14 +2,14 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var CRL_VERSION: number = 0;
-var CRL_VERSION2: number = 0;
-var CRL_VERSION3: number = 31;
-var VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
-var CONFIGURATION_VERSION: number = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
+var MAJOR_VERSION: number = 0;
+var MINOR_VERSION: number = 1;
+var PATCH_VERSION: number = 0;
+var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
+var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
 var observed_progress_speed_percent_second;
-var USE_POKI_SDK: boolean = false;
+var USE_POKI_SDK;
 var PokiSDK: any;
 
 var PokiSDKPlaying: boolean = false;
@@ -86,7 +86,7 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 }
@@ -112,7 +112,7 @@ let onFirstPlayerInteractionClick = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 }
@@ -138,7 +138,7 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 }
@@ -780,7 +780,7 @@ class Game {
             this.router.eulaPage.hide(0);
         }
 
-        (document.querySelector("#title-version") as HTMLDivElement).innerHTML = "version " + CRL_VERSION + "." + CRL_VERSION2 + "." + CRL_VERSION3;
+        (document.querySelector("#title-version") as HTMLDivElement).innerHTML = "version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
 
         let devSecret = 0;
         let devSecretTimout: number = 0;
@@ -834,7 +834,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }

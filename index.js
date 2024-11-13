@@ -1,3 +1,5 @@
+var USE_POKI_SDK = false;
+
 var THE_ORIGIN_OF_TIME_ms = 0;
 var last_step_t = 0;
 var displayed_progress = 0;
@@ -114,7 +116,7 @@ function loadStep() {
 
 async function doLoad() {
     let pIndex = 0;
-    let stepsCount = 10;
+    let stepsCount = 9;
     steps = [];
     for (let i = 0; i <= stepsCount; i++) {
         steps[i] = i / stepsCount;
@@ -127,7 +129,9 @@ async function doLoad() {
     setProgressIndex(pIndex++);
     await loadCSS("./styles/app.css");
     setProgressIndex(pIndex++);
-    //await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
+    if (USE_POKI_SDK) {
+        await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
+    }
     setProgressIndex(pIndex++);
     await loadScript("./lib/babylon.js");
     setProgressIndex(pIndex++);
@@ -141,13 +145,10 @@ async function doLoad() {
     setProgressIndex(pIndex++);
     await gameLoaded();
     setProgressIndex(pIndex++);
-    setProgressIndex(pIndex++);
-    setProgressIndex(pIndex++);
-    setProgressIndex(pIndex++);
 }
 
 function updateLoadingText() {
-    let d = 350;
+    let d = 250;
     let text = "> " + loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
     let e = document.getElementById("loading-info");
     e.innerText = text;

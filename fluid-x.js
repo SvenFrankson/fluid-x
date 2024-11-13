@@ -3561,13 +3561,13 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
-var CRL_VERSION = 0;
-var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 31;
-var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
-var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
+var MAJOR_VERSION = 0;
+var MINOR_VERSION = 1;
+var PATCH_VERSION = 0;
+var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
+var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
-var USE_POKI_SDK = false;
+var USE_POKI_SDK;
 var PokiSDK;
 var PokiSDKPlaying = false;
 function PokiGameplayStart() {
@@ -3638,7 +3638,7 @@ let onFirstPlayerInteractionTouch = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 };
@@ -3662,7 +3662,7 @@ let onFirstPlayerInteractionClick = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 };
@@ -3686,7 +3686,7 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 };
@@ -4210,7 +4210,7 @@ class Game {
         document.querySelector("#eula-back-btn").onclick = () => {
             this.router.eulaPage.hide(0);
         };
-        document.querySelector("#title-version").innerHTML = "version " + CRL_VERSION + "." + CRL_VERSION2 + "." + CRL_VERSION3;
+        document.querySelector("#title-version").innerHTML = "version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
         let devSecret = 0;
         let devSecretTimout = 0;
         document.querySelector("#home-menu h1").style.pointerEvents = "auto";
@@ -4251,7 +4251,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -5305,7 +5305,7 @@ class PuzzleCompletion {
         this.expertPuzzles = [];
         this.communityPuzzles = [];
         if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-v" + VERSION.toFixed(0));
+            let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
             if (dataString) {
                 this.completedPuzzles = JSON.parse(dataString);
             }
@@ -5399,7 +5399,7 @@ class PuzzleCompletion {
         this._updateExpertPuzzleCompletion();
         this._updateCommunityPuzzleCompletion();
         if (HasLocalStorage) {
-            window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+            window.localStorage.setItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
         }
     }
     isPuzzleCompleted(id) {

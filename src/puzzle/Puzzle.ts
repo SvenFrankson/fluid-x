@@ -293,7 +293,7 @@ class Puzzle {
         let score = Math.floor(this.playTimer * 100);
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
-        (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
+        (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score);
 
         let stamp = this.puzzleUI.successPanel.querySelector(".stamp");
         let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);

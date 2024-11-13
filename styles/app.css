@@ -159,6 +159,20 @@ a:active {
     }
 }
 
+
+#home-menu completion-bar {
+    left: 15px;
+    bottom: -11px;
+    position: absolute;
+    width: 260px;
+    height: 12px;
+    font-size: 12px;
+}
+
+#home-menu .completed-text {
+    transform: translateY(-1px);
+}
+
 h1 {
     position: relative;
     display: block;
@@ -506,6 +520,22 @@ button:hover, .hovered {
     vertical-align: middle;
 }
 
+
+
+.puzzle-level-navgraph completion-bar {
+    display: inline-block;
+    position: relative;
+    width: 200px;
+    height: 20px;
+    margin-top: 4px;
+    font-size: 14px;
+    vertical-align: top;
+}
+
+.puzzle-level-navgraph completion-bar .completed-text {
+    transform: translateY(2px);
+}
+
 body.vertical .puzzle-level-navgraph {
     height: 85px;
 }
@@ -772,6 +802,10 @@ body.vertical #play-timer {
     background-color: #5d7275D0;
 }
 
+#play-success-panel .title {
+    color: #d4804d;
+}
+
 #play-success-panel .stamp {
     top: 40px;
     right: 5px;
@@ -827,14 +861,14 @@ body.vertical #play-success-panel {
     left: calc((100vw - 360px) * 0.5);
     bottom: calc((100svh - 148px) * 0.5);
     text-align: center;
+    background-color: #5d7275D0;
+}
+
+#play-gameover-panel h2 {
+    color: #b03a48;
 }
 
 completion-bar {
-    left: 15px;
-    bottom: -11px;
-    position: absolute;
-    width: 260px;
-    height: 12px;
     background-color: #2b2821;
     border-radius: 3px;
     border: 1px solid #624c3c;
@@ -844,11 +878,15 @@ completion-bar {
 
     color: white;
     text-align: right;
-    font-size: 12px;
     font-weight: 500;
 }
 
 completion-bar .completed {
+    background-color: #5c8b93;
+    background-color: #243d5c;
+    background-color: #3e6958;
+    background-color: #d4804d;
+    background-color: #e0c872;
     background-image: url("../datas/textures/rainbow_pattern.png");
     background-size: 30px;
 }

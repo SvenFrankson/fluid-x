@@ -123,12 +123,15 @@ class CarillonRouter extends Nabu.Router {
             }
             if (this.game.puzzle.data.state === 4) {
                 (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#multiplayer-puzzles";
+                (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#multiplayer-puzzles";
             }
             else if (this.game.puzzle.data.state === 3) {
                 (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#expert-puzzles";
+                (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#expert-puzzles";
             }
             else {
                 (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#community-puzzles";
+                (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community-puzzles";
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();

@@ -1703,12 +1703,15 @@ class CarillonRouter extends Nabu.Router {
             }
             if (this.game.puzzle.data.state === 4) {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#multiplayer-puzzles";
+                this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#multiplayer-puzzles";
             }
             else if (this.game.puzzle.data.state === 3) {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-puzzles";
+                this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#expert-puzzles";
             }
             else {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community-puzzles";
+                this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#community-puzzles";
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
@@ -1817,8 +1820,10 @@ class CompletionBar extends HTMLElement {
         this.valueText = document.createElement("span");
         this.valueText.classList.add("completed-text");
         this.valueText.style.display = "none";
-        this.valueText.style.marginRight = "10px";
-        this.valueText.style.transform = "translateY(-1px)";
+        this.valueText.style.marginRight = "5px";
+        this.valueText.style.display = "inline-block";
+        this.valueText.style.color = "white";
+        this.valueText.style.fontWeight = "500";
         this.appendChild(this.valueText);
         if (this.hasAttribute("value")) {
             this.setValue(parseFloat(this.getAttribute("value")));
@@ -1836,8 +1841,7 @@ class CompletionBar extends HTMLElement {
                 let invPercentString = (100 - percent).toFixed(0) + "%";
                 this.completedBar.style.display = "block";
                 this.completedBar.style.width = percentString;
-                this.completedBar.style.backgroundColor = "color-mix(in srgb, #d4804d " + percentString + ", #5d7275 " + invPercentString + ")";
-                this.completedBar.style.backgroundColor = "#d4804d";
+                this.completedBar.style.backgroundColor = "color-mix(in srgb, #e0c872 " + percentString + ", #624c3c " + invPercentString + ")";
             }
             this.valueText.innerHTML = percentString + " completed";
             if (percent > 50) {
@@ -3336,7 +3340,7 @@ class StoryPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.storyPuzzleCompletion * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.storyPuzzleCompletion.toFixed(2));
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3390,7 +3394,7 @@ class ExpertPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.expertPuzzleCompletion * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.expertPuzzleCompletion.toFixed(2));
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3439,7 +3443,7 @@ class CommunityPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.communityPuzzleCompletion * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.communityPuzzleCompletion.toFixed(2));
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -6889,7 +6893,7 @@ class Puzzle {
         let score = Math.floor(this.playTimer * 100);
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
-        this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
+        this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
         let stamp = this.puzzleUI.successPanel.querySelector(".stamp");
         let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);
         stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");

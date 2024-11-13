@@ -28,8 +28,11 @@ class CompletionBar extends HTMLElement {
         this.valueText = document.createElement("span");
         this.valueText.classList.add("completed-text");
         this.valueText.style.display = "none";
-        this.valueText.style.marginRight = "10px";
-        this.valueText.style.transform = "translateY(-1px)";
+        this.valueText.style.marginRight = "5px";
+        this.valueText.style.display = "inline-block";
+        this.valueText.style.color = "white";
+        this.valueText.style.fontWeight = "500";
+
         this.appendChild(this.valueText);
 
         if (this.hasAttribute("value")) {
@@ -49,8 +52,7 @@ class CompletionBar extends HTMLElement {
                 let invPercentString = (100 - percent).toFixed(0) + "%";
                 this.completedBar.style.display = "block";
                 this.completedBar.style.width = percentString;
-                this.completedBar.style.backgroundColor = "color-mix(in srgb, #d4804d " + percentString + ", #5d7275 " + invPercentString + ")";
-                this.completedBar.style.backgroundColor = "#d4804d";
+                this.completedBar.style.backgroundColor = "color-mix(in srgb, #e0c872 " + percentString + ", #624c3c " + invPercentString + ")";
             }
     
             this.valueText.innerHTML = percentString + " completed";

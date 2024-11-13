@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -860,6 +860,11 @@ class Game {
                     throw new Error("Response status: " + response.status);
                 }
                 storyModePuzzles = await response.json() as IPuzzlesData;
+        
+                for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
+                    storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
+                }
+
                 CLEAN_IPuzzlesData(storyModePuzzles);
             }
             catch (e) {
@@ -872,10 +877,6 @@ class Game {
                 storyModePuzzles = await response.json() as IPuzzlesData;
                 CLEAN_IPuzzlesData(storyModePuzzles);
             }
-        }
-        
-        for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
-            storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
         }
 
         this.loadedStoryPuzzles = storyModePuzzles;
@@ -902,6 +903,11 @@ class Game {
                     throw new Error("Response status: " + response.status);
                 }
                 expertPuzzles = await response.json() as IPuzzlesData;
+        
+                for (let i = 0; i < expertPuzzles.puzzles.length; i++) {
+                    expertPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + expertPuzzles.puzzles[i].title;
+                }
+
                 CLEAN_IPuzzlesData(expertPuzzles);
             }
             catch (e) {

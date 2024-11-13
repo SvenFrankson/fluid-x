@@ -97,14 +97,14 @@ abstract class LevelPage {
             difficultyField.classList.add("square-btn-difficulty");
 
             let difficulty = puzzleTileDatas[n].data.difficulty;
-            if (difficulty === 0 && DEV_MODE_ACTIVATED) {
+            if (difficulty === 0) {
                 if (DEV_MODE_ACTIVATED) {
                     difficultyField.classList.add("beige");
                     difficultyField.innerHTML = "UKNWN";
                 }
                 else {
                     difficultyField.classList.add("blue");
-                    difficultyField.innerHTML = "MID";
+                    difficultyField.innerHTML = "MEDIUM";
                 }
             }
             else if (difficulty === 1) {
@@ -113,7 +113,7 @@ abstract class LevelPage {
             }
             else if (difficulty === 2) {
                 difficultyField.classList.add("blue");
-                difficultyField.innerHTML = "MID";
+                difficultyField.innerHTML = "MEDIUM";
             }
             else if (difficulty === 3) {
                 difficultyField.classList.add("orange");

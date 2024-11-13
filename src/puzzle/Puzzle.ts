@@ -367,6 +367,9 @@ class Puzzle {
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
                 }
+                let puzzleData = await this.game.getPuzzleDataById(this.data.id);
+                puzzleData.player = player;
+                puzzleData.score = score;
                 this.puzzleUI.setHighscoreState(3);
                 this._pendingPublish = false;
             }

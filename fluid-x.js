@@ -3220,14 +3220,14 @@ class LevelPage {
             let difficultyField = document.createElement("div");
             difficultyField.classList.add("square-btn-difficulty");
             let difficulty = puzzleTileDatas[n].data.difficulty;
-            if (difficulty === 0 && DEV_MODE_ACTIVATED) {
+            if (difficulty === 0) {
                 if (DEV_MODE_ACTIVATED) {
                     difficultyField.classList.add("beige");
                     difficultyField.innerHTML = "UKNWN";
                 }
                 else {
                     difficultyField.classList.add("blue");
-                    difficultyField.innerHTML = "MID";
+                    difficultyField.innerHTML = "MEDIUM";
                 }
             }
             else if (difficulty === 1) {
@@ -3236,7 +3236,7 @@ class LevelPage {
             }
             else if (difficulty === 2) {
                 difficultyField.classList.add("blue");
-                difficultyField.innerHTML = "MID";
+                difficultyField.innerHTML = "MEDIUM";
             }
             else if (difficulty === 3) {
                 difficultyField.classList.add("orange");
@@ -3596,7 +3596,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -4272,6 +4272,9 @@ class Game {
                     throw new Error("Response status: " + response.status);
                 }
                 storyModePuzzles = await response.json();
+                for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
+                    storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
+                }
                 CLEAN_IPuzzlesData(storyModePuzzles);
             }
             catch (e) {
@@ -4284,9 +4287,6 @@ class Game {
                 storyModePuzzles = await response.json();
                 CLEAN_IPuzzlesData(storyModePuzzles);
             }
-        }
-        for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
-            storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
         }
         this.loadedStoryPuzzles = storyModePuzzles;
         for (let i = 0; i < this.loadedStoryPuzzles.puzzles.length; i++) {
@@ -4311,6 +4311,9 @@ class Game {
                     throw new Error("Response status: " + response.status);
                 }
                 expertPuzzles = await response.json();
+                for (let i = 0; i < expertPuzzles.puzzles.length; i++) {
+                    expertPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + expertPuzzles.puzzles[i].title;
+                }
                 CLEAN_IPuzzlesData(expertPuzzles);
             }
             catch (e) {
@@ -6954,6 +6957,9 @@ class Puzzle {
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
                 }
+                let puzzleData = await this.game.getPuzzleDataById(this.data.id);
+                puzzleData.player = player;
+                puzzleData.score = score;
                 this.puzzleUI.setHighscoreState(3);
                 this._pendingPublish = false;
             }

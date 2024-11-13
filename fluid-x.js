@@ -1866,6 +1866,13 @@ class PuzzleCompletion {
             return communityElement;
         }
     }
+    getStarCount(id) {
+        let element = this.getPuzzleCompletionElementById(id);
+        if (element) {
+            return element.getStarsCount();
+        }
+        return 0;
+    }
     getStoryPuzzleCompletion() {
         let max = this.storyPuzzles.length * 4;
         if (max < 1) {
@@ -1875,7 +1882,6 @@ class PuzzleCompletion {
         this.storyPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log("max story " + max);
         return totalStarsCount / max;
     }
     getExpertPuzzleCompletion() {
@@ -1887,7 +1893,6 @@ class PuzzleCompletion {
         this.expertPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log("max expert " + max);
         return totalStarsCount / max;
     }
     getCommunityPuzzleCompletion() {
@@ -1899,7 +1904,6 @@ class PuzzleCompletion {
         this.communityPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log("max community " + max);
         return totalStarsCount / max;
     }
     async initialize() {
@@ -3378,20 +3382,10 @@ class LevelPage {
             }
             if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
                 let completedStamp = document.createElement("div");
+                let starCount = this.router.game.puzzleCompletion.getStarCount(puzzleTileDatas[n].data.id);
                 completedStamp.classList.add("stamp");
-                let stars = document.createElement("div");
-                completedStamp.appendChild(stars);
+                completedStamp.classList.add("stamp-" + starCount);
                 squareButton.appendChild(completedStamp);
-                let score = this.router.game.puzzleCompletion.getPersonalBestScore(puzzleTileDatas[n].data.id);
-                let highscore = puzzleTileDatas[n].data.score;
-                let ratio = 1;
-                if (highscore != null) {
-                    ratio = highscore / score;
-                }
-                let s1 = ratio > 0.3 ? "★" : "☆";
-                let s2 = ratio > 0.6 ? "★" : "☆";
-                let s3 = ratio > 0.9 ? "★" : "☆";
-                stars.innerHTML = s1 + "</br>" + s2 + s3;
             }
         }
         if (puzzleTileDatas.length % this.colCount > 0) {
@@ -5418,7 +5412,7 @@ class StrokeText extends HTMLElement {
         this.style.position = "relative";
         let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
         o = "1px";
-        this.style.textShadow = o + " " + o + " 0px #e3cfb4ff, -" + o + " " + o + " 0px #e3cfb4ff, -" + o + " -" + o + " 0px #e3cfb4ff, " + o + " -" + o + " 0px #e3cfb4ff";
+        this.style.textShadow = "1px 1px 0px #e3cfb4ff, -1px 1px 0px #e3cfb4ff, -1px -1px 0px #e3cfb4ff, 1px -1px 0px #e3cfb4ff";
     }
     setContent(text) {
         this.innerText = text;
@@ -6838,15 +6832,10 @@ class Puzzle {
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer stroke-text").setContent(Game.ScoreToString(score));
-        let highscore = this.data.score;
-        let ratio = 1;
-        if (highscore != null) {
-            ratio = highscore / score;
-        }
-        let s1 = ratio > 0.3 ? "★" : "☆";
-        let s2 = ratio > 0.6 ? "★" : "☆";
-        let s3 = ratio > 0.9 ? "★" : "☆";
-        this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
+        let stamp = this.puzzleUI.successPanel.querySelector(".stamp");
+        let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);
+        stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
+        stamp.classList.add("stamp-" + starCount);
         setTimeout(() => {
             for (let i = 0; i < this.ballsCount; i++) {
                 if (this.balls[i].ballState != BallState.Done) {

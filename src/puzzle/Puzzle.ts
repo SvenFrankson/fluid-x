@@ -295,15 +295,10 @@ class Puzzle {
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer stroke-text") as StrokeText).setContent(Game.ScoreToString(score));
 
-        let highscore = this.data.score;
-        let ratio = 1;
-        if (highscore != null) {
-            ratio = highscore / score;
-        }
-        let s1 = ratio > 0.3 ? "★" : "☆";
-        let s2 = ratio > 0.6 ? "★" : "☆";
-        let s3 = ratio > 0.9 ? "★" : "☆";
-        this.puzzleUI.successPanel.querySelector(".stamp div").innerHTML = s1 + "</br>" + s2 + s3;
+        let stamp = this.puzzleUI.successPanel.querySelector(".stamp");
+        let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);
+        stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
+        stamp.classList.add("stamp-" + starCount);
 
         setTimeout(() => {
             for (let i = 0; i < this.ballsCount; i++) {

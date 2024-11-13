@@ -47,6 +47,14 @@ class PuzzleCompletion {
         }
     }
 
+    public getStarCount(id: number): number {
+        let element = this.getPuzzleCompletionElementById(id);
+        if (element) {
+            return element.getStarsCount();
+        }
+        return 0;
+    }
+
     public getStoryPuzzleCompletion(): number {
         let max = this.storyPuzzles.length * 4;
         if (max < 1) {
@@ -56,7 +64,6 @@ class PuzzleCompletion {
         this.storyPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log("max story " + max);
         return totalStarsCount / max;
     }
 
@@ -69,7 +76,6 @@ class PuzzleCompletion {
         this.expertPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log("max expert " + max);
         return totalStarsCount / max;
     }
 
@@ -82,7 +88,6 @@ class PuzzleCompletion {
         this.communityPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log("max community " + max);
         return totalStarsCount / max;
     }
 

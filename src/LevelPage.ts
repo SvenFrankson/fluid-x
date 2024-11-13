@@ -140,21 +140,10 @@ abstract class LevelPage {
 
             if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
                 let completedStamp = document.createElement("div");
+                let starCount = this.router.game.puzzleCompletion.getStarCount(puzzleTileDatas[n].data.id);
                 completedStamp.classList.add("stamp");
-                let stars = document.createElement("div");
-                completedStamp.appendChild(stars);
+                completedStamp.classList.add("stamp-" + starCount);
                 squareButton.appendChild(completedStamp);
-
-                let score = this.router.game.puzzleCompletion.getPersonalBestScore(puzzleTileDatas[n].data.id);
-                let highscore = puzzleTileDatas[n].data.score;
-                let ratio = 1;
-                if (highscore != null) {
-                    ratio = highscore / score;
-                }
-                let s1 = ratio > 0.3 ? "★" : "☆";
-                let s2 = ratio > 0.6 ? "★" : "☆";
-                let s3 = ratio > 0.9 ? "★" : "☆";
-                stars.innerHTML = s1 + "</br>" + s2 + s3;
             }
         }
 

@@ -26,6 +26,16 @@ body {
     background-image: url("../datas/textures/rainbow_pattern.png");
 }
 
+.white-stroke {
+    color: #2b2821;
+    text-shadow: 1px 1px 0px rgb(236, 224, 208), -1px 1px 0px rgb(236, 224, 208), -1px -1px 0px rgb(236, 224, 208), 1px -1px 0px rgb(236, 224, 208), 1px 0px 0px rgb(236, 224, 208), -1px 0px 0px rgb(236, 224, 208), 0px -1px 0px rgb(236, 224, 208), 0px -1px 0px rgb(236, 224, 208);
+}
+
+.black-stroke {
+    color: rgb(236, 224, 208);
+    text-shadow: 1px 1px 0px #2b2821, -1px 1px 0px #2b2821, -1px -1px 0px #2b2821, 1px -1px 0px #2b2821, 1px 0px 0px #2b2821, -1px 0px 0px #2b2821, 0px -1px 0px #2b2821, 0px -1px 0px #2b2821;
+}
+
 body.touchscreen .touchscreen-hide {
     display: none;
 }
@@ -152,7 +162,6 @@ h1 {
     font-family: Julee;
     font-weight: 900;
     margin: 0;
-    color: #2b2821;
 }
 
 #title-version {
@@ -637,27 +646,32 @@ body.vertical .square-btn-container {
     bottom: 50px;
     right: 5px;
     z-index: 2;
-    transform-origin: bottom right;
-    transform: scale(0.8);
 }
 
 .stamp {
-    display: inline-block;
+    display: block;
     position: absolute;
     width: 70px;
     height: 70px;
     border-radius: 70px;
-    color: #e0c872;
-    border: 6px double #e0c872;
-    text-align: center;
-    background-color: #00000020;
+    background-size: cover;
+    background-image: url("../datas/icons/stamp-0-star.svg");
 }
 
-.stamp div {
-    font-size: 35px;
-    line-height: 22px;
-    transform: translateY(12px);
-    font-weight: 100;
+.stamp-1 {
+    background-image: url("../datas/icons/stamp-0-star.svg");
+}
+
+.stamp-2 {
+    background-image: url("../datas/icons/stamp-1-star.svg");
+}
+
+.stamp-3 {
+    background-image: url("../datas/icons/stamp-2-stars.svg");
+}
+
+.stamp-4 {
+    background-image: url("../datas/icons/stamp-3-stars.svg");
 }
 
 input[type="text"] {
@@ -753,6 +767,11 @@ body.vertical #play-timer {
     background-color: #5d7275D0;
 }
 
+#play-success-panel .stamp {
+    top: 40px;
+    right: 5px;
+}
+
 body.vertical #play-success-panel {
     top: calc((100svh - 400px) * 0.5);
 }
@@ -777,6 +796,7 @@ body.vertical #play-success-panel {
 @media (max-height: 540px) {
     #play-success-panel {
         width: fit-content;
+        min-width: 280px;
         right: calc((100vw - 500px) * 0.5);
         left: auto;
         top: calc((100svh - 310px) * 0.5);

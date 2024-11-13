@@ -9,7 +9,7 @@ class StrokeText extends HTMLElement {
         this.style.position = "relative";
         let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
         o = "1px";
-        this.style.textShadow = o + " " + o + " 0px #e3cfb4ff, -" + o + " " + o + " 0px #e3cfb4ff, -" + o + " -" + o + " 0px #e3cfb4ff, " + o + " -" + o + " 0px #e3cfb4ff";
+        this.style.textShadow = "1px 1px 0px #e3cfb4ff, -1px 1px 0px #e3cfb4ff, -1px -1px 0px #e3cfb4ff, 1px -1px 0px #e3cfb4ff";
     }
 
     public setContent(text: string): void {

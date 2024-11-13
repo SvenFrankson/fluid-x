@@ -1675,7 +1675,7 @@ class CarillonRouter extends Nabu.Router {
             let numLevel = parseInt(page.replace("#level-", ""));
             this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
-                let data = this.game.tiaratumGameTutorialLevels;
+                let data = this.game.loadedStoryPuzzles;
                 if (data.puzzles[numLevel - 1]) {
                     this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
                 }
@@ -1693,38 +1693,11 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#puzzle-")) {
             let puzzleId = parseInt(page.replace("#puzzle-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
-                let data;
-                if (OFFLINE_MODE) {
-                    data = this.game.tiaratumGameOfflinePuzzleLevels.puzzles.find(puzzle => { return puzzle.id === puzzleId; });
-                    if (!data) {
-                        data = this.game.tiaratumGameExpertLevels.puzzles.find(puzzle => { return puzzle.id === puzzleId; });
-                    }
-                    if (!data) {
-                        location.hash = "#home";
-                        return;
-                    }
-                }
-                else {
-                    try {
-                        let headers = {};
-                        if (var1) {
-                            headers = {
-                                "Authorization": 'Basic ' + btoa("carillon:" + var1)
-                            };
-                        }
-                        const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
-                            method: "GET",
-                            mode: "cors",
-                            headers: headers
-                        });
-                        data = await response.json();
-                        CLEAN_IPuzzleData(data);
-                    }
-                    catch (e) {
-                        console.error(e);
-                        location.hash = "#home";
-                        return;
-                    }
+                let data = await this.game.getPuzzleDataById(puzzleId);
+                if (!data) {
+                    console.error("Puzzle #" + puzzleId + " not found.");
+                    location.hash = "#home";
+                    return;
                 }
                 this.game.puzzle.resetFromData(data);
             }
@@ -3368,7 +3341,7 @@ class StoryPuzzlesPage extends LevelPage {
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        let data = this.router.game.tiaratumGameTutorialLevels;
+        let data = this.router.game.loadedStoryPuzzles;
         CLEAN_IPuzzlesData(data);
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
             let n = i + page * levelsPerPage;
@@ -3422,7 +3395,7 @@ class ExpertPuzzlesPage extends LevelPage {
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        let data = this.router.game.tiaratumGameExpertLevels;
+        let data = this.router.game.loadedExpertPuzzles;
         CLEAN_IPuzzlesData(data);
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
             let n = i + page * levelsPerPage;
@@ -3470,7 +3443,7 @@ class CommunityPuzzlesPage extends LevelPage {
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
-        if (OFFLINE_MODE) {
+        if (true) {
             return this.getPuzzlesDataOffline(page, levelsPerPage);
         }
         let puzzleData = [];
@@ -3499,7 +3472,7 @@ class CommunityPuzzlesPage extends LevelPage {
     }
     async getPuzzlesDataOffline(page, levelsPerPage) {
         let puzzleData = [];
-        let data = this.router.game.tiaratumGameOfflinePuzzleLevels;
+        let data = this.router.game.loadedCommunityPuzzles;
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
@@ -3564,27 +3537,19 @@ class MultiplayerPuzzlesPage extends LevelPage {
     }
     async getPuzzlesData(page, levelsPerPage) {
         let puzzleData = [];
-        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/4", {
-            method: "GET",
-            mode: "cors"
-        });
-        if (response.status === 200) {
-            let text = await response.text();
-            let data = JSON.parse(text);
-            CLEAN_IPuzzlesData(data);
-            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-                let id = data.puzzles[i].id;
+        let data = this.router.game.loadedMultiplayerPuzzles;
+        CLEAN_IPuzzlesData(data);
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
                 puzzleData[i] = {
-                    data: data.puzzles[i],
+                    data: data.puzzles[n],
                     onclick: () => {
-                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "puzzle-" + id;
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     }
                 };
             }
-        }
-        else {
-            console.error(await response.text());
         }
         return puzzleData;
     }
@@ -3594,7 +3559,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var CRL_VERSION = 0;
 var CRL_VERSION2 = 0;
-var CRL_VERSION3 = 29;
+var CRL_VERSION3 = 30;
 var VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var CONFIGURATION_VERSION = CRL_VERSION * 1000 + CRL_VERSION2 * 100 + CRL_VERSION3;
 var observed_progress_speed_percent_second;
@@ -4142,94 +4107,7 @@ class Game {
         let doorDatas = await this.vertexDataLoader.get("./datas/meshes/door.babylon");
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
-        let tutorialPuzzles;
-        if (OFFLINE_MODE) {
-            const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
-                method: "GET",
-                mode: "cors"
-            });
-            tutorialPuzzles = await response.json();
-            CLEAN_IPuzzlesData(tutorialPuzzles);
-        }
-        else {
-            try {
-                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/2", {
-                    method: "GET",
-                    mode: "cors"
-                });
-                if (!response.ok) {
-                    throw new Error("Response status: " + response.status);
-                }
-                tutorialPuzzles = await response.json();
-                CLEAN_IPuzzlesData(tutorialPuzzles);
-            }
-            catch (e) {
-                console.error(e);
-                OFFLINE_MODE = true;
-                const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
-                    method: "GET",
-                    mode: "cors"
-                });
-                tutorialPuzzles = await response.json();
-                CLEAN_IPuzzlesData(tutorialPuzzles);
-            }
-        }
-        for (let i = 0; i < tutorialPuzzles.puzzles.length; i++) {
-            tutorialPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + tutorialPuzzles.puzzles[i].title;
-        }
-        this.tiaratumGameTutorialLevels = tutorialPuzzles;
-        for (let i = 0; i < this.tiaratumGameTutorialLevels.puzzles.length; i++) {
-            this.tiaratumGameTutorialLevels.puzzles[i].numLevel = (i + 1);
-        }
-        let expertPuzzles;
-        if (OFFLINE_MODE) {
-            const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
-                method: "GET",
-                mode: "cors"
-            });
-            expertPuzzles = await response.json();
-            CLEAN_IPuzzlesData(expertPuzzles);
-        }
-        else {
-            try {
-                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/20/3", {
-                    method: "GET",
-                    mode: "cors"
-                });
-                if (!response.ok) {
-                    throw new Error("Response status: " + response.status);
-                }
-                expertPuzzles = await response.json();
-                CLEAN_IPuzzlesData(expertPuzzles);
-            }
-            catch (e) {
-                console.error(e);
-                OFFLINE_MODE = true;
-                const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
-                    method: "GET",
-                    mode: "cors"
-                });
-                expertPuzzles = await response.json();
-                CLEAN_IPuzzlesData(expertPuzzles);
-            }
-        }
-        for (let i = 0; i < expertPuzzles.puzzles.length; i++) {
-            expertPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + expertPuzzles.puzzles[i].title;
-        }
-        this.tiaratumGameExpertLevels = expertPuzzles;
-        for (let i = 0; i < this.tiaratumGameExpertLevels.puzzles.length; i++) {
-            this.tiaratumGameExpertLevels.puzzles[i].numLevel = (i + 1);
-        }
-        if (OFFLINE_MODE) {
-            let offlinePuzzles;
-            const response = await fetch("./datas/levels/tiaratum_offline_levels.json", {
-                method: "GET",
-                mode: "cors"
-            });
-            offlinePuzzles = await response.json();
-            CLEAN_IPuzzlesData(offlinePuzzles);
-            this.tiaratumGameOfflinePuzzleLevels = offlinePuzzles;
-        }
+        await this.loadPuzzles();
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         await this.puzzle.instantiate();
@@ -4397,6 +4275,186 @@ class Game {
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
+    }
+    async loadPuzzles() {
+        let storyModePuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            storyModePuzzles = await response.json();
+            CLEAN_IPuzzlesData(storyModePuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                storyModePuzzles = await response.json();
+                CLEAN_IPuzzlesData(storyModePuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_tutorial_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                storyModePuzzles = await response.json();
+                CLEAN_IPuzzlesData(storyModePuzzles);
+            }
+        }
+        for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
+            storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
+        }
+        this.loadedStoryPuzzles = storyModePuzzles;
+        for (let i = 0; i < this.loadedStoryPuzzles.puzzles.length; i++) {
+            this.loadedStoryPuzzles.puzzles[i].numLevel = (i + 1);
+        }
+        let expertPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            expertPuzzles = await response.json();
+            CLEAN_IPuzzlesData(expertPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                expertPuzzles = await response.json();
+                CLEAN_IPuzzlesData(expertPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                expertPuzzles = await response.json();
+                CLEAN_IPuzzlesData(expertPuzzles);
+            }
+        }
+        this.loadedExpertPuzzles = expertPuzzles;
+        let communityPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            communityPuzzles = await response.json();
+            CLEAN_IPuzzlesData(communityPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                communityPuzzles = await response.json();
+                CLEAN_IPuzzlesData(communityPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                communityPuzzles = await response.json();
+                CLEAN_IPuzzlesData(communityPuzzles);
+            }
+        }
+        this.loadedCommunityPuzzles = communityPuzzles;
+        let multiplayerPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_multiplayer_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            multiplayerPuzzles = await response.json();
+            CLEAN_IPuzzlesData(multiplayerPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/4", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                multiplayerPuzzles = await response.json();
+                CLEAN_IPuzzlesData(multiplayerPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_multiplayer_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                multiplayerPuzzles = await response.json();
+                CLEAN_IPuzzlesData(multiplayerPuzzles);
+            }
+        }
+        this.loadedMultiplayerPuzzles = multiplayerPuzzles;
+    }
+    async getPuzzleDataById(id) {
+        if (id === null || isNaN(id)) {
+            return undefined;
+        }
+        let puzzle = this.loadedStoryPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        puzzle = this.loadedExpertPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        puzzle = this.loadedMultiplayerPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        puzzle = this.loadedCommunityPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        try {
+            let headers = {};
+            if (var1) {
+                headers = {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                };
+            }
+            const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + id.toFixed(0), {
+                method: "GET",
+                mode: "cors",
+                headers: headers
+            });
+            puzzle = await response.json();
+            CLEAN_IPuzzleData(puzzle);
+        }
+        catch (e) {
+            console.error(e);
+        }
+        return puzzle;
     }
     static ScoreToString(t) {
         t = t / 100;
@@ -5325,57 +5383,18 @@ class PuzzleCompletion {
         this.communityPuzzleCompletion = totalStarsCount / max;
     }
     async initialize() {
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let storyPuzzles = await response.json();
-            CLEAN_IPuzzlesData(storyPuzzles);
-            storyPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
-            });
-        }
-        catch (e) {
-        }
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let communityPuzzles = await response.json();
-            CLEAN_IPuzzlesData(communityPuzzles);
-            communityPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.communityPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
-            });
-        }
-        catch (e) {
-        }
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let expertPuzzles = await response.json();
-            CLEAN_IPuzzlesData(expertPuzzles);
-            expertPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
-            });
-        }
-        catch (e) {
-        }
+        this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+        });
+        this.game.loadedCommunityPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.communityPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+        });
+        this.game.loadedExpertPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+        });
         this._updateStoryPuzzleCompletion();
         this._updateExpertPuzzleCompletion();
         this._updateCommunityPuzzleCompletion();
@@ -8325,45 +8344,25 @@ class PuzzleUI {
     }
     async tryShowUnlockPanel() {
         let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
-        if (isFinite(expertId)) {
-            try {
-                let data;
-                if (OFFLINE_MODE) {
-                    data = this.game.tiaratumGameExpertLevels.puzzles.find(puzzle => { return puzzle.id === expertId; });
-                }
-                else {
-                    let url = SHARE_SERVICE_PATH + "puzzle/" + expertId.toFixed(0);
-                    const response = await fetch(url, {
-                        method: "GET",
-                        mode: "cors"
-                    });
-                    if (!response.ok) {
-                        throw new Error(url + " status: " + response.status);
-                    }
-                    data = await response.json();
-                    CLEAN_IPuzzleData(data);
-                }
-                let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
-                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
-                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
-                let existingImg = squareBtn.querySelector(".square-btn-miniature");
-                if (existingImg) {
-                    squareBtn.removeChild(existingImg);
-                }
-                let newIcon = PuzzleMiniatureMaker.Generate(data.content);
-                newIcon.classList.add("square-btn-miniature");
-                squareBtn.appendChild(newIcon);
-                document.querySelector("#play-unlock-try-btn").onclick = () => {
-                    location.href = "#puzzle-" + expertId.toFixed(0);
-                };
-                this.unlockContainer.style.display = "";
+        let data = await this.game.getPuzzleDataById(expertId);
+        if (data) {
+            let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
+            squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
+            squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+            let existingImg = squareBtn.querySelector(".square-btn-miniature");
+            if (existingImg) {
+                squareBtn.removeChild(existingImg);
             }
-            catch (e) {
-                console.error(e);
-                this.unlockContainer.style.display = "none";
-            }
+            let newIcon = PuzzleMiniatureMaker.Generate(data.content);
+            newIcon.classList.add("square-btn-miniature");
+            squareBtn.appendChild(newIcon);
+            document.querySelector("#play-unlock-try-btn").onclick = () => {
+                location.href = "#puzzle-" + expertId.toFixed(0);
+            };
+            this.unlockContainer.style.display = "";
         }
         else {
+            console.error("Puzzle Expert #" + expertId + " not found.");
             this.unlockContainer.style.display = "none";
         }
     }

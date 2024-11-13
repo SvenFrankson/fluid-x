@@ -110,49 +110,28 @@ class PuzzleUI {
 
     public async tryShowUnlockPanel(): Promise<void> {
         let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
-        if (isFinite(expertId)) {
-            try {
-                let data: IPuzzleData;
-                if (OFFLINE_MODE) {
-                    data = this.game.tiaratumGameExpertLevels.puzzles.find(puzzle => { return puzzle.id === expertId; });
-                }
-                else {
-                    let url = SHARE_SERVICE_PATH + "puzzle/" + expertId.toFixed(0);
-                    const response = await fetch(url, {
-                        method: "GET",
-                        mode: "cors"
-                    });
-                    if (!response.ok) {
-                        throw new Error(url + " status: " + response.status);
-                    }
-                    data = await response.json();
-                    CLEAN_IPuzzleData(data);
-                }
-
-                let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
-                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
-                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
-            
-                let existingImg = squareBtn.querySelector(".square-btn-miniature");
-                if (existingImg) {
-                    squareBtn.removeChild(existingImg);
-                }
-                let newIcon = PuzzleMiniatureMaker.Generate(data.content);
-                newIcon.classList.add("square-btn-miniature");
-                squareBtn.appendChild(newIcon);
-
-                (document.querySelector("#play-unlock-try-btn") as HTMLButtonElement).onclick = () => {
-                    location.href = "#puzzle-" + expertId.toFixed(0);
-                }
-
-                this.unlockContainer.style.display = "";
+        let data: IPuzzleData = await this.game.getPuzzleDataById(expertId);
+        if (data) {
+            let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
+            squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
+            squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+        
+            let existingImg = squareBtn.querySelector(".square-btn-miniature");
+            if (existingImg) {
+                squareBtn.removeChild(existingImg);
             }
-            catch (e) {
-                console.error(e);
-                this.unlockContainer.style.display = "none";
+            let newIcon = PuzzleMiniatureMaker.Generate(data.content);
+            newIcon.classList.add("square-btn-miniature");
+            squareBtn.appendChild(newIcon);
+
+            (document.querySelector("#play-unlock-try-btn") as HTMLButtonElement).onclick = () => {
+                location.href = "#puzzle-" + expertId.toFixed(0);
             }
+
+            this.unlockContainer.style.display = "";
         }
         else {
+            console.error("Puzzle Expert #" + expertId + " not found.");
             this.unlockContainer.style.display = "none";
         }
     }

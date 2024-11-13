@@ -107,70 +107,26 @@ class PuzzleCompletion {
     }
 
     public async initialize(): Promise<void> {
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let storyPuzzles: IPuzzlesData = await response.json();
-            CLEAN_IPuzzlesData(storyPuzzles);
+        this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.storyPuzzles.push(
+                new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
+            );
+        });
 
-            storyPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.storyPuzzles.push(
-                    new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
-                );
-            })
-        }
-        catch (e) {
+        this.game.loadedCommunityPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.communityPuzzles.push(
+                new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
+            );
+        });
 
-        }
-
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let communityPuzzles: IPuzzlesData = await response.json();
-            CLEAN_IPuzzlesData(communityPuzzles);
-
-            communityPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.communityPuzzles.push(
-                    new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
-                );
-            })
-        }
-        catch (e) {
-
-        }
-        try {
-            const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
-                method: "GET",
-                mode: "cors"
-            });
-            if (!response.ok) {
-                throw new Error("Response status: " + response.status);
-            }
-            let expertPuzzles: IPuzzlesData = await response.json();
-            CLEAN_IPuzzlesData(expertPuzzles);
-
-            expertPuzzles.puzzles.forEach(puzzle => {
-                let score = this.getPersonalBestScore(puzzle.id);
-                this.expertPuzzles.push(
-                    new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
-                );
-            })
-        }
-        catch (e) {
-
-        }
+        this.game.loadedExpertPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.expertPuzzles.push(
+                new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
+            );
+        });
 
         this._updateStoryPuzzleCompletion();
         this._updateExpertPuzzleCompletion();

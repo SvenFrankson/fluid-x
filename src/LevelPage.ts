@@ -344,7 +344,7 @@ class StoryPuzzlesPage extends LevelPage {
 
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
-        let data = this.router.game.tiaratumGameTutorialLevels;
+        let data = this.router.game.loadedStoryPuzzles;
         CLEAN_IPuzzlesData(data);
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
@@ -404,7 +404,7 @@ class ExpertPuzzlesPage extends LevelPage {
 
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
-        let data = this.router.game.tiaratumGameExpertLevels;
+        let data = this.router.game.loadedExpertPuzzles;
         CLEAN_IPuzzlesData(data);
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
@@ -459,7 +459,7 @@ class CommunityPuzzlesPage extends LevelPage {
     }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
-        if (OFFLINE_MODE) {
+        if (true) {
             return this.getPuzzlesDataOffline(page, levelsPerPage);
         }
         let puzzleData: IPuzzleTileData[] = [];
@@ -493,7 +493,7 @@ class CommunityPuzzlesPage extends LevelPage {
 
     protected async getPuzzlesDataOffline(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
-        let data = this.router.game.tiaratumGameOfflinePuzzleLevels;
+        let data = this.router.game.loadedCommunityPuzzles;
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let n = i + page * levelsPerPage;
@@ -574,31 +574,20 @@ class MultiplayerPuzzlesPage extends LevelPage {
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
         let puzzleData: IPuzzleTileData[] = [];
+        let data = this.router.game.loadedMultiplayerPuzzles;
+        CLEAN_IPuzzlesData(data);
 
-        const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/4", {
-            method: "GET",
-            mode: "cors"
-        });
-
-        if (response.status === 200) {
-            let text = await response.text();
-            
-            let data = JSON.parse(text);
-            CLEAN_IPuzzlesData(data);
-    
-            for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
-                let id = data.puzzles[i].id;
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 1; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {                
                 puzzleData[i] = {
-                    data: data.puzzles[i],
+                    data: data.puzzles[n],
                     onclick: () => {
-                        this.router.game.puzzle.resetFromData(data.puzzles[i]);
-                        location.hash = "puzzle-" + id;
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     }
                 }
             }
-        }
-        else {
-            console.error(await response.text());
         }
 
         return puzzleData;

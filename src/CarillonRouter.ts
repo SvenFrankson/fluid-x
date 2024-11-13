@@ -95,7 +95,7 @@ class CarillonRouter extends Nabu.Router {
             let numLevel = parseInt(page.replace("#level-", ""));
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
             if (this.game.puzzle.data.numLevel != numLevel) {
-                let data = this.game.tiaratumGameTutorialLevels;
+                let data = this.game.loadedStoryPuzzles;
                 if (data.puzzles[numLevel - 1]) {
                     this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
                 }
@@ -113,38 +113,11 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#puzzle-")) {
             let puzzleId = parseInt(page.replace("#puzzle-", ""));
             if (this.game.puzzle.data.id != puzzleId) {
-                let data: IPuzzleData;
-                if (OFFLINE_MODE) {
-                    data = this.game.tiaratumGameOfflinePuzzleLevels.puzzles.find(puzzle => { return puzzle.id === puzzleId; });
-                    if (!data) {
-                        data = this.game.tiaratumGameExpertLevels.puzzles.find(puzzle => { return puzzle.id === puzzleId; });
-                    }
-                    if (!data) {
-                        location.hash = "#home";
-                        return;
-                    }
-                }
-                else {
-                    try {
-                        let headers = {};
-                        if (var1) {
-                            headers = { 
-                                "Authorization": 'Basic ' + btoa("carillon:" + var1)
-                            };
-                        }
-                        const response = await fetch(SHARE_SERVICE_PATH + "puzzle/" + puzzleId.toFixed(0), {
-                            method: "GET",
-                            mode: "cors",
-                            headers: headers
-                        });
-                        data = await response.json();
-                        CLEAN_IPuzzleData(data);
-                    }
-                    catch (e) {
-                        console.error(e);
-                        location.hash = "#home";
-                        return;
-                    }
+                let data: IPuzzleData = await this.game.getPuzzleDataById(puzzleId);
+                if (!data) {
+                    console.error("Puzzle #" + puzzleId + " not found.");
+                    location.hash = "#home";
+                    return;
                 }
                 this.game.puzzle.resetFromData(data);
             }

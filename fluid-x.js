@@ -3031,11 +3031,11 @@ class HomePage {
     }
     updateCompletionBars() {
         if (this.router.game.puzzleCompletion) {
-            let storyCompletion = this.router.game.puzzleCompletion.getStoryPuzzleCompletion();
+            let storyCompletion = this.router.game.puzzleCompletion.storyPuzzleCompletion;
             document.querySelector("#home-story-btn completion-bar").setAttribute("value", storyCompletion.toFixed(2));
-            let expertCompletion = this.router.game.puzzleCompletion.getExpertPuzzleCompletion();
+            let expertCompletion = this.router.game.puzzleCompletion.expertPuzzleCompletion;
             document.querySelector("#home-expert-btn completion-bar").setAttribute("value", expertCompletion.toFixed(2));
-            let communityCompletion = this.router.game.puzzleCompletion.getCommunityPuzzleCompletion();
+            let communityCompletion = this.router.game.puzzleCompletion.communityPuzzleCompletion;
             document.querySelector("#home-community-btn completion-bar").setAttribute("value", communityCompletion.toFixed(2));
         }
     }
@@ -3363,7 +3363,7 @@ class StoryPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getStoryPuzzleCompletion() * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.storyPuzzleCompletion * 100).toFixed(0) + "% completed";
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3417,7 +3417,7 @@ class ExpertPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getExpertPuzzleCompletion() * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.expertPuzzleCompletion * 100).toFixed(0) + "% completed";
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -3466,7 +3466,7 @@ class CommunityPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getCommunityPuzzleCompletion() * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.communityPuzzleCompletion * 100).toFixed(0) + "% completed";
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -5282,6 +5282,9 @@ class PuzzleCompletion {
     constructor(game) {
         this.game = game;
         this.completedPuzzles = [];
+        this.storyPuzzleCompletion = 0;
+        this.expertPuzzleCompletion = 0;
+        this.communityPuzzleCompletion = 0;
         this.storyPuzzles = [];
         this.expertPuzzles = [];
         this.communityPuzzles = [];
@@ -5313,38 +5316,38 @@ class PuzzleCompletion {
         }
         return 0;
     }
-    getStoryPuzzleCompletion() {
+    _updateStoryPuzzleCompletion() {
         let max = this.storyPuzzles.length * 4;
         if (max < 1) {
-            return 0;
+            return;
         }
         let totalStarsCount = 0;
         this.storyPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        return totalStarsCount / max;
+        this.storyPuzzleCompletion = totalStarsCount / max;
     }
-    getExpertPuzzleCompletion() {
+    _updateExpertPuzzleCompletion() {
         let max = this.expertPuzzles.length * 4;
         if (max < 1) {
-            return 0;
+            return;
         }
         let totalStarsCount = 0;
         this.expertPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        return totalStarsCount / max;
+        this.expertPuzzleCompletion = totalStarsCount / max;
     }
-    getCommunityPuzzleCompletion() {
+    _updateCommunityPuzzleCompletion() {
         let max = this.communityPuzzles.length * 4;
         if (max < 1) {
-            return 0;
+            return;
         }
         let totalStarsCount = 0;
         this.communityPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        return totalStarsCount / max;
+        this.communityPuzzleCompletion = totalStarsCount / max;
     }
     async initialize() {
         try {
@@ -5398,6 +5401,9 @@ class PuzzleCompletion {
         }
         catch (e) {
         }
+        this._updateStoryPuzzleCompletion();
+        this._updateExpertPuzzleCompletion();
+        this._updateCommunityPuzzleCompletion();
     }
     completePuzzle(id, score) {
         let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
@@ -5412,6 +5418,9 @@ class PuzzleCompletion {
         if (e) {
             e.score = Math.min(e.score, score);
         }
+        this._updateStoryPuzzleCompletion();
+        this._updateExpertPuzzleCompletion();
+        this._updateCommunityPuzzleCompletion();
         if (HasLocalStorage) {
             window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
         }

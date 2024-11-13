@@ -25,11 +25,11 @@ class HomePage {
 
     public updateCompletionBars(): void {
         if (this.router.game.puzzleCompletion) {
-            let storyCompletion = this.router.game.puzzleCompletion.getStoryPuzzleCompletion();
+            let storyCompletion = this.router.game.puzzleCompletion.storyPuzzleCompletion;
             (document.querySelector("#home-story-btn completion-bar") as CompletionBar).setAttribute("value", storyCompletion.toFixed(2));
-            let expertCompletion = this.router.game.puzzleCompletion.getExpertPuzzleCompletion();
+            let expertCompletion = this.router.game.puzzleCompletion.expertPuzzleCompletion;
             (document.querySelector("#home-expert-btn completion-bar") as CompletionBar).setAttribute("value", expertCompletion.toFixed(2));
-            let communityCompletion = this.router.game.puzzleCompletion.getCommunityPuzzleCompletion();
+            let communityCompletion = this.router.game.puzzleCompletion.communityPuzzleCompletion;
             (document.querySelector("#home-community-btn completion-bar") as CompletionBar).setAttribute("value", communityCompletion.toFixed(2));
         }
     }

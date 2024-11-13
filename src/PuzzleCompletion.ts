@@ -29,9 +29,15 @@ class PuzzleCompletion {
     
     public completedPuzzles: { id: number, score: number }[] = [];
 
+    public storyPuzzleCompletion: number = 0;
+    public expertPuzzleCompletion: number = 0;
+    public communityPuzzleCompletion: number = 0;
+
     public storyPuzzles: PuzzleCompletionElement[] = [];
     public expertPuzzles: PuzzleCompletionElement[] = [];
     public communityPuzzles: PuzzleCompletionElement[] = [];
+
+
     public getPuzzleCompletionElementById(id: number): PuzzleCompletionElement {
         let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
         if (storyElement) {
@@ -55,40 +61,40 @@ class PuzzleCompletion {
         return 0;
     }
 
-    public getStoryPuzzleCompletion(): number {
+    private _updateStoryPuzzleCompletion(): void {
         let max = this.storyPuzzles.length * 4;
         if (max < 1) {
-            return 0;
+            return;
         }
         let totalStarsCount = 0;
         this.storyPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        return totalStarsCount / max;
+        this.storyPuzzleCompletion = totalStarsCount / max;
     }
 
-    public getExpertPuzzleCompletion(): number {
+    private _updateExpertPuzzleCompletion(): void {
         let max = this.expertPuzzles.length * 4;
         if (max < 1) {
-            return 0;
+            return;
         }
         let totalStarsCount = 0;
         this.expertPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        return totalStarsCount / max;
+        this.expertPuzzleCompletion =  totalStarsCount / max;
     }
 
-    public getCommunityPuzzleCompletion(): number {
+    private _updateCommunityPuzzleCompletion(): void {
         let max = this.communityPuzzles.length * 4;
         if (max < 1) {
-            return 0;
+            return;
         }
         let totalStarsCount = 0;
         this.communityPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        return totalStarsCount / max;
+        this.communityPuzzleCompletion = totalStarsCount / max;
     }
 
     constructor(public game: Game) {
@@ -165,6 +171,10 @@ class PuzzleCompletion {
         catch (e) {
 
         }
+
+        this._updateStoryPuzzleCompletion();
+        this._updateExpertPuzzleCompletion();
+        this._updateCommunityPuzzleCompletion();
     }
 
     public completePuzzle(id: number, score: number): void {
@@ -181,6 +191,10 @@ class PuzzleCompletion {
         if (e) {
             e.score = Math.min(e.score, score);
         }
+
+        this._updateStoryPuzzleCompletion();
+        this._updateExpertPuzzleCompletion();
+        this._updateCommunityPuzzleCompletion();
 
         if (HasLocalStorage) {
             window.localStorage.setItem("completed-puzzles-v" + VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));

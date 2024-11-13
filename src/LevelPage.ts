@@ -338,7 +338,7 @@ class StoryPuzzlesPage extends LevelPage {
 
     public onPageRedrawn(): void {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getStoryPuzzleCompletion() * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.storyPuzzleCompletion * 100).toFixed(0) + "% completed";
         }
     }
 
@@ -398,7 +398,7 @@ class ExpertPuzzlesPage extends LevelPage {
 
     public onPageRedrawn(): void {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getExpertPuzzleCompletion() * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.expertPuzzleCompletion * 100).toFixed(0) + "% completed";
         }
     }
 
@@ -454,7 +454,7 @@ class CommunityPuzzlesPage extends LevelPage {
 
     public onPageRedrawn(): void {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.getCommunityPuzzleCompletion() * 100).toFixed(0) + "% completed";
+            this.nabuPage.querySelector(".puzzle-level-completion stroke-text").innerHTML = (this.router.game.puzzleCompletion.communityPuzzleCompletion * 100).toFixed(0) + "% completed";
         }
     }
     

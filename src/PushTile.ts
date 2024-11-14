@@ -151,15 +151,36 @@ class PushTile extends Tile {
 
                         }
                         else {
+                            let targetRotX = 0;
                             let newPos = this.position.clone();
                             newPos.x = newI * 1.1;
+                            newPos.y = this.game.puzzle.hMapGet(newI, newJ);
                             newPos.z = newJ * 1.1;
+
+                            let ray = new BABYLON.Ray(newPos.add(new BABYLON.Vector3(0, 0.3, 0)), new BABYLON.Vector3(0, -1, 0), 1);
+                            let hit = this.game.scene.pickWithRay(
+                                ray,
+                                (mesh) => {
+                                    return mesh.name === "floor" || mesh.name === "building-floor";
+                                }
+                            )
+                            if (hit.hit) {
+                                let n = hit.getNormal(true);
+                                targetRotX = Mummu.AngleFromToAround(BABYLON.Axis.Y, n, BABYLON.Axis.X);
+                            }
             
                             this.tileState = TileState.Moving;
                             this.pushSound.play();
+                            this.animateRotX(targetRotX, 1);
                             await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
                             this.game.puzzle.updateGriddedStack(this);
                             this.tileState = TileState.Active;
+
+                            let hIJ = this.game.puzzle.hMapGet(this.i, this.j);
+                            let hIJm = this.game.puzzle.hMapGet(this.i, this.j - 1);
+                            if (hIJ > hIJm) {
+                                this.push(new BABYLON.Vector3(0, 0, -1));
+                            }
                         }
                     }
                 }

@@ -4,22 +4,23 @@ class PuzzleMiniatureMaker {
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
+        let buildingBlocksLine = "";
         if (lines[lines.length - 1].startsWith("BB")) {
-            lines.pop();
+            buildingBlocksLine = lines.pop();
         }
         
         let h = 4;
         let w = 4;
         if (lines.length > 3) {
             let ballLine = lines.splice(0, 1)[0].split("u");
-            let ballX = parseInt(ballLine[0]);
-            let ballZ = parseInt(ballLine[1]);
-            let ballColor = TileColor.North;
-            if (ballLine.length > 2) {
-                ballColor = parseInt(ballLine[2]);
+            if (ballLine.length === 5 || ballLine.length === 8) {
+                w = parseInt(ballLine[0]);
+                h = parseInt(ballLine[1]);
             }
-            h = lines.length;
-            w = lines[0].length;
+            else {
+                h = lines.length;
+                w = lines[0].length;
+            }
         }
         
         let canvas = document.createElement("canvas");
@@ -44,11 +45,31 @@ class PuzzleMiniatureMaker {
 
         let buildColor = "#f9dcAb";
 
+        if (buildingBlocksLine != "") {
+            buildingBlocksLine = buildingBlocksLine.replace("BB", "");
+            for (let j = 0; j < h; j++) {
+                for (let i = 0; i < w; i++) {
+                    let n = i + j * w;
+                    if (n < buildingBlocksLine.length) {
+                        let blockHeight = parseInt(buildingBlocksLine[n]);
+                        if (blockHeight === 1) {
+                            let x = (i) * b;
+                            let y = (h - j - 1) * b;
+                            let s = b;
+                            context.fillStyle = buildColor;
+                            context.fillRect(x, y, s, s);
+                        }
+                    }
+                }
+            }
+        }
+
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
                 let line = lines[lines.length - 1 - j];
-                for (let i = 0; i < line.length; i++) {
-                    let c = line[i];
+                let i = 0;
+                for (let ii = 0; ii < line.length; ii++) {
+                    let c = line[ii];
                     let x = i * b;
                     let y = (h - 1 - j) * b;
                     let s = b;
@@ -67,20 +88,29 @@ class PuzzleMiniatureMaker {
                         context.fillRect(x, y, 4 * s, 2 * s);
                     }
                     if (c === "R") {
+                        let rampW = parseInt(line[ii + 1]);
+                        if (isNaN(rampW)) {
+                            rampW = 2;
+                        }
+                        else {
+                            ii++;
+                        }
                         let x = (i) * b;
                         let y = (h - 1 - j - 2) * b;
                         let s = b;
                         context.fillStyle = buildColor;
-                        context.fillRect(x, y, 2 * s, 3 * s);
+                        context.fillRect(x, y, rampW * s, 3 * s);
                     }
+                    i++;
                 }
             }
         }
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
                 let line = lines[lines.length - 1 - j];
-                for (let i = 0; i < line.length; i++) {
-                    let c = line[i];
+                let i = 0;
+                for (let ii = 0; ii < line.length; ii++) {
+                    let c = line[ii];
                     let x = i * b + m;
                     let y = (h - 1 - j) * b + m;
                     let s = b - 2 * m;
@@ -153,6 +183,16 @@ class PuzzleMiniatureMaker {
                         context.fillStyle = "#3e6958";
                         context.fillRect(x, y, s, s);
                     }
+                    if (c === "R") {
+                        let rampW = parseInt(line[ii + 1]);
+                        if (isNaN(rampW)) {
+                            rampW = 2;
+                        }
+                        else {
+                            ii++;
+                        }
+                    }
+                    i++;
                 }
             }
         }

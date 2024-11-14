@@ -1,6 +1,7 @@
 interface BuildProps {
     i?: number;
     j?: number;
+    size?: number;
     borderTop?: boolean;
     borderRight?: boolean;
     borderBottom?: boolean;
@@ -90,10 +91,16 @@ class Ramp extends Build {
 
     public builtInBorderLeft: BABYLON.Mesh;
     public builtInBorderRight: BABYLON.Mesh;
+
+    public w: number = 2;
     
     constructor(game: Game, props: BuildProps) {
         super(game, props);
         this.material = this.game.brickWallMaterial;
+
+        if (props.size) {
+            this.w = props.size;
+        }
 
         this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
         this.builtInBorderLeft.position.x = -0.55;
@@ -105,7 +112,7 @@ class Ramp extends Build {
         this.builtInBorderLeft.outlineWidth = 0.01;
 
         this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
-        this.builtInBorderRight.position.x = 1.5 * 1.1;
+        this.builtInBorderRight.position.x = (this.w - 0.5) * 1.1;
         this.builtInBorderRight.parent = this;
         this.builtInBorderRight.material = this.game.borderMaterial;
 
@@ -115,7 +122,7 @@ class Ramp extends Build {
     }
 
     public fillHeightmap() {
-        for (let ii = 0; ii < 2; ii++) {
+        for (let ii = 0; ii < this.w; ii++) {
             for (let jj = 0; jj < 3; jj++) {
                 this.game.puzzle.hMapSet((jj + 1) / 3, this.i + ii, this.j + jj);
             }
@@ -132,29 +139,47 @@ class Ramp extends Build {
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 0, true));
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 1, true));
         
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0.5, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 2, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 2, 1, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 1, 0.5, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 1, true));
         
-        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 2, 0, true));
-        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 2, 0, true));
+        for (let i = 0; i < this.w; i++) {
+            this.borders.push(Border.BorderTop(this.game, this.i + i, this.j + 2, 0, true));
+        }
 
         this.props.borderLeft = true;
         this.props.borderRight = true;
 
+        /*
         if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 2, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 2, 1));
         }
+        */
     }
 
     public async instantiate(): Promise<void> {
         let data = await this.game.vertexDataLoader.get("./datas/meshes/ramp.babylon");
-        data[0].applyToMesh(this);
-
+        let wallData = Mummu.CloneVertexData(data[0]);
         let floorData = Mummu.CloneVertexData(data[1]);
+
+        for (let i = 0; i < wallData.positions.length / 3; i++) {
+            let x = wallData.positions[3 * i];
+            if (x > 0) {
+                wallData.positions[3 * i] = x + 1.1 * (this.w - 2);
+            }
+        }
+
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            let x = floorData.positions[3 * i];
+            if (x > 0) {
+                floorData.positions[3 * i] = x + 1.1 * (this.w - 2);
+            }
+        }
+
+        wallData.applyToMesh(this);
         for (let i = 0; i < floorData.positions.length / 3; i++) {
             floorData.uvs[2 * i] = 0.55 * (floorData.positions[3 * i] + this.position.x);
             floorData.uvs[2 * i + 1] = 0.55 * (floorData.positions[3 * i + 2] + this.position.z);
@@ -170,7 +195,7 @@ class Ramp extends Build {
             data[3].applyToMesh(this.builtInBorderLeft);
         }
         
-        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + 1, this.j + 3);
+        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + this.w - 1, this.j + 3);
         let jPlusRightConn = jPlusRightStack && jPlusRightStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
         if (jPlusRightConn) {
             data[2].applyToMesh(this.builtInBorderRight);

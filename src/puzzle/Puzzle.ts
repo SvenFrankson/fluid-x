@@ -437,17 +437,21 @@ class Puzzle {
 
         let ballLine = lines.splice(0, 1)[0].split("u");
         this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
+        let bIndexZero = 0;
+        if (ballLine.length === 5 || ballLine.length === 8) {
+            bIndexZero = 2;
+        }
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
             this.balls[bIndex].parent = undefined;
-            this.balls[bIndex].position.x = parseInt(ballLine[0 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].position.x = parseInt(ballLine[bIndexZero + 0 + 3 * bIndex]) * 1.1;
             this.balls[bIndex].position.y = 0;
-            this.balls[bIndex].position.z = parseInt(ballLine[1 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].position.z = parseInt(ballLine[bIndexZero + 1 + 3 * bIndex]) * 1.1;
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
             this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
             this.balls[bIndex].trailPoints = [];
             this.balls[bIndex].trailMesh.isVisible = false;
             if (ballLine.length > 2) {
-                this.balls[bIndex].setColor(parseInt(ballLine[2 + 3 * bIndex]));
+                this.balls[bIndex].setColor(parseInt(ballLine[bIndexZero + 2 + 3 * bIndex]));
             }
             else {
                 this.balls[bIndex].setColor(TileColor.North);
@@ -489,8 +493,14 @@ class Puzzle {
             buildingBlocksLine = "";
         }
 
-        this.h = lines.length;
-        this.w = lines[0].length;
+        if (ballLine.length === 5 || ballLine.length === 8) {
+            this.w = parseInt(ballLine[0]);
+            this.h = parseInt(ballLine[1]);
+        }
+        else {
+            this.h = lines.length;
+            this.w = lines[0].length;
+        }
 
         this.buildingBlocks = [];
         for (let i = 0; i < this.w; i++) {
@@ -512,10 +522,11 @@ class Puzzle {
             }
         }
 
-        for (let j = 0; j < lines.length; j++) {
+        for (let j = 0; j < lines.length && j < this.h; j++) {
             let line = lines[lines.length - 1 - j];
-            for (let i = 0; i < line.length; i++) {
-                let c = line[i];
+            let i = 0;
+            for (let ii = 0; ii < line.length && i < this.w; ii++) {
+                let c = line[ii];
                 if (c === "p") {
                     let push = new PushTile(this.game, {
                         color: TileColor.North,
@@ -729,10 +740,22 @@ class Puzzle {
                     this.buildingBlocks[i + 1][j + 1] = 1;
                 }
                 if (c === "R") {
-                    let ramp = new Ramp(this.game, {
-                        i: i,
-                        j: j
-                    });
+                    let s = parseInt(line[ii + 1]);
+                    if (isNaN(s)) {
+                        let ramp = new Ramp(this.game, {
+                            i: i,
+                            j: j,
+                            size: 2
+                        });
+                    }
+                    else {
+                        let ramp = new Ramp(this.game, {
+                            i: i,
+                            j: j,
+                            size: s
+                        });
+                        ii++;
+                    }
                 }
                 if (c === "U") {
                     let bridge = new Bridge(this.game, {
@@ -744,6 +767,7 @@ class Puzzle {
                         borderTop: true
                     });
                 }
+                i++;
             }
         }
 

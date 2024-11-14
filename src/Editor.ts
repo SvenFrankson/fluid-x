@@ -63,7 +63,10 @@ class Editor {
     public wallButton: HTMLButtonElement;
     public waterButton: HTMLButtonElement;
     public boxButton: HTMLButtonElement;
-    public rampButton: HTMLButtonElement;
+    public ramp1Button: HTMLButtonElement;
+    public ramp2Button: HTMLButtonElement;
+    public ramp3Button: HTMLButtonElement;
+    public ramp4Button: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
     public deleteButton: HTMLButtonElement;
 
@@ -211,6 +214,11 @@ class Editor {
 
             let split = text.split("x");
             split.pop();
+            
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[0] = (this.puzzle.w + 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
+
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
 
             text = text.replaceAll("x", "xo");
@@ -231,6 +239,11 @@ class Editor {
 
             let split = text.split("x");
             split.pop();
+            
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[0] = (this.puzzle.w - 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
+
             for (let i = 1; i < split.length - 1; i++) {
                 split[i] = split[i].substring(1);
             }
@@ -258,6 +271,11 @@ class Editor {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
+
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[1] = (this.puzzle.h + 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
+
             split.push(("").padStart(this.puzzle.w, "o"));
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
 
@@ -278,6 +296,11 @@ class Editor {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
+
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[1] = (this.puzzle.h - 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
+
             split.pop();
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
 
@@ -312,7 +335,10 @@ class Editor {
         this.wallButton = document.getElementById("wall-btn") as HTMLButtonElement;
         this.waterButton = document.getElementById("water-btn") as HTMLButtonElement;
         this.boxButton = document.getElementById("box-btn") as HTMLButtonElement;
-        this.rampButton = document.getElementById("ramp-btn") as HTMLButtonElement;
+        this.ramp1Button = document.getElementById("ramp-1-btn") as HTMLButtonElement;
+        this.ramp2Button = document.getElementById("ramp-2-btn") as HTMLButtonElement;
+        this.ramp3Button = document.getElementById("ramp-3-btn") as HTMLButtonElement;
+        this.ramp4Button = document.getElementById("ramp-4-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
         this.deleteButton = document.getElementById("delete-btn") as HTMLButtonElement;
 
@@ -336,20 +362,23 @@ class Editor {
             this.wallButton,
             this.waterButton,
             this.boxButton,
-            this.rampButton,
+            this.ramp1Button,
+            this.ramp2Button,
+            this.ramp3Button,
+            this.ramp4Button,
             this.bridgeButton
         ];
 
-        let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, brushColor?: TileColor, cursorSize?: { w?: number, h?: number, d?: number }) => {
+        let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, value?: number, cursorSize?: { w?: number, h?: number, d?: number }) => {
             if (!cursorSize) {
                 cursorSize = {};
             }
             button.onclick = () => {
                 this.dropClear();
                 this.unselectAllButtons();
-                if (this.brush != brush || (isFinite(brushColor) && this.brushColor != brushColor)) {
+                if (this.brush != brush || (isFinite(value) && this.brushColor != value)) {
                     this.brush = brush;
-                    this.brushColor = brushColor;
+                    this.brushColor = value;
                     button.classList.add("selected");
                     this.setCursorSize(cursorSize);
                 }
@@ -383,7 +412,10 @@ class Editor {
         makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.waterButton, EditorBrush.Water);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 1, h: 1, d: 1 });
-        makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
+        makeBrushButton(this.ramp1Button, EditorBrush.Ramp, 1, { w: 1, h: 1, d: 3 });
+        makeBrushButton(this.ramp2Button, EditorBrush.Ramp, 2, { w: 2, h: 1, d: 3 });
+        makeBrushButton(this.ramp3Button, EditorBrush.Ramp, 3, { w: 3, h: 1, d: 3 });
+        makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
 
         makeBrushButton(this.deleteButton, EditorBrush.Delete);        
@@ -569,7 +601,10 @@ class Editor {
         document.getElementById("tile-west-btn").onclick = undefined;
         
         document.getElementById("box-btn").onclick = undefined;
-        document.getElementById("ramp-btn").onclick = undefined;
+        document.getElementById("ramp-1-btn").onclick = undefined;
+        document.getElementById("ramp-2-btn").onclick = undefined;
+        document.getElementById("ramp-3-btn").onclick = undefined;
+        document.getElementById("ramp-4-btn").onclick = undefined;
         document.getElementById("bridge-btn").onclick = undefined;
         document.getElementById("hole-btn").onclick = undefined;
 
@@ -853,7 +888,8 @@ class Editor {
                                 this.game,
                                 {
                                     i: this.cursorI,
-                                    j: this.cursorJ
+                                    j: this.cursorJ,
+                                    size: this.brushColor
                                 }
                             );
                             this.puzzle.editorRegenerateBuildings();

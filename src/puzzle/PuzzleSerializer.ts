@@ -1,9 +1,9 @@
 function SaveAsText(puzzle: Puzzle): string {
-    let lines: string[][] = [];
+    let lines: string[][][] = [];
     for (let j = 0; j < puzzle.h; j++) {
         lines[j] = [];
         for (let i = 0; i < puzzle.w; i++) {
-            lines[j][i] = "o";
+            lines[j][i] = ["o"];
         }
     }
 
@@ -12,70 +12,70 @@ function SaveAsText(puzzle: Puzzle): string {
         let j = tile.j;
         if (tile instanceof BlockTile) {
             if (tile.color === TileColor.North) {
-                lines[j][i] = "n";
+                lines[j][i] = ["n"];
             }
             else if (tile.color === TileColor.East) {
-                lines[j][i] = "e";
+                lines[j][i] = ["e"];
             }
             else if (tile.color === TileColor.South) {
-                lines[j][i] = "s";
+                lines[j][i] = ["s"];
             }
             else if (tile.color === TileColor.West) {
-                lines[j][i] = "w";
+                lines[j][i] = ["w"];
             }
         }
         else if (tile instanceof SwitchTile) {
             if (tile.color === TileColor.North) {
-                lines[j][i] = "N";
+                lines[j][i] = ["N"];
             }
             else if (tile.color === TileColor.East) {
-                lines[j][i] = "E";
+                lines[j][i] = ["E"];
             }
             else if (tile.color === TileColor.South) {
-                lines[j][i] = "S";
+                lines[j][i] = ["S"];
             }
             else if (tile.color === TileColor.West) {
-                lines[j][i] = "W";
+                lines[j][i] = ["W"];
             }
         }
         else if (tile instanceof ButtonTile) {
             if (tile.props.value === 1) {
-                lines[j][i] = "I";
+                lines[j][i] = ["I"];
             }
             else if (tile.props.value === 2) {
-                lines[j][i] = "D";
+                lines[j][i] = ["D"];
             }
             else if (tile.props.value === 3) {
-                lines[j][i] = "T";
+                lines[j][i] = ["T"];
             }
         }
         else if (tile instanceof DoorTile) {
             if (tile.props.value === 1) {
-                lines[j][i] = tile.closed ? "j" : "i";
+                lines[j][i] = tile.closed ? ["j"] : ["i"];
             }
             else if (tile.props.value === 2) {
-                lines[j][i] = tile.closed ? "f" : "d";
+                lines[j][i] = tile.closed ? ["f"] : ["d"];
             }
             else if (tile.props.value === 3) {
-                lines[j][i] = tile.closed ? "u" : "t";
+                lines[j][i] = tile.closed ? ["u"] : ["t"];
             }
         }
         else if (tile instanceof PushTile) {
-            lines[j][i] = "p";
+            lines[j][i] = ["p"];
         }
         else if (tile instanceof HoleTile) {
             if (tile.covered) {
-                lines[j][i] = "Q";
+                lines[j][i] = ["Q"];
             }
             else {
-                lines[j][i] = "O";
+                lines[j][i] = ["O"];
             }
         }
         else if (tile instanceof WallTile) {
-            lines[j][i] = "a";
+            lines[j][i] = ["a"];
         }
         else if (tile instanceof WaterTile) {
-            lines[j][i] = "q";
+            lines[j][i] = ["q"];
         }
     });
 
@@ -83,18 +83,23 @@ function SaveAsText(puzzle: Puzzle): string {
         let i = building.i;
         let j = building.j;
         if (building instanceof Ramp) {
-            lines[j][i] = "R";
+            lines[j][i] = ["R" + building.w.toFixed(0)];
         }
         if (building instanceof Bridge) {
-            lines[j][i] = "U";
+            lines[j][i] = ["U"];
         }
     })
 
     lines.reverse();
 
-    let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
+    let lines3 = lines.map((l1) => {
+        return l1.map(l2 => {
+            return l2.reduce((c1, c2) => { return c1 + c2; });
+        })
+    })
+    let lines2 = lines3.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
 
-    let ballLine = "";
+    let ballLine = puzzle.w.toFixed(0) + "u" + puzzle.h.toFixed(0) + "u";
     for (let i = 0; i < puzzle.ballsCount; i++) {
         ballLine += puzzle.balls[i].i.toFixed(0) + "u" + puzzle.balls[i].j.toFixed(0) + "u" + puzzle.balls[i].color.toFixed(0);
         if (i < puzzle.ballsCount - 1) {

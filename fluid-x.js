@@ -1218,7 +1218,11 @@ class Build extends BABYLON.Mesh {
 class Ramp extends Build {
     constructor(game, props) {
         super(game, props);
+        this.w = 2;
         this.material = this.game.brickWallMaterial;
+        if (props.size) {
+            this.w = props.size;
+        }
         this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
         this.builtInBorderLeft.position.x = -0.55;
         this.builtInBorderLeft.parent = this;
@@ -1227,7 +1231,7 @@ class Ramp extends Build {
         this.builtInBorderLeft.outlineColor = BABYLON.Color3.Black();
         this.builtInBorderLeft.outlineWidth = 0.01;
         this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
-        this.builtInBorderRight.position.x = 1.5 * 1.1;
+        this.builtInBorderRight.position.x = (this.w - 0.5) * 1.1;
         this.builtInBorderRight.parent = this;
         this.builtInBorderRight.material = this.game.borderMaterial;
         this.builtInBorderRight.renderOutline = true;
@@ -1235,7 +1239,7 @@ class Ramp extends Build {
         this.builtInBorderRight.outlineWidth = 0.01;
     }
     fillHeightmap() {
-        for (let ii = 0; ii < 2; ii++) {
+        for (let ii = 0; ii < this.w; ii++) {
             for (let jj = 0; jj < 3; jj++) {
                 this.game.puzzle.hMapSet((jj + 1) / 3, this.i + ii, this.j + jj);
             }
@@ -1249,24 +1253,40 @@ class Ramp extends Build {
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0.5, true));
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 0, true));
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 1, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0.5, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 2, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 2, 1, true));
-        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 2, 0, true));
-        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 2, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 1, 0.5, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 0, true));
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 1, true));
+        for (let i = 0; i < this.w; i++) {
+            this.borders.push(Border.BorderTop(this.game, this.i + i, this.j + 2, 0, true));
+        }
         this.props.borderLeft = true;
         this.props.borderRight = true;
+        /*
         if (this.puzzle.hMapGet(this.i, this.j + 2) != 1 || this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
             this.props.borderTop = true;
             this.borders.push(Border.BorderTop(this.game, this.i, this.j + 2, 1));
             this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 2, 1));
         }
+        */
     }
     async instantiate() {
         let data = await this.game.vertexDataLoader.get("./datas/meshes/ramp.babylon");
-        data[0].applyToMesh(this);
+        let wallData = Mummu.CloneVertexData(data[0]);
         let floorData = Mummu.CloneVertexData(data[1]);
+        for (let i = 0; i < wallData.positions.length / 3; i++) {
+            let x = wallData.positions[3 * i];
+            if (x > 0) {
+                wallData.positions[3 * i] = x + 1.1 * (this.w - 2);
+            }
+        }
+        for (let i = 0; i < floorData.positions.length / 3; i++) {
+            let x = floorData.positions[3 * i];
+            if (x > 0) {
+                floorData.positions[3 * i] = x + 1.1 * (this.w - 2);
+            }
+        }
+        wallData.applyToMesh(this);
         for (let i = 0; i < floorData.positions.length / 3; i++) {
             floorData.uvs[2 * i] = 0.55 * (floorData.positions[3 * i] + this.position.x);
             floorData.uvs[2 * i + 1] = 0.55 * (floorData.positions[3 * i + 2] + this.position.z);
@@ -1280,7 +1300,7 @@ class Ramp extends Build {
         else {
             data[3].applyToMesh(this.builtInBorderLeft);
         }
-        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + 1, this.j + 3);
+        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + this.w - 1, this.j + 3);
         let jPlusRightConn = jPlusRightStack && jPlusRightStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
         if (jPlusRightConn) {
             data[2].applyToMesh(this.builtInBorderRight);
@@ -2038,7 +2058,8 @@ class Editor {
                             else if (this.brush === EditorBrush.Ramp) {
                                 let box = new Ramp(this.game, {
                                     i: this.cursorI,
-                                    j: this.cursorJ
+                                    j: this.cursorJ,
+                                    size: this.brushColor
                                 });
                                 this.puzzle.editorRegenerateBuildings();
                             }
@@ -2167,6 +2188,9 @@ class Editor {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[0] = (this.puzzle.w + 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             text = text.replaceAll("x", "xo");
             this.puzzle.forceFullBuildingBlockGrid();
@@ -2182,6 +2206,9 @@ class Editor {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[0] = (this.puzzle.w - 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
             for (let i = 1; i < split.length - 1; i++) {
                 split[i] = split[i].substring(1);
             }
@@ -2205,6 +2232,9 @@ class Editor {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[1] = (this.puzzle.h + 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
             split.push(("").padStart(this.puzzle.w, "o"));
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             this.puzzle.forceFullBuildingBlockGrid();
@@ -2222,6 +2252,9 @@ class Editor {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
+            let splitFirstLine = split[0].split("u");
+            splitFirstLine[1] = (this.puzzle.h - 1).toFixed(0);
+            split[0] = splitFirstLine.reduce((s1, s2) => { return s1 + "u" + s2; });
             split.pop();
             text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             this.puzzle.forceFullBuildingBlockGrid();
@@ -2253,7 +2286,10 @@ class Editor {
         this.wallButton = document.getElementById("wall-btn");
         this.waterButton = document.getElementById("water-btn");
         this.boxButton = document.getElementById("box-btn");
-        this.rampButton = document.getElementById("ramp-btn");
+        this.ramp1Button = document.getElementById("ramp-1-btn");
+        this.ramp2Button = document.getElementById("ramp-2-btn");
+        this.ramp3Button = document.getElementById("ramp-3-btn");
+        this.ramp4Button = document.getElementById("ramp-4-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
         this.deleteButton = document.getElementById("delete-btn");
         this.selectableButtons = [
@@ -2276,19 +2312,22 @@ class Editor {
             this.wallButton,
             this.waterButton,
             this.boxButton,
-            this.rampButton,
+            this.ramp1Button,
+            this.ramp2Button,
+            this.ramp3Button,
+            this.ramp4Button,
             this.bridgeButton
         ];
-        let makeBrushButton = (button, brush, brushColor, cursorSize) => {
+        let makeBrushButton = (button, brush, value, cursorSize) => {
             if (!cursorSize) {
                 cursorSize = {};
             }
             button.onclick = () => {
                 this.dropClear();
                 this.unselectAllButtons();
-                if (this.brush != brush || (isFinite(brushColor) && this.brushColor != brushColor)) {
+                if (this.brush != brush || (isFinite(value) && this.brushColor != value)) {
                     this.brush = brush;
-                    this.brushColor = brushColor;
+                    this.brushColor = value;
                     button.classList.add("selected");
                     this.setCursorSize(cursorSize);
                 }
@@ -2317,7 +2356,10 @@ class Editor {
         makeBrushButton(this.wallButton, EditorBrush.Wall);
         makeBrushButton(this.waterButton, EditorBrush.Water);
         makeBrushButton(this.boxButton, EditorBrush.Box, undefined, { w: 1, h: 1, d: 1 });
-        makeBrushButton(this.rampButton, EditorBrush.Ramp, undefined, { w: 2, h: 1, d: 3 });
+        makeBrushButton(this.ramp1Button, EditorBrush.Ramp, 1, { w: 1, h: 1, d: 3 });
+        makeBrushButton(this.ramp2Button, EditorBrush.Ramp, 2, { w: 2, h: 1, d: 3 });
+        makeBrushButton(this.ramp3Button, EditorBrush.Ramp, 3, { w: 3, h: 1, d: 3 });
+        makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
         document.getElementById("play-btn").onclick = async () => {
@@ -2476,7 +2518,10 @@ class Editor {
         document.getElementById("tile-south-btn").onclick = undefined;
         document.getElementById("tile-west-btn").onclick = undefined;
         document.getElementById("box-btn").onclick = undefined;
-        document.getElementById("ramp-btn").onclick = undefined;
+        document.getElementById("ramp-1-btn").onclick = undefined;
+        document.getElementById("ramp-2-btn").onclick = undefined;
+        document.getElementById("ramp-3-btn").onclick = undefined;
+        document.getElementById("ramp-4-btn").onclick = undefined;
         document.getElementById("bridge-btn").onclick = undefined;
         document.getElementById("hole-btn").onclick = undefined;
         document.getElementById("save-btn").onclick = undefined;
@@ -7103,17 +7148,21 @@ class Puzzle {
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
         this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
+        let bIndexZero = 0;
+        if (ballLine.length === 5 || ballLine.length === 8) {
+            bIndexZero = 2;
+        }
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
             this.balls[bIndex].parent = undefined;
-            this.balls[bIndex].position.x = parseInt(ballLine[0 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].position.x = parseInt(ballLine[bIndexZero + 0 + 3 * bIndex]) * 1.1;
             this.balls[bIndex].position.y = 0;
-            this.balls[bIndex].position.z = parseInt(ballLine[1 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].position.z = parseInt(ballLine[bIndexZero + 1 + 3 * bIndex]) * 1.1;
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
             this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
             this.balls[bIndex].trailPoints = [];
             this.balls[bIndex].trailMesh.isVisible = false;
             if (ballLine.length > 2) {
-                this.balls[bIndex].setColor(parseInt(ballLine[2 + 3 * bIndex]));
+                this.balls[bIndex].setColor(parseInt(ballLine[bIndexZero + 2 + 3 * bIndex]));
             }
             else {
                 this.balls[bIndex].setColor(TileColor.North);
@@ -7146,8 +7195,14 @@ class Puzzle {
         else {
             buildingBlocksLine = "";
         }
-        this.h = lines.length;
-        this.w = lines[0].length;
+        if (ballLine.length === 5 || ballLine.length === 8) {
+            this.w = parseInt(ballLine[0]);
+            this.h = parseInt(ballLine[1]);
+        }
+        else {
+            this.h = lines.length;
+            this.w = lines[0].length;
+        }
         this.buildingBlocks = [];
         for (let i = 0; i < this.w; i++) {
             this.buildingBlocks[i] = [];
@@ -7166,10 +7221,11 @@ class Puzzle {
                 }
             }
         }
-        for (let j = 0; j < lines.length; j++) {
+        for (let j = 0; j < lines.length && j < this.h; j++) {
             let line = lines[lines.length - 1 - j];
-            for (let i = 0; i < line.length; i++) {
-                let c = line[i];
+            let i = 0;
+            for (let ii = 0; ii < line.length && i < this.w; ii++) {
+                let c = line[ii];
                 if (c === "p") {
                     let push = new PushTile(this.game, {
                         color: TileColor.North,
@@ -7383,10 +7439,22 @@ class Puzzle {
                     this.buildingBlocks[i + 1][j + 1] = 1;
                 }
                 if (c === "R") {
-                    let ramp = new Ramp(this.game, {
-                        i: i,
-                        j: j
-                    });
+                    let s = parseInt(line[ii + 1]);
+                    if (isNaN(s)) {
+                        let ramp = new Ramp(this.game, {
+                            i: i,
+                            j: j,
+                            size: 2
+                        });
+                    }
+                    else {
+                        let ramp = new Ramp(this.game, {
+                            i: i,
+                            j: j,
+                            size: s
+                        });
+                        ii++;
+                    }
                 }
                 if (c === "U") {
                     let bridge = new Bridge(this.game, {
@@ -7398,6 +7466,7 @@ class Puzzle {
                         borderTop: true
                     });
                 }
+                i++;
             }
         }
         HaikuMaker.MakeHaiku(this);
@@ -7954,21 +8023,22 @@ class PuzzleMiniatureMaker {
         content = content.replaceAll("\r\n", "");
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
+        let buildingBlocksLine = "";
         if (lines[lines.length - 1].startsWith("BB")) {
-            lines.pop();
+            buildingBlocksLine = lines.pop();
         }
         let h = 4;
         let w = 4;
         if (lines.length > 3) {
             let ballLine = lines.splice(0, 1)[0].split("u");
-            let ballX = parseInt(ballLine[0]);
-            let ballZ = parseInt(ballLine[1]);
-            let ballColor = TileColor.North;
-            if (ballLine.length > 2) {
-                ballColor = parseInt(ballLine[2]);
+            if (ballLine.length === 5 || ballLine.length === 8) {
+                w = parseInt(ballLine[0]);
+                h = parseInt(ballLine[1]);
             }
-            h = lines.length;
-            w = lines[0].length;
+            else {
+                h = lines.length;
+                w = lines[0].length;
+            }
         }
         let canvas = document.createElement("canvas");
         let max = Math.max(w, h);
@@ -7987,11 +8057,30 @@ class PuzzleMiniatureMaker {
         context.fillStyle = "#d9ac8b";
         context.fillRect(0, 0, canvas.width, canvas.height);
         let buildColor = "#f9dcAb";
+        if (buildingBlocksLine != "") {
+            buildingBlocksLine = buildingBlocksLine.replace("BB", "");
+            for (let j = 0; j < h; j++) {
+                for (let i = 0; i < w; i++) {
+                    let n = i + j * w;
+                    if (n < buildingBlocksLine.length) {
+                        let blockHeight = parseInt(buildingBlocksLine[n]);
+                        if (blockHeight === 1) {
+                            let x = (i) * b;
+                            let y = (h - j - 1) * b;
+                            let s = b;
+                            context.fillStyle = buildColor;
+                            context.fillRect(x, y, s, s);
+                        }
+                    }
+                }
+            }
+        }
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
                 let line = lines[lines.length - 1 - j];
-                for (let i = 0; i < line.length; i++) {
-                    let c = line[i];
+                let i = 0;
+                for (let ii = 0; ii < line.length; ii++) {
+                    let c = line[ii];
                     let x = i * b;
                     let y = (h - 1 - j) * b;
                     let s = b;
@@ -8010,20 +8099,29 @@ class PuzzleMiniatureMaker {
                         context.fillRect(x, y, 4 * s, 2 * s);
                     }
                     if (c === "R") {
+                        let rampW = parseInt(line[ii + 1]);
+                        if (isNaN(rampW)) {
+                            rampW = 2;
+                        }
+                        else {
+                            ii++;
+                        }
                         let x = (i) * b;
                         let y = (h - 1 - j - 2) * b;
                         let s = b;
                         context.fillStyle = buildColor;
-                        context.fillRect(x, y, 2 * s, 3 * s);
+                        context.fillRect(x, y, rampW * s, 3 * s);
                     }
+                    i++;
                 }
             }
         }
         if (lines.length > 3) {
             for (let j = 0; j < lines.length; j++) {
                 let line = lines[lines.length - 1 - j];
-                for (let i = 0; i < line.length; i++) {
-                    let c = line[i];
+                let i = 0;
+                for (let ii = 0; ii < line.length; ii++) {
+                    let c = line[ii];
                     let x = i * b + m;
                     let y = (h - 1 - j) * b + m;
                     let s = b - 2 * m;
@@ -8096,6 +8194,16 @@ class PuzzleMiniatureMaker {
                         context.fillStyle = "#3e6958";
                         context.fillRect(x, y, s, s);
                     }
+                    if (c === "R") {
+                        let rampW = parseInt(line[ii + 1]);
+                        if (isNaN(rampW)) {
+                            rampW = 2;
+                        }
+                        else {
+                            ii++;
+                        }
+                    }
+                    i++;
                 }
             }
         }
@@ -8107,7 +8215,7 @@ function SaveAsText(puzzle) {
     for (let j = 0; j < puzzle.h; j++) {
         lines[j] = [];
         for (let i = 0; i < puzzle.w; i++) {
-            lines[j][i] = "o";
+            lines[j][i] = ["o"];
         }
     }
     puzzle.tiles.forEach(tile => {
@@ -8115,85 +8223,90 @@ function SaveAsText(puzzle) {
         let j = tile.j;
         if (tile instanceof BlockTile) {
             if (tile.color === TileColor.North) {
-                lines[j][i] = "n";
+                lines[j][i] = ["n"];
             }
             else if (tile.color === TileColor.East) {
-                lines[j][i] = "e";
+                lines[j][i] = ["e"];
             }
             else if (tile.color === TileColor.South) {
-                lines[j][i] = "s";
+                lines[j][i] = ["s"];
             }
             else if (tile.color === TileColor.West) {
-                lines[j][i] = "w";
+                lines[j][i] = ["w"];
             }
         }
         else if (tile instanceof SwitchTile) {
             if (tile.color === TileColor.North) {
-                lines[j][i] = "N";
+                lines[j][i] = ["N"];
             }
             else if (tile.color === TileColor.East) {
-                lines[j][i] = "E";
+                lines[j][i] = ["E"];
             }
             else if (tile.color === TileColor.South) {
-                lines[j][i] = "S";
+                lines[j][i] = ["S"];
             }
             else if (tile.color === TileColor.West) {
-                lines[j][i] = "W";
+                lines[j][i] = ["W"];
             }
         }
         else if (tile instanceof ButtonTile) {
             if (tile.props.value === 1) {
-                lines[j][i] = "I";
+                lines[j][i] = ["I"];
             }
             else if (tile.props.value === 2) {
-                lines[j][i] = "D";
+                lines[j][i] = ["D"];
             }
             else if (tile.props.value === 3) {
-                lines[j][i] = "T";
+                lines[j][i] = ["T"];
             }
         }
         else if (tile instanceof DoorTile) {
             if (tile.props.value === 1) {
-                lines[j][i] = tile.closed ? "j" : "i";
+                lines[j][i] = tile.closed ? ["j"] : ["i"];
             }
             else if (tile.props.value === 2) {
-                lines[j][i] = tile.closed ? "f" : "d";
+                lines[j][i] = tile.closed ? ["f"] : ["d"];
             }
             else if (tile.props.value === 3) {
-                lines[j][i] = tile.closed ? "u" : "t";
+                lines[j][i] = tile.closed ? ["u"] : ["t"];
             }
         }
         else if (tile instanceof PushTile) {
-            lines[j][i] = "p";
+            lines[j][i] = ["p"];
         }
         else if (tile instanceof HoleTile) {
             if (tile.covered) {
-                lines[j][i] = "Q";
+                lines[j][i] = ["Q"];
             }
             else {
-                lines[j][i] = "O";
+                lines[j][i] = ["O"];
             }
         }
         else if (tile instanceof WallTile) {
-            lines[j][i] = "a";
+            lines[j][i] = ["a"];
         }
         else if (tile instanceof WaterTile) {
-            lines[j][i] = "q";
+            lines[j][i] = ["q"];
         }
     });
     puzzle.buildings.forEach(building => {
         let i = building.i;
         let j = building.j;
         if (building instanceof Ramp) {
-            lines[j][i] = "R";
+            lines[j][i] = ["R" + building.w.toFixed(0)];
         }
         if (building instanceof Bridge) {
-            lines[j][i] = "U";
+            lines[j][i] = ["U"];
         }
     });
     lines.reverse();
-    let lines2 = lines.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
-    let ballLine = "";
+    let lines3 = lines.map((l1) => {
+        return l1.map(l2 => {
+            return l2.reduce((c1, c2) => { return c1 + c2; });
+        });
+    });
+    let lines2 = lines3.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
+    let ballLine = puzzle.w.toFixed(0) + "u" + puzzle.h.toFixed(0) + "u";
     for (let i = 0; i < puzzle.ballsCount; i++) {
         ballLine += puzzle.balls[i].i.toFixed(0) + "u" + puzzle.balls[i].j.toFixed(0) + "u" + puzzle.balls[i].color.toFixed(0);
         if (i < puzzle.ballsCount - 1) {

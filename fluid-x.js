@@ -3597,7 +3597,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 1;
-var PATCH_VERSION = 0;
+var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4285,7 +4285,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -8222,22 +8222,11 @@ class PuzzleUI {
                             this.setHoveredElement(this.highscorePlayerLine);
                         }
                     }
-                    else if (this.unlockContainer.style.display != "none") {
-                        this.setHoveredElement(this.unlockTryButton);
-                    }
                 }
                 else if (this.hoveredElement === this.scoreSubmitBtn) {
                     this.setHoveredElement(this.highscorePlayerLine);
                 }
                 else if (this.hoveredElement === this.highscorePlayerLine) {
-                    if (this.unlockContainer.style.display != "none") {
-                        this.setHoveredElement(this.unlockTryButton);
-                    }
-                    else {
-                        this.setHoveredElement(this.successNextButton);
-                    }
-                }
-                else if (this.hoveredElement === this.unlockTryButton) {
                     this.setHoveredElement(this.successNextButton);
                 }
             }
@@ -8261,19 +8250,8 @@ class PuzzleUI {
                     this.setHoveredElement(this.successNextButton);
                 }
                 else if (this.hoveredElement === this.successNextButton) {
-                    if (this.unlockContainer.style.display != "none") {
-                        this.setHoveredElement(this.unlockTryButton);
-                    }
-                    else if (this.highscoreContainer.style.display === "block") {
-                        this.setHoveredElement(this.highscorePlayerLine);
-                    }
-                }
-                else if (this.hoveredElement === this.unlockTryButton) {
                     if (this.highscoreContainer.style.display === "block") {
                         this.setHoveredElement(this.highscorePlayerLine);
-                    }
-                    else {
-                        this.setHoveredElement(this.successNextButton);
                     }
                 }
             }
@@ -8314,7 +8292,7 @@ class PuzzleUI {
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
         this.successNextButton = document.querySelector("#success-next-btn");
-        this.unlockTryButton = document.querySelector("#play-unlock-try-btn");
+        //this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn");
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
         this.gameoverReplayButton.onclick = () => {
@@ -8326,13 +8304,6 @@ class PuzzleUI {
         this.unlockContainer = document.querySelector("#play-unlock-container");
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
-        this._hoverableElements = [
-            this.highscorePlayerLine,
-            this.highscoreTwoPlayersLine,
-            this.scoreSubmitBtn,
-            this.successNextButton,
-            this.unlockTryButton
-        ];
     }
     get hoveredElement() {
         return this._hoveredElement;
@@ -8351,8 +8322,15 @@ class PuzzleUI {
     }
     win(firstTimeCompleted) {
         this.successPanel.style.display = "";
+        let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
+        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         if (firstTimeCompleted) {
-            this.tryShowUnlockPanel();
+            this.tryShowUnlockPanel().then(() => {
+                CenterPanel(this.successPanel, panelDX, panelDY);
+                requestAnimationFrame(() => {
+                    CenterPanel(this.successPanel, panelDX, panelDY);
+                });
+            });
         }
         else {
             this.unlockContainer.style.display = "none";
@@ -8370,8 +8348,14 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
+        CenterPanel(this.successPanel, panelDX, panelDY);
+        requestAnimationFrame(() => {
+            CenterPanel(this.successPanel, panelDX, panelDY);
+        });
     }
     lose() {
+        let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
+        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         this.successPanel.style.display = "none";
         this.unlockContainer.style.display = "none";
         this.gameoverPanel.style.display = "";
@@ -8379,6 +8363,10 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
+        CenterPanel(this.gameoverPanel, panelDX, panelDY);
+        requestAnimationFrame(() => {
+            CenterPanel(this.gameoverPanel, panelDX, panelDY);
+        });
     }
     reset() {
         if (this.successPanel) {
@@ -8408,9 +8396,6 @@ class PuzzleUI {
             let newIcon = PuzzleMiniatureMaker.Generate(data.content);
             newIcon.classList.add("square-btn-miniature");
             squareBtn.appendChild(newIcon);
-            document.querySelector("#play-unlock-try-btn").onclick = () => {
-                location.href = "#puzzle-" + expertId.toFixed(0);
-            };
             this.unlockContainer.style.display = "";
         }
         else {
@@ -8805,4 +8790,14 @@ function CreateBiDiscVertexData(props) {
     }
     Mummu.TranslateVertexDataInPlace(data, props.p1);
     return data;
+}
+function CenterPanel(panel, dx = 0, dy = 0) {
+    let bodyRect = document.body.getBoundingClientRect();
+    let panelRect = panel.getBoundingClientRect();
+    let left = Math.floor((bodyRect.width - panelRect.width) * 0.5 + dx);
+    let top = Math.floor((bodyRect.height - panelRect.height) * 0.5 + dy);
+    panel.style.left = left.toFixed(0) + "px";
+    panel.style.right = "auto";
+    panel.style.top = top.toFixed(0) + "px";
+    panel.style.bottom = "auto";
 }

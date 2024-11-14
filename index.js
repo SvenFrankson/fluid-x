@@ -1,4 +1,4 @@
-var USE_POKI_SDK = false;
+var USE_POKI_SDK = true;
 
 var THE_ORIGIN_OF_TIME_ms = 0;
 var last_step_t = 0;

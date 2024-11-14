@@ -794,8 +794,6 @@ body.vertical #play-timer {
 
 #play-success-panel {
     width: 280px;
-    left: calc((100vw - 310px) * 0.5);
-    top: calc((100svh - 490px) * 0.5);
     text-align: center;
     background-color: #5d7275D0;
 }
@@ -809,50 +807,34 @@ body.vertical #play-timer {
     right: 5px;
 }
 
-body.vertical #play-success-panel {
-    top: calc((100svh - 400px) * 0.5);
-}
-
 #play-unlock-container {
-    margin: 0;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    margin: 0px 5px 0px 5px;
+    padding: 5px 15px 5px 15px;
     border-radius: 10px;
     background-color: #00000020;
     border: 1px solid #FFFFFF80;
-}
-
-#play-unlock-try-btn {
-    margin-top: 50px;
 }
 
 @media (max-height: 540px) {
     #play-success-panel {
         width: fit-content;
         min-width: 280px;
-        right: calc((100vw - 500px) * 0.5);
-        left: auto;
-        top: calc((100svh - 310px) * 0.5);
-        padding-left: 0;
-        padding-right: 0;
     }
 
     #play-success-container {
         display: inline-block;
-        width: 260px;
         vertical-align: bottom;
     }
 
     #play-unlock-container {
         display: inline-block;
-        width: 280px;
-        vertical-align: bottom;
+        vertical-align: top;
     }
 
     #play-success-panel .stamp {
         top: 40px;
         right: auto;
-        left: 210px;
+        left: 220px;
     }
 }
 
@@ -861,9 +843,7 @@ body.vertical #play-success-panel {
 }
 
 #play-gameover-panel {
-    width: 310px;
-    left: calc((100vw - 360px) * 0.5);
-    bottom: calc((100svh - 148px) * 0.5);
+    width: 280px;
     text-align: center;
     background-color: #5d7275D0;
 }

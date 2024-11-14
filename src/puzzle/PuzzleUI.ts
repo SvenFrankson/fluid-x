@@ -15,12 +15,10 @@ class PuzzleUI {
     public scorePendingBtn: HTMLButtonElement;
     public scoreDoneBtn: HTMLButtonElement;
     public successNextButton: HTMLButtonElement;
-    public unlockTryButton: HTMLButtonElement;
 
     public gameoverBackButton: HTMLButtonElement;
     public gameoverReplayButton: HTMLButtonElement;
 
-    private _hoverableElements: HTMLElement[];
     private _hoveredElement: HTMLElement;
     public get hoveredElement(): HTMLElement {
         return this._hoveredElement;
@@ -51,7 +49,7 @@ class PuzzleUI {
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
         
         this.successNextButton = document.querySelector("#success-next-btn") as HTMLButtonElement;
-        this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
+        //this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
         this.gameoverReplayButton.onclick = () => {
@@ -65,20 +63,19 @@ class PuzzleUI {
 
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
-
-        this._hoverableElements = [
-            this.highscorePlayerLine,
-            this.highscoreTwoPlayersLine,
-            this.scoreSubmitBtn,
-            this.successNextButton,
-            this.unlockTryButton
-        ]
     }
 
     public win(firstTimeCompleted: boolean): void {
         this.successPanel.style.display = "";
+        let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
+        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         if (firstTimeCompleted) {
-            this.tryShowUnlockPanel();
+            this.tryShowUnlockPanel().then(() => {
+                CenterPanel(this.successPanel, panelDX, panelDY);
+                requestAnimationFrame(() => {
+                    CenterPanel(this.successPanel, panelDX, panelDY);
+                })
+            })
         }
         else {
             this.unlockContainer.style.display = "none";
@@ -96,9 +93,15 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
+        CenterPanel(this.successPanel, panelDX, panelDY);
+        requestAnimationFrame(() => {
+            CenterPanel(this.successPanel, panelDX, panelDY);
+        })
     }
 
     public lose(): void {
+        let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
+        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         this.successPanel.style.display = "none";
         this.unlockContainer.style.display = "none";
         this.gameoverPanel.style.display = "";
@@ -106,6 +109,10 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
+        CenterPanel(this.gameoverPanel, panelDX, panelDY);
+        requestAnimationFrame(() => {
+            CenterPanel(this.gameoverPanel, panelDX, panelDY);
+        })
     }
 
     public reset(): void {
@@ -138,10 +145,6 @@ class PuzzleUI {
             let newIcon = PuzzleMiniatureMaker.Generate(data.content);
             newIcon.classList.add("square-btn-miniature");
             squareBtn.appendChild(newIcon);
-
-            (document.querySelector("#play-unlock-try-btn") as HTMLButtonElement).onclick = () => {
-                location.href = "#puzzle-" + expertId.toFixed(0);
-            }
 
             this.unlockContainer.style.display = "";
         }
@@ -226,22 +229,11 @@ class PuzzleUI {
                         this.setHoveredElement(this.highscorePlayerLine);
                     }
                 }
-                else if (this.unlockContainer.style.display != "none") {
-                    this.setHoveredElement(this.unlockTryButton);
-                }
             }
             else if (this.hoveredElement === this.scoreSubmitBtn) {
                 this.setHoveredElement(this.highscorePlayerLine);
             }
             else if (this.hoveredElement === this.highscorePlayerLine) {
-                if (this.unlockContainer.style.display != "none") {
-                    this.setHoveredElement(this.unlockTryButton);
-                }
-                else {
-                    this.setHoveredElement(this.successNextButton);
-                }
-            }
-            else if (this.hoveredElement === this.unlockTryButton) {
                 this.setHoveredElement(this.successNextButton);
             }
         }
@@ -267,19 +259,8 @@ class PuzzleUI {
                 this.setHoveredElement(this.successNextButton);
             }
             else if (this.hoveredElement === this.successNextButton) {
-                if (this.unlockContainer.style.display != "none") {
-                    this.setHoveredElement(this.unlockTryButton);
-                }
-                else if (this.highscoreContainer.style.display === "block") {
-                    this.setHoveredElement(this.highscorePlayerLine);
-                }
-            }
-            else if (this.hoveredElement === this.unlockTryButton) {
                 if (this.highscoreContainer.style.display === "block") {
                     this.setHoveredElement(this.highscorePlayerLine);
-                }
-                else {
-                    this.setHoveredElement(this.successNextButton);
                 }
             }
         }

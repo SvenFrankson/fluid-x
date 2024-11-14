@@ -8338,11 +8338,13 @@ class PuzzleUI {
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
         this.successNextLabel.style.display = "none";
+        this.successNextButton.innerHTML = "CONTINUE";
         if (this.puzzle.data.state === 2) {
             let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];
             if (nextPuzzle) {
                 this.successNextLabel.innerHTML = "Next - " + nextPuzzle.title;
                 this.successNextLabel.style.display = "";
+                this.successNextButton.innerHTML = "NEXT LEVEL";
             }
         }
         if (this.game.uiInputManager.inControl) {

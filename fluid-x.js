@@ -14,7 +14,8 @@ class Ball extends BABYLON.Mesh {
         this.dropletMode = false;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
-        this.nominalSpeed = 2.2;
+        this.boost = false;
+        this.nominalSpeed = 2;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
@@ -7930,6 +7931,7 @@ class Puzzle {
             this.balls[i].bounceXValue = 0;
             this.balls[i].bounceXTimer = 0;
             this.balls[i].speed = 0;
+            this.balls[i].vZ = 1;
             this.balls[i].animateSpeed(this.balls[i].nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
             if (this.playerHaikus[i]) {
                 this.playerHaikus[i].hide();
@@ -8452,12 +8454,11 @@ class PuzzleUI {
     win(firstTimeCompleted) {
         this.successPanel.style.display = "";
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
-        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         if (firstTimeCompleted) {
             this.tryShowUnlockPanel().then(() => {
-                CenterPanel(this.successPanel, panelDX, panelDY);
+                CenterPanel(this.successPanel, panelDX, 0);
                 requestAnimationFrame(() => {
-                    CenterPanel(this.successPanel, panelDX, panelDY);
+                    CenterPanel(this.successPanel, panelDX, 0);
                 });
             });
         }
@@ -8479,14 +8480,13 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
-        CenterPanel(this.successPanel, panelDX, panelDY);
+        CenterPanel(this.successPanel, panelDX, 0);
         requestAnimationFrame(() => {
-            CenterPanel(this.successPanel, panelDX, panelDY);
+            CenterPanel(this.successPanel, panelDX, 0);
         });
     }
     lose() {
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
-        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         this.successPanel.style.display = "none";
         this.unlockContainer.style.display = "none";
         this.gameoverPanel.style.display = "";
@@ -8494,9 +8494,9 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
-        CenterPanel(this.gameoverPanel, panelDX, panelDY);
+        CenterPanel(this.gameoverPanel, panelDX, 0);
         requestAnimationFrame(() => {
-            CenterPanel(this.gameoverPanel, panelDX, panelDY);
+            CenterPanel(this.gameoverPanel, panelDX, 0);
         });
     }
     reset() {
@@ -8925,8 +8925,8 @@ function CreateBiDiscVertexData(props) {
 function CenterPanel(panel, dx = 0, dy = 0) {
     let bodyRect = document.body.getBoundingClientRect();
     let panelRect = panel.getBoundingClientRect();
-    let left = Math.floor((bodyRect.width - panelRect.width) * 0.5 + dx);
-    let top = Math.floor((bodyRect.height - panelRect.height) * 0.5 + dy);
+    let left = Math.floor((bodyRect.width - panelRect.width) * 0.5 + dx / window.devicePixelRatio);
+    let top = Math.floor((bodyRect.height - panelRect.height) * 0.5 + dy / window.devicePixelRatio);
     panel.style.left = left.toFixed(0) + "px";
     panel.style.right = "auto";
     panel.style.top = top.toFixed(0) + "px";

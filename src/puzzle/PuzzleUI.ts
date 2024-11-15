@@ -68,12 +68,11 @@ class PuzzleUI {
     public win(firstTimeCompleted: boolean): void {
         this.successPanel.style.display = "";
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
-        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         if (firstTimeCompleted) {
             this.tryShowUnlockPanel().then(() => {
-                CenterPanel(this.successPanel, panelDX, panelDY);
+                CenterPanel(this.successPanel, panelDX, 0);
                 requestAnimationFrame(() => {
-                    CenterPanel(this.successPanel, panelDX, panelDY);
+                    CenterPanel(this.successPanel, panelDX, 0);
                 })
             })
         }
@@ -95,15 +94,14 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
-        CenterPanel(this.successPanel, panelDX, panelDY);
+        CenterPanel(this.successPanel, panelDX, 0);
         requestAnimationFrame(() => {
-            CenterPanel(this.successPanel, panelDX, panelDY);
+            CenterPanel(this.successPanel, panelDX, 0);
         })
     }
 
     public lose(): void {
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
-        let panelDY = document.body.classList.contains("vertical") ? 70 : 0;
         this.successPanel.style.display = "none";
         this.unlockContainer.style.display = "none";
         this.gameoverPanel.style.display = "";
@@ -111,9 +109,9 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
-        CenterPanel(this.gameoverPanel, panelDX, panelDY);
+        CenterPanel(this.gameoverPanel, panelDX, 0);
         requestAnimationFrame(() => {
-            CenterPanel(this.gameoverPanel, panelDX, panelDY);
+            CenterPanel(this.gameoverPanel, panelDX, 0);
         })
     }
 

@@ -43,7 +43,8 @@ class Ball extends BABYLON.Mesh {
     public shadow: BABYLON.Mesh;
     public trailMesh: BABYLON.Mesh;
     
-    public nominalSpeed: number = 2.2;
+    public boost: boolean = false;
+    public nominalSpeed: number = 2;
     public vZ: number = 1;
     public radius: number = 0.25;
     public bounceXDelay: number = 0.93;

@@ -1277,6 +1277,7 @@ class Puzzle {
             this.balls[i].bounceXValue = 0;
             this.balls[i].bounceXTimer = 0;
             this.balls[i].speed = 0;
+            this.balls[i].vZ = 1;
             this.balls[i].animateSpeed(this.balls[i].nominalSpeed, 0.2, Nabu.Easing.easeInCubic);
             if (this.playerHaikus[i]) {
                 this.playerHaikus[i].hide();

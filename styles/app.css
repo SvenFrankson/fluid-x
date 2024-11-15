@@ -394,8 +394,8 @@ button:hover, .hovered {
     font-size: 24px;
     border-radius: 4px;
     border: 2px solid #624c3cff;
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
 }
 
 .square-btn-panel {
@@ -940,8 +940,25 @@ completion-bar .completed {
 
 #editor-ui {
     position: fixed;
-    top: 10px;
-    left: 10px;
+    overflow-y: auto;
+    scrollbar-color: #2b2821 #5d7275;
+    scrollbar-width: thin;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #FFFFFFA0;
+}
+
+body:not(.vertical) #editor-ui {
+    top: 0;
+    width: fit-content;
+    height: 100svh;
+}
+
+body.vertical #editor-ui {
+    bottom: 0;
+    width: calc(100vw - 10px);
+    height: 250px;
+    border-top: 3px double #2b2821;
 }
 
 .editor-line {

@@ -1,178 +1,180 @@
-<div class="editor-line">
-    <button id="ball-count-btn" class="medium-btn bluegrey" style="width: 160px;"><stroke-text>Solo</stroke-text></button>
-</div>
-
-<div id="p1-ball">
+<div id="editor-container">
     <div class="editor-line">
-        <span class="editor-label">color</span>
-        <num-value-input id="editor-p1-origin-color" min="0" max="3" wrap="true" value-width="70px"></num-value-input>
+        <button id="ball-count-btn" class="medium-btn bluegrey" style="width: 160px;"><stroke-text>Solo</stroke-text></button>
+    </div>
+    
+    <div id="p1-ball">
+        <div class="editor-line">
+            <span class="editor-label">color</span>
+            <num-value-input id="editor-p1-origin-color" min="0" max="3" wrap="true" value-width="70px"></num-value-input>
+        </div>
+        <div class="editor-line">
+            <span class="editor-label">origin i</span>
+            <num-value-input id="editor-p1-origin-i" min="0" max="100"></num-value-input>
+        </div>
+        <div class="editor-line">
+            <span class="editor-label">origin j</span>
+            <num-value-input id="editor-p1-origin-j" min="0" max="100"></num-value-input>
+        </div>
+    </div>
+    
+    <div id="p2-ball">
+        <div class="editor-line">
+            <span class="editor-label">color</span>
+            <num-value-input id="editor-p2-origin-color" min="0" max="3" wrap="true" value-width="70px"></num-value-input>
+        </div>
+        <div class="editor-line">
+            <span class="editor-label">origin i</span>
+            <num-value-input id="editor-p2-origin-i" min="0" max="100"></num-value-input>
+        </div>
+        <div class="editor-line">
+            <span class="editor-label">origin j</span>
+            <num-value-input id="editor-p2-origin-j" min="0" max="100"></num-value-input>
+        </div>
+    </div>
+    
+    <div class="editor-line">
+        <span class="editor-label">width</span>
+        <num-value-input id="editor-width" min="3" max="100"></num-value-input>
+        <button id="editor-width-insert" class="xsmall-btn"><stroke-text>1</stroke-text></button>
+        <button id="editor-width-delete" class="xsmall-btn"><stroke-text>x</stroke-text></button>
     </div>
     <div class="editor-line">
-        <span class="editor-label">origin i</span>
-        <num-value-input id="editor-p1-origin-i" min="0" max="100"></num-value-input>
+        <span class="editor-label">height</span>
+        <num-value-input id="editor-height" min="3" max="100"></num-value-input>
+        <button id="editor-height-insert" class="xsmall-btn"><stroke-text>1</stroke-text></button>
+        <button id="editor-height-delete" class="xsmall-btn"><stroke-text>x</stroke-text></button>
     </div>
     <div class="editor-line">
-        <span class="editor-label">origin j</span>
-        <num-value-input id="editor-p1-origin-j" min="0" max="100"></num-value-input>
-    </div>
-</div>
-
-<div id="p2-ball">
-    <div class="editor-line">
-        <span class="editor-label">color</span>
-        <num-value-input id="editor-p2-origin-color" min="0" max="3" wrap="true" value-width="70px"></num-value-input>
+        <button id="switch-north-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/north-switch.png);"></button>
+        <button id="switch-east-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/east-switch.png);"></button>
+        <button id="switch-south-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/south-switch.png);"></button>
+        <button id="switch-west-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/west-switch.png);"></button>
     </div>
     <div class="editor-line">
-        <span class="editor-label">origin i</span>
-        <num-value-input id="editor-p2-origin-i" min="0" max="100"></num-value-input>
+        <button id="tile-north-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/north-tile.png);"></button>
+        <button id="tile-east-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/east-tile.png);"></button>
+        <button id="tile-south-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/south-tile.png);"></button>
+        <button id="tile-west-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/west-tile.png);"></button>
     </div>
     <div class="editor-line">
-        <span class="editor-label">origin j</span>
-        <num-value-input id="editor-p2-origin-j" min="0" max="100"></num-value-input>
+        <button id="button-one-btn" class="medium-square-btn inline bged" style="background-image: url(datas/textures/door-one.png);"></button>
+        <button id="button-two-btn" class="medium-square-btn inline bged" style="background-image: url(datas/textures/door-two.png);"></button>
+        <button id="button-three-btn" class="medium-square-btn inline bged" style="background-image: url(datas/textures/door-three.png);"></button>
     </div>
-</div>
-
-<div class="editor-line">
-    <span class="editor-label">width</span>
-    <num-value-input id="editor-width" min="3" max="100"></num-value-input>
-    <button id="editor-width-insert" class="xsmall-btn"><stroke-text>1</stroke-text></button>
-    <button id="editor-width-delete" class="xsmall-btn"><stroke-text>x</stroke-text></button>
-</div>
-<div class="editor-line">
-    <span class="editor-label">height</span>
-    <num-value-input id="editor-height" min="3" max="100"></num-value-input>
-    <button id="editor-height-insert" class="xsmall-btn"><stroke-text>1</stroke-text></button>
-    <button id="editor-height-delete" class="xsmall-btn"><stroke-text>x</stroke-text></button>
-</div>
-<div class="editor-line">
-    <button id="switch-north-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/north-switch.png);"></button>
-    <button id="switch-east-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/east-switch.png);"></button>
-    <button id="switch-south-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/south-switch.png);"></button>
-    <button id="switch-west-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/west-switch.png);"></button>
-</div>
-<div class="editor-line">
-    <button id="tile-north-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/north-tile.png);"></button>
-    <button id="tile-east-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/east-tile.png);"></button>
-    <button id="tile-south-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/south-tile.png);"></button>
-    <button id="tile-west-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/west-tile.png);"></button>
-</div>
-<div class="editor-line">
-    <button id="button-one-btn" class="medium-square-btn inline bged" style="background-image: url(datas/textures/door-one.png);"></button>
-    <button id="button-two-btn" class="medium-square-btn inline bged" style="background-image: url(datas/textures/door-two.png);"></button>
-    <button id="button-three-btn" class="medium-square-btn inline bged" style="background-image: url(datas/textures/door-three.png);"></button>
-</div>
-<div class="editor-line">
-    <button id="door-one-btn" class="medium-square-btn inline bged" style="border-radius: 0px; background-image: url(datas/textures/door-one.png);"></button>
-    <button id="door-two-btn" class="medium-square-btn inline bged" style="border-radius: 0px; background-image: url(datas/textures/door-two.png);"></button>
-    <button id="door-three-btn" class="medium-square-btn inline bged" style="border-radius: 0px; background-image: url(datas/textures/door-three.png);"></button>
-</div>
-
-<div class="editor-line">
-    <button id="push-tile-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/push-tile.png);"></button>
-    <button id="hole-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/hole-tile.png);"></button>
-    <button id="wall-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/wall-tile.png);"></button>
-    <button id="water-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/water-tile.png);"></button>
-</div>
-<div class="editor-line">
-</div>
-<div class="editor-line">
-    <button id="box-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/box.png);"></button>
-    <button id="ramp-1-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
-    <button id="ramp-2-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
-    <button id="ramp-3-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
-    <button id="ramp-4-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
-    <button id="bridge-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/bridge.png);"></button>
-</div>
-<div class="editor-line">
-    <button id="delete-btn" class="medium-btn bluegrey"><stroke-text>Delete</stroke-text></button>
-</div>
-
-<div class="editor-line" style="display: none;">
-    <button id="doclear-btn" class="medium-btn red"><stroke-text>Clear !</stroke-text></button>
-</div>
-<div class="editor-line">
-    <button id="play-btn" class="medium-btn lightblue"><stroke-text>Play</stroke-text></button>
-</div>
-<div class="editor-line">
-    <button id="save-btn" class="medium-btn lightblue"><stroke-text>Save</stroke-text></button>
-</div>
-<div class="editor-line">
-    <button id="load-btn" class="medium-btn lightblue"><stroke-text>Load</stroke-text></button>
-    <input id="load-file-input" type="file" style="display: none;"/>
-</div>
-<div class="editor-line">
-    <button id="publish-btn" class="medium-btn lightblue"><stroke-text>Publish</stroke-text></button>
-</div>
-<div class="editor-line">
-    <button id="clear-btn" class="medium-btn red"><stroke-text>Clear</stroke-text></button>
-</div>
-
-<a href="#home"><button class="back-btn medium-btn bluegrey"><stroke-text>HOME</stroke-text></button></a>
-
-<div id="editor-publish-form" class="panel" style="display: none;">
-    <h2><stroke-text>Publish Puzzle</stroke-text></h2>
-    <div id="editor-publish-form-edit">
-        <div class="editor-line">
-            <span class="editor-label">title</span><input id="title-input" type="text"/>
-        </div>
-        <div class="editor-line">
-            <span class="editor-label">author</span><input id="author-input" type="text"/>
-        </div>
-        <div class="editor-line">
-            <span class="editor-label">id</span><input id="id-input" type="text"/>
-        </div>
-        <div class="editor-line" style="text-align: center;">
-            <button id="publish-read-eula-btn" class="medium-btn inline bluegrey" style="width: 160px"><stroke-text>Read EULA</stroke-text></button>
-        </div>
-        <div class="editor-line" style="margin: 10px;">
-            <input id="eula-checkbox" type="checkbox"/><span>I have read and agree with Tiaratum Games EULA.</span>
-        </div>
-        <div class="editor-line" style="text-align: center;">
-            <button id="publish-cancel-btn" class="medium-btn inline bluegrey"><stroke-text>Cancel</stroke-text></button>
-            <button id="publish-confirm-btn" class="medium-btn inline bluegrey locked"><stroke-text>Publish</stroke-text></button>
-            <button id="publish-pending-btn" class="medium-btn inline bluegrey" style="width: 220px; display: none;"><stroke-text>Sending...</stroke-text></button>
-        </div>
+    <div class="editor-line">
+        <button id="door-one-btn" class="medium-square-btn inline bged" style="border-radius: 0px; background-image: url(datas/textures/door-one.png);"></button>
+        <button id="door-two-btn" class="medium-square-btn inline bged" style="border-radius: 0px; background-image: url(datas/textures/door-two.png);"></button>
+        <button id="door-three-btn" class="medium-square-btn inline bged" style="border-radius: 0px; background-image: url(datas/textures/door-three.png);"></button>
     </div>
-    <div id="editor-publish-form-success" style="display: none;">
-        <div class="editor-line">
-            <span style="font-weight: 900;">Your can now play and share your Puzzle !</span>
-        </div>
-        <div class="editor-line">
-            <input id="publish-generated-url" type="text" readonly/>
-            <button id="publish-generated-url-copy" class="xsmall-btn"><stroke-text>C</stroke-text></button>
-            <a href="" target="_blank"><button id="publish-generated-url-go" class="xsmall-btn"><stroke-text>G</stroke-text></button></a>
-        </div>
-        <div class="editor-line">
-            <span style="font-weight: 900;">Your Puzzle will be visible in the Community Puzzle listing after its validation by Tiaratum Games.</span>
-        </div>
-        <div class="editor-line" style="margin-top: 10px;">
-            <span style="font-weight: 900;">Thanks for your contribution !</span>
-        </div>
-        <div class="editor-line" style="text-align: right; margin-bottom: 10px; margin-right: 50px;">
-            <span>- Sven</span>
-        </div>
-        <div class="editor-line" style="text-align: center;">
-            <button class="publish-ok-btn medium-btn inline bluegrey"><stroke-text>OK</stroke-text></button>
-        </div>
+    
+    <div class="editor-line">
+        <button id="push-tile-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/push-tile.png);"></button>
+        <button id="hole-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/hole-tile.png);"></button>
+        <button id="wall-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/wall-tile.png);"></button>
+        <button id="water-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/water-tile.png);"></button>
     </div>
-    <div id="editor-publish-form-failure" style="display: none;">
-        <div class="editor-line">
-            <div style="color: #b03a48; font-weight: 900;"><stroke-text>Error - Server not found</stroke-text></div>
+    <div class="editor-line">
+        <button id="ramp-1-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
+        <button id="ramp-2-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
+        <button id="ramp-3-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
+        <button id="ramp-4-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
+    </div>
+    <div class="editor-line">
+        <button id="box-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/box.png);"></button>
+        <button id="bridge-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/bridge.png);"></button>
+    </div>
+    <div class="editor-line">
+        <button id="delete-btn" class="medium-btn bluegrey"><stroke-text>Delete</stroke-text></button>
+    </div>
+    
+    <div class="editor-line" style="display: none;">
+        <button id="doclear-btn" class="medium-btn red"><stroke-text>Clear !</stroke-text></button>
+    </div>
+    <div class="editor-line">
+        <button id="play-btn" class="medium-btn lightblue"><stroke-text>Play</stroke-text></button>
+    </div>
+    <div class="editor-line">
+        <button id="save-btn" class="medium-btn lightblue"><stroke-text>Save</stroke-text></button>
+    </div>
+    <div class="editor-line">
+        <button id="load-btn" class="medium-btn lightblue"><stroke-text>Load</stroke-text></button>
+        <input id="load-file-input" type="file" style="display: none;"/>
+    </div>
+    <div class="editor-line">
+        <button id="publish-btn" class="medium-btn lightblue"><stroke-text>Publish</stroke-text></button>
+    </div>
+    <div class="editor-line">
+        <button id="clear-btn" class="medium-btn red"><stroke-text>Clear</stroke-text></button>
+    </div>
+    
+    <a href="#home"><button class="back-btn medium-btn bluegrey"><stroke-text>HOME</stroke-text></button></a>
+    
+    <div id="editor-publish-form" class="panel" style="display: none;">
+        <h2><stroke-text>Publish Puzzle</stroke-text></h2>
+        <div id="editor-publish-form-edit">
+            <div class="editor-line">
+                <span class="editor-label">title</span><input id="title-input" type="text"/>
+            </div>
+            <div class="editor-line">
+                <span class="editor-label">author</span><input id="author-input" type="text"/>
+            </div>
+            <div class="editor-line">
+                <span class="editor-label">id</span><input id="id-input" type="text"/>
+            </div>
+            <div class="editor-line" style="text-align: center;">
+                <button id="publish-read-eula-btn" class="medium-btn inline bluegrey" style="width: 160px"><stroke-text>Read EULA</stroke-text></button>
+            </div>
+            <div class="editor-line" style="margin: 10px;">
+                <input id="eula-checkbox" type="checkbox"/><span>I have read and agree with Tiaratum Games EULA.</span>
+            </div>
+            <div class="editor-line" style="text-align: center;">
+                <button id="publish-cancel-btn" class="medium-btn inline bluegrey"><stroke-text>Cancel</stroke-text></button>
+                <button id="publish-confirm-btn" class="medium-btn inline bluegrey locked"><stroke-text>Publish</stroke-text></button>
+                <button id="publish-pending-btn" class="medium-btn inline bluegrey" style="width: 220px; display: none;"><stroke-text>Sending...</stroke-text></button>
+            </div>
         </div>
-        <div class="editor-line" style="margin-top: 10px;">
-            <span style="font-weight: 900;">Your Puzzle has NOT been published.</span>
+        <div id="editor-publish-form-success" style="display: none;">
+            <div class="editor-line">
+                <span style="font-weight: 900;">Your can now play and share your Puzzle !</span>
+            </div>
+            <div class="editor-line">
+                <input id="publish-generated-url" type="text" readonly/>
+                <button id="publish-generated-url-copy" class="xsmall-btn"><stroke-text>C</stroke-text></button>
+                <a href="" target="_blank"><button id="publish-generated-url-go" class="xsmall-btn"><stroke-text>G</stroke-text></button></a>
+            </div>
+            <div class="editor-line">
+                <span style="font-weight: 900;">Your Puzzle will be visible in the Community Puzzle listing after its validation by Tiaratum Games.</span>
+            </div>
+            <div class="editor-line" style="margin-top: 10px;">
+                <span style="font-weight: 900;">Thanks for your contribution !</span>
+            </div>
+            <div class="editor-line" style="text-align: right; margin-bottom: 10px; margin-right: 50px;">
+                <span>- Sven</span>
+            </div>
+            <div class="editor-line" style="text-align: center;">
+                <button class="publish-ok-btn medium-btn inline bluegrey"><stroke-text>OK</stroke-text></button>
+            </div>
         </div>
-        <div class="editor-line">
-            <span style="font-weight: 900;">You can save your Puzzle on your device with a file using the SAVE button to avoid loosing your work.</span>
-        </div>
-        <div class="editor-line" style="margin-top: 10px;">
-            <span style="font-weight: 900;">Sorry !</span>
-        </div>
-        <div class="editor-line" style="text-align: right; margin-bottom: 10px; margin-right: 50px;">
-            <span>- Sven</span>
-        </div>
-        <div class="editor-line" style="text-align: center;">
-            <button class="publish-ok-btn medium-btn inline"><stroke-text>OK</stroke-text></button>
+        <div id="editor-publish-form-failure" style="display: none;">
+            <div class="editor-line">
+                <div style="color: #b03a48; font-weight: 900;"><stroke-text>Error - Server not found</stroke-text></div>
+            </div>
+            <div class="editor-line" style="margin-top: 10px;">
+                <span style="font-weight: 900;">Your Puzzle has NOT been published.</span>
+            </div>
+            <div class="editor-line">
+                <span style="font-weight: 900;">You can save your Puzzle on your device with a file using the SAVE button to avoid loosing your work.</span>
+            </div>
+            <div class="editor-line" style="margin-top: 10px;">
+                <span style="font-weight: 900;">Sorry !</span>
+            </div>
+            <div class="editor-line" style="text-align: right; margin-bottom: 10px; margin-right: 50px;">
+                <span>- Sven</span>
+            </div>
+            <div class="editor-line" style="text-align: center;">
+                <button class="publish-ok-btn medium-btn inline"><stroke-text>OK</stroke-text></button>
+            </div>
         </div>
     </div>
 </div>

@@ -266,6 +266,7 @@ class Game {
     public greenMaterial: BABYLON.StandardMaterial;
 
     public waterMaterial: BABYLON.StandardMaterial;
+    public boostMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
     public woodFloorMaterial: BABYLON.StandardMaterial;
     public roofMaterial: BABYLON.StandardMaterial;
@@ -276,6 +277,7 @@ class Game {
     public shadow9Material: BABYLON.StandardMaterial;
     public whiteShadow9Material: BABYLON.StandardMaterial;
     public shadowDiscMaterial: BABYLON.StandardMaterial;
+    public lightDiscMaterial: BABYLON.StandardMaterial;
     public puckSideMaterial: BABYLON.StandardMaterial;
     public get borderMaterial() {
         return this.brownMaterial;
@@ -436,6 +438,10 @@ class Game {
         this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
+        
+        this.boostMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.boostMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.boostMaterial.specularColor.copyFromFloats(0, 0, 0);
             
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -497,6 +503,14 @@ class Game {
         this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
         this.shadowDiscMaterial.alpha = 0.4;
         this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
+            
+        this.lightDiscMaterial = new BABYLON.StandardMaterial("light-disc-material");
+        this.lightDiscMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.lightDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
+        this.lightDiscMaterial.diffuseTexture.hasAlpha = true;
+        this.lightDiscMaterial.useAlphaFromDiffuseTexture = true;
+        this.lightDiscMaterial.alpha = 0.4;
+        this.lightDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
             
         this.puckSideMaterial = new BABYLON.StandardMaterial("shadow-material");
         this.puckSideMaterial.diffuseColor.copyFromFloats(1, 1, 1);
@@ -1226,6 +1240,21 @@ class Game {
             if (this.mode === GameMode.Preplay || this.mode === GameMode.Play) {
                 if (this.puzzle) {
                     this.puzzle.update(rawDT);
+                }
+                if (this.boostMaterial && this.brownMaterial) {
+                    let fBoostMaterial = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI) + 1);
+                    fBoostMaterial = fBoostMaterial * fBoostMaterial * fBoostMaterial * 0.1;
+                    
+                    let fBoostMaterial2 = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI + 0.66 * Math.PI) + 1);
+                    fBoostMaterial2 = fBoostMaterial2 * fBoostMaterial2 * fBoostMaterial2 * 0.1;
+
+                    /*
+                    this.boostMaterial.diffuseColor = BABYLON.Color3.Lerp(
+                        this.brownMaterial.diffuseColor,
+                        BABYLON.Color3.White(),
+                        Math.max(fBoostMaterial, fBoostMaterial2)
+                    );
+                    */
                 }
             }
             

@@ -232,6 +232,7 @@ interface ITrailProps {
     path: BABYLON.Vector3[],
     up?: BABYLON.Vector3,
     color?: BABYLON.Color4,
+    colors?: BABYLON.Color4[],
     radius?: number,
     radiusFunc?: (f: number) => number
 }
@@ -242,6 +243,7 @@ function CreateTrailVertexData(props: ITrailProps): BABYLON.VertexData {
     let normals = [];
     let indices: number[] = [];
     let uvs: number[] = [];
+    let colors = [];
 
     let path = [...props.path];
     let up: BABYLON.Vector3 = BABYLON.Vector3.Up();
@@ -291,6 +293,20 @@ function CreateTrailVertexData(props: ITrailProps): BABYLON.VertexData {
             p.z - xDir.z * r
         );
 
+        if (props.colors) {
+            let col = props.colors[i];
+            colors.push(col.r, col.g, col.b, col.a);
+            colors.push(col.r, col.g, col.b, col.a);
+        }
+        else if (props.color) {
+            let col = props.color;
+            colors.push(col.r, col.g, col.b, col.a);
+            colors.push(col.r, col.g, col.b, col.a);
+        }
+        else {
+            colors.push(1, 1, 1, 1);
+        }
+
         if (i < n - 1) {
             indices.push(l, l + 2, l + 1);
             indices.push(l + 1, l + 2, l + 3);
@@ -304,17 +320,10 @@ function CreateTrailVertexData(props: ITrailProps): BABYLON.VertexData {
     }
 
     data.positions = positions;
+    data.colors = colors;
     data.indices = indices;
     data.normals = normals;
     data.uvs = uvs;
-    if (props.color) {
-        let colors = [];
-        let colArray = props.color.asArray();
-        for (let i = 0; i < positions.length / 3; i++) {
-            colors.push(...colArray)
-        }
-        data.colors = colors;
-    }
 
     return data;
 }

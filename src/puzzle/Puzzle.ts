@@ -449,6 +449,7 @@ class Puzzle {
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
             this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
             this.balls[bIndex].trailPoints = [];
+            this.balls[bIndex].trailPointColors = [];
             this.balls[bIndex].trailMesh.isVisible = false;
             if (ballLine.length > 2) {
                 this.balls[bIndex].setColor(parseInt(ballLine[bIndexZero + 2 + 3 * bIndex]));

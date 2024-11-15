@@ -14,7 +14,8 @@ class Ball extends BABYLON.Mesh {
         this.dropletMode = false;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
-        this.boost = false;
+        this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
+        this._boost = false;
         this.nominalSpeed = 2;
         this.vZ = 1;
         this.radius = 0.25;
@@ -48,6 +49,7 @@ class Ball extends BABYLON.Mesh {
         this.bounceXTimer = 0;
         this.trailTimer = 0;
         this.trailPoints = [];
+        this.trailPointColors = [];
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.color = props.color;
         this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
@@ -60,9 +62,9 @@ class Ball extends BABYLON.Mesh {
         this.outlineWidth = 0.02 / (this.radius * 2);
         this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
         this.shadow = new BABYLON.Mesh("shadow");
-        this.shadow.position.x = -0.015;
-        this.shadow.position.y = 0.1;
-        this.shadow.position.z = -0.015;
+        this.shadow.position.x = 0;
+        this.shadow.position.y = 0.05;
+        this.shadow.position.z = 0;
         this.shadow.parent = this;
         this.shadow.material = this.game.shadowDiscMaterial;
         this.leftArrow = new BABYLON.Mesh("left-arrow");
@@ -113,6 +115,11 @@ class Ball extends BABYLON.Mesh {
                     this.rightDown = 1;
                 }
             }
+            if (ev.code === "Space") {
+                if (this.wasdCanControl) {
+                    this.boost = true;
+                }
+            }
         });
         document.addEventListener("keyup", (ev) => {
             if (ev.code === "KeyA") {
@@ -147,6 +154,11 @@ class Ball extends BABYLON.Mesh {
                     this.rightDown = 0;
                 }
             }
+            if (ev.code === "Space") {
+                if (this.wasdCanControl) {
+                    this.boost = false;
+                }
+            }
         });
         let inputLeft = document.querySelector("#input-left");
         if (inputLeft) {
@@ -170,6 +182,15 @@ class Ball extends BABYLON.Mesh {
                 this.rightDown = 0;
             });
         }
+        let inputBoost = document.querySelector("#input-boost");
+        inputBoost.addEventListener("pointerdown", () => {
+            if (this.boost) {
+                this.boost = false;
+            }
+            else {
+                this.boost = true;
+            }
+        });
         this.game.canvas.addEventListener("pointerdown", this.mouseDown);
         this.game.canvas.addEventListener("pointerup", this.mouseUp);
         this.game.canvas.addEventListener("pointerleave", this.mouseUp);
@@ -186,6 +207,22 @@ class Ball extends BABYLON.Mesh {
     }
     set rightArrowSize(v) {
         this.rightArrow.scaling.copyFromFloats(v, v, v);
+    }
+    get boost() {
+        return this._boost;
+    }
+    set boost(v) {
+        this._boost = v;
+        this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
+        let inputBoost = document.querySelector("#input-boost");
+        if (inputBoost) {
+            if (this._boost) {
+                inputBoost.classList.add("active");
+            }
+            else {
+                inputBoost.classList.remove("active");
+            }
+        }
     }
     lockControl(duration = 0.2) {
         clearTimeout(this._lockControlTimout);
@@ -242,7 +279,7 @@ class Ball extends BABYLON.Mesh {
         }
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
-        BABYLON.CreateGroundVertexData({ width: 1.3, height: 1.3 }).applyToMesh(this.shadow);
+        BABYLON.CreateGroundVertexData({ width: 1.35, height: 1.35 }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
@@ -255,6 +292,9 @@ class Ball extends BABYLON.Mesh {
         if (!v) {
             this.trailMesh.isVisible = false;
         }
+    }
+    get boostedSpeed() {
+        return this.boost ? this.speed * 1.6 : this.speed;
     }
     update(dt) {
         if (this.mouseCanControl && this.mouseInControl) {
@@ -300,7 +340,7 @@ class Ball extends BABYLON.Mesh {
             }
             else {
                 p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
-                p.y += 0.1;
+                p.y += 0.15;
             }
             BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
             if (this.trailTimer > 0.02) {
@@ -310,23 +350,38 @@ class Ball extends BABYLON.Mesh {
                     p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                 }
                 this.trailPoints.push(p);
+                let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
+                this.trailPointColors.push(this.trailColor.clone());
                 let count = 40;
                 //count = 200; // debug
                 if (this.trailPoints.length > count) {
                     this.trailPoints.splice(0, 1);
                 }
+                while (this.trailPointColors.length > this.trailPoints.length) {
+                    this.trailPointColors.splice(0, 1);
+                }
             }
             if (this.trailPoints.length > 2) {
-                let points = this.trailPoints.map(pt => { return pt.clone(); });
+                let points = this.trailPoints.map((pt, i) => {
+                    pt = pt.clone();
+                    pt.y -= 0.05 * i / this.trailPoints.length;
+                    return pt;
+                });
                 Mummu.CatmullRomPathInPlace(points);
                 points.push(p);
+                let colors = [];
+                for (let i = 0; i < this.trailPointColors.length; i++) {
+                    colors.push(this.trailPointColors[i]);
+                    colors.push(this.trailPointColors[i]);
+                }
                 let data = CreateTrailVertexData({
                     path: points,
                     radiusFunc: (f) => {
                         return 0.08 * f;
                         //return 0.01;
                     },
-                    color: new BABYLON.Color4(0.2, 0.2, 0.2, 1)
+                    colors: colors
                 });
                 data.applyToMesh(this.trailMesh);
                 this.trailMesh.isVisible = true;
@@ -357,7 +412,7 @@ class Ball extends BABYLON.Mesh {
             }
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
-                this.bounceXTimer -= dt * this.speed;
+                this.bounceXTimer -= dt * this.boostedSpeed;
                 this.xForce = 1;
             }
             else {
@@ -367,7 +422,7 @@ class Ball extends BABYLON.Mesh {
             let speed;
             if (!this.water) {
                 this.moveDir.copyFromFloats(this.xForce * vX * (1.2 - 2 * this.radius) / 0.55, 0, this.vZ).normalize();
-                speed = this.moveDir.scale(this.speed);
+                speed = this.moveDir.scale(this.boostedSpeed);
             }
             else {
                 let path = this.water.path;
@@ -389,7 +444,7 @@ class Ball extends BABYLON.Mesh {
                 this.moveDir.copyFrom(dir);
                 this.moveDir.x += this.xForce * vX * (1.2 - 2 * this.radius) / 0.55;
                 this.moveDir.normalize();
-                speed = this.moveDir.scale(this.speed * 0.5);
+                speed = this.moveDir.scale(this.boostedSpeed * 0.5);
             }
             this.position.addInPlace(speed.scale(dt));
             if (this.position.z + this.radius > this.puzzle.zMax) {
@@ -4002,6 +4057,9 @@ class Game {
         this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
+        this.boostMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.boostMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.boostMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
@@ -4053,6 +4111,13 @@ class Game {
         this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
         this.shadowDiscMaterial.alpha = 0.4;
         this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.lightDiscMaterial = new BABYLON.StandardMaterial("light-disc-material");
+        this.lightDiscMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.lightDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
+        this.lightDiscMaterial.diffuseTexture.hasAlpha = true;
+        this.lightDiscMaterial.useAlphaFromDiffuseTexture = true;
+        this.lightDiscMaterial.alpha = 0.4;
+        this.lightDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.puckSideMaterial = new BABYLON.StandardMaterial("shadow-material");
         this.puckSideMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.puckSideMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/puck-side-arrow.png");
@@ -4664,6 +4729,19 @@ class Game {
             if (this.mode === GameMode.Preplay || this.mode === GameMode.Play) {
                 if (this.puzzle) {
                     this.puzzle.update(rawDT);
+                }
+                if (this.boostMaterial && this.brownMaterial) {
+                    let fBoostMaterial = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI) + 1);
+                    fBoostMaterial = fBoostMaterial * fBoostMaterial * fBoostMaterial * 0.1;
+                    let fBoostMaterial2 = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI + 0.66 * Math.PI) + 1);
+                    fBoostMaterial2 = fBoostMaterial2 * fBoostMaterial2 * fBoostMaterial2 * 0.1;
+                    /*
+                    this.boostMaterial.diffuseColor = BABYLON.Color3.Lerp(
+                        this.brownMaterial.diffuseColor,
+                        BABYLON.Color3.White(),
+                        Math.max(fBoostMaterial, fBoostMaterial2)
+                    );
+                    */
                 }
             }
             this.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
@@ -7161,6 +7239,7 @@ class Puzzle {
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
             this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
             this.balls[bIndex].trailPoints = [];
+            this.balls[bIndex].trailPointColors = [];
             this.balls[bIndex].trailMesh.isVisible = false;
             if (ballLine.length > 2) {
                 this.balls[bIndex].setColor(parseInt(ballLine[bIndexZero + 2 + 3 * bIndex]));
@@ -8797,6 +8876,7 @@ function CreateTrailVertexData(props) {
     let normals = [];
     let indices = [];
     let uvs = [];
+    let colors = [];
     let path = [...props.path];
     let up = BABYLON.Vector3.Up();
     if (props.up) {
@@ -8831,6 +8911,19 @@ function CreateTrailVertexData(props) {
         let l = positions.length / 3;
         positions.push(p.x + xDir.x * r, p.y + xDir.y * r, p.z + xDir.z * r);
         positions.push(p.x - xDir.x * r, p.y - xDir.y * r, p.z - xDir.z * r);
+        if (props.colors) {
+            let col = props.colors[i];
+            colors.push(col.r, col.g, col.b, col.a);
+            colors.push(col.r, col.g, col.b, col.a);
+        }
+        else if (props.color) {
+            let col = props.color;
+            colors.push(col.r, col.g, col.b, col.a);
+            colors.push(col.r, col.g, col.b, col.a);
+        }
+        else {
+            colors.push(1, 1, 1, 1);
+        }
         if (i < n - 1) {
             indices.push(l, l + 2, l + 1);
             indices.push(l + 1, l + 2, l + 3);
@@ -8841,17 +8934,10 @@ function CreateTrailVertexData(props) {
         uvs.push(0, i / (n - 1));
     }
     data.positions = positions;
+    data.colors = colors;
     data.indices = indices;
     data.normals = normals;
     data.uvs = uvs;
-    if (props.color) {
-        let colors = [];
-        let colArray = props.color.asArray();
-        for (let i = 0; i < positions.length / 3; i++) {
-            colors.push(...colArray);
-        }
-        data.colors = colors;
-    }
     return data;
 }
 function CreateBiDiscVertexData(props) {

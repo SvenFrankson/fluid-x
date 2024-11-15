@@ -454,9 +454,9 @@ button:hover, .hovered {
     position: fixed;
     display: block;
     bottom: 16px;
-    width: 140px;
-    height: 80px;
-    border-radius: 0px;
+    width: 120px;
+    height: 90px;
+    border-radius: 20px;
     border: 3px solid #2b2821ff;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
@@ -479,20 +479,83 @@ button:hover, .hovered {
 }
 
 .input-button img {
-    width: 75px;
+    height: 100%;
     pointer-events: none;
 }
 
 #input-left {
-    left: 5vw;
+    left: 10px;
     background-color: #b1a58d;
-    border-radius: 30px;
 }
 
 #input-right {
-    right: 5vw;
+    right: 10px;
     background-color: #624c3c;
-    border-radius: 30px;
+}
+
+#input-boost {
+    left: calc((100vw - 100px) * 0.5);
+    width: 100px;
+    bottom: 21px;
+    height: 80px;
+    border: 3px solid #2b2821ff;
+    outline: 1px solid #FFFFFF00;
+    background-color: color-mix(in srgb, #624c3c 75%, #b03a48 25%);
+    background-image: url("../datas/textures/rainbow_pattern.png");
+    background-size: 40px;
+    pointer-events: all;
+    box-shadow: 2px 2px 2px #2b2821ff;
+}
+
+@keyframes flash {
+    from {
+        background-color: #b03a48;
+    }
+    to {
+        background-color: #c04a58;
+    }
+}
+
+#input-boost.active {
+    background-color: #b03a48;
+    outline: 1px solid white;
+    animation: 1s ease-in-out 0s infinite alternate flash;
+    transform-origin: 75% 50%;
+}
+
+#input-boost img {
+    width: 100%;
+}
+
+@keyframes img_rumble {
+    0% {
+        transform: translate(0px, -1px) rotate(2deg);
+    }
+    5% {
+        transform: translate(0px, 1px) rotate(-2deg);
+    }
+    10% {
+        transform: translate(0px, -1px) rotate(2deg);
+    }
+    15% {
+        transform: translate(0px, 1px) rotate(-2deg);
+    }
+    20% {
+        transform: translate(0px, -1px) rotate(2deg);
+    }
+    25% {
+        transform: translate(0px, 1px) rotate(-2deg);
+    }
+    30% {
+        transform: translate(0px, -1px) rotate(2deg);
+    }
+    35% {
+        transform: translate(0px, 0px) rotate(0deg);
+    }
+}
+
+#input-boost.active img {
+    animation: 2s 0s infinite alternate img_rumble;
 }
 
 .inline {

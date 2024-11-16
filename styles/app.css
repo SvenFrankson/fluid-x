@@ -247,6 +247,13 @@ button {
     cursor: pointer;
     pointer-events: all;
     box-shadow: 2px 2px 2px #2b2821ff;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 button.locked {
@@ -273,7 +280,7 @@ button.highlit {
     background-color: #2b2821;
 }
 
-.black:hover, .black.hovered {
+body:not(.touchscreen) .black:hover, .black.hovered {
     background-color: color-mix(in srgb, #2b2821 85%, white 15%);
 }
 
@@ -281,7 +288,7 @@ button.highlit {
     background-color: #624c3c;
 }
 
-.brown:hover, .brown.hovered {
+body:not(.touchscreen) .brown:hover, .brown.hovered {
     background-color: color-mix(in srgb, #624c3c 85%, white 15%);
 }
 
@@ -289,7 +296,7 @@ button.highlit {
     background-color: #d9ac8b;
 }
 
-.salmon:hover, .salmon.hovered {
+body:not(.touchscreen) .salmon:hover, .salmon.hovered {
     background-color: color-mix(in srgb, #d9ac8b 85%, white 15%);
 }
 
@@ -297,7 +304,7 @@ button.highlit {
     background-color: #243d5c;
 }
 
-.blue:hover, .blue.hovered {
+body:not(.touchscreen) .blue:hover, .blue.hovered {
     background-color: color-mix(in srgb, #243d5c 85%, white 15%);
 }
 
@@ -305,7 +312,7 @@ button.highlit {
     background-color: #5d7275;
 }
 
-.bluegrey:hover, .bluegrey.hovered {
+body:not(.touchscreen) .bluegrey:hover, .bluegrey.hovered {
     background-color: color-mix(in srgb, #5d7275 85%, white 15%);
 }
 
@@ -313,7 +320,7 @@ button.highlit {
     background-color: #5c8b93;
 }
 
-.lightblue:hover, .lightblue.hovered {
+body:not(.touchscreen) .lightblue:hover, .lightblue.hovered {
     background-color: color-mix(in srgb, #5c8b93 85%, white 15%);
 }
 
@@ -321,7 +328,7 @@ button.highlit {
     background-color: #b1a58d;
 }
 
-.beige:hover, .beige.hovered {
+body:not(.touchscreen) .beige:hover, .beige.hovered {
     background-color: color-mix(in srgb, #b1a58d 85%, white 15%);
 }
 
@@ -329,7 +336,7 @@ button.highlit {
     background-color: #b03a48;
 }
 
-.red:hover, .red.hovered {
+body:not(.touchscreen) .red:hover, .red.hovered {
     background-color: color-mix(in srgb, #b03a48 85%, white 15%);
 }
 
@@ -337,7 +344,7 @@ button.highlit {
     background-color: #d4804d;
 }
 
-.orange:hover, .orange.hovered {
+body:not(.touchscreen) .orange:hover, .orange.hovered {
     background-color: color-mix(in srgb, #d4804d 85%, white 15%);
 }
 
@@ -345,7 +352,7 @@ button.highlit {
     background-color: #e0c872;
 }
 
-.yellow:hover, .yellow.hovered {
+body:not(.touchscreen) .yellow:hover, .yellow.hovered {
     background-color: color-mix(in srgb, #e0c872 85%, white 15%);
 }
 
@@ -353,7 +360,7 @@ button.highlit {
     background-color: #3e6958;
 }
 
-.green:hover, .green.hovered {
+body:not(.touchscreen) .green:hover, .green.hovered {
     background-color: color-mix(in srgb, #3e6958 85%, white 15%);
 }
 
@@ -362,7 +369,7 @@ button.selected {
     box-shadow: 2px 2px 2px #2b2821ff;
 }
 
-button:hover, .hovered {
+body:not(.touchscreen) button:hover, .hovered {
     outline: 2px solid white;
 }
 
@@ -460,13 +467,6 @@ button:hover, .hovered {
     border-radius: 20px;
     border: 3px solid #2b2821ff;
     padding: 0;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
 .input-button:hover {
@@ -983,12 +983,12 @@ body.vertical #editor-ui {
     border-top: 3px double #2b2821;
 }
 
-.line.hoverable {
+body:not(.touchscreen) .line.hoverable {
     width: fit-content;
     padding: 5px;
 }
 
-.line.hovered {
+body:not(.touchscreen) .line.hovered {
     border-radius: 4px;
     border: 2px solid #624c3c;
     outline: 1px solid white;

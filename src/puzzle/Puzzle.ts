@@ -917,6 +917,18 @@ class Puzzle {
         }
         
         let bordersVertexDatas: BABYLON.VertexData[] = [];
+        for (let i = 0; i < this.buildings.length; i++) {
+            let building = this.buildings[i];
+            for (let j = 0; j < building.borders.length; j++) {
+                let border = building.borders[j];
+                let data = await border.getVertexData();
+                if (data) {
+                    Mummu.RotateAngleAxisVertexDataInPlace(data, border.rotationY, BABYLON.Axis.Y);
+                    Mummu.TranslateVertexDataInPlace(data, border.position);
+                    bordersVertexDatas.push(data);
+                }
+            }
+        }
         for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
             let data = await this.buildingBlocksBorders[i].getVertexData();
             if (data) {

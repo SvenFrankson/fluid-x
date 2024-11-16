@@ -935,8 +935,8 @@ class Puzzle {
     }
 
     public updateInvisifloorTM(): void {
-        let w = Math.max(100, 2 * (this.xMax - this.xMin));
-        let h = Math.max(100, 2 * (this.zMax - this.zMin));
+        let w = this.xMax - this.xMin + 2.2;
+        let h = this.zMax - this.zMin + 2.2;
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = (this.xMax + this.xMin) * 0.5;
         this.invisiFloorTM.position.z = (this.zMax + this.zMin) * 0.5;

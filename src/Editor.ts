@@ -23,6 +23,12 @@ class Editor {
     public cursorI: number = 0;
     public cursorJ: number = 0;
     public cursorH: number = 0;
+    public get cursorW(): number {
+        return Math.round(this.cursor.scaling.x / 1.1);
+    }
+    public get cursorD(): number {
+        return Math.round(this.cursor.scaling.z / 1.1);
+    }
 
     public brush: EditorBrush = EditorBrush.None;
     public brushColor: TileColor = TileColor.North;
@@ -723,7 +729,9 @@ class Editor {
             )
             if (pick.hit) {
                 this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
+                this.cursorI = Nabu.MinMax(this.cursorI, 0, this.puzzle.w - this.cursorW);
                 this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
+                this.cursorJ = Nabu.MinMax(this.cursorJ, 0, this.puzzle.h - this.cursorD);
                 this.cursorH = this.puzzle.hMapGet(this.cursorI, this.cursorJ);
 
                 this.cursor.isVisible = true;

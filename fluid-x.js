@@ -1984,7 +1984,9 @@ class Editor {
                 });
                 if (pick.hit) {
                     this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
+                    this.cursorI = Nabu.MinMax(this.cursorI, 0, this.puzzle.w - this.cursorW);
                     this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
+                    this.cursorJ = Nabu.MinMax(this.cursorJ, 0, this.puzzle.h - this.cursorD);
                     this.cursorH = this.puzzle.hMapGet(this.cursorI, this.cursorJ);
                     this.cursor.isVisible = true;
                     this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
@@ -2142,6 +2144,12 @@ class Editor {
             color: new BABYLON.Color4(0, 1, 0, 1)
         });
         this.setCursorSize({ w: 1, h: 0, d: 1 });
+    }
+    get cursorW() {
+        return Math.round(this.cursor.scaling.x / 1.1);
+    }
+    get cursorD() {
+        return Math.round(this.cursor.scaling.z / 1.1);
     }
     get title() {
         if (this.titleInput) {
@@ -7700,8 +7708,8 @@ class Puzzle {
         datas[2].applyToMesh(this.boxesFloor);
     }
     updateInvisifloorTM() {
-        let w = Math.max(100, 2 * (this.xMax - this.xMin));
-        let h = Math.max(100, 2 * (this.zMax - this.zMin));
+        let w = this.xMax - this.xMin + 2.2;
+        let h = this.zMax - this.zMin + 2.2;
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = (this.xMax + this.xMin) * 0.5;
         this.invisiFloorTM.position.z = (this.zMax + this.zMin) * 0.5;

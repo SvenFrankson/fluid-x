@@ -1308,11 +1308,19 @@ class Ramp extends Build {
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0.5, true));
         this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 0, true));
-        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 1, true));
+        let hideUpperSideBorderLeft = true;
+        if (this.puzzle.hMapGet(this.i - 1, this.j + 2) === 1) {
+            hideUpperSideBorderLeft = false;
+        }
+        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 2, 1, hideUpperSideBorderLeft));
         this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j, 0, true));
         this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 1, 0.5, true));
         this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 1, true));
+        let hideUpperSideBorderRight = true;
+        if (this.puzzle.hMapGet(this.i + this.w, this.j + 2) === 1) {
+            hideUpperSideBorderRight = false;
+        }
+        this.borders.push(Border.BorderRight(this.game, this.i + this.w - 1, this.j + 2, 1, hideUpperSideBorderRight));
         for (let i = 0; i < this.w; i++) {
             this.borders.push(Border.BorderTop(this.game, this.i + i, this.j + 2, 0, true));
         }
@@ -1348,21 +1356,41 @@ class Ramp extends Build {
             floorData.uvs[2 * i + 1] = 0.55 * (floorData.positions[3 * i + 2] + this.position.z);
         }
         floorData.applyToMesh(this.floor);
-        let jPlusLeftStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j + 3);
-        let jPlusLeftConn = jPlusLeftStack && jPlusLeftStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
-        if (jPlusLeftConn) {
-            data[2].applyToMesh(this.builtInBorderLeft);
+        let showLeftBorder = true;
+        for (let j = 0; j < 3; j++) {
+            let rampH = (j + 1) / 3;
+            let puzzleH = this.puzzle.hMapGet(this.i - 1, this.j + j);
+            if (puzzleH > rampH) {
+                showLeftBorder = false;
+            }
         }
-        else {
-            data[3].applyToMesh(this.builtInBorderLeft);
+        if (showLeftBorder) {
+            let jPlusLeftStack = this.game.puzzle.getGriddedBorderStack(this.i - 1, this.j + 3);
+            let jPlusLeftConn = jPlusLeftStack && jPlusLeftStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
+            if (jPlusLeftConn) {
+                data[2].applyToMesh(this.builtInBorderLeft);
+            }
+            else {
+                data[3].applyToMesh(this.builtInBorderLeft);
+            }
         }
-        let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + this.w - 1, this.j + 3);
-        let jPlusRightConn = jPlusRightStack && jPlusRightStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
-        if (jPlusRightConn) {
-            data[2].applyToMesh(this.builtInBorderRight);
+        let showRightBorder = true;
+        for (let j = 0; j < 3; j++) {
+            let rampH = (j + 1) / 3;
+            let puzzleH = this.puzzle.hMapGet(this.i + this.w, this.j + j);
+            if (puzzleH > rampH) {
+                showRightBorder = false;
+            }
         }
-        else {
-            data[3].applyToMesh(this.builtInBorderRight);
+        if (showRightBorder) {
+            let jPlusRightStack = this.game.puzzle.getGriddedBorderStack(this.i + this.w - 1, this.j + 3);
+            let jPlusRightConn = jPlusRightStack && jPlusRightStack.array.find(brd => { return brd.position.y === this.position.y + 1 && brd.vertical === true; });
+            if (jPlusRightConn) {
+                data[2].applyToMesh(this.builtInBorderRight);
+            }
+            else {
+                data[3].applyToMesh(this.builtInBorderRight);
+            }
         }
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({

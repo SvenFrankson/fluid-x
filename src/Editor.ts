@@ -438,7 +438,6 @@ class Editor {
         document.getElementById("load-btn").onclick = () => {
             this.dropClear();
             this.dropBrush();
-            document.getElementById("load-btn").style.display = "none";
             document.getElementById("load-file-input").style.display = "";
         };
 
@@ -460,7 +459,6 @@ class Editor {
                 });
                 reader.readAsText(file);
             }
-            document.getElementById("load-btn").style.display = "";
             document.getElementById("load-file-input").style.display = "none";
         };
         

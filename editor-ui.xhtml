@@ -64,20 +64,20 @@
         <button id="button-one-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/button-1.png);"></button>
         <button id="button-two-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/button-2.png);"></button>
         <button id="button-three-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/button-3.png);"></button>
-        <button class="medium-square-btn inline" style="visibility: hidden;"></button>
+        <button id="door-one-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-1.png);"></button>
     </div>
     <div class="line">
-        <button id="door-one-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-1.png);"></button>
         <button id="door-two-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-2.png);"></button>
         <button id="door-three-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-2.png);"></button>
-        <button class="medium-square-btn inline" style="visibility: hidden;"></button>
+        <button id="push-tile-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/push-tile.png);"></button>
+        <button id="hole-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/hole-tile.png);"></button>
     </div>
     
     <div class="line">
-        <button id="push-tile-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/push-tile.png);"></button>
-        <button id="hole-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/hole-tile.png);"></button>
         <button id="wall-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/wall.png);"></button>
         <button id="water-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/water.png);"></button>
+        <button id="delete-btn" class="medium-square-btn inline black white-stroke" style="font-size: 30px; color: rgb(160, 38, 38)">DEL</button>
+        <button class="medium-square-btn inline" style="visibility: hidden;"></button>
     </div>
     <div class="line">
         <button id="ramp-1-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/ramp.png);"></button>
@@ -91,26 +91,21 @@
         <button class="medium-square-btn inline" style="visibility: hidden;"></button>
         <button class="medium-square-btn inline" style="visibility: hidden;"></button>
     </div>
-    <div class="line">
-        <button id="delete-btn" class="medium-btn bluegrey"><stroke-text>Delete</stroke-text></button>
-    </div>
     
     <div class="line" style="display: none;">
-        <button id="doclear-btn" class="medium-btn red"><stroke-text>Clear !</stroke-text></button>
+        <button id="doclear-btn" class="medium-btn red" style="width: 214px;"><stroke-text>Clear !</stroke-text></button>
     </div>
 
     <div class="line">
-        <button id="save-btn" class="medium-btn lightblue"><stroke-text>Save</stroke-text></button>
+        <button id="save-btn" class="medium-btn lightblue inline"><stroke-text>Save</stroke-text></button>
+        <button id="load-btn" class="medium-btn lightblue inline"><stroke-text>Load</stroke-text></button>
+    </div>
+    <input id="load-file-input" type="file" style="display: none;"/>
+    <div class="line">
+        <button id="publish-btn" class="medium-btn lightblue" style="width: 214px;"><stroke-text>Publish</stroke-text></button>
     </div>
     <div class="line">
-        <button id="load-btn" class="medium-btn lightblue"><stroke-text>Load</stroke-text></button>
-        <input id="load-file-input" type="file" style="display: none;"/>
-    </div>
-    <div class="line">
-        <button id="publish-btn" class="medium-btn lightblue"><stroke-text>Publish</stroke-text></button>
-    </div>
-    <div class="line">
-        <button id="clear-btn" class="medium-btn red"><stroke-text>Clear</stroke-text></button>
+        <button id="clear-btn" class="medium-btn red" style="width: 214px;"><stroke-text>Clear</stroke-text></button>
     </div>
     
     <div id="editor-publish-form" class="panel" style="display: none;">

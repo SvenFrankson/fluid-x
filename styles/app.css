@@ -38,7 +38,7 @@ body {
 
 .black-stroke {
     color: rgb(236, 224, 208);
-    text-shadow: 1px 1px 0px #2b2821, -1px 1px 0px #2b2821, -1px -1px 0px #2b2821, 1px -1px 0px #2b2821, 1px 0px 0px #2b2821, -1px 0px 0px #2b2821, 0px -1px 0px #2b2821, 0px -1px 0px #2b2821;
+    text-shadow: 2px 2px 0px #2b2821, -2px 2px 0px #2b2821, -2px -2px 0px #2b2821, 2px -2px 0px #2b2821, 2px 0px 0px #2b2821, -2px 0px 0px #2b2821, 0px -2px 0px #2b2821, 0px -2px 0px #2b2821;
 }
 
 body.touchscreen .touchscreen-hide {

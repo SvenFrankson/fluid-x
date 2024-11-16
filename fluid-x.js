@@ -2157,7 +2157,12 @@ class Editor {
                                 this.puzzle.editorRegenerateBuildings();
                             }
                             if (tile) {
-                                tile.instantiate();
+                                if (tile instanceof WaterTile) {
+                                    this.puzzle.editorRegenerateWaterTiles();
+                                }
+                                else {
+                                    tile.instantiate();
+                                }
                                 this.puzzle.rebuildFloor();
                             }
                         }
@@ -3823,6 +3828,7 @@ let onFirstPlayerInteractionTouch = (ev) => {
     if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
+    Game.Instance.camera.panningSensibility *= 0.4;
 };
 let onFirstPlayerInteractionClick = (ev) => {
     if (!Game.Instance.gameLoaded) {
@@ -4084,7 +4090,6 @@ class Game {
         this.camera = new BABYLON.ArcRotateCamera("camera", -Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
         this.camera.pinchPrecision *= 10;
-        this.camera.panningSensibility *= 0.4;
         this.updatePlayCameraRadius();
         this.router = new CarillonRouter(this);
         this.router.initialize();
@@ -6173,6 +6178,17 @@ class WaterTile extends Tile {
         this.floorMesh.parent = this;
         this.floorMesh.material = this.game.floorMaterial;
     }
+    disconnect() {
+        this.distFromSource = Infinity;
+        this.iMinusWater = undefined;
+        this.iPlusWater = undefined;
+        this.jMinusWater = undefined;
+        this.jPlusWater = undefined;
+        if (this.sculptMesh) {
+            this.sculptMesh.dispose();
+            this.sculptMesh = undefined;
+        }
+    }
     fallsIn(ball) {
         if (ball.position.x < this.position.x - 0.55) {
             return false;
@@ -7613,19 +7629,11 @@ class Puzzle {
         HaikuMaker.MakeHaiku(this);
         this.game.updateMenuCameraRadius();
     }
-    async instantiate() {
-        this.regenerateHeightMap();
-        for (let i = 0; i < this.tiles.length; i++) {
-            let t = this.tiles[i];
-            if (t instanceof WaterTile) {
-            }
-            else if (t instanceof HoleTile) {
-            }
-            else {
-                t.position.y = this.hMapGet(t.i, t.j);
-            }
-        }
-        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
+    connectWaterTiles() {
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
+        waterTiles.forEach(waterTile => {
+            waterTile.disconnect();
+        });
         while (waterTiles.length > 2) {
             waterTiles = waterTiles.sort((t1, t2) => {
                 if (t2.j === t1.j) {
@@ -7638,6 +7646,20 @@ class Puzzle {
             }
             waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
         }
+    }
+    async instantiate() {
+        this.regenerateHeightMap();
+        for (let i = 0; i < this.tiles.length; i++) {
+            let t = this.tiles[i];
+            if (t instanceof WaterTile) {
+            }
+            else if (t instanceof HoleTile) {
+            }
+            else {
+                t.position.y = this.hMapGet(t.i, t.j);
+            }
+        }
+        this.connectWaterTiles();
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
         }
@@ -7722,6 +7744,13 @@ class Puzzle {
                     }
                 }
             }
+        }
+    }
+    async editorRegenerateWaterTiles() {
+        this.connectWaterTiles();
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; });
+        for (let i = 0; i < waterTiles.length; i++) {
+            await waterTiles[i].instantiate();
         }
     }
     async editorRegenerateBuildings() {

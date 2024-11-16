@@ -37,6 +37,18 @@ class WaterTile extends Tile {
         this.floorMesh.material = this.game.floorMaterial;
     }
 
+    public disconnect(): void {
+        this.distFromSource = Infinity;
+        this.iMinusWater = undefined;
+        this.iPlusWater = undefined;
+        this.jMinusWater = undefined;
+        this.jPlusWater = undefined;
+        if (this.sculptMesh) {
+            this.sculptMesh.dispose();
+            this.sculptMesh = undefined;
+        }
+    }
+
     public fallsIn(ball: Ball): boolean {
         if (ball.position.x < this.position.x - 0.55) {
             return false;

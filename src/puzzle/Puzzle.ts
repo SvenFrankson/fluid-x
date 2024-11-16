@@ -776,6 +776,25 @@ class Puzzle {
         this.game.updateMenuCameraRadius();
     }
 
+    public connectWaterTiles(): void {
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; }) as WaterTile[];
+        waterTiles.forEach(waterTile => {
+            waterTile.disconnect();
+        })
+        while (waterTiles.length > 2) {
+            waterTiles = waterTiles.sort((t1, t2) => {
+                if (t2.j === t1.j) {
+                    return t1.i - t2.i;
+                }
+                return t2.j - t1.j;
+            });
+            if (waterTiles[0]) {
+                (waterTiles[0] as WaterTile).recursiveConnect(0);
+            }
+            waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; }) as WaterTile[];
+        }
+    }
+
     public async instantiate(): Promise<void> {
         this.regenerateHeightMap();
         
@@ -792,19 +811,7 @@ class Puzzle {
             }
         }
 
-        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
-        while (waterTiles.length > 2) {
-            waterTiles = waterTiles.sort((t1, t2) => {
-                if (t2.j === t1.j) {
-                    return t1.i - t2.i;
-                }
-                return t2.j - t1.j;
-            });
-            if (waterTiles[0]) {
-                (waterTiles[0] as WaterTile).recursiveConnect(0);
-            }
-            waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; })
-        }
+        this.connectWaterTiles();
 
         for (let i = 0; i < this.tiles.length; i++) {
             await this.tiles[i].instantiate();
@@ -902,6 +909,15 @@ class Puzzle {
                     }
                 }
             }
+        }
+    }
+
+    
+    public async editorRegenerateWaterTiles(): Promise<void> {
+        this.connectWaterTiles();
+        let waterTiles = this.tiles.filter(t => { return t instanceof WaterTile; }) as WaterTile[];
+        for (let i = 0; i < waterTiles.length; i++) {
+            await waterTiles[i].instantiate();
         }
     }
 

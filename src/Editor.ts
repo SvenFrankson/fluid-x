@@ -911,7 +911,12 @@ class Editor {
                             this.puzzle.editorRegenerateBuildings();
                         }
                         if (tile) {
-                            tile.instantiate();
+                            if (tile instanceof WaterTile) {
+                                this.puzzle.editorRegenerateWaterTiles();
+                            }
+                            else {
+                                tile.instantiate();
+                            }
                             this.puzzle.rebuildFloor();
                         }
                     }

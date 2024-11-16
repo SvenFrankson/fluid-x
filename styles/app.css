@@ -383,7 +383,7 @@ button:hover, .hovered {
     font-size: 24px;
     border-radius: 4px;
     border: 2px solid #624c3cff;
-    margin: 5px;
+    margin: 2px;
     width: 100px;
     height: 40px;
     padding: 0;
@@ -952,6 +952,14 @@ completion-bar .completed {
 #editor-ui .line {
     display: flex;
     gap: 4px;
+}
+
+#editor-ui .separator {
+    margin-top: 8px;
+    margin-bottom: 6px;
+    border-top: 2px double #2b282180;
+    height: 2px;
+    border-bottom: 2px double #2b282180;
 }
 
 .medium-square-btn {

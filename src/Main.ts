@@ -410,6 +410,8 @@ class Game {
 
         this.camera = new BABYLON.ArcRotateCamera("camera", - Math.PI * 0.5, Math.PI * 0.1, 15, BABYLON.Vector3.Zero());
         this.camera.wheelPrecision *= 10;
+        this.camera.pinchPrecision *= 10;
+        this.camera.panningSensibility *= 0.4;
         this.updatePlayCameraRadius();
         
         this.router = new CarillonRouter(this);

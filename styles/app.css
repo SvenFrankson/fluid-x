@@ -1017,6 +1017,10 @@ body:not(.touchscreen) .line.hovered {
     top: calc((100svh - 200px) * 0.5);
 }
 
+#editor-publish-form .line {
+    display: block;
+}
+
 #publish-generated-url {
     display: inline-block;
     font-family: Arial, Helvetica, sans-serif;

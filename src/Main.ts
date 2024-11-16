@@ -1181,6 +1181,12 @@ class Game {
             this.menuCamBeta = b0 + bDist * fb;
 
             if (this.mode === GameMode.Play) {
+                while (this.camera.alpha > Math.PI / 2) {
+                    this.camera.alpha -= 2 * Math.PI;
+                }
+                while (this.camera.alpha < - 3 * Math.PI / 2) {
+                    this.camera.alpha += 2 * Math.PI;
+                }
                 let targetCameraPos = this.puzzle.balls[0].absolutePosition.clone();
                 if (this.puzzle.ballsCount === 2) {
                     targetCameraPos.addInPlace(this.puzzle.balls[1].absolutePosition).scaleInPlace(0.5);
@@ -1214,6 +1220,12 @@ class Game {
                 this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
             }
             else if (this.mode === GameMode.Menu || this.mode === GameMode.Preplay) {
+                while (this.camera.alpha > Math.PI / 2) {
+                    this.camera.alpha -= 2 * Math.PI;
+                }
+                while (this.camera.alpha < - 3 * Math.PI / 2) {
+                    this.camera.alpha += 2 * Math.PI;
+                }
                 rawDT = Math.min(rawDT, 1);
                 let w = this.puzzle.xMax - this.puzzle.xMin;
                 let d = this.puzzle.zMax - this.puzzle.zMin;

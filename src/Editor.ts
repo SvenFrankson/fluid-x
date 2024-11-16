@@ -717,8 +717,8 @@ class Editor {
     public update = (dt: number) => {
         if (this.active) {
             let pick = this.game.scene.pick(
-                this.game.scene.pointerX,
-                this.game.scene.pointerY,
+                this.game.scene.pointerX * window.devicePixelRatio,
+                this.game.scene.pointerY * window.devicePixelRatio,
                 (mesh) => {
                     return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 }
@@ -749,8 +749,8 @@ class Editor {
         let dd = dx * dx + dy * dy;
         if (dd < 9) {
             let pick = this.game.scene.pick(
-                this.game.scene.pointerX,
-                this.game.scene.pointerY,
+                this.game.scene.pointerX * window.devicePixelRatio,
+                this.game.scene.pointerY * window.devicePixelRatio,
                 (mesh) => {
                     return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 }
@@ -912,5 +912,22 @@ class Editor {
                 }
             }     
         }
+    }
+
+    public SwitchToMiniatureCamera(): void {
+        let cam = this.game.camera;
+        cam.mode = 1;
+
+        cam.orthoTop = 5;
+        cam.orthoBottom = -5;
+        cam.orthoRight = 5 * this.game.screenRatio;
+        cam.orthoLeft = -5 * this.game.screenRatio;
+
+        cam.target.x = 0.5 * (this.puzzle.xMin + this.puzzle.xMax);
+        cam.target.y = 0;
+        cam.target.z = 0.5 * (this.puzzle.zMin + this.puzzle.zMax);
+
+        cam.alpha = - Math.PI * 0.6;
+        cam.beta = Math.PI * 0.2;
     }
 }

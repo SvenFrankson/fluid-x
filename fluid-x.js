@@ -1979,7 +1979,7 @@ class Editor {
         this._pointerY = 0;
         this.update = (dt) => {
             if (this.active) {
-                let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
                     return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 });
                 if (pick.hit) {
@@ -2004,7 +2004,7 @@ class Editor {
             let dy = ev.clientY - this._pointerY;
             let dd = dx * dx + dy * dy;
             if (dd < 9) {
-                let pick = this.game.scene.pick(this.game.scene.pointerX, this.game.scene.pointerY, (mesh) => {
+                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
                     return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
                 });
                 if (pick.hit) {
@@ -2655,6 +2655,19 @@ class Editor {
         this.cursorOffset.y = size.h * 0.5;
         this.cursor.scaling.z = size.d * 1.1;
         this.cursorOffset.z = 0 + (size.d - 1) * 1.1 * 0.5;
+    }
+    SwitchToMiniatureCamera() {
+        let cam = this.game.camera;
+        cam.mode = 1;
+        cam.orthoTop = 5;
+        cam.orthoBottom = -5;
+        cam.orthoRight = 5 * this.game.screenRatio;
+        cam.orthoLeft = -5 * this.game.screenRatio;
+        cam.target.x = 0.5 * (this.puzzle.xMin + this.puzzle.xMax);
+        cam.target.y = 0;
+        cam.target.z = 0.5 * (this.puzzle.zMin + this.puzzle.zMax);
+        cam.alpha = -Math.PI * 0.6;
+        cam.beta = Math.PI * 0.2;
     }
 }
 class HaikuMaker {

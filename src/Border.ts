@@ -129,7 +129,6 @@ class Border {
         }
     }
 
-
     public dispose(): void {
         this.game.puzzle.removeFromGriddedBorderStack(this);
     }

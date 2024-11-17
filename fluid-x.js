@@ -1544,101 +1544,6 @@ class BuildingBlock {
         ];
     }
 }
-class OldBoxDeprecated extends Build {
-    constructor(game, props) {
-        super(game, props);
-        this.material = this.game.woodMaterial;
-        //this.roof = new BABYLON.Mesh("box-roof");
-        //this.roof.parent = this;
-        //this.roof.material = this.game.roofMaterial;
-        this.wall = new BABYLON.Mesh("box-wall");
-        this.wall.parent = this;
-        this.wall.material = this.game.wallMaterial;
-    }
-    fillHeightmap() {
-        for (let ii = 0; ii < 2; ii++) {
-            for (let jj = 0; jj < 2; jj++) {
-                this.game.puzzle.hMapSet(1, this.i + ii, this.j + jj);
-            }
-        }
-    }
-    regenerateBorders() {
-        while (this.borders.length > 0) {
-            this.borders.pop().dispose();
-        }
-        this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 0, true));
-        this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 0, true));
-        this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 0, true));
-        this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 0, true));
-        this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 0, true));
-        this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 0, true));
-        this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 0, true));
-        this.props.borderLeft = false;
-        this.props.borderRight = false;
-        this.props.borderBottom = false;
-        this.props.borderTop = false;
-        if (this.puzzle.hMapGet(this.i - 1, this.j) != 1) {
-            this.props.borderLeft = true;
-            this.borders.push(Border.BorderLeft(this.game, this.i, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i - 1, this.j + 1) != 1) {
-            this.props.borderLeft = true;
-            this.borders.push(Border.BorderLeft(this.game, this.i, this.j + 1, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 2, this.j) != 1) {
-            this.props.borderRight = true;
-            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 2, this.j + 1) != 1) {
-            this.props.borderRight = true;
-            this.borders.push(Border.BorderRight(this.game, this.i + 1, this.j + 1, 1));
-        }
-        if (this.puzzle.hMapGet(this.i, this.j - 1) != 1) {
-            this.props.borderBottom = true;
-            this.borders.push(Border.BorderBottom(this.game, this.i, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 1, this.j - 1) != 1) {
-            this.props.borderBottom = true;
-            this.borders.push(Border.BorderBottom(this.game, this.i + 1, this.j, 1));
-        }
-        if (this.puzzle.hMapGet(this.i, this.j + 2) != 1) {
-            this.props.borderTop = true;
-            this.borders.push(Border.BorderTop(this.game, this.i, this.j + 1, 1));
-        }
-        if (this.puzzle.hMapGet(this.i + 1, this.j + 2) != 1) {
-            this.props.borderTop = true;
-            this.borders.push(Border.BorderTop(this.game, this.i + 1, this.j + 1, 1));
-        }
-    }
-    async instantiate() {
-        /*
-        let data = await this.game.vertexDataLoader.get("./datas/meshes/building.babylon");
-        let boxData = Mummu.CloneVertexData(data[6]);
-        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.whiteMaterial.diffuseColor, BABYLON.Color3.White());
-        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.blueMaterial.diffuseColor, BABYLON.Color3.Red());
-        //Mummu.ColorizeVertexDataInPlace(boxData, this.game.brownMaterial.diffuseColor, BABYLON.Color3.Green());
-        boxData.applyToMesh(this);
-        data[7].applyToMesh(this.floor);
-        //data[8].applyToMesh(this.roof);
-        data[9].applyToMesh(this.wall);
-
-        let m = 0.2;
-        let shadowData = Mummu.Create9SliceVertexData({
-            width: 2.2 + 2 * m,
-            height: 2.2 + 2 * m,
-            margin: m,
-            cutTop: this.props.borderTop ? false : true,
-            cutRight: this.props.borderRight ? false : true,
-            cutBottom: this.props.borderBottom ? false : true,
-            cutLeft: this.props.borderLeft ? false : true,
-        });
-        Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 0.55));
-        shadowData.applyToMesh(this.shadow);
-        */
-    }
-}
 class Bridge extends Build {
     constructor(game, props) {
         super(game, props);
@@ -3765,7 +3670,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 1;
-var PATCH_VERSION = 1;
+var PATCH_VERSION = 2;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -3802,7 +3707,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
+var OFFLINE_MODE = true;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     //SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -7105,6 +7010,7 @@ class Puzzle {
             this.griddedBorders.forEach(line => {
                 line.forEach(stack => {
                     if (stack.contains(t)) {
+                        console.warn("It's been found elsewhere.");
                         stack.remove(t);
                     }
                 });
@@ -7308,6 +7214,9 @@ class Puzzle {
         }
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
+        }
+        while (this.buildingBlocksBorders.length > 0) {
+            this.buildingBlocksBorders.pop().dispose();
         }
         this.griddedTiles = [];
         this.griddedBorders = [];

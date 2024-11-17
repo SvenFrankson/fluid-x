@@ -109,6 +109,7 @@ class Puzzle {
             this.griddedBorders.forEach(line => {
                 line.forEach(stack => {
                     if (stack.contains(t)) {
+                        console.warn("It's been found elsewhere.");
                         stack.remove(t);
                     }
                 });
@@ -404,6 +405,9 @@ class Puzzle {
         }
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
+        }
+        while (this.buildingBlocksBorders.length > 0) {
+            this.buildingBlocksBorders.pop().dispose();
         }
         this.griddedTiles = [];
         this.griddedBorders = [];

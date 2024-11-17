@@ -602,7 +602,7 @@ class Ball extends BABYLON.Mesh {
                             else if (tile instanceof DoorTile && tile.closed === false) {
                             }
                             else {
-                                if (tile.tileState === TileState.Active) {
+                                if (tile.tileState === TileState.Active || tile.tileState === TileState.Moving) {
                                     if (tile.collide(this, impact)) {
                                         let dir = this.position.subtract(impact);
                                         if (Math.abs(dir.x) > Math.abs(dir.z)) {

@@ -400,60 +400,66 @@ class Ball extends BABYLON.Mesh {
 
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = BABYLON.Vector3.Zero();
-            if (this.dropletMode) {
-                p = new BABYLON.Vector3(0, 0.1, -0.8);
-            }
-            else {
-                p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
-                p.y += 0.15;
-            }
-            BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
-            if (this.trailTimer > 0.02) {
-                this.trailTimer = 0;
-                let last = this.trailPoints[this.trailPoints.length - 1]
-                if (last) {
-                    p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+
+            if (this.game.performanceWatcher.worst > 24) {
+                let p = BABYLON.Vector3.Zero();
+                if (this.dropletMode) {
+                    p = new BABYLON.Vector3(0, 0.1, -0.8);
+                }
+                else {
+                    p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
+                    p.y += 0.15;
+                }
+                BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
+                if (this.trailTimer > 0.02) {
+                    this.trailTimer = 0;
+                    let last = this.trailPoints[this.trailPoints.length - 1]
+                    if (last) {
+                        p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+                    }
+
+                    this.trailPoints.push(p);
+                    let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                    this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
+                    this.trailPointColors.push(this.trailColor.clone());
+                    let count = 40;
+                    //count = 200; // debug
+                    if (this.trailPoints.length > count) {
+                        this.trailPoints.splice(0, 1);
+                    }
+                    while (this.trailPointColors.length > this.trailPoints.length) {
+                        this.trailPointColors.splice(0, 1);
+                    }
                 }
 
-                this.trailPoints.push(p);
-                let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
-                this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
-                this.trailPointColors.push(this.trailColor.clone());
-                let count = 40;
-                //count = 200; // debug
-                if (this.trailPoints.length > count) {
-                    this.trailPoints.splice(0, 1);
-                }
-                while (this.trailPointColors.length > this.trailPoints.length) {
-                    this.trailPointColors.splice(0, 1);
-                }
-            }
+                if (this.trailPoints.length > 2) {
+                    let points = this.trailPoints.map((pt, i) => { 
+                        pt = pt.clone();
+                        pt.y -= 0.05 * i / this.trailPoints.length;
+                        return pt;
+                    });
+                    Mummu.CatmullRomPathInPlace(points);
+                    points.push(p);
 
-            if (this.trailPoints.length > 2) {
-                let points = this.trailPoints.map((pt, i) => { 
-                    pt = pt.clone();
-                    pt.y -= 0.05 * i / this.trailPoints.length;
-                    return pt;
-                });
-                Mummu.CatmullRomPathInPlace(points);
-                points.push(p);
-
-                let colors: BABYLON.Color4[] = [];
-                for (let i = 0; i < this.trailPointColors.length; i++) {
-                    colors.push(this.trailPointColors[i]);
-                    colors.push(this.trailPointColors[i]);
+                    let colors: BABYLON.Color4[] = [];
+                    for (let i = 0; i < this.trailPointColors.length; i++) {
+                        colors.push(this.trailPointColors[i]);
+                        colors.push(this.trailPointColors[i]);
+                    }
+                    let data = CreateTrailVertexData({
+                        path: points,
+                        radiusFunc: (f) => {
+                            return 0.08 * f;
+                            //return 0.01;
+                        },
+                        colors: colors
+                    });
+                    data.applyToMesh(this.trailMesh);
+                    this.trailMesh.isVisible = true;
                 }
-                let data = CreateTrailVertexData({
-                    path: points,
-                    radiusFunc: (f) => {
-                        return 0.08 * f;
-                        //return 0.01;
-                    },
-                    colors: colors
-                });
-                data.applyToMesh(this.trailMesh);
-                this.trailMesh.isVisible = true;
+                else {
+                    this.trailMesh.isVisible = false;
+                }    
             }
             else {
                 this.trailMesh.isVisible = false;

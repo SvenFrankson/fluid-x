@@ -334,57 +334,62 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            let p = BABYLON.Vector3.Zero();
-            if (this.dropletMode) {
-                p = new BABYLON.Vector3(0, 0.1, -0.8);
-            }
-            else {
-                p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
-                p.y += 0.15;
-            }
-            BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
-            if (this.trailTimer > 0.02) {
-                this.trailTimer = 0;
-                let last = this.trailPoints[this.trailPoints.length - 1];
-                if (last) {
-                    p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+            if (this.game.performanceWatcher.worst > 24) {
+                let p = BABYLON.Vector3.Zero();
+                if (this.dropletMode) {
+                    p = new BABYLON.Vector3(0, 0.1, -0.8);
                 }
-                this.trailPoints.push(p);
-                let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
-                this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
-                this.trailPointColors.push(this.trailColor.clone());
-                let count = 40;
-                //count = 200; // debug
-                if (this.trailPoints.length > count) {
-                    this.trailPoints.splice(0, 1);
+                else {
+                    p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
+                    p.y += 0.15;
                 }
-                while (this.trailPointColors.length > this.trailPoints.length) {
-                    this.trailPointColors.splice(0, 1);
+                BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
+                if (this.trailTimer > 0.02) {
+                    this.trailTimer = 0;
+                    let last = this.trailPoints[this.trailPoints.length - 1];
+                    if (last) {
+                        p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+                    }
+                    this.trailPoints.push(p);
+                    let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                    this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
+                    this.trailPointColors.push(this.trailColor.clone());
+                    let count = 40;
+                    //count = 200; // debug
+                    if (this.trailPoints.length > count) {
+                        this.trailPoints.splice(0, 1);
+                    }
+                    while (this.trailPointColors.length > this.trailPoints.length) {
+                        this.trailPointColors.splice(0, 1);
+                    }
                 }
-            }
-            if (this.trailPoints.length > 2) {
-                let points = this.trailPoints.map((pt, i) => {
-                    pt = pt.clone();
-                    pt.y -= 0.05 * i / this.trailPoints.length;
-                    return pt;
-                });
-                Mummu.CatmullRomPathInPlace(points);
-                points.push(p);
-                let colors = [];
-                for (let i = 0; i < this.trailPointColors.length; i++) {
-                    colors.push(this.trailPointColors[i]);
-                    colors.push(this.trailPointColors[i]);
+                if (this.trailPoints.length > 2) {
+                    let points = this.trailPoints.map((pt, i) => {
+                        pt = pt.clone();
+                        pt.y -= 0.05 * i / this.trailPoints.length;
+                        return pt;
+                    });
+                    Mummu.CatmullRomPathInPlace(points);
+                    points.push(p);
+                    let colors = [];
+                    for (let i = 0; i < this.trailPointColors.length; i++) {
+                        colors.push(this.trailPointColors[i]);
+                        colors.push(this.trailPointColors[i]);
+                    }
+                    let data = CreateTrailVertexData({
+                        path: points,
+                        radiusFunc: (f) => {
+                            return 0.08 * f;
+                            //return 0.01;
+                        },
+                        colors: colors
+                    });
+                    data.applyToMesh(this.trailMesh);
+                    this.trailMesh.isVisible = true;
                 }
-                let data = CreateTrailVertexData({
-                    path: points,
-                    radiusFunc: (f) => {
-                        return 0.08 * f;
-                        //return 0.01;
-                    },
-                    colors: colors
-                });
-                data.applyToMesh(this.trailMesh);
-                this.trailMesh.isVisible = true;
+                else {
+                    this.trailMesh.isVisible = false;
+                }
             }
             else {
                 this.trailMesh.isVisible = false;
@@ -5521,16 +5526,18 @@ class PushTile extends Tile {
                             await this.animateWait(0.2);
                             newPos.y -= 5.5;
                             await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
-                            let explosionCloud = new Explosion(this.game);
-                            let p = this.position.clone();
-                            p.y = -1;
-                            explosionCloud.origin.copyFrom(p);
-                            explosionCloud.setRadius(0.4);
-                            explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
-                            explosionCloud.lifespan = 4;
-                            explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
-                            explosionCloud.tZero = 0.9;
-                            explosionCloud.boom();
+                            if (this.game.performanceWatcher.worst > 24) {
+                                let explosionCloud = new Explosion(this.game);
+                                let p = this.position.clone();
+                                p.y = -1;
+                                explosionCloud.origin.copyFrom(p);
+                                explosionCloud.setRadius(0.4);
+                                explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
+                                explosionCloud.lifespan = 4;
+                                explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
+                                explosionCloud.tZero = 0.9;
+                                explosionCloud.boom();
+                            }
                             this.fallImpactSound.play();
                             this.dispose();
                         }
@@ -7339,6 +7346,7 @@ class Puzzle {
             this.balls[bIndex].position.x = parseInt(ballLine[bIndexZero + 0 + 3 * bIndex]) * 1.1;
             this.balls[bIndex].position.y = 0;
             this.balls[bIndex].position.z = parseInt(ballLine[bIndexZero + 1 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].boost = false;
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
             this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
             this.balls[bIndex].trailPoints = [];
@@ -8185,7 +8193,11 @@ class Puzzle {
         }
         this._globalTime += dt;
         this._timer += dt;
-        if (this._timer > 0.1) {
+        let refreshRate = 0.1;
+        if (this.game.performanceWatcher.worst < 24) {
+            refreshRate = 1;
+        }
+        if (this._timer > refreshRate) {
             this._timer = 0;
             let context = this.fpsTexture.getContext();
             context.fillStyle = "#e0c872ff";

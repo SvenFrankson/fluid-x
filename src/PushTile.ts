@@ -134,16 +134,18 @@ class PushTile extends Tile {
                             await this.animateWait(0.2);
                             newPos.y -= 5.5
                             await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
-                            let explosionCloud = new Explosion(this.game);
-                            let p = this.position.clone();
-                            p.y = -1;
-                            explosionCloud.origin.copyFrom(p);
-                            explosionCloud.setRadius(0.4);
-                            explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
-                            explosionCloud.lifespan = 4;
-                            explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
-                            explosionCloud.tZero = 0.9;
-                            explosionCloud.boom();
+                            if (this.game.performanceWatcher.worst > 24) {
+                                let explosionCloud = new Explosion(this.game);
+                                let p = this.position.clone();
+                                p.y = -1;
+                                explosionCloud.origin.copyFrom(p);
+                                explosionCloud.setRadius(0.4);
+                                explosionCloud.color = new BABYLON.Color3(0.5, 0.5, 0.5);
+                                explosionCloud.lifespan = 4;
+                                explosionCloud.maxOffset = new BABYLON.Vector3(0, 0.4, 0);
+                                explosionCloud.tZero = 0.9;
+                                explosionCloud.boom();
+                            }
                             this.fallImpactSound.play();
                             this.dispose();
                         }

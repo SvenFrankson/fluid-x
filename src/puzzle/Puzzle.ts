@@ -446,6 +446,7 @@ class Puzzle {
             this.balls[bIndex].position.x = parseInt(ballLine[bIndexZero + 0 + 3 * bIndex]) * 1.1;
             this.balls[bIndex].position.y = 0;
             this.balls[bIndex].position.z = parseInt(ballLine[bIndexZero + 1 + 3 * bIndex]) * 1.1;
+            this.balls[bIndex].boost = false;
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
             this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
             this.balls[bIndex].trailPoints = [];
@@ -1360,7 +1361,11 @@ class Puzzle {
 
         this._globalTime += dt;
         this._timer += dt;
-        if (this._timer > 0.1) {
+        let refreshRate = 0.1;
+        if (this.game.performanceWatcher.worst < 24) {
+            refreshRate = 1;
+        }
+        if (this._timer > refreshRate) {
             this._timer = 0;
             let context = this.fpsTexture.getContext();
             context.fillStyle = "#e0c872ff";

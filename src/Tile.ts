@@ -193,65 +193,75 @@ abstract class Tile extends BABYLON.Mesh {
 
         star.scaling.copyFromFloats(0.4, 0.4, 0.4);
 
-
-        let tail = new BABYLON.Mesh("tail");
-        tail.visibility = 1;
-        let tailMaterial = new BABYLON.StandardMaterial("tail-material");
-        tailMaterial.specularColor.copyFromFloats(0, 0, 0);
-        tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
-        tail.material = tailMaterial;
-        let tailPoints: BABYLON.Vector3[] = [];
+        let tail: BABYLON.Mesh;
+        let tailPoints: BABYLON.Vector3[];
+        if (this.game.performanceWatcher.worst > 24) {
+            tail = new BABYLON.Mesh("tail");
+            tail.visibility = 1;
+            let tailMaterial = new BABYLON.StandardMaterial("tail-material");
+            tailMaterial.specularColor.copyFromFloats(0, 0, 0);
+            tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+            tail.material = tailMaterial;
+            tailPoints = [];
+        }
+        
 
         this.game.puzzle.wooshSound.play();
         let t0 = performance.now();
         let duration = 1.5;
         let step = () => {
             if (star.isDisposed()) {
-                tail.dispose();
-                return;
+                if (tail) {
+                    tail.dispose();
+                    return;
+                }
             }
             let f = (performance.now() - t0) / 1000 / duration;
             if (f < 1) {
                 f = Nabu.Easing.easeOutSine(f);
                 Mummu.EvaluatePathToRef(f, path, star.position);
                 star.rotation.y = f * 2 * Math.PI;
-                let n = Math.floor(f * path.length);
-                if (f < 0.5) {
-                    if (0 < n - 3 - 1) {
-                        tailPoints = path.slice(0, n - 3);
+                if (tail) {
+                    let n = Math.floor(f * path.length);
+                    if (f < 0.5) {
+                        if (0 < n - 3 - 1) {
+                            tailPoints = path.slice(0, n - 3);
+                        }
+                        else {
+                            tailPoints = [];
+                        }
                     }
                     else {
-                        tailPoints = [];
+                        let start = Math.floor((- 1.1 + 2.2 * f) * path.length);
+                        if (start < n - 3 - 1) {
+                            tailPoints = path.slice(start, n - 3);
+                        }
+                        else {
+                            tailPoints = [];
+                        }
                     }
-                }
-                else {
-                    let start = Math.floor((- 1.1 + 2.2 * f) * path.length);
-                    if (start < n - 3 - 1) {
-                        tailPoints = path.slice(start, n - 3);
+                    if (tailPoints.length > 2) {
+                        let data = CreateTrailVertexData({
+                            path: [...tailPoints],
+                            up: BABYLON.Axis.Y,
+                            radiusFunc: (f) => {
+                                return 0.02 * f + 0.01;
+                            },
+                            color: new BABYLON.Color4(1, 1, 1, 1)
+                        });
+                        data.applyToMesh(tail);
+                        tail.isVisible = true;
                     }
                     else {
-                        tailPoints = [];
+                        tail.isVisible = false;
                     }
-                }
-                if (tailPoints.length > 2) {
-                    let data = CreateTrailVertexData({
-                        path: [...tailPoints],
-                        up: BABYLON.Axis.Y,
-                        radiusFunc: (f) => {
-                            return 0.02 * f + 0.01;
-                        },
-                        color: new BABYLON.Color4(1, 1, 1, 1)
-                    });
-                    data.applyToMesh(tail);
-                    tail.isVisible = true;
-                }
-                else {
-                    tail.isVisible = false;
                 }
                 requestAnimationFrame(step);
             }
             else {
-                tail.dispose();
+                if (tail) {
+                    tail.dispose();
+                }
                 star.position.copyFrom(dest);
                 star.setParent(this.game.puzzle.border);
 

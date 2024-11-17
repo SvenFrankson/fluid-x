@@ -41,7 +41,7 @@ class NumValueInput extends HTMLElement {
         this.buttonMinus.classList.add("xsmall-btn", "green");
         this.buttonMinus.innerHTML = "<stroke-text>-</stroke-text>";
         this.appendChild(this.buttonMinus);
-        this.buttonMinus.onclick = () => {
+        this.buttonMinus.onpointerup = () => {
             this.setValue(this.value - 1);
             if (this.onValueChange) {
                 this.onValueChange(this.value);
@@ -69,7 +69,7 @@ class NumValueInput extends HTMLElement {
         this.buttonPlus.classList.add("xsmall-btn", "green");
         this.buttonPlus.innerHTML = "<stroke-text>+</stroke-text>";
         this.appendChild(this.buttonPlus);
-        this.buttonPlus.onclick = () => {
+        this.buttonPlus.onpointerup = () => {
             this.setValue(this.value + 1);
             if (this.onValueChange) {
                 this.onValueChange(this.value);

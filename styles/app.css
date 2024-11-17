@@ -247,13 +247,13 @@ button {
     cursor: pointer;
     pointer-events: all;
     box-shadow: 2px 2px 2px #2b2821ff;
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    user-select: none;
 }
 
 button.locked {

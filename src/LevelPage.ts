@@ -1,6 +1,6 @@
 interface IPuzzleTileData {
     data: IPuzzleData;
-    onclick: () => void;
+    onpointerup: () => void;
     locked?: boolean;
     completed?: boolean;
     classList?: string[];
@@ -35,7 +35,7 @@ abstract class LevelPage {
         return this.nabuPage.hide(duration);
     }
 
-    public setSquareButtonOnClick(squareButton: HTMLButtonElement, n: number): void {
+    public setSquareButtonOnpointerup(squareButton: HTMLButtonElement, n: number): void {
 
     }
 
@@ -80,7 +80,7 @@ abstract class LevelPage {
                 squareButton.classList.add(...puzzleTileDatas[n].classList);
             }
 
-            squareButton.onclick = puzzleTileDatas[n].onclick;
+            squareButton.onpointerup = puzzleTileDatas[n].onpointerup;
 
             let titleField = document.createElement("div");
             titleField.classList.add("square-btn-title");
@@ -302,8 +302,8 @@ abstract class LevelPage {
             return;
         }
         let btn = this.buttons[this._hoveredButtonIndex];
-        if (btn && btn.onclick) {
-            btn.onclick(undefined);
+        if (btn && btn.onpointerup) {
+            btn.onpointerup(undefined);
             return;
         }
     }
@@ -362,7 +362,7 @@ class StoryPuzzlesPage extends LevelPage {
                 }
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
@@ -377,7 +377,7 @@ class StoryPuzzlesPage extends LevelPage {
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#expert-puzzles"
                     },
                     classList: ["red"]
@@ -391,7 +391,7 @@ class StoryPuzzlesPage extends LevelPage {
                         author: "Community",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#community-puzzles"
                     },
                     classList: ["green"]
@@ -433,7 +433,7 @@ class ExpertPuzzlesPage extends LevelPage {
                 
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     },
@@ -448,7 +448,7 @@ class ExpertPuzzlesPage extends LevelPage {
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#levels"
                     },
                     classList: ["lightblue"]
@@ -462,7 +462,7 @@ class ExpertPuzzlesPage extends LevelPage {
                         author: "Community",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#community-puzzles"
                     },
                     classList: ["green"]
@@ -507,7 +507,7 @@ class CommunityPuzzlesPage extends LevelPage {
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "puzzle-" + id;
                     }
@@ -530,7 +530,7 @@ class CommunityPuzzlesPage extends LevelPage {
             if (data.puzzles[n]) {
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "puzzle-" + data.puzzles[n].id;
                     }
@@ -577,7 +577,7 @@ class DevPuzzlesPage extends LevelPage {
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "puzzle-" + id;
                     }
@@ -612,7 +612,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
             if (data.puzzles[n]) {                
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     }

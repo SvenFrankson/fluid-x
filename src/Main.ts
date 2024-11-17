@@ -231,6 +231,7 @@ class Game {
     public toonSoundManager: ToonSoundManager;
     public uiInputManager: UserInterfaceInputManager;
     public screenRatio: number = 1;
+    public performanceWatcher: PerformanceWatcher;
 
     public camera: BABYLON.ArcRotateCamera;
     public menuCamAlpha: number = - Math.PI * 0.75;
@@ -353,6 +354,7 @@ class Game {
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
+        this.performanceWatcher = new PerformanceWatcher(this);
 	}
 
     public async createScene(): Promise<void> {
@@ -769,30 +771,30 @@ class Game {
             }
         });
 
-        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).onclick = () => {
+        (document.querySelector("#success-score-submit-btn") as HTMLButtonElement).onpointerup = () => {
             this.puzzle.submitHighscore();
         }
 
-        (document.querySelector("#reset-btn") as HTMLButtonElement).onclick = async () => {
+        (document.querySelector("#reset-btn") as HTMLButtonElement).onpointerup = async () => {
             await this.puzzle.reset();
             this.puzzle.skipIntro();
         }
 
-        (document.querySelector("#zoom-out-btn") as HTMLButtonElement).onclick = () => {
+        (document.querySelector("#zoom-out-btn") as HTMLButtonElement).onpointerup = () => {
             this.playCameraRange += 1;
             this.updatePlayCameraRadius();
         }
 
-        (document.querySelector("#zoom-in-btn") as HTMLButtonElement).onclick = () => {
+        (document.querySelector("#zoom-in-btn") as HTMLButtonElement).onpointerup = () => {
             this.playCameraRange -= 1;
             this.updatePlayCameraRadius();
         }
 
-        (document.querySelector("#dev-mode-activate-btn") as HTMLButtonElement).onclick = () => {
+        (document.querySelector("#dev-mode-activate-btn") as HTMLButtonElement).onpointerup = () => {
             DEV_ACTIVATE();
         }
 
-        (document.querySelector("#eula-back-btn") as HTMLButtonElement).onclick = () => {
+        (document.querySelector("#eula-back-btn") as HTMLButtonElement).onpointerup = () => {
             this.router.eulaPage.hide(0);
         }
 
@@ -801,7 +803,7 @@ class Game {
         let devSecret = 0;
         let devSecretTimout: number = 0;
         (document.querySelector("#home-menu h1") as HTMLHeadingElement).style.pointerEvents = "auto";
-        (document.querySelector("#home-menu h1") as HTMLHeadingElement).onclick = () => {
+        (document.querySelector("#home-menu h1") as HTMLHeadingElement).onpointerup = () => {
             if (devSecret < 6) {
                 devSecret++;
             }
@@ -1165,6 +1167,7 @@ class Game {
     public globalTimer: number = 0;
     public update(): void {
         let rawDT = this.scene.deltaTime / 1000;
+        this.performanceWatcher.update(rawDT);
         if (isFinite(rawDT)) {
             this.globalTimer += rawDT;
             
@@ -1471,7 +1474,7 @@ function DEV_ACTIVATE(): void {
     for (let i = 0; i < devStateBtns.length; i++) {
         devStateBtns[i].style.display = "block";
         let state = i;
-        devStateBtns[i].onclick = async () => {
+        devStateBtns[i].onpointerup = async () => {
             let id = parseInt(location.hash.replace("#puzzle-", ""));
             if (isFinite(id)) {
                 let data = {
@@ -1496,17 +1499,17 @@ function DEV_ACTIVATE(): void {
     (document.querySelector("#dev-story-order") as HTMLDivElement).style.display = "block";
     let devStoryOrderBtns = document.querySelectorAll("#dev-story-order button");
     let devStoryOrderMinus = devStoryOrderBtns[0] as HTMLButtonElement;
-    devStoryOrderMinus.onclick = () => {
+    devStoryOrderMinus.onpointerup = () => {
         Game.Instance.puzzle.data.story_order--;
         DEV_UPDATE_STATE_UI();
     }
     let devStoryOrderPlus = devStoryOrderBtns[1] as HTMLButtonElement;
-    devStoryOrderPlus.onclick = () => {
+    devStoryOrderPlus.onpointerup = () => {
         Game.Instance.puzzle.data.story_order++;
         DEV_UPDATE_STATE_UI();
     }
     let devStoryOrderSend = devStoryOrderBtns[2] as HTMLButtonElement;
-    devStoryOrderSend.onclick = async () => {
+    devStoryOrderSend.onpointerup = async () => {
         let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
@@ -1549,7 +1552,7 @@ function DEV_ACTIVATE(): void {
         }
     }
     let devDifficultySend = devDifficulty.querySelector("#dev-difficulty-send") as HTMLButtonElement;
-    devDifficultySend.onclick = async () => {
+    devDifficultySend.onpointerup = async () => {
         let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
@@ -1575,7 +1578,7 @@ function DEV_ACTIVATE(): void {
         Game.Instance.puzzle.data.expert_puzzle_id = parseInt(devXpertPuzzleInput.value);
     }
     let devXpertPuzzleSend = devXpertPuzzle.querySelector("#dev-xpert-puzzle-send") as HTMLButtonElement;
-    devXpertPuzzleSend.onclick = async () => {
+    devXpertPuzzleSend.onpointerup = async () => {
         let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {

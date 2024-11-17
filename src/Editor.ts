@@ -151,7 +151,7 @@ class Editor {
 
     public activate(): void {
         this.ballCountButton = document.getElementById("ball-count-btn") as HTMLButtonElement;
-        this.ballCountButton.onclick = () => {
+        this.ballCountButton.onpointerup = () => {
             if (this.puzzle.ballsCount === 1) {
                 this.puzzle.ballsCount = 2;
                 this.puzzle.balls[1].instantiate();
@@ -215,7 +215,7 @@ class Editor {
         }
 
         this.widthInsert = document.getElementById("editor-width-insert") as HTMLButtonElement;
-        this.widthInsert.onclick = () => {
+        this.widthInsert.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
 
             let split = text.split("x");
@@ -240,7 +240,7 @@ class Editor {
         }
 
         this.widthDelete = document.getElementById("editor-width-delete") as HTMLButtonElement;
-        this.widthDelete.onclick = () => {
+        this.widthDelete.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
 
             let split = text.split("x");
@@ -273,7 +273,7 @@ class Editor {
         }
 
         this.heightInsert = document.getElementById("editor-height-insert") as HTMLButtonElement;
-        this.heightInsert.onclick = () => {
+        this.heightInsert.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -298,7 +298,7 @@ class Editor {
         }
 
         this.heightDelete = document.getElementById("editor-height-delete") as HTMLButtonElement;
-        this.heightDelete.onclick = () => {
+        this.heightDelete.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -379,7 +379,7 @@ class Editor {
             if (!cursorSize) {
                 cursorSize = {};
             }
-            button.onclick = () => {
+            button.onpointerup = () => {
                 this.dropClear();
                 this.unselectAllButtons();
                 if (this.brush != brush || (isFinite(value) && this.brushColor != value)) {
@@ -426,7 +426,7 @@ class Editor {
 
         makeBrushButton(this.deleteButton, EditorBrush.Delete);        
         
-        document.getElementById("play-btn").onclick = async () => {
+        document.getElementById("play-btn").onpointerup = async () => {
             this.dropClear();
             this.dropBrush();
             this.puzzle.data.content = SaveAsText(this.puzzle);
@@ -434,14 +434,14 @@ class Editor {
             location.hash = "#editor-preview";
         };
 
-        document.getElementById("save-btn").onclick = () => {
+        document.getElementById("save-btn").onpointerup = () => {
             this.dropClear();
             this.dropBrush();
             let content = SaveAsText(this.puzzle);
             Nabu.download("puzzle.txt", content);
         };
         
-        document.getElementById("load-btn").onclick = () => {
+        document.getElementById("load-btn").onpointerup = () => {
             this.dropClear();
             this.dropBrush();
             document.getElementById("load-file-input").style.display = "";
@@ -481,7 +481,7 @@ class Editor {
         this.authorInput = document.querySelector("#author-input") as HTMLInputElement;
         this.eulaCheckbox = document.querySelector("#eula-checkbox") as HTMLInputElement;
 
-        document.getElementById("publish-btn").onclick = async () => {
+        document.getElementById("publish-btn").onpointerup = async () => {
             this.dropClear();
             this.dropBrush();
             this.setPublishState(0);
@@ -494,7 +494,7 @@ class Editor {
         this.authorInput.onchange = this.updatePublishBtn;
         this.eulaCheckbox.onchange = this.updatePublishBtn;
         
-        this.publishConfirmButton.onclick = async () => {
+        this.publishConfirmButton.onpointerup = async () => {
             if (this._pendingPublish) {
                 return;
             }
@@ -540,7 +540,7 @@ class Editor {
                 let url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 (document.querySelector("#publish-generated-url-go").parentElement as HTMLAnchorElement).href = url;
-                (document.querySelector("#publish-generated-url-copy") as HTMLButtonElement).onclick = () => { navigator.clipboard.writeText(url); };
+                (document.querySelector("#publish-generated-url-copy") as HTMLButtonElement).onpointerup = () => { navigator.clipboard.writeText(url); };
                 this.setPublishState(2);
                 this._pendingPublish = false;
             }
@@ -550,16 +550,16 @@ class Editor {
             }
         };
         
-        document.getElementById("publish-read-eula-btn").onclick = async () => {
+        document.getElementById("publish-read-eula-btn").onpointerup = async () => {
             this.game.router.eulaPage.show(0);
         };
         
-        this.publishCancelButton.onclick = async () => {
+        this.publishCancelButton.onpointerup = async () => {
             this.publishForm.style.display = "none";
         };
 
         document.querySelectorAll(".publish-ok-btn").forEach(btn => {
-            (btn as HTMLButtonElement).onclick = () => {
+            (btn as HTMLButtonElement).onpointerup = () => {
                 this.publishForm.style.display = "none";
             }
         })
@@ -567,12 +567,12 @@ class Editor {
         this.clearButton = document.getElementById("clear-btn") as HTMLButtonElement;
         this.doClearButton = document.getElementById("doclear-btn") as HTMLButtonElement;
 
-        this.clearButton.onclick = () => {
+        this.clearButton.onpointerup = () => {
             this.clearButton.parentElement.style.display = "none";
             this.doClearButton.parentElement.style.display = "block";
         }
 
-        this.doClearButton.onclick = async () => {
+        this.doClearButton.onpointerup = async () => {
             this.dropClear();
             await this.puzzle.loadFromFile("./datas/levels/min.txt");
             await this.puzzle.instantiate();
@@ -594,26 +594,26 @@ class Editor {
     public deactivate(): void {
         this.active = false;
 
-        document.getElementById("switch-north-btn").onclick = undefined;
-        document.getElementById("switch-east-btn").onclick = undefined;
-        document.getElementById("switch-south-btn").onclick = undefined;
-        document.getElementById("switch-west-btn").onclick = undefined;
+        document.getElementById("switch-north-btn").onpointerup = undefined;
+        document.getElementById("switch-east-btn").onpointerup = undefined;
+        document.getElementById("switch-south-btn").onpointerup = undefined;
+        document.getElementById("switch-west-btn").onpointerup = undefined;
         
-        document.getElementById("tile-north-btn").onclick = undefined;
-        document.getElementById("tile-east-btn").onclick = undefined;
-        document.getElementById("tile-south-btn").onclick = undefined;
-        document.getElementById("tile-west-btn").onclick = undefined;
+        document.getElementById("tile-north-btn").onpointerup = undefined;
+        document.getElementById("tile-east-btn").onpointerup = undefined;
+        document.getElementById("tile-south-btn").onpointerup = undefined;
+        document.getElementById("tile-west-btn").onpointerup = undefined;
         
-        document.getElementById("box-btn").onclick = undefined;
-        document.getElementById("ramp-1-btn").onclick = undefined;
-        document.getElementById("ramp-2-btn").onclick = undefined;
-        document.getElementById("ramp-3-btn").onclick = undefined;
-        document.getElementById("ramp-4-btn").onclick = undefined;
-        document.getElementById("bridge-btn").onclick = undefined;
-        document.getElementById("hole-btn").onclick = undefined;
+        document.getElementById("box-btn").onpointerup = undefined;
+        document.getElementById("ramp-1-btn").onpointerup = undefined;
+        document.getElementById("ramp-2-btn").onpointerup = undefined;
+        document.getElementById("ramp-3-btn").onpointerup = undefined;
+        document.getElementById("ramp-4-btn").onpointerup = undefined;
+        document.getElementById("bridge-btn").onpointerup = undefined;
+        document.getElementById("hole-btn").onpointerup = undefined;
 
-        document.getElementById("save-btn").onclick = undefined;
-        document.getElementById("load-btn").onclick = undefined;
+        document.getElementById("save-btn").onpointerup = undefined;
+        document.getElementById("load-btn").onpointerup = undefined;
         document.getElementById("load-file-input").onchange = undefined;
         
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);

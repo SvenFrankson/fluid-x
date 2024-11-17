@@ -946,63 +946,73 @@ class Tile extends BABYLON.Mesh {
         starTop.parent = star;
         starTop.material = this.game.tileColorMaterials[this.color];
         star.scaling.copyFromFloats(0.4, 0.4, 0.4);
-        let tail = new BABYLON.Mesh("tail");
-        tail.visibility = 1;
-        let tailMaterial = new BABYLON.StandardMaterial("tail-material");
-        tailMaterial.specularColor.copyFromFloats(0, 0, 0);
-        tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
-        tail.material = tailMaterial;
-        let tailPoints = [];
+        let tail;
+        let tailPoints;
+        if (this.game.performanceWatcher.worst > 24) {
+            tail = new BABYLON.Mesh("tail");
+            tail.visibility = 1;
+            let tailMaterial = new BABYLON.StandardMaterial("tail-material");
+            tailMaterial.specularColor.copyFromFloats(0, 0, 0);
+            tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+            tail.material = tailMaterial;
+            tailPoints = [];
+        }
         this.game.puzzle.wooshSound.play();
         let t0 = performance.now();
         let duration = 1.5;
         let step = () => {
             if (star.isDisposed()) {
-                tail.dispose();
-                return;
+                if (tail) {
+                    tail.dispose();
+                    return;
+                }
             }
             let f = (performance.now() - t0) / 1000 / duration;
             if (f < 1) {
                 f = Nabu.Easing.easeOutSine(f);
                 Mummu.EvaluatePathToRef(f, path, star.position);
                 star.rotation.y = f * 2 * Math.PI;
-                let n = Math.floor(f * path.length);
-                if (f < 0.5) {
-                    if (0 < n - 3 - 1) {
-                        tailPoints = path.slice(0, n - 3);
+                if (tail) {
+                    let n = Math.floor(f * path.length);
+                    if (f < 0.5) {
+                        if (0 < n - 3 - 1) {
+                            tailPoints = path.slice(0, n - 3);
+                        }
+                        else {
+                            tailPoints = [];
+                        }
                     }
                     else {
-                        tailPoints = [];
+                        let start = Math.floor((-1.1 + 2.2 * f) * path.length);
+                        if (start < n - 3 - 1) {
+                            tailPoints = path.slice(start, n - 3);
+                        }
+                        else {
+                            tailPoints = [];
+                        }
                     }
-                }
-                else {
-                    let start = Math.floor((-1.1 + 2.2 * f) * path.length);
-                    if (start < n - 3 - 1) {
-                        tailPoints = path.slice(start, n - 3);
+                    if (tailPoints.length > 2) {
+                        let data = CreateTrailVertexData({
+                            path: [...tailPoints],
+                            up: BABYLON.Axis.Y,
+                            radiusFunc: (f) => {
+                                return 0.02 * f + 0.01;
+                            },
+                            color: new BABYLON.Color4(1, 1, 1, 1)
+                        });
+                        data.applyToMesh(tail);
+                        tail.isVisible = true;
                     }
                     else {
-                        tailPoints = [];
+                        tail.isVisible = false;
                     }
-                }
-                if (tailPoints.length > 2) {
-                    let data = CreateTrailVertexData({
-                        path: [...tailPoints],
-                        up: BABYLON.Axis.Y,
-                        radiusFunc: (f) => {
-                            return 0.02 * f + 0.01;
-                        },
-                        color: new BABYLON.Color4(1, 1, 1, 1)
-                    });
-                    data.applyToMesh(tail);
-                    tail.isVisible = true;
-                }
-                else {
-                    tail.isVisible = false;
                 }
                 requestAnimationFrame(step);
             }
             else {
-                tail.dispose();
+                if (tail) {
+                    tail.dispose();
+                }
                 star.position.copyFrom(dest);
                 star.setParent(this.game.puzzle.border);
                 let index = this.game.puzzle.stars.indexOf(star);
@@ -2225,7 +2235,7 @@ class Editor {
     }
     activate() {
         this.ballCountButton = document.getElementById("ball-count-btn");
-        this.ballCountButton.onclick = () => {
+        this.ballCountButton.onpointerup = () => {
             if (this.puzzle.ballsCount === 1) {
                 this.puzzle.ballsCount = 2;
                 this.puzzle.balls[1].instantiate();
@@ -2281,7 +2291,7 @@ class Editor {
             this.puzzle.rebuildFloor();
         };
         this.widthInsert = document.getElementById("editor-width-insert");
-        this.widthInsert.onclick = () => {
+        this.widthInsert.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -2299,7 +2309,7 @@ class Editor {
             this.initValues();
         };
         this.widthDelete = document.getElementById("editor-width-delete");
-        this.widthDelete.onclick = () => {
+        this.widthDelete.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -2325,7 +2335,7 @@ class Editor {
             this.puzzle.rebuildFloor();
         };
         this.heightInsert = document.getElementById("editor-height-insert");
-        this.heightInsert.onclick = () => {
+        this.heightInsert.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -2345,7 +2355,7 @@ class Editor {
             this.initValues();
         };
         this.heightDelete = document.getElementById("editor-height-delete");
-        this.heightDelete.onclick = () => {
+        this.heightDelete.onpointerup = () => {
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -2419,7 +2429,7 @@ class Editor {
             if (!cursorSize) {
                 cursorSize = {};
             }
-            button.onclick = () => {
+            button.onpointerup = () => {
                 this.dropClear();
                 this.unselectAllButtons();
                 if (this.brush != brush || (isFinite(value) && this.brushColor != value)) {
@@ -2459,20 +2469,20 @@ class Editor {
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
-        document.getElementById("play-btn").onclick = async () => {
+        document.getElementById("play-btn").onpointerup = async () => {
             this.dropClear();
             this.dropBrush();
             this.puzzle.data.content = SaveAsText(this.puzzle);
             this.puzzle.reset();
             location.hash = "#editor-preview";
         };
-        document.getElementById("save-btn").onclick = () => {
+        document.getElementById("save-btn").onpointerup = () => {
             this.dropClear();
             this.dropBrush();
             let content = SaveAsText(this.puzzle);
             Nabu.download("puzzle.txt", content);
         };
-        document.getElementById("load-btn").onclick = () => {
+        document.getElementById("load-btn").onpointerup = () => {
             this.dropClear();
             this.dropBrush();
             document.getElementById("load-file-input").style.display = "";
@@ -2507,7 +2517,7 @@ class Editor {
         this.titleInput = document.querySelector("#title-input");
         this.authorInput = document.querySelector("#author-input");
         this.eulaCheckbox = document.querySelector("#eula-checkbox");
-        document.getElementById("publish-btn").onclick = async () => {
+        document.getElementById("publish-btn").onpointerup = async () => {
             this.dropClear();
             this.dropBrush();
             this.setPublishState(0);
@@ -2517,7 +2527,7 @@ class Editor {
         this.titleInput.onchange = this.updatePublishBtn;
         this.authorInput.onchange = this.updatePublishBtn;
         this.eulaCheckbox.onchange = this.updatePublishBtn;
-        this.publishConfirmButton.onclick = async () => {
+        this.publishConfirmButton.onpointerup = async () => {
             if (this._pendingPublish) {
                 return;
             }
@@ -2562,7 +2572,7 @@ class Editor {
                 let url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 document.querySelector("#publish-generated-url-go").parentElement.href = url;
-                document.querySelector("#publish-generated-url-copy").onclick = () => { navigator.clipboard.writeText(url); };
+                document.querySelector("#publish-generated-url-copy").onpointerup = () => { navigator.clipboard.writeText(url); };
                 this.setPublishState(2);
                 this._pendingPublish = false;
             }
@@ -2571,24 +2581,24 @@ class Editor {
                 this._pendingPublish = false;
             }
         };
-        document.getElementById("publish-read-eula-btn").onclick = async () => {
+        document.getElementById("publish-read-eula-btn").onpointerup = async () => {
             this.game.router.eulaPage.show(0);
         };
-        this.publishCancelButton.onclick = async () => {
+        this.publishCancelButton.onpointerup = async () => {
             this.publishForm.style.display = "none";
         };
         document.querySelectorAll(".publish-ok-btn").forEach(btn => {
-            btn.onclick = () => {
+            btn.onpointerup = () => {
                 this.publishForm.style.display = "none";
             };
         });
         this.clearButton = document.getElementById("clear-btn");
         this.doClearButton = document.getElementById("doclear-btn");
-        this.clearButton.onclick = () => {
+        this.clearButton.onpointerup = () => {
             this.clearButton.parentElement.style.display = "none";
             this.doClearButton.parentElement.style.display = "block";
         };
-        this.doClearButton.onclick = async () => {
+        this.doClearButton.onpointerup = async () => {
             this.dropClear();
             await this.puzzle.loadFromFile("./datas/levels/min.txt");
             await this.puzzle.instantiate();
@@ -2604,23 +2614,23 @@ class Editor {
     }
     deactivate() {
         this.active = false;
-        document.getElementById("switch-north-btn").onclick = undefined;
-        document.getElementById("switch-east-btn").onclick = undefined;
-        document.getElementById("switch-south-btn").onclick = undefined;
-        document.getElementById("switch-west-btn").onclick = undefined;
-        document.getElementById("tile-north-btn").onclick = undefined;
-        document.getElementById("tile-east-btn").onclick = undefined;
-        document.getElementById("tile-south-btn").onclick = undefined;
-        document.getElementById("tile-west-btn").onclick = undefined;
-        document.getElementById("box-btn").onclick = undefined;
-        document.getElementById("ramp-1-btn").onclick = undefined;
-        document.getElementById("ramp-2-btn").onclick = undefined;
-        document.getElementById("ramp-3-btn").onclick = undefined;
-        document.getElementById("ramp-4-btn").onclick = undefined;
-        document.getElementById("bridge-btn").onclick = undefined;
-        document.getElementById("hole-btn").onclick = undefined;
-        document.getElementById("save-btn").onclick = undefined;
-        document.getElementById("load-btn").onclick = undefined;
+        document.getElementById("switch-north-btn").onpointerup = undefined;
+        document.getElementById("switch-east-btn").onpointerup = undefined;
+        document.getElementById("switch-south-btn").onpointerup = undefined;
+        document.getElementById("switch-west-btn").onpointerup = undefined;
+        document.getElementById("tile-north-btn").onpointerup = undefined;
+        document.getElementById("tile-east-btn").onpointerup = undefined;
+        document.getElementById("tile-south-btn").onpointerup = undefined;
+        document.getElementById("tile-west-btn").onpointerup = undefined;
+        document.getElementById("box-btn").onpointerup = undefined;
+        document.getElementById("ramp-1-btn").onpointerup = undefined;
+        document.getElementById("ramp-2-btn").onpointerup = undefined;
+        document.getElementById("ramp-3-btn").onpointerup = undefined;
+        document.getElementById("ramp-4-btn").onpointerup = undefined;
+        document.getElementById("bridge-btn").onpointerup = undefined;
+        document.getElementById("hole-btn").onpointerup = undefined;
+        document.getElementById("save-btn").onpointerup = undefined;
+        document.getElementById("load-btn").onpointerup = undefined;
         document.getElementById("load-file-input").onchange = undefined;
         this.game.canvas.removeEventListener("pointerdown", this.pointerDown);
         this.game.canvas.removeEventListener("pointerup", this.pointerUp);
@@ -3301,8 +3311,8 @@ class LevelPage {
                 return;
             }
             let btn = this.buttons[this._hoveredButtonIndex];
-            if (btn && btn.onclick) {
-                btn.onclick(undefined);
+            if (btn && btn.onpointerup) {
+                btn.onpointerup(undefined);
                 return;
             }
         };
@@ -3335,7 +3345,7 @@ class LevelPage {
     async hide(duration) {
         return this.nabuPage.hide(duration);
     }
-    setSquareButtonOnClick(squareButton, n) {
+    setSquareButtonOnpointerup(squareButton, n) {
     }
     onPageRedrawn() {
     }
@@ -3368,7 +3378,7 @@ class LevelPage {
             if (puzzleTileDatas[n].classList) {
                 squareButton.classList.add(...puzzleTileDatas[n].classList);
             }
-            squareButton.onclick = puzzleTileDatas[n].onclick;
+            squareButton.onpointerup = puzzleTileDatas[n].onpointerup;
             let titleField = document.createElement("div");
             titleField.classList.add("square-btn-title");
             let titleText = document.createElement("stroke-text");
@@ -3519,7 +3529,7 @@ class StoryPuzzlesPage extends LevelPage {
                 }
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
@@ -3534,7 +3544,7 @@ class StoryPuzzlesPage extends LevelPage {
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#expert-puzzles";
                     },
                     classList: ["red"]
@@ -3548,7 +3558,7 @@ class StoryPuzzlesPage extends LevelPage {
                         author: "Community",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#community-puzzles";
                     },
                     classList: ["green"]
@@ -3583,7 +3593,7 @@ class ExpertPuzzlesPage extends LevelPage {
                 }
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     },
@@ -3598,7 +3608,7 @@ class ExpertPuzzlesPage extends LevelPage {
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#levels";
                     },
                     classList: ["lightblue"]
@@ -3612,7 +3622,7 @@ class ExpertPuzzlesPage extends LevelPage {
                         author: "Community",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
-                    onclick: () => {
+                    onpointerup: () => {
                         location.hash = "#community-puzzles";
                     },
                     classList: ["green"]
@@ -3649,7 +3659,7 @@ class CommunityPuzzlesPage extends LevelPage {
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "puzzle-" + id;
                     }
@@ -3669,7 +3679,7 @@ class CommunityPuzzlesPage extends LevelPage {
             if (data.puzzles[n]) {
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "puzzle-" + data.puzzles[n].id;
                     }
@@ -3706,7 +3716,7 @@ class DevPuzzlesPage extends LevelPage {
                 let id = data.puzzles[i].id;
                 puzzleData[i] = {
                     data: data.puzzles[i],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[i]);
                         location.hash = "puzzle-" + id;
                     }
@@ -3735,7 +3745,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
             if (data.puzzles[n]) {
                 puzzleData[i] = {
                     data: data.puzzles[n],
-                    onclick: () => {
+                    onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
                     }
@@ -4005,6 +4015,7 @@ class Game {
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
+        this.performanceWatcher = new PerformanceWatcher(this);
     }
     getScene() {
         return this.scene;
@@ -4388,32 +4399,32 @@ class Game {
                 };
             }
         });
-        document.querySelector("#success-score-submit-btn").onclick = () => {
+        document.querySelector("#success-score-submit-btn").onpointerup = () => {
             this.puzzle.submitHighscore();
         };
-        document.querySelector("#reset-btn").onclick = async () => {
+        document.querySelector("#reset-btn").onpointerup = async () => {
             await this.puzzle.reset();
             this.puzzle.skipIntro();
         };
-        document.querySelector("#zoom-out-btn").onclick = () => {
+        document.querySelector("#zoom-out-btn").onpointerup = () => {
             this.playCameraRange += 1;
             this.updatePlayCameraRadius();
         };
-        document.querySelector("#zoom-in-btn").onclick = () => {
+        document.querySelector("#zoom-in-btn").onpointerup = () => {
             this.playCameraRange -= 1;
             this.updatePlayCameraRadius();
         };
-        document.querySelector("#dev-mode-activate-btn").onclick = () => {
+        document.querySelector("#dev-mode-activate-btn").onpointerup = () => {
             DEV_ACTIVATE();
         };
-        document.querySelector("#eula-back-btn").onclick = () => {
+        document.querySelector("#eula-back-btn").onpointerup = () => {
             this.router.eulaPage.hide(0);
         };
         document.querySelector("#title-version").innerHTML = "version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
         let devSecret = 0;
         let devSecretTimout = 0;
         document.querySelector("#home-menu h1").style.pointerEvents = "auto";
-        document.querySelector("#home-menu h1").onclick = () => {
+        document.querySelector("#home-menu h1").onpointerup = () => {
             if (devSecret < 6) {
                 devSecret++;
             }
@@ -4718,6 +4729,7 @@ class Game {
     }
     update() {
         let rawDT = this.scene.deltaTime / 1000;
+        this.performanceWatcher.update(rawDT);
         if (isFinite(rawDT)) {
             this.globalTimer += rawDT;
             let aLeft = -Math.PI * 0.9;
@@ -4970,7 +4982,7 @@ function DEV_ACTIVATE() {
     for (let i = 0; i < devStateBtns.length; i++) {
         devStateBtns[i].style.display = "block";
         let state = i;
-        devStateBtns[i].onclick = async () => {
+        devStateBtns[i].onpointerup = async () => {
             let id = parseInt(location.hash.replace("#puzzle-", ""));
             if (isFinite(id)) {
                 let data = {
@@ -4994,17 +5006,17 @@ function DEV_ACTIVATE() {
     document.querySelector("#dev-story-order").style.display = "block";
     let devStoryOrderBtns = document.querySelectorAll("#dev-story-order button");
     let devStoryOrderMinus = devStoryOrderBtns[0];
-    devStoryOrderMinus.onclick = () => {
+    devStoryOrderMinus.onpointerup = () => {
         Game.Instance.puzzle.data.story_order--;
         DEV_UPDATE_STATE_UI();
     };
     let devStoryOrderPlus = devStoryOrderBtns[1];
-    devStoryOrderPlus.onclick = () => {
+    devStoryOrderPlus.onpointerup = () => {
         Game.Instance.puzzle.data.story_order++;
         DEV_UPDATE_STATE_UI();
     };
     let devStoryOrderSend = devStoryOrderBtns[2];
-    devStoryOrderSend.onclick = async () => {
+    devStoryOrderSend.onpointerup = async () => {
         let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
@@ -5046,7 +5058,7 @@ function DEV_ACTIVATE() {
         }
     };
     let devDifficultySend = devDifficulty.querySelector("#dev-difficulty-send");
-    devDifficultySend.onclick = async () => {
+    devDifficultySend.onpointerup = async () => {
         let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
@@ -5071,7 +5083,7 @@ function DEV_ACTIVATE() {
         Game.Instance.puzzle.data.expert_puzzle_id = parseInt(devXpertPuzzleInput.value);
     };
     let devXpertPuzzleSend = devXpertPuzzle.querySelector("#dev-xpert-puzzle-send");
-    devXpertPuzzleSend.onclick = async () => {
+    devXpertPuzzleSend.onpointerup = async () => {
         let id = parseInt(location.hash.replace("#puzzle-", ""));
         if (isFinite(id)) {
             let data = {
@@ -5230,13 +5242,13 @@ class MultiplayerPage {
             document.querySelector("#multiplayer-panel-local")
         ];
         this.selectLocalBtn = document.querySelector("#multiplayer-select-local");
-        this.selectLocalBtn.onclick = () => {
+        this.selectLocalBtn.onpointerup = () => {
             this.setPanel(MultiplayerPagePanel.Local);
         };
         this.selectPublicBtn = document.querySelector("#multiplayer-select-public");
         this.selectPrivateBtn = document.querySelector("#multiplayer-select-private");
         this.localPlayBtn = this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-play");
-        this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-back").onclick = () => {
+        this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-back").onpointerup = () => {
             this.setPanel(MultiplayerPagePanel.Selection);
         };
         this._registerToInputManager();
@@ -5328,7 +5340,7 @@ class NumValueInput extends HTMLElement {
         this.buttonMinus.classList.add("xsmall-btn", "green");
         this.buttonMinus.innerHTML = "<stroke-text>-</stroke-text>";
         this.appendChild(this.buttonMinus);
-        this.buttonMinus.onclick = () => {
+        this.buttonMinus.onpointerup = () => {
             this.setValue(this.value - 1);
             if (this.onValueChange) {
                 this.onValueChange(this.value);
@@ -5352,7 +5364,7 @@ class NumValueInput extends HTMLElement {
         this.buttonPlus.classList.add("xsmall-btn", "green");
         this.buttonPlus.innerHTML = "<stroke-text>+</stroke-text>";
         this.appendChild(this.buttonPlus);
-        this.buttonPlus.onclick = () => {
+        this.buttonPlus.onpointerup = () => {
             this.setValue(this.value + 1);
             if (this.onValueChange) {
                 this.onValueChange(this.value);
@@ -5382,6 +5394,21 @@ class NumValueInput extends HTMLElement {
     }
 }
 customElements.define("num-value-input", NumValueInput);
+class PerformanceWatcher {
+    constructor(game) {
+        this.game = game;
+        this.average = 24;
+        this.worst = 24;
+    }
+    update(rawDt) {
+        let fps = 1 / rawDt;
+        if (isFinite(fps)) {
+            this.average = 0.995 * this.average + 0.005 * fps;
+            this.worst = Math.min(fps, this.worst);
+            this.worst = 0.995 * this.worst + 0.005 * this.average;
+        }
+    }
+}
 /// <reference path="./Tile.ts"/>
 class PushTile extends Tile {
     constructor(game, props) {
@@ -6956,7 +6983,6 @@ class Puzzle {
         this._ballCollisionTimeStamp = 0;
         this._timer = 0;
         this._globalTime = 0;
-        this._smoothedFPS = 30;
         this.balls = [
             new Ball(this, { color: TileColor.North }, 0),
             new Ball(this, { color: TileColor.North }, 1)
@@ -6984,7 +7010,7 @@ class Puzzle {
         this.bordersMesh.outlineWidth = 0.01;
         this.puzzleUI = new PuzzleUI(this);
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 300, height: 100 });
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
         this.fpsTexture.hasAlpha = true;
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -7887,14 +7913,14 @@ class Puzzle {
         tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
         */
-        let fpsPlaqueData = CreatePlaqueVertexData(0.9, 0.32, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16));
+        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
         fpsPlaque.parent = this.border;
         fpsPlaque.position.copyFromFloats(-width * 0.5 - bThickness + 0.1, bHeight, -depth * 0.5 - bThickness + 0.1);
         fpsPlaque.material = this.fpsMaterial;
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16).scale(-2));
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
@@ -8159,19 +8185,19 @@ class Puzzle {
         }
         this._globalTime += dt;
         this._timer += dt;
-        if (this._timer > 0.25) {
+        if (this._timer > 0.1) {
             this._timer = 0;
-            let fps = this.game.engine.getFps();
-            if (isFinite(fps)) {
-                this._smoothedFPS = 0.9 * this._smoothedFPS + 0.1 * fps;
-            }
             let context = this.fpsTexture.getContext();
             context.fillStyle = "#e0c872ff";
-            context.fillRect(0, 0, 800, 100);
+            context.fillRect(0, 0, 600, 100);
             context.fillStyle = "#473a2fFF";
             context.font = "900 90px Julee";
-            context.fillText(this._smoothedFPS.toFixed(0).padStart(3, " "), 30, 77);
+            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 30, 77);
             context.fillText("fps", 170, 77);
+            context.fillStyle = "#473a2fFF";
+            context.font = "900 90px Julee";
+            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 330, 77);
+            context.fillText("fps", 470, 77);
             this.fpsTexture.update();
         }
     }
@@ -8576,8 +8602,8 @@ class PuzzleUI {
                     if (this.hoveredElement.parentElement instanceof HTMLAnchorElement) {
                         location.hash = this.hoveredElement.parentElement.href.split("/").pop();
                     }
-                    else if (this.hoveredElement.onclick) {
-                        this.hoveredElement.onclick(undefined);
+                    else if (this.hoveredElement.onpointerup) {
+                        this.hoveredElement.onpointerup(undefined);
                     }
                 }
                 else if (this.hoveredElement === this.highscorePlayerLine) {
@@ -8607,7 +8633,7 @@ class PuzzleUI {
         //this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn");
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
-        this.gameoverReplayButton.onclick = () => {
+        this.gameoverReplayButton.onpointerup = () => {
             this.puzzle.reset();
             this.puzzle.skipIntro();
         };

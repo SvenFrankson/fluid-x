@@ -24,7 +24,7 @@ class MultiplayerPage {
         ];
 
         this.selectLocalBtn = document.querySelector("#multiplayer-select-local") as HTMLButtonElement;
-        this.selectLocalBtn.onclick = () => {
+        this.selectLocalBtn.onpointerup = () => {
             this.setPanel(MultiplayerPagePanel.Local);
         }
 
@@ -32,7 +32,7 @@ class MultiplayerPage {
         this.selectPrivateBtn = document.querySelector("#multiplayer-select-private") as HTMLButtonElement;
 
         this.localPlayBtn = this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-play") as HTMLButtonElement;
-        (this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-back") as HTMLButtonElement).onclick = () => {
+        (this.panels[MultiplayerPagePanel.Local].querySelector(".multiplayer-back") as HTMLButtonElement).onpointerup = () => {
             this.setPanel(MultiplayerPagePanel.Selection);
         }
 

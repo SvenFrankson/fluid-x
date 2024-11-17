@@ -251,7 +251,7 @@ class Puzzle {
         this.puzzleUI = new PuzzleUI(this);
 
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 300, height: 100 });
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
         this.fpsTexture.hasAlpha = true;
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -1070,8 +1070,8 @@ class Puzzle {
         tiaratumLogo2.material = haikuMaterial;
         */
         
-        let fpsPlaqueData = CreatePlaqueVertexData(0.9, 0.32, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16));
+        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
 
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
@@ -1079,7 +1079,7 @@ class Puzzle {
         fpsPlaque.position.copyFromFloats(- width * 0.5 - bThickness + 0.1, bHeight, - depth * 0.5 - bThickness + 0.1);
         fpsPlaque.material = this.fpsMaterial;
         
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.45, 0, 0.16).scale(-2));
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
@@ -1328,7 +1328,6 @@ class Puzzle {
 
     private _timer: number = 0;
     private _globalTime: number = 0;
-    private _smoothedFPS: number = 30;
     public update(dt: number): void {
         for (let i = 0; i < this.ballsCount; i++) {
             this.balls[i].update(dt);
@@ -1361,20 +1360,21 @@ class Puzzle {
 
         this._globalTime += dt;
         this._timer += dt;
-        if (this._timer > 0.25) {
+        if (this._timer > 0.1) {
             this._timer = 0;
-            let fps = this.game.engine.getFps();
-            if (isFinite(fps)) {
-                this._smoothedFPS = 0.9 * this._smoothedFPS + 0.1 * fps;
-            }
             let context = this.fpsTexture.getContext();
             context.fillStyle = "#e0c872ff";
-            context.fillRect(0, 0, 800, 100);
+            context.fillRect(0, 0, 600, 100);
     
             context.fillStyle = "#473a2fFF";
             context.font = "900 90px Julee";
-            context.fillText(this._smoothedFPS.toFixed(0).padStart(3, " "), 30, 77);
+            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 30, 77);
             context.fillText("fps", 170, 77);
+    
+            context.fillStyle = "#473a2fFF";
+            context.font = "900 90px Julee";
+            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 330, 77);
+            context.fillText("fps", 470, 77);
     
             this.fpsTexture.update();
         }

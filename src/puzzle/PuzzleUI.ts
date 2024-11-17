@@ -52,7 +52,7 @@ class PuzzleUI {
         //this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
-        this.gameoverReplayButton.onclick = () => {
+        this.gameoverReplayButton.onpointerup = () => {
             this.puzzle.reset();
             this.puzzle.skipIntro();
         }
@@ -275,8 +275,8 @@ class PuzzleUI {
                 if (this.hoveredElement.parentElement instanceof HTMLAnchorElement) {
                     location.hash = this.hoveredElement.parentElement.href.split("/").pop();
                 }
-                else if (this.hoveredElement.onclick) {
-                    this.hoveredElement.onclick(undefined);
+                else if (this.hoveredElement.onpointerup) {
+                    this.hoveredElement.onpointerup(undefined);
                 }
             }
             else if (this.hoveredElement === this.highscorePlayerLine){

@@ -138,6 +138,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
+        this.game.puzzle.snapBassSound.play();
         dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); this.game.puzzle.fallImpactSound.play(); });
         await wait(0.3);
         /*

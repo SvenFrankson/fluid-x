@@ -3430,6 +3430,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
+        this.game.puzzle.snapBassSound.play();
         dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); this.game.puzzle.fallImpactSound.play(); });
         await wait(0.3);
         /*
@@ -7404,9 +7405,10 @@ class Puzzle {
         this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
         this.wiishSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
-        this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 }, 3);
+        this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 1 }, 3);
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
         this.slashSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
+        this.snapBassSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {

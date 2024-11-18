@@ -641,6 +641,43 @@ class Ball extends BABYLON.Mesh {
                 }
             }
 
+            for (let i = 0; i < this.puzzle.creeps.length; i++) {
+                let creep = this.puzzle.creeps[i];
+                let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
+                if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
+                    creep.stopMove = true;
+                    creep.bump();
+                    this.ballState = BallState.Done;
+                    let dir = this.absolutePosition.subtract(creep.absolutePosition);
+                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                        if (dir.x > 0) {
+                            this.bounceXValue = 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        else {
+                            this.bounceXValue = - 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        this.game.toonSoundManager.start(this.poc(impact));
+                        this.woodChocSound.play();
+                    }
+                    else {
+                        if (dir.z > 0) {
+                            this.vZ = 1;
+                        }
+                        else {
+                            this.vZ = -1;
+                        }
+                        this.game.toonSoundManager.start(this.poc(impact));
+                        this.woodChocSound.play();
+                    }
+                    setTimeout(() => {
+                        this.puzzle.lose();
+                    }, 500);
+                    return;
+                }
+            }
+
             if (!this.puzzle.ballCollisionDone[this.ballIndex]) {
                 let dir = this.absolutePosition.subtract(this.puzzle.ballCollision);
                 let sqrDist = dir.lengthSquared();

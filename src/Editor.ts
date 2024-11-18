@@ -861,6 +861,7 @@ class Editor {
                                 {
                                     i: this.cursorI,
                                     j: this.cursorJ,
+                                    h: this.cursorH,
                                     color: this.brushColor
                                 }
                             )
@@ -928,7 +929,8 @@ class Editor {
                                 this.puzzle,
                                 {
                                     i: this.cursorI,
-                                    j: this.cursorJ
+                                    j: this.cursorJ,
+                                    h: this.cursorH
                                 }
                             );
                             creep.instantiate();

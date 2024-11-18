@@ -74,6 +74,7 @@ class HoleTile extends Tile {
             duration: 0.7,
             type: ToonSoundType.Rumble
         });
+        this.game.puzzle.longCrackSound.play();
 
         this.rumbling = true;
         let t0 = performance.now() / 1000;
@@ -137,7 +138,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
-        dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); });
+        dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); this.game.puzzle.fallImpactSound.play(); });
         await wait(0.3);
         /*
         this.game.toonSoundManager.start({
@@ -149,7 +150,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
-        dropRight(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[1].dispose(); });
+        dropRight(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[1].dispose(); this.game.puzzle.fallImpactSound.play(); });
         await wait(0.3);
         /*
         this.game.toonSoundManager.start({
@@ -161,7 +162,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
-        await dropBottom(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[2].dispose(); });
+        await dropBottom(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[2].dispose(); this.game.puzzle.fallImpactSound.play(); });
 
         this.covers = [];
     }

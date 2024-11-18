@@ -171,6 +171,8 @@ class Puzzle {
     public cricSound: MySound;
     public cracSound: MySound;
     public wooshSound: MySound;
+    public longCrackSound: MySound;
+    public fallImpactSound: MySound;
 
     public getScene(): BABYLON.Scene {
         return this.game.scene;
@@ -270,6 +272,8 @@ class Puzzle {
         this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
         this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
+        this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 }, 3);
+        this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
     }
 
     public async reset(): Promise<void> {
@@ -885,6 +889,7 @@ class Puzzle {
         datas[2].applyToMesh(this.boxesFloor);
 
         for (let i = 0; i < this.creeps.length; i++) {
+            this.creeps[i].position.y = this.hMapGet(this.creeps[i].i, this.creeps[i].j);
             await this.creeps[i].instantiate();
         }
         for (let i = 0; i < this.ballsCount; i++) {
@@ -1005,8 +1010,8 @@ class Puzzle {
     }
 
     public updateInvisifloorTM(): void {
-        let w = this.xMax - this.xMin + 2.2;
-        let h = this.zMax - this.zMin + 2.2;
+        let w = this.xMax - this.xMin + 2.2 + 50;
+        let h = this.zMax - this.zMin + 2.2 + 50;
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = (this.xMax + this.xMin) * 0.5;
         this.invisiFloorTM.position.z = (this.zMax + this.zMin) * 0.5;

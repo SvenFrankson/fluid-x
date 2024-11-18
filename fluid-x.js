@@ -554,6 +554,42 @@ class Ball extends BABYLON.Mesh {
                     }
                 }
             }
+            for (let i = 0; i < this.puzzle.creeps.length; i++) {
+                let creep = this.puzzle.creeps[i];
+                let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
+                if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
+                    creep.stopMove = true;
+                    creep.bump();
+                    this.ballState = BallState.Done;
+                    let dir = this.absolutePosition.subtract(creep.absolutePosition);
+                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                        if (dir.x > 0) {
+                            this.bounceXValue = 1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        else {
+                            this.bounceXValue = -1;
+                            this.bounceXTimer = this.bounceXDelay;
+                        }
+                        this.game.toonSoundManager.start(this.poc(impact));
+                        this.woodChocSound.play();
+                    }
+                    else {
+                        if (dir.z > 0) {
+                            this.vZ = 1;
+                        }
+                        else {
+                            this.vZ = -1;
+                        }
+                        this.game.toonSoundManager.start(this.poc(impact));
+                        this.woodChocSound.play();
+                    }
+                    setTimeout(() => {
+                        this.puzzle.lose();
+                    }, 500);
+                    return;
+                }
+            }
             if (!this.puzzle.ballCollisionDone[this.ballIndex]) {
                 let dir = this.absolutePosition.subtract(this.puzzle.ballCollision);
                 let sqrDist = dir.lengthSquared();
@@ -1125,6 +1161,9 @@ class Border {
         border.position.y = y;
         border.position.z = j * 1.1;
         border.game.puzzle.updateGriddedBorderStack(border, true);
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         return border;
     }
     static BorderRight(game, i, j, y = 0, ghost = false) {
@@ -1133,6 +1172,9 @@ class Border {
         border.position.y = y;
         border.position.z = j * 1.1;
         border.game.puzzle.updateGriddedBorderStack(border, true);
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         return border;
     }
     static BorderTop(game, i, j, y = 0, ghost = false) {
@@ -1142,6 +1184,9 @@ class Border {
         border.position.y = y;
         border.position.z = (j + 0.5) * 1.1;
         border.game.puzzle.updateGriddedBorderStack(border, true);
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         return border;
     }
     static BorderBottom(game, i, j, y = 0, ghost = false) {
@@ -1151,6 +1196,9 @@ class Border {
         border.position.y = y;
         border.position.z = (j - 0.5) * 1.1;
         border.game.puzzle.updateGriddedBorderStack(border, true);
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         return border;
     }
     async getVertexData() {
@@ -1892,8 +1940,10 @@ class Creep extends BABYLON.Mesh {
         super("creep");
         this.puzzle = puzzle;
         this.props = props;
+        this.radius = 0.4;
         this.dir = new BABYLON.Vector2(1, 0);
         this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.stopMove = false;
         this._moving = false;
         if (isFinite(props.i)) {
             this.i = props.i;
@@ -1923,6 +1973,11 @@ class Creep extends BABYLON.Mesh {
         this.spikes.renderOutline = true;
         this.spikes.outlineColor = BABYLON.Color3.Black();
         this.spikes.outlineWidth = 0.02;
+        this.slash = new BABYLON.Mesh("slash");
+        this.slash.parent = this.shell;
+        this.slash.position.y = 0.1;
+        this.slash.material = this.game.creepSlashMaterial;
+        this.slashSize = 0.1;
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = 0;
         this.shadow.position.y = 0.05;
@@ -1943,6 +1998,19 @@ class Creep extends BABYLON.Mesh {
     set j(v) {
         this.position.z = v * 1.1;
     }
+    get size() {
+        return this.shell.scaling.x;
+    }
+    set size(s) {
+        this.shell.scaling.copyFromFloats(s, s, s);
+        this.shadow.scaling.copyFromFloats(s * 1.2, s * 1.2, s * 1.2);
+    }
+    get slashSize() {
+        return this.slash.scaling.x;
+    }
+    set slashSize(s) {
+        this.slash.scaling.copyFromFloats(s, s, s);
+    }
     get game() {
         return this.puzzle.game;
     }
@@ -1952,10 +2020,7 @@ class Creep extends BABYLON.Mesh {
         data[1].applyToMesh(this.shellColored);
         data[2].applyToMesh(this.spikes);
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
-    }
-    async bump() {
-        await this.animateSize(1.1, 0.1);
-        await this.animateSize(1, 0.1);
+        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.slash);
     }
     async shrink() {
         await this.animateSize(1.1, 0.1);
@@ -1990,6 +2055,41 @@ class Creep extends BABYLON.Mesh {
         }
         return true;
     }
+    canGoFromTo(fromI, fromJ, toI, toJ) {
+        let h = this.puzzle.hMapGet(toI, toJ);
+        if (Math.abs(h - this.position.y) < 0.5) {
+            if (this.isFree(toI, toJ)) {
+                let dirI = Math.round(toI - fromI);
+                let dirJ = Math.round(toJ - fromJ);
+                if (dirI > 0) {
+                    let stack = this.game.puzzle.getGriddedBorderStack(fromI, fromJ);
+                    if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
+                        return false;
+                    }
+                }
+                else if (dirI < 0) {
+                    let stack = this.game.puzzle.getGriddedBorderStack(toI, fromJ);
+                    if (stack && stack.array.find((b) => { return b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
+                        return false;
+                    }
+                }
+                else if (dirJ > 0) {
+                    let stack = this.game.puzzle.getGriddedBorderStack(fromI, fromJ);
+                    if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
+                        return false;
+                    }
+                }
+                else if (dirJ < 0) {
+                    let stack = this.game.puzzle.getGriddedBorderStack(fromI, toJ);
+                    if (stack && stack.array.find((b) => { return !b.vertical && Math.abs(b.position.y - this.position.y) < 0.6; })) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
     updateDest() {
         let left = new BABYLON.Vector2(-this.dir.y, this.dir.x);
         let right = new BABYLON.Vector2(this.dir.y, -this.dir.x);
@@ -1997,7 +2097,7 @@ class Creep extends BABYLON.Mesh {
         let backRightJ = Math.round(this.j + right.y - this.dir.y);
         let rightI = Math.round(this.i + right.x);
         let rightJ = Math.round(this.j + right.y);
-        if (!this.isFree(backRightI, backRightJ) && this.isFree(rightI, rightJ)) {
+        if (!this.canGoFromTo(this.i - this.dir.x, this.j - this.dir.y, backRightI, backRightJ) && this.canGoFromTo(this.i, this.j, rightI, rightJ)) {
             this.dir.copyFrom(right);
             this.destI = rightI;
             this.destJ = rightJ;
@@ -2005,31 +2105,31 @@ class Creep extends BABYLON.Mesh {
         }
         let forwardI = Math.round(this.i + this.dir.x);
         let forwardJ = Math.round(this.j + this.dir.y);
-        if (this.isFree(forwardI, forwardJ)) {
+        if (this.canGoFromTo(this.i, this.j, forwardI, forwardJ)) {
             this.destI = forwardI;
             this.destJ = forwardJ;
             return;
         }
         let leftI = Math.round(this.i + left.x);
         let leftJ = Math.round(this.j + left.y);
-        if (this.isFree(leftI, leftJ)) {
+        if (this.canGoFromTo(this.i, this.j, leftI, leftJ)) {
             this.dir.copyFrom(left);
             this.destI = leftI;
             this.destJ = leftJ;
             return;
         }
-        let backI = Math.round(this.i - this.dir.x);
-        let backJ = Math.round(this.j - this.dir.y);
-        if (this.isFree(backI, backJ)) {
-            this.dir.scaleInPlace(-1);
-            this.destI = backI;
-            this.destJ = backJ;
-            return;
-        }
-        if (this.isFree(rightI, rightJ)) {
+        if (this.canGoFromTo(this.i, this.j, rightI, rightJ)) {
             this.dir.copyFrom(right);
             this.destI = rightI;
             this.destJ = rightJ;
+            return;
+        }
+        let backI = Math.round(this.i - this.dir.x);
+        let backJ = Math.round(this.j - this.dir.y);
+        if (this.canGoFromTo(this.i, this.j, backI, backJ)) {
+            this.dir.scaleInPlace(-1);
+            this.destI = backI;
+            this.destJ = backJ;
             return;
         }
     }
@@ -2038,6 +2138,9 @@ class Creep extends BABYLON.Mesh {
             let t0 = performance.now();
             let origin = this.position.clone();
             let step = () => {
+                if (this.stopMove) {
+                    return;
+                }
                 let dt = (performance.now() - t0) / 1000;
                 let f = dt / duration;
                 if (f < 1) {
@@ -2060,12 +2163,63 @@ class Creep extends BABYLON.Mesh {
             step();
         });
     }
+    bump(duration = 1) {
+        return new Promise(resolve => {
+            let pY0 = this.shell.position.y;
+            let rX0 = this.shell.rotation.x;
+            let rY0 = this.shell.rotation.z;
+            let rZ0 = this.shell.rotation.z;
+            let t0 = performance.now();
+            let origin = this.position.clone();
+            let step = () => {
+                let dt = (performance.now() - t0) / 1000;
+                let f = dt / duration;
+                if (f < 1) {
+                    let popD = 0.25;
+                    if (f < popD) {
+                        let fSize = f / popD;
+                        fSize = Nabu.Easing.easeOutSine(fSize);
+                        this.size = 1 + 0.3 * fSize;
+                    }
+                    else {
+                        let fSize = 1 - (f - popD) / (1 - popD);
+                        fSize = Nabu.Easing.easeInOutSine(fSize);
+                        this.size = 1 + 0.3 * fSize;
+                    }
+                    f = Nabu.Easing.easeOutSine(f);
+                    this.shell.position.y = pY0 * (1 - f);
+                    this.shell.rotation.x = rX0 * (1 - f);
+                    this.shell.rotation.y = rY0 * (1 - f) + (rY0 + 3 * Math.PI) * f;
+                    this.shell.rotation.z = rZ0 * (1 - f);
+                    this.slash.rotation.y = f * 4 * Math.PI;
+                    requestAnimationFrame(step);
+                    let slashD = 0.2;
+                    let fSlash = f / slashD;
+                    if (f > 1 - slashD) {
+                        fSlash = 1 - (f - (1 - slashD)) / slashD;
+                    }
+                    fSlash = Nabu.MinMax(fSlash, 0, 1);
+                    fSlash = Nabu.Easing.easeOutCubic(fSlash);
+                    this.slashSize = 0.1 + 1.2 * fSlash;
+                }
+                else {
+                    this.size = 1;
+                    this.shell.position.y = 0;
+                    this.shell.rotation.y = rY0 + 3 * Math.PI;
+                    this.shell.rotation.x = 0;
+                    this.shell.rotation.z = 0;
+                    this.slashSize = 0.1;
+                    resolve();
+                }
+            };
+            step();
+        });
+    }
     update(rawDT) {
         if (this.puzzle.puzzleState === PuzzleState.Playing) {
             if (!this._moving) {
                 this.updateDest();
-                console.log(this.dir);
-                let dest = new BABYLON.Vector3(this.destI * 1.1, 0, this.destJ * 1.1);
+                let dest = new BABYLON.Vector3(this.destI * 1.1, this.puzzle.hMapGet(this.destI, this.destJ), this.destJ * 1.1);
                 if (Mummu.IsFinite(dest)) {
                     this._moving = true;
                     this.moveTo(dest, 1).then(() => { this._moving = false; });
@@ -2228,6 +2382,7 @@ class Editor {
                                 tile = new PushTile(this.game, {
                                     i: this.cursorI,
                                     j: this.cursorJ,
+                                    h: this.cursorH,
                                     color: this.brushColor
                                 });
                             }
@@ -2277,7 +2432,8 @@ class Editor {
                             else if (this.brush === EditorBrush.Creep) {
                                 let creep = new Creep(this.puzzle, {
                                     i: this.cursorI,
-                                    j: this.cursorJ
+                                    j: this.cursorJ,
+                                    h: this.cursorH
                                 });
                                 creep.instantiate();
                             }
@@ -3123,6 +3279,7 @@ class HoleTile extends Tile {
             duration: 0.7,
             type: ToonSoundType.Rumble
         });
+        this.game.puzzle.longCrackSound.play();
         this.rumbling = true;
         let t0 = performance.now() / 1000;
         let rumblingLoop = () => {
@@ -3181,7 +3338,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
-        dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); });
+        dropUp(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[0].dispose(); this.game.puzzle.fallImpactSound.play(); });
         await wait(0.3);
         /*
         this.game.toonSoundManager.start({
@@ -3193,7 +3350,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
-        dropRight(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[1].dispose(); });
+        dropRight(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[1].dispose(); this.game.puzzle.fallImpactSound.play(); });
         await wait(0.3);
         /*
         this.game.toonSoundManager.start({
@@ -3205,7 +3362,7 @@ class HoleTile extends Tile {
             type: ToonSoundType.Poc
         });
         */
-        await dropBottom(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[2].dispose(); });
+        await dropBottom(-6, 1, Nabu.Easing.easeInSine).then(() => { this.covers[2].dispose(); this.game.puzzle.fallImpactSound.play(); });
         this.covers = [];
     }
 }
@@ -4308,6 +4465,13 @@ class Game {
         this.puckSideMaterial.emissiveColor.copyFromFloats(1, 1, 1);
         this.puckSideMaterial.useAlphaFromDiffuseTexture = true;
         this.puckSideMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.creepSlashMaterial = new BABYLON.StandardMaterial("creep-slash-material");
+        this.creepSlashMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.creepSlashMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/creep-slash.png");
+        this.creepSlashMaterial.diffuseTexture.hasAlpha = true;
+        this.creepSlashMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        this.creepSlashMaterial.useAlphaFromDiffuseTexture = true;
+        this.creepSlashMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.tileColorMaterials = [];
         this.tileColorMaterials[TileColor.North] = northMaterial;
         this.tileColorMaterials[TileColor.South] = southMaterial;
@@ -7147,6 +7311,8 @@ class Puzzle {
         this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
         this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
+        this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 }, 3);
+        this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {
@@ -7875,6 +8041,7 @@ class Puzzle {
         datas[1].applyToMesh(this.boxesWood);
         datas[2].applyToMesh(this.boxesFloor);
         for (let i = 0; i < this.creeps.length; i++) {
+            this.creeps[i].position.y = this.hMapGet(this.creeps[i].i, this.creeps[i].j);
             await this.creeps[i].instantiate();
         }
         for (let i = 0; i < this.ballsCount; i++) {
@@ -7979,8 +8146,8 @@ class Puzzle {
         datas[2].applyToMesh(this.boxesFloor);
     }
     updateInvisifloorTM() {
-        let w = this.xMax - this.xMin + 2.2;
-        let h = this.zMax - this.zMin + 2.2;
+        let w = this.xMax - this.xMin + 2.2 + 50;
+        let h = this.zMax - this.zMin + 2.2 + 50;
         BABYLON.CreateGroundVertexData({ width: w, height: h }).applyToMesh(this.invisiFloorTM);
         this.invisiFloorTM.position.x = (this.xMax + this.xMin) * 0.5;
         this.invisiFloorTM.position.z = (this.zMax + this.zMin) * 0.5;

@@ -40,6 +40,10 @@ class Border {
         border.position.z = j * 1.1;
         
         border.game.puzzle.updateGriddedBorderStack(border, true);
+
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         
         return border;
     }
@@ -51,6 +55,10 @@ class Border {
         border.position.z = j * 1.1;
         
         border.game.puzzle.updateGriddedBorderStack(border, true);
+
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         
         return border;
     }
@@ -63,6 +71,10 @@ class Border {
         border.position.z = (j + 0.5) * 1.1;
         
         border.game.puzzle.updateGriddedBorderStack(border, true);
+
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
         
         return border;
     }
@@ -75,6 +87,10 @@ class Border {
         border.position.z = (j - 0.5) * 1.1;
         
         border.game.puzzle.updateGriddedBorderStack(border, true);
+
+        //let haikuDebug = new HaikuDebug(game, border.i + " " + border.j);
+        //haikuDebug.position.copyFrom(border.position);
+        //haikuDebug.position.y += 0.5;
 
         return border;
     }

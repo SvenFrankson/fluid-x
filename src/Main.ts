@@ -281,6 +281,7 @@ class Game {
     public shadowDiscMaterial: BABYLON.StandardMaterial;
     public lightDiscMaterial: BABYLON.StandardMaterial;
     public puckSideMaterial: BABYLON.StandardMaterial;
+    public creepSlashMaterial: BABYLON.StandardMaterial;
     public get borderMaterial() {
         return this.brownMaterial;
     }
@@ -523,6 +524,14 @@ class Game {
         this.puckSideMaterial.emissiveColor.copyFromFloats(1, 1, 1);
         this.puckSideMaterial.useAlphaFromDiffuseTexture = true;
         this.puckSideMaterial.specularColor.copyFromFloats(0, 0, 0);
+            
+        this.creepSlashMaterial = new BABYLON.StandardMaterial("creep-slash-material");
+        this.creepSlashMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.creepSlashMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/creep-slash.png");
+        this.creepSlashMaterial.diffuseTexture.hasAlpha = true;
+        this.creepSlashMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        this.creepSlashMaterial.useAlphaFromDiffuseTexture = true;
+        this.creepSlashMaterial.specularColor.copyFromFloats(0, 0, 0);
 
         this.tileColorMaterials = [];
         this.tileColorMaterials[TileColor.North] = northMaterial;

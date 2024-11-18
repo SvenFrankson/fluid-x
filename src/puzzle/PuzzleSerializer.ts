@@ -90,6 +90,12 @@ function SaveAsText(puzzle: Puzzle): string {
         }
     })
 
+    puzzle.creeps.forEach(creep => {
+        let i = creep.i;
+        let j = creep.j;
+        lines[j][i] = ["c"];
+    })
+
     lines.reverse();
 
     let lines3 = lines.map((l1) => {

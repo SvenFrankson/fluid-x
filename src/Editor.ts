@@ -11,7 +11,8 @@ enum EditorBrush {
     Water,
     Box,
     Ramp,
-    Bridge
+    Bridge,
+    Creep
 }
 
 class Editor {
@@ -74,6 +75,7 @@ class Editor {
     public ramp3Button: HTMLButtonElement;
     public ramp4Button: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
+    public creepButton: HTMLButtonElement;
     public deleteButton: HTMLButtonElement;
 
     public selectableButtons: HTMLButtonElement[] = [];
@@ -346,6 +348,7 @@ class Editor {
         this.ramp3Button = document.getElementById("ramp-3-btn") as HTMLButtonElement;
         this.ramp4Button = document.getElementById("ramp-4-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
+        this.creepButton = document.getElementById("creep-btn") as HTMLButtonElement;
         this.deleteButton = document.getElementById("delete-btn") as HTMLButtonElement;
 
         this.selectableButtons = [
@@ -372,7 +375,8 @@ class Editor {
             this.ramp2Button,
             this.ramp3Button,
             this.ramp4Button,
-            this.bridgeButton
+            this.bridgeButton,
+            this.creepButton
         ];
 
         let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, value?: number, cursorSize?: { w?: number, h?: number, d?: number }) => {
@@ -423,6 +427,7 @@ class Editor {
         makeBrushButton(this.ramp3Button, EditorBrush.Ramp, 3, { w: 3, h: 1, d: 3 });
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
+        makeBrushButton(this.creepButton, EditorBrush.Creep);
 
         makeBrushButton(this.deleteButton, EditorBrush.Delete);        
         
@@ -789,6 +794,14 @@ class Editor {
                             building.dispose();
                             this.puzzle.editorRegenerateBuildings();
                         }
+                        else {
+                            let creep = this.puzzle.creeps.find(creep => {
+                                return creep.i === this.cursorI && creep.j === this.cursorJ;
+                            });
+                            if (creep) {
+                                creep.dispose();
+                            }
+                        }
                     }
                 }
                 else if (ev.button === 0) {
@@ -909,6 +922,16 @@ class Editor {
                                 }
                             );
                             this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Creep) {
+                            let creep = new Creep(
+                                this.puzzle,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ
+                                }
+                            );
+                            creep.instantiate();
                         }
                         if (tile) {
                             if (tile instanceof WaterTile) {

@@ -1,3 +1,9 @@
+enum PuzzleState {
+    Ready,
+    Playing,
+    Done
+}
+
 class Puzzle {
 
     public data: IPuzzleData = {
@@ -19,6 +25,7 @@ class Puzzle {
     public ballCollision: BABYLON.Vector3 = BABYLON.Vector3.Zero();
     public ballCollisionDone: boolean[] = [true, true];
 
+    public puzzleState: PuzzleState = PuzzleState.Done;
     public playTimer: number = 0;
     public fishingPolesCount: number = 0;
     public fishingPole: FishingPole;
@@ -27,6 +34,7 @@ class Puzzle {
     public holeOutline: BABYLON.LinesMesh;
     public invisiFloorTM: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
+    public creeps: Creep[] = [];
     public tiles: Tile[] = [];
     public griddedTiles: Nabu.UniqueList<Tile>[][] = [];
     private _getOrCreateGriddedStack(i: number, j: number): Nabu.UniqueList<Tile> {
@@ -252,7 +260,7 @@ class Puzzle {
         this.puzzleUI = new PuzzleUI(this);
 
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 200 });
         this.fpsTexture.hasAlpha = true;
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -291,6 +299,7 @@ class Puzzle {
         if (USE_POKI_SDK) {
             PokiGameplayStop();
         }
+        this.puzzleState = PuzzleState.Done;
         let score = Math.floor(this.playTimer * 100);
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
@@ -323,6 +332,7 @@ class Puzzle {
             PokiGameplayStop();
         }
         setTimeout(() => {
+            this.puzzleState = PuzzleState.Done;
             for (let i = 0; i < this.ballsCount; i++) {
                 if (this.balls[i].ballState != BallState.Done) {
                     return;
@@ -399,6 +409,9 @@ class Puzzle {
         }
         while (this.buildings.length > 0) {
             this.buildings[0].dispose();
+        }
+        while (this.creeps.length > 0) {
+            this.creeps.pop().dispose();
         }
         while (this.haikus.length > 0) {
             this.haikus.pop().dispose();
@@ -773,6 +786,12 @@ class Puzzle {
                         borderTop: true
                     });
                 }
+                if (c === "c") {
+                    let creep = new Creep(this, {
+                        i: i,
+                        j: j
+                    });
+                }
                 i++;
             }
         }
@@ -850,14 +869,24 @@ class Puzzle {
                 bordersVertexDatas.push(data);
             }
         }
-        Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
-        this.bordersMesh.freezeWorldMatrix();
+        if (bordersVertexDatas.length > 0) {
+            this.bordersMesh.isVisible = true;
+            Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
+            this.bordersMesh.freezeWorldMatrix();
+        }
+        else {
+            this.bordersMesh.isVisible = false;
+            this.bordersMesh.freezeWorldMatrix();
+        }
 
         let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
         datas[1].applyToMesh(this.boxesWood);
         datas[2].applyToMesh(this.boxesFloor);
 
+        for (let i = 0; i < this.creeps.length; i++) {
+            await this.creeps[i].instantiate();
+        }
         for (let i = 0; i < this.ballsCount; i++) {
             await this.balls[i].instantiate();
         }
@@ -868,6 +897,7 @@ class Puzzle {
         }
 
         this.rebuildFloor();
+        this.puzzleState = PuzzleState.Ready;
     }
 
     public regenerateHeightMap(): void {
@@ -958,8 +988,15 @@ class Puzzle {
                 bordersVertexDatas.push(data);
             }
         }
-        Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
-        this.bordersMesh.freezeWorldMatrix();
+        if (bordersVertexDatas.length > 0) {
+            this.bordersMesh.isVisible = true;
+            Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
+            this.bordersMesh.freezeWorldMatrix();
+        }
+        else {
+            this.bordersMesh.isVisible = false;
+            this.bordersMesh.freezeWorldMatrix();
+        }
 
         let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
@@ -1075,8 +1112,8 @@ class Puzzle {
         tiaratumLogo2.material = haikuMaterial;
         */
         
-        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
+        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.64, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32));
 
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
@@ -1084,7 +1121,7 @@ class Puzzle {
         fpsPlaque.position.copyFromFloats(- width * 0.5 - bThickness + 0.1, bHeight, - depth * 0.5 - bThickness + 0.1);
         fpsPlaque.material = this.fpsMaterial;
         
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
@@ -1274,10 +1311,12 @@ class Puzzle {
         }
         floorData.applyToMesh(this.floor);
 
-        this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
-            lines: holeOutlinePoints,
-            colors: holeOutlineColors
-        }, this.game.scene);
+        if (holeOutlinePoints.length > 0) {
+            this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
+                lines: holeOutlinePoints,
+                colors: holeOutlineColors
+            }, this.game.scene);
+        }
 
         if (holeDatas.length > 0) {
             Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
@@ -1317,6 +1356,7 @@ class Puzzle {
                 this.playerHaikus[i].hide();
             }
         }
+        this.puzzleState = PuzzleState.Playing;
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
         this.game.setPlayTimer(this.playTimer);
@@ -1336,6 +1376,9 @@ class Puzzle {
     public update(dt: number): void {
         for (let i = 0; i < this.ballsCount; i++) {
             this.balls[i].update(dt);
+        }
+        for (let i = 0; i < this.creeps.length; i++) {
+            this.creeps[i].update(dt);
         }
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
@@ -1373,17 +1416,17 @@ class Puzzle {
             this._timer = 0;
             let context = this.fpsTexture.getContext();
             context.fillStyle = "#e0c872ff";
-            context.fillRect(0, 0, 600, 100);
+            context.fillRect(0, 0, 600, 200);
     
             context.fillStyle = "#473a2fFF";
             context.font = "900 90px Julee";
-            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 30, 77);
-            context.fillText("fps", 170, 77);
+            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 60, 77);
+            context.fillText("fps (avg)", 200, 77);
     
             context.fillStyle = "#473a2fFF";
             context.font = "900 90px Julee";
-            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 330, 77);
-            context.fillText("fps", 470, 77);
+            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 60, 177);
+            context.fillText("fps (min)", 200, 177);
     
             this.fpsTexture.update();
         }

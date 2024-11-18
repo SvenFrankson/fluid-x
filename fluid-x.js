@@ -82,119 +82,121 @@ class Ball extends BABYLON.Mesh {
         this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
         this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
-        document.addEventListener("keydown", (ev) => {
-            if (ev.code === "KeyA") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
+        if (this.ballIndex === 0) {
+            let inputLeft = document.querySelector("#input-left");
+            if (inputLeft) {
+                inputLeft.addEventListener("pointerdown", () => {
                     this.leftDown = 1;
-                }
-            }
-            if (ev.code === "ArrowLeft") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.leftDown = 1;
-                }
-            }
-            if (ev.code === "KeyD") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.rightDown = 1;
-                }
-            }
-            if (ev.code === "ArrowRight") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.rightDown = 1;
-                }
-            }
-            if (ev.code === "Space") {
-                if (this.wasdCanControl) {
-                    this.boost = true;
-                }
-            }
-        });
-        document.addEventListener("keyup", (ev) => {
-            if (ev.code === "KeyA") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
+                    this.mouseInControl = false;
+                });
+                inputLeft.addEventListener("pointerup", () => {
+                    this.mouseInControl = false;
                     this.leftDown = 0;
-                }
+                });
             }
-            if (ev.code === "ArrowLeft") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.leftDown = 0;
-                }
-            }
-            if (ev.code === "KeyD") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
+            let inputRight = document.querySelector("#input-right");
+            if (inputRight) {
+                inputRight.addEventListener("pointerdown", () => {
+                    this.mouseInControl = false;
+                    this.rightDown = 1;
+                });
+                inputRight.addEventListener("pointerup", () => {
+                    this.mouseInControl = false;
                     this.rightDown = 0;
-                }
+                });
             }
-            if (ev.code === "ArrowRight") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.rightDown = 0;
-                }
-            }
-            if (ev.code === "Space") {
-                if (this.wasdCanControl) {
+            let inputBoost = document.querySelector("#input-boost");
+            inputBoost.addEventListener("pointerdown", () => {
+                if (this.boost) {
                     this.boost = false;
                 }
-            }
-        });
-        let inputLeft = document.querySelector("#input-left");
-        if (inputLeft) {
-            inputLeft.addEventListener("pointerdown", () => {
-                this.leftDown = 1;
-                this.mouseInControl = false;
+                else {
+                    this.boost = true;
+                }
             });
-            inputLeft.addEventListener("pointerup", () => {
-                this.mouseInControl = false;
-                this.leftDown = 0;
+            this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+            this.game.canvas.addEventListener("pointerup", this.mouseUp);
+            this.game.canvas.addEventListener("pointerleave", this.mouseUp);
+            this.game.canvas.addEventListener("pointerout", this.mouseUp);
+            document.addEventListener("keydown", (ev) => {
+                if (ev.code === "KeyA") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 1;
+                    }
+                }
+                if (ev.code === "ArrowLeft") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 1;
+                    }
+                }
+                if (ev.code === "KeyD") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 1;
+                    }
+                }
+                if (ev.code === "ArrowRight") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 1;
+                    }
+                }
+                if (ev.code === "Space") {
+                    if (this.wasdCanControl) {
+                        this.boost = true;
+                    }
+                }
+            });
+            document.addEventListener("keyup", (ev) => {
+                if (ev.code === "KeyA") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 0;
+                    }
+                }
+                if (ev.code === "ArrowLeft") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 0;
+                    }
+                }
+                if (ev.code === "KeyD") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 0;
+                    }
+                }
+                if (ev.code === "ArrowRight") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 0;
+                    }
+                }
+                if (ev.code === "Space") {
+                    if (this.wasdCanControl) {
+                        this.boost = false;
+                    }
+                }
             });
         }
-        let inputRight = document.querySelector("#input-right");
-        if (inputRight) {
-            inputRight.addEventListener("pointerdown", () => {
-                this.mouseInControl = false;
-                this.rightDown = 1;
-            });
-            inputRight.addEventListener("pointerup", () => {
-                this.mouseInControl = false;
-                this.rightDown = 0;
-            });
-        }
-        let inputBoost = document.querySelector("#input-boost");
-        inputBoost.addEventListener("pointerdown", () => {
-            if (this.boost) {
-                this.boost = false;
-            }
-            else {
-                this.boost = true;
-            }
-        });
-        this.game.canvas.addEventListener("pointerdown", this.mouseDown);
-        this.game.canvas.addEventListener("pointerup", this.mouseUp);
-        this.game.canvas.addEventListener("pointerleave", this.mouseUp);
-        this.game.canvas.addEventListener("pointerout", this.mouseUp);
     }
     get leftArrowSize() {
         return this.leftArrow.scaling.x;
@@ -1885,6 +1887,193 @@ class CompletionBar extends HTMLElement {
     }
 }
 customElements.define("completion-bar", CompletionBar);
+class Creep extends BABYLON.Mesh {
+    constructor(puzzle, props) {
+        super("creep");
+        this.puzzle = puzzle;
+        this.props = props;
+        this.dir = new BABYLON.Vector2(1, 0);
+        this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
+        this._moving = false;
+        if (isFinite(props.i)) {
+            this.i = props.i;
+        }
+        if (isFinite(props.j)) {
+            this.j = props.j;
+        }
+        if (isFinite(props.h)) {
+            this.position.y = props.h;
+        }
+        puzzle.creeps.push(this);
+        this.shell = new BABYLON.Mesh("shell");
+        this.shell.parent = this;
+        this.shell.material = this.game.whiteMaterial;
+        this.shell.renderOutline = true;
+        this.shell.outlineColor = BABYLON.Color3.Black();
+        this.shell.outlineWidth = 0.02;
+        this.shellColored = new BABYLON.Mesh("shell-colored");
+        this.shellColored.parent = this.shell;
+        this.shellColored.material = this.game.redMaterial;
+        this.shellColored.renderOutline = true;
+        this.shellColored.outlineColor = BABYLON.Color3.Black();
+        this.shellColored.outlineWidth = 0.02;
+        this.spikes = new BABYLON.Mesh("spikes");
+        this.spikes.parent = this.shell;
+        this.spikes.material = this.game.trueWhiteMaterial;
+        this.spikes.renderOutline = true;
+        this.spikes.outlineColor = BABYLON.Color3.Black();
+        this.spikes.outlineWidth = 0.02;
+        this.shadow = new BABYLON.Mesh("shadow");
+        this.shadow.position.x = 0;
+        this.shadow.position.y = 0.05;
+        this.shadow.position.z = 0;
+        this.shadow.parent = this;
+        this.shadow.material = this.game.shadowDiscMaterial;
+        this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
+    }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
+    }
+    get game() {
+        return this.puzzle.game;
+    }
+    async instantiate() {
+        let data = await this.game.vertexDataLoader.get("./datas/meshes/creep.babylon");
+        data[0].applyToMesh(this.shell);
+        data[1].applyToMesh(this.shellColored);
+        data[2].applyToMesh(this.spikes);
+        BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.shadow);
+    }
+    async bump() {
+        await this.animateSize(1.1, 0.1);
+        await this.animateSize(1, 0.1);
+    }
+    async shrink() {
+        await this.animateSize(1.1, 0.1);
+        await this.animateSize(0.4, 0.3);
+    }
+    dispose() {
+        let index = this.puzzle.creeps.indexOf(this);
+        if (index != -1) {
+            this.puzzle.creeps.splice(index, 1);
+        }
+        super.dispose();
+    }
+    isFree(i, j) {
+        if (i < 0 || i >= this.puzzle.w) {
+            return false;
+        }
+        if (j < 0 || j >= this.puzzle.h) {
+            return false;
+        }
+        let stack = this.puzzle.getGriddedStack(i, j);
+        if (stack) {
+            let tile = stack.array.find(t => { return Math.abs(t.position.y - this.position.y) < 0.6; });
+            if (tile) {
+                if (tile instanceof DoorTile && !tile.closed) {
+                    return true;
+                }
+                if (tile instanceof HoleTile && tile.covered) {
+                    return true;
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+    updateDest() {
+        let left = new BABYLON.Vector2(-this.dir.y, this.dir.x);
+        let right = new BABYLON.Vector2(this.dir.y, -this.dir.x);
+        let backRightI = Math.round(this.i + right.x - this.dir.x);
+        let backRightJ = Math.round(this.j + right.y - this.dir.y);
+        let rightI = Math.round(this.i + right.x);
+        let rightJ = Math.round(this.j + right.y);
+        if (!this.isFree(backRightI, backRightJ) && this.isFree(rightI, rightJ)) {
+            this.dir.copyFrom(right);
+            this.destI = rightI;
+            this.destJ = rightJ;
+            return;
+        }
+        let forwardI = Math.round(this.i + this.dir.x);
+        let forwardJ = Math.round(this.j + this.dir.y);
+        if (this.isFree(forwardI, forwardJ)) {
+            this.destI = forwardI;
+            this.destJ = forwardJ;
+            return;
+        }
+        let leftI = Math.round(this.i + left.x);
+        let leftJ = Math.round(this.j + left.y);
+        if (this.isFree(leftI, leftJ)) {
+            this.dir.copyFrom(left);
+            this.destI = leftI;
+            this.destJ = leftJ;
+            return;
+        }
+        let backI = Math.round(this.i - this.dir.x);
+        let backJ = Math.round(this.j - this.dir.y);
+        if (this.isFree(backI, backJ)) {
+            this.dir.scaleInPlace(-1);
+            this.destI = backI;
+            this.destJ = backJ;
+            return;
+        }
+        if (this.isFree(rightI, rightJ)) {
+            this.dir.copyFrom(right);
+            this.destI = rightI;
+            this.destJ = rightJ;
+            return;
+        }
+    }
+    moveTo(destination, duration = 1) {
+        return new Promise(resolve => {
+            let t0 = performance.now();
+            let origin = this.position.clone();
+            let step = () => {
+                let dt = (performance.now() - t0) / 1000;
+                let f = dt / duration;
+                if (f < 1) {
+                    f = Nabu.Easing.easeInOutSine(f);
+                    BABYLON.Vector3.LerpToRef(origin, destination, f, this.position);
+                    this.shell.position.y = 0.4 * Math.sin(f * Math.PI);
+                    this.shell.rotation.x = 0.3 * Math.sin(f * 2 * Math.PI);
+                    this.shell.rotation.z = 0.3 * Math.sin(f * 2 * Math.PI);
+                    this.shell.rotation.y = f * 2 * Math.PI;
+                    requestAnimationFrame(step);
+                }
+                else {
+                    this.position.copyFrom(destination);
+                    this.shell.position.y = 0;
+                    this.shell.rotation.x = 0;
+                    this.shell.rotation.y = 0;
+                    resolve();
+                }
+            };
+            step();
+        });
+    }
+    update(rawDT) {
+        if (this.puzzle.puzzleState === PuzzleState.Playing) {
+            if (!this._moving) {
+                this.updateDest();
+                console.log(this.dir);
+                let dest = new BABYLON.Vector3(this.destI * 1.1, 0, this.destJ * 1.1);
+                if (Mummu.IsFinite(dest)) {
+                    this._moving = true;
+                    this.moveTo(dest, 1).then(() => { this._moving = false; });
+                }
+            }
+        }
+    }
+}
 var EditorBrush;
 (function (EditorBrush) {
     EditorBrush[EditorBrush["None"] = 0] = "None";
@@ -1900,6 +2089,7 @@ var EditorBrush;
     EditorBrush[EditorBrush["Box"] = 10] = "Box";
     EditorBrush[EditorBrush["Ramp"] = 11] = "Ramp";
     EditorBrush[EditorBrush["Bridge"] = 12] = "Bridge";
+    EditorBrush[EditorBrush["Creep"] = 13] = "Creep";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -1984,6 +2174,14 @@ class Editor {
                             if (building) {
                                 building.dispose();
                                 this.puzzle.editorRegenerateBuildings();
+                            }
+                            else {
+                                let creep = this.puzzle.creeps.find(creep => {
+                                    return creep.i === this.cursorI && creep.j === this.cursorJ;
+                                });
+                                if (creep) {
+                                    creep.dispose();
+                                }
                             }
                         }
                     }
@@ -2075,6 +2273,13 @@ class Editor {
                                     j: this.cursorJ
                                 });
                                 this.puzzle.editorRegenerateBuildings();
+                            }
+                            else if (this.brush === EditorBrush.Creep) {
+                                let creep = new Creep(this.puzzle, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ
+                                });
+                                creep.instantiate();
                             }
                             if (tile) {
                                 if (tile instanceof WaterTile) {
@@ -2308,6 +2513,7 @@ class Editor {
         this.ramp3Button = document.getElementById("ramp-3-btn");
         this.ramp4Button = document.getElementById("ramp-4-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
+        this.creepButton = document.getElementById("creep-btn");
         this.deleteButton = document.getElementById("delete-btn");
         this.selectableButtons = [
             this.switchTileNorthButton,
@@ -2333,7 +2539,8 @@ class Editor {
             this.ramp2Button,
             this.ramp3Button,
             this.ramp4Button,
-            this.bridgeButton
+            this.bridgeButton,
+            this.creepButton
         ];
         let makeBrushButton = (button, brush, value, cursorSize) => {
             if (!cursorSize) {
@@ -2378,6 +2585,7 @@ class Editor {
         makeBrushButton(this.ramp3Button, EditorBrush.Ramp, 3, { w: 3, h: 1, d: 3 });
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
+        makeBrushButton(this.creepButton, EditorBrush.Creep);
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
         document.getElementById("play-btn").onpointerup = async () => {
             this.dropClear();
@@ -3707,7 +3915,7 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     //SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -4716,7 +4924,7 @@ class Game {
             }
             if (this.mode === GameMode.Preplay || this.mode === GameMode.Play) {
                 if (this.puzzle) {
-                    this.puzzle.update(rawDT);
+                    this.puzzle.update(Math.min(rawDT, 0.03));
                 }
                 if (this.boostMaterial && this.brownMaterial) {
                     let fBoostMaterial = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI) + 1);
@@ -6861,6 +7069,12 @@ class FishingPole {
         });
     }
 }
+var PuzzleState;
+(function (PuzzleState) {
+    PuzzleState[PuzzleState["Ready"] = 0] = "Ready";
+    PuzzleState[PuzzleState["Playing"] = 1] = "Playing";
+    PuzzleState[PuzzleState["Done"] = 2] = "Done";
+})(PuzzleState || (PuzzleState = {}));
 class Puzzle {
     constructor(game) {
         this.game = game;
@@ -6879,8 +7093,10 @@ class Puzzle {
         this.balls = [];
         this.ballCollision = BABYLON.Vector3.Zero();
         this.ballCollisionDone = [true, true];
+        this.puzzleState = PuzzleState.Done;
         this.playTimer = 0;
         this.fishingPolesCount = 0;
+        this.creeps = [];
         this.tiles = [];
         this.griddedTiles = [];
         this.griddedBorders = [];
@@ -6922,7 +7138,7 @@ class Puzzle {
         this.bordersMesh.outlineWidth = 0.01;
         this.puzzleUI = new PuzzleUI(this);
         this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 100 });
+        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 200 });
         this.fpsTexture.hasAlpha = true;
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -7108,6 +7324,7 @@ class Puzzle {
         if (USE_POKI_SDK) {
             PokiGameplayStop();
         }
+        this.puzzleState = PuzzleState.Done;
         let score = Math.floor(this.playTimer * 100);
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
@@ -7137,6 +7354,7 @@ class Puzzle {
             PokiGameplayStop();
         }
         setTimeout(() => {
+            this.puzzleState = PuzzleState.Done;
             for (let i = 0; i < this.ballsCount; i++) {
                 if (this.balls[i].ballState != BallState.Done) {
                     return;
@@ -7208,6 +7426,9 @@ class Puzzle {
         }
         while (this.buildings.length > 0) {
             this.buildings[0].dispose();
+        }
+        while (this.creeps.length > 0) {
+            this.creeps.pop().dispose();
         }
         while (this.haikus.length > 0) {
             this.haikus.pop().dispose();
@@ -7566,6 +7787,12 @@ class Puzzle {
                         borderTop: true
                     });
                 }
+                if (c === "c") {
+                    let creep = new Creep(this, {
+                        i: i,
+                        j: j
+                    });
+                }
                 i++;
             }
         }
@@ -7634,12 +7861,22 @@ class Puzzle {
                 bordersVertexDatas.push(data);
             }
         }
-        Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
-        this.bordersMesh.freezeWorldMatrix();
+        if (bordersVertexDatas.length > 0) {
+            this.bordersMesh.isVisible = true;
+            Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
+            this.bordersMesh.freezeWorldMatrix();
+        }
+        else {
+            this.bordersMesh.isVisible = false;
+            this.bordersMesh.freezeWorldMatrix();
+        }
         let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
         datas[1].applyToMesh(this.boxesWood);
         datas[2].applyToMesh(this.boxesFloor);
+        for (let i = 0; i < this.creeps.length; i++) {
+            await this.creeps[i].instantiate();
+        }
         for (let i = 0; i < this.ballsCount; i++) {
             await this.balls[i].instantiate();
         }
@@ -7648,6 +7885,7 @@ class Puzzle {
             this.playerHaikus[1].show();
         }
         this.rebuildFloor();
+        this.puzzleState = PuzzleState.Ready;
     }
     regenerateHeightMap() {
         this.heightMap = [];
@@ -7726,8 +7964,15 @@ class Puzzle {
                 bordersVertexDatas.push(data);
             }
         }
-        Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
-        this.bordersMesh.freezeWorldMatrix();
+        if (bordersVertexDatas.length > 0) {
+            this.bordersMesh.isVisible = true;
+            Mummu.MergeVertexDatas(...bordersVertexDatas).applyToMesh(this.bordersMesh);
+            this.bordersMesh.freezeWorldMatrix();
+        }
+        else {
+            this.bordersMesh.isVisible = false;
+            this.bordersMesh.freezeWorldMatrix();
+        }
         let datas = await BuildingBlock.GenerateVertexDatas(this);
         datas[0].applyToMesh(this.boxesWall);
         datas[1].applyToMesh(this.boxesWood);
@@ -7830,14 +8075,14 @@ class Puzzle {
         tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
         */
-        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.32, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16));
+        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.64, 0.03);
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32));
         let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
         fpsPlaqueData.applyToMesh(fpsPlaque);
         fpsPlaque.parent = this.border;
         fpsPlaque.position.copyFromFloats(-width * 0.5 - bThickness + 0.1, bHeight, -depth * 0.5 - bThickness + 0.1);
         fpsPlaque.material = this.fpsMaterial;
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.16).scale(-2));
+        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32).scale(-2));
         let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
         fpsPlaqueData.applyToMesh(fpsPlaque2);
         fpsPlaque2.parent = this.border;
@@ -8023,10 +8268,12 @@ class Puzzle {
             floorData.uvs[2 * i + 1] = 0.5 * floorData.positions[3 * i + 2] - 0.5;
         }
         floorData.applyToMesh(this.floor);
-        this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
-            lines: holeOutlinePoints,
-            colors: holeOutlineColors
-        }, this.game.scene);
+        if (holeOutlinePoints.length > 0) {
+            this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
+                lines: holeOutlinePoints,
+                colors: holeOutlineColors
+            }, this.game.scene);
+        }
         if (holeDatas.length > 0) {
             Mummu.MergeVertexDatas(...holeDatas).applyToMesh(this.holeWall);
             this.holeWall.isVisible = true;
@@ -8061,6 +8308,7 @@ class Puzzle {
                 this.playerHaikus[i].hide();
             }
         }
+        this.puzzleState = PuzzleState.Playing;
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
         this.game.setPlayTimer(this.playTimer);
@@ -8075,6 +8323,9 @@ class Puzzle {
     update(dt) {
         for (let i = 0; i < this.ballsCount; i++) {
             this.balls[i].update(dt);
+        }
+        for (let i = 0; i < this.creeps.length; i++) {
+            this.creeps[i].update(dt);
         }
         let tiles = this.tiles.filter(t => {
             return t instanceof BlockTile && t.tileState === TileState.Active;
@@ -8110,15 +8361,15 @@ class Puzzle {
             this._timer = 0;
             let context = this.fpsTexture.getContext();
             context.fillStyle = "#e0c872ff";
-            context.fillRect(0, 0, 600, 100);
+            context.fillRect(0, 0, 600, 200);
             context.fillStyle = "#473a2fFF";
             context.font = "900 90px Julee";
-            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 30, 77);
-            context.fillText("fps", 170, 77);
+            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 60, 77);
+            context.fillText("fps (avg)", 200, 77);
             context.fillStyle = "#473a2fFF";
             context.font = "900 90px Julee";
-            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 330, 77);
-            context.fillText("fps", 470, 77);
+            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 60, 177);
+            context.fillText("fps (min)", 200, 177);
             this.fpsTexture.update();
         }
     }
@@ -8428,6 +8679,11 @@ function SaveAsText(puzzle) {
         if (building instanceof Bridge) {
             lines[j][i] = ["U"];
         }
+    });
+    puzzle.creeps.forEach(creep => {
+        let i = creep.i;
+        let j = creep.j;
+        lines[j][i] = ["c"];
     });
     lines.reverse();
     let lines3 = lines.map((l1) => {

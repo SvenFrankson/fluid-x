@@ -45,7 +45,7 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     //SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -1256,7 +1256,7 @@ class Game {
 
             if (this.mode === GameMode.Preplay || this.mode === GameMode.Play) {
                 if (this.puzzle) {
-                    this.puzzle.update(rawDT);
+                    this.puzzle.update(Math.min(rawDT, 0.03));
                 }
                 if (this.boostMaterial && this.brownMaterial) {
                     let fBoostMaterial = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI) + 1);

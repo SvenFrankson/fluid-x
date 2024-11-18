@@ -164,126 +164,130 @@ class Ball extends BABYLON.Mesh {
         this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
 
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
-        document.addEventListener("keydown", (ev: KeyboardEvent) => {
-            if (ev.code === "KeyA") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.leftDown = 1;
-                }
-            }
-            if (ev.code === "ArrowLeft") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.leftDown = 1;
-                }
-            }
-            
-            if (ev.code === "KeyD") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.rightDown = 1;
-                }
-            }
-            if (ev.code === "ArrowRight") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.rightDown = 1;
-                }
-            }
-            if (ev.code === "Space") {
-                if (this.wasdCanControl) {
-                    this.boost = true;
-                }
-            }
-        })
 
-        document.addEventListener("keyup", (ev: KeyboardEvent) => {
-            if (ev.code === "KeyA") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
+        if (this.ballIndex === 0) {
+            let inputLeft = document.querySelector("#input-left");
+            if (inputLeft) {
+                inputLeft.addEventListener("pointerdown", () => {
+                    this.leftDown = 1;
+                    this.mouseInControl = false;
+                })
+                inputLeft.addEventListener("pointerup", () => {
+                    this.mouseInControl = false;
                     this.leftDown = 0;
-                }
+                })
             }
-            if (ev.code === "ArrowLeft") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.leftDown = 0;
-                }
-            }
-            
-            if (ev.code === "KeyD") {
-                if (this.wasdCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
+    
+            let inputRight = document.querySelector("#input-right");
+            if (inputRight) {
+                inputRight.addEventListener("pointerdown", () => {
+                    this.mouseInControl = false;
+                    this.rightDown = 1;
+                })
+                inputRight.addEventListener("pointerup", () => {
+                    this.mouseInControl = false;
                     this.rightDown = 0;
-                }
+                })
             }
-            if (ev.code === "ArrowRight") {
-                if (this.arrowCanControl) {
-                    if (this.mouseCanControl) {
-                        this.mouseInControl = false;
-                    }
-                    this.rightDown = 0;
-                }
-            }
-            if (ev.code === "Space") {
-                if (this.wasdCanControl) {
+    
+            let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
+            inputBoost.addEventListener("pointerdown", () => {
+                if (this.boost) {
                     this.boost = false;
                 }
-            }
-        })
-
-        let inputLeft = document.querySelector("#input-left");
-        if (inputLeft) {
-            inputLeft.addEventListener("pointerdown", () => {
-                this.leftDown = 1;
-                this.mouseInControl = false;
+                else {
+                    this.boost = true;
+                }
             })
-            inputLeft.addEventListener("pointerup", () => {
-                this.mouseInControl = false;
-                this.leftDown = 0;
+    
+            this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+            this.game.canvas.addEventListener("pointerup", this.mouseUp);
+            this.game.canvas.addEventListener("pointerleave", this.mouseUp);
+            this.game.canvas.addEventListener("pointerout", this.mouseUp);
+
+            document.addEventListener("keydown", (ev: KeyboardEvent) => {
+                if (ev.code === "KeyA") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 1;
+                    }
+                }
+                if (ev.code === "ArrowLeft") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 1;
+                    }
+                }
+                
+                if (ev.code === "KeyD") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 1;
+                    }
+                }
+                if (ev.code === "ArrowRight") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 1;
+                    }
+                }
+                if (ev.code === "Space") {
+                    if (this.wasdCanControl) {
+                        this.boost = true;
+                    }
+                }
+            })
+    
+            document.addEventListener("keyup", (ev: KeyboardEvent) => {
+                if (ev.code === "KeyA") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 0;
+                    }
+                }
+                if (ev.code === "ArrowLeft") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.leftDown = 0;
+                    }
+                }
+                
+                if (ev.code === "KeyD") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 0;
+                    }
+                }
+                if (ev.code === "ArrowRight") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.rightDown = 0;
+                    }
+                }
+                if (ev.code === "Space") {
+                    if (this.wasdCanControl) {
+                        this.boost = false;
+                    }
+                }
             })
         }
-
-        let inputRight = document.querySelector("#input-right");
-        if (inputRight) {
-            inputRight.addEventListener("pointerdown", () => {
-                this.mouseInControl = false;
-                this.rightDown = 1;
-            })
-            inputRight.addEventListener("pointerup", () => {
-                this.mouseInControl = false;
-                this.rightDown = 0;
-            })
-        }
-
-        let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
-        inputBoost.addEventListener("pointerdown", () => {
-            if (this.boost) {
-                this.boost = false;
-            }
-            else {
-                this.boost = true;
-            }
-        })
-
-        this.game.canvas.addEventListener("pointerdown", this.mouseDown);
-        this.game.canvas.addEventListener("pointerup", this.mouseUp);
-        this.game.canvas.addEventListener("pointerleave", this.mouseUp);
-        this.game.canvas.addEventListener("pointerout", this.mouseUp);
+        
     }
 
     public get wasdCanControl(): boolean {

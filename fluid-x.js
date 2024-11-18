@@ -1551,13 +1551,13 @@ class Ramp extends Build {
         }
         let m = 0.2;
         let shadowData = Mummu.Create9SliceVertexData({
-            width: 2.2 + 2 * m,
+            width: 1.1 * this.w + 2 * m,
             height: 3.3 + m,
             margin: m,
             cutTop: true
         });
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55, 0, 1.1 + 0.5 * m));
+        Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(0.55 * (this.w - 1), 0, 1.1 + 0.5 * m));
         shadowData.applyToMesh(this.shadow);
     }
 }

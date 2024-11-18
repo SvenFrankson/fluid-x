@@ -39,10 +39,50 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  160
+	processing begun of mesh:  5-ball-box-right
+		WARNING: No materials have been assigned: 
+		num positions      :  36
+		num normals        :  36
+		num tangents       :  0
+		num uvs            :  72
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  68
+	processing begun of mesh:  6-ball-topright
+		WARNING: No materials have been assigned: 
+		num positions      :  115
+		num normals        :  115
+		num tangents       :  0
+		num uvs            :  230
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  188
+	processing begun of mesh:  4-ball-top-left
+		WARNING: No materials have been assigned: 
+		num positions      :  115
+		num normals        :  115
+		num tangents       :  0
+		num uvs            :  230
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  188
+	processing begun of mesh:  3-ball-box-left
+		WARNING: No materials have been assigned: 
+		num positions      :  36
+		num normals        :  36
+		num tangents       :  0
+		num uvs            :  72
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  68
 ========= Writing of JSON file started =========
 	writing mesh:  0-ball-box
 	writing mesh:  1-ball-top
 	writing mesh:  2-ball-box-p2
+	writing mesh:  5-ball-box-right
+	writing mesh:  6-ball-topright
+	writing mesh:  4-ball-top-left
+	writing mesh:  3-ball-box-left
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0445 secs
+elapsed time:  0 min, 0.1521 secs

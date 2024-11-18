@@ -3,8 +3,9 @@ var BallState;
     BallState[BallState["Ready"] = 0] = "Ready";
     BallState[BallState["Move"] = 1] = "Move";
     BallState[BallState["Fall"] = 2] = "Fall";
-    BallState[BallState["Flybacking"] = 3] = "Flybacking";
-    BallState[BallState["Done"] = 4] = "Done";
+    BallState[BallState["Split"] = 3] = "Split";
+    BallState[BallState["Flybacking"] = 4] = "Flybacking";
+    BallState[BallState["Done"] = 5] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
     constructor(puzzle, props, ballIndex = 0) {
@@ -78,6 +79,30 @@ class Ball extends BABYLON.Mesh {
         this.rightArrowSize = 0.5;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
         this.trailMesh.material = this.game.whiteMaterial;
+        this.leftBox = new BABYLON.Mesh("left-box");
+        this.leftBox.parent = this;
+        this.leftBox.material = this.game.brownMaterial;
+        this.leftBox.isVisible = false;
+        this.leftBox.renderOutline = true;
+        this.leftBox.outlineColor = BABYLON.Color3.Black();
+        this.leftBox.outlineWidth = 0.02 / (this.radius * 2);
+        this.leftTop = new BABYLON.Mesh("left-top");
+        this.leftTop.parent = this.leftBox;
+        this.leftTop.position.y = 0.3;
+        this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.leftTop.isVisible = false;
+        this.rightBox = new BABYLON.Mesh("right-box");
+        this.rightBox.parent = this;
+        this.rightBox.material = this.game.brownMaterial;
+        this.rightBox.isVisible = false;
+        this.rightBox.renderOutline = true;
+        this.rightBox.outlineColor = BABYLON.Color3.Black();
+        this.rightBox.outlineWidth = 0.02 / (this.radius * 2);
+        this.rightTop = new BABYLON.Mesh("right-top");
+        this.rightTop.parent = this.rightBox;
+        this.rightTop.position.y = 0.3;
+        this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.rightTop.isVisible = false;
         this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
         this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
         this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
@@ -238,6 +263,12 @@ class Ball extends BABYLON.Mesh {
         if (this.ballTop) {
             this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
         }
+        if (this.leftTop) {
+            this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+        }
+        if (this.rightTop) {
+            this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+        }
     }
     get i() {
         return Math.round(this.position.x / 1.1);
@@ -281,6 +312,10 @@ class Ball extends BABYLON.Mesh {
         }
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
+        ballDatas[3].applyToMesh(this.leftBox);
+        ballDatas[4].applyToMesh(this.leftTop);
+        ballDatas[5].applyToMesh(this.rightBox);
+        ballDatas[6].applyToMesh(this.rightTop);
         BABYLON.CreateGroundVertexData({ width: 1.35, height: 1.35 }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
@@ -413,9 +448,20 @@ class Ball extends BABYLON.Mesh {
             }
             return;
         }
-        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+        else if (this.ballState === BallState.Move || this.ballState === BallState.Done || this.ballState === BallState.Split) {
             if (this.ballState === BallState.Done) {
-                this.speed *= 0.99;
+                let f = Nabu.Easing.smooth1Sec(1 / dt);
+                this.speed *= f;
+            }
+            if (this.ballState === BallState.Split) {
+                let f = Nabu.Easing.smooth05Sec(1 / dt);
+                this.speed *= f;
+                this.leftBox.position.x = this.leftBox.position.x * f - 0.2 * (1 - f);
+                this.leftBox.position.z = this.leftBox.position.z * f - 0.4 * (1 - f);
+                this.leftBox.rotation.y = this.leftBox.rotation.y * f - 0.4 * (1 - f);
+                this.rightBox.position.x = this.rightBox.position.x * f + 0.4 * (1 - f);
+                this.rightBox.position.z = this.rightBox.position.z * f + 0.2 * (1 - f);
+                this.rightBox.rotation.y = this.rightBox.rotation.y * f + 0.8 * (1 - f);
             }
             if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
@@ -554,40 +600,41 @@ class Ball extends BABYLON.Mesh {
                     }
                 }
             }
-            for (let i = 0; i < this.puzzle.creeps.length; i++) {
-                let creep = this.puzzle.creeps[i];
-                let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
-                if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
-                    creep.stopMove = true;
-                    creep.bump();
-                    this.ballState = BallState.Done;
-                    let dir = this.absolutePosition.subtract(creep.absolutePosition);
-                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                        if (dir.x > 0) {
-                            this.bounceXValue = 1;
-                            this.bounceXTimer = this.bounceXDelay;
+            if (this.ballState === BallState.Move) {
+                for (let i = 0; i < this.puzzle.creeps.length; i++) {
+                    let creep = this.puzzle.creeps[i];
+                    let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
+                    if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
+                        creep.stopMove = true;
+                        creep.bump();
+                        let dir = this.absolutePosition.subtract(creep.absolutePosition);
+                        if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                            if (dir.x > 0) {
+                                this.bounceXValue = 1;
+                                this.bounceXTimer = this.bounceXDelay;
+                            }
+                            else {
+                                this.bounceXValue = -1;
+                                this.bounceXTimer = this.bounceXDelay;
+                            }
                         }
                         else {
-                            this.bounceXValue = -1;
-                            this.bounceXTimer = this.bounceXDelay;
+                            if (dir.z > 0) {
+                                this.vZ = 1;
+                            }
+                            else {
+                                this.vZ = -1;
+                            }
                         }
-                        this.game.toonSoundManager.start(this.poc(impact));
-                        this.woodChocSound.play();
+                        this.puzzle.slashSound.play();
+                        setTimeout(() => {
+                            this.split();
+                        }, 100);
+                        setTimeout(() => {
+                            this.puzzle.lose();
+                        }, 1500);
+                        return;
                     }
-                    else {
-                        if (dir.z > 0) {
-                            this.vZ = 1;
-                        }
-                        else {
-                            this.vZ = -1;
-                        }
-                        this.game.toonSoundManager.start(this.poc(impact));
-                        this.woodChocSound.play();
-                    }
-                    setTimeout(() => {
-                        this.puzzle.lose();
-                    }, 500);
-                    return;
                 }
             }
             if (!this.puzzle.ballCollisionDone[this.ballIndex]) {
@@ -807,6 +854,51 @@ class Ball extends BABYLON.Mesh {
         this.rightArrow.position.y += 0.1;
         this.leftArrow.position.copyFrom(this.position);
         this.leftArrow.position.y += 0.1;
+    }
+    split() {
+        let explosionFire = new Explosion(this.game);
+        explosionFire.origin.copyFrom(this.absolutePosition);
+        explosionFire.setRadius(0.3);
+        explosionFire.color = BABYLON.Color3.FromHexString("#ffffff");
+        explosionFire.lifespan = 1;
+        explosionFire.tZero = 1.15;
+        explosionFire.boom();
+        this.isVisible = false;
+        this.shadow.isVisible = false;
+        this.leftArrow.isVisible = false;
+        this.rightArrow.isVisible = false;
+        this.ballTop.isVisible = false;
+        this.leftBox.position.copyFromFloats(0, 0, 0);
+        this.leftBox.rotation.copyFromFloats(0, 0, 0);
+        this.leftBox.isVisible = true;
+        this.leftTop.isVisible = true;
+        this.rightBox.position.copyFromFloats(0, 0, 0);
+        this.rightBox.rotation.copyFromFloats(0, 0, 0);
+        this.rightBox.isVisible = true;
+        this.rightTop.isVisible = true;
+        this.ballState = BallState.Split;
+    }
+    reset() {
+        this.parent = undefined;
+        this.boost = false;
+        this.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.trailPoints = [];
+        this.trailPointColors = [];
+        this.trailMesh.isVisible = false;
+        this.ballState = BallState.Ready;
+        this.vZ = 1;
+        this.leftBox.position.copyFromFloats(0, 0, 0);
+        this.leftBox.rotation.copyFromFloats(0, 0, 0);
+        this.leftBox.isVisible = false;
+        this.leftTop.isVisible = false;
+        this.rightBox.position.copyFromFloats(0, 0, 0);
+        this.rightBox.rotation.copyFromFloats(0, 0, 0);
+        this.rightBox.isVisible = false;
+        this.rightTop.isVisible = false;
+        this.shadow.isVisible = true;
+        this.leftArrow.isVisible = true;
+        this.rightArrow.isVisible = true;
+        this.setVisible(true);
     }
     poc(pos) {
         return {
@@ -2170,7 +2262,7 @@ class Creep extends BABYLON.Mesh {
             let rY0 = this.shell.rotation.z;
             let rZ0 = this.shell.rotation.z;
             let t0 = performance.now();
-            let origin = this.position.clone();
+            this.puzzle.wiishSound.play();
             let step = () => {
                 let dt = (performance.now() - t0) / 1000;
                 let f = dt / duration;
@@ -7310,9 +7402,11 @@ class Puzzle {
         this.clicSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
         this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
         this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
+        this.wiishSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
         this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 }, 3);
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
+        this.slashSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {
@@ -7522,7 +7616,7 @@ class Puzzle {
         setTimeout(() => {
             this.puzzleState = PuzzleState.Done;
             for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done) {
+                if (this.balls[i].ballState != BallState.Done && this.balls[i].ballState != BallState.Split) {
                     return;
                 }
             }
@@ -7638,27 +7732,19 @@ class Puzzle {
             bIndexZero = 2;
         }
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
-            this.balls[bIndex].parent = undefined;
+            this.balls[bIndex].reset();
             this.balls[bIndex].position.x = parseInt(ballLine[bIndexZero + 0 + 3 * bIndex]) * 1.1;
             this.balls[bIndex].position.y = 0;
             this.balls[bIndex].position.z = parseInt(ballLine[bIndexZero + 1 + 3 * bIndex]) * 1.1;
-            this.balls[bIndex].boost = false;
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
-            this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
-            this.balls[bIndex].trailPoints = [];
-            this.balls[bIndex].trailPointColors = [];
-            this.balls[bIndex].trailMesh.isVisible = false;
             if (ballLine.length > 2) {
                 this.balls[bIndex].setColor(parseInt(ballLine[bIndexZero + 2 + 3 * bIndex]));
             }
             else {
                 this.balls[bIndex].setColor(TileColor.North);
             }
-            this.balls[bIndex].ballState = BallState.Ready;
             this.balls[bIndex].lockControl(0.2);
             this.game.setPlayTimer(0);
-            this.balls[bIndex].vZ = 1;
-            this.balls[bIndex].setVisible(true);
         }
         for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
             this.balls[bIndex].setVisible(false);

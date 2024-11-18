@@ -6,6 +6,7 @@ enum BallState {
     Ready,
     Move,
     Fall,
+    Split,
     Flybacking,
     Done
 }
@@ -43,6 +44,11 @@ class Ball extends BABYLON.Mesh {
     public shadow: BABYLON.Mesh;
     public trailMesh: BABYLON.Mesh;
     public trailColor: BABYLON.Color4 = new BABYLON.Color4(0, 0, 0, 0);
+
+    public leftBox: BABYLON.Mesh;
+    public leftTop: BABYLON.Mesh;
+    public rightBox: BABYLON.Mesh;
+    public rightTop: BABYLON.Mesh;
     
     private _boost: boolean = false;
     public get boost(): boolean {
@@ -86,6 +92,12 @@ class Ball extends BABYLON.Mesh {
         this.color = color;
         if (this.ballTop) {
             this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
+        }
+        if (this.leftTop) {
+            this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+        }
+        if (this.rightTop) {
+            this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
         }
     }
 
@@ -158,6 +170,36 @@ class Ball extends BABYLON.Mesh {
 
         this.trailMesh = new BABYLON.Mesh("trailMesh");
         this.trailMesh.material = this.game.whiteMaterial;
+        
+        this.leftBox = new BABYLON.Mesh("left-box");
+        this.leftBox.parent = this;
+        this.leftBox.material = this.game.brownMaterial;
+        this.leftBox.isVisible = false;
+
+        this.leftBox.renderOutline = true;
+        this.leftBox.outlineColor = BABYLON.Color3.Black();
+        this.leftBox.outlineWidth = 0.02 / (this.radius * 2);
+        
+        this.leftTop = new BABYLON.Mesh("left-top");
+        this.leftTop.parent = this.leftBox;
+        this.leftTop.position.y = 0.3;
+        this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.leftTop.isVisible = false;
+        
+        this.rightBox = new BABYLON.Mesh("right-box");
+        this.rightBox.parent = this;
+        this.rightBox.material = this.game.brownMaterial;
+        this.rightBox.isVisible = false;
+
+        this.rightBox.renderOutline = true;
+        this.rightBox.outlineColor = BABYLON.Color3.Black();
+        this.rightBox.outlineWidth = 0.02 / (this.radius * 2);
+        
+        this.rightTop = new BABYLON.Mesh("right-top");
+        this.rightTop.parent = this.rightBox;
+        this.rightTop.position.y = 0.3;
+        this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.rightTop.isVisible = false;
 
         this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
         this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
@@ -326,6 +368,10 @@ class Ball extends BABYLON.Mesh {
         
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
+        ballDatas[3].applyToMesh(this.leftBox);
+        ballDatas[4].applyToMesh(this.leftTop);
+        ballDatas[5].applyToMesh(this.rightBox);
+        ballDatas[6].applyToMesh(this.rightTop);
 
         BABYLON.CreateGroundVertexData({ width: 1.35, height: 1.35 }).applyToMesh(this.shadow);
         BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
@@ -487,9 +533,20 @@ class Ball extends BABYLON.Mesh {
             }
             return;
         }
-        else if (this.ballState === BallState.Move || this.ballState === BallState.Done) {
+        else if (this.ballState === BallState.Move || this.ballState === BallState.Done || this.ballState === BallState.Split) {
             if (this.ballState === BallState.Done) {
-                this.speed *= 0.99;
+                let f = Nabu.Easing.smooth1Sec(1 / dt);
+                this.speed *= f;
+            }
+            if (this.ballState === BallState.Split) {
+                let f = Nabu.Easing.smooth05Sec(1 / dt);
+                this.speed *= f;
+                this.leftBox.position.x = this.leftBox.position.x * f - 0.2 * (1 - f);
+                this.leftBox.position.z = this.leftBox.position.z * f - 0.4 * (1 - f);
+                this.leftBox.rotation.y = this.leftBox.rotation.y * f - 0.4 * (1 - f);
+                this.rightBox.position.x = this.rightBox.position.x * f + 0.4 * (1 - f);
+                this.rightBox.position.z = this.rightBox.position.z * f + 0.2 * (1 - f);
+                this.rightBox.rotation.y = this.rightBox.rotation.y * f + 0.8 * (1 - f);
             }
             
             if (this.bounceXTimer > 0) {
@@ -641,40 +698,41 @@ class Ball extends BABYLON.Mesh {
                 }
             }
 
-            for (let i = 0; i < this.puzzle.creeps.length; i++) {
-                let creep = this.puzzle.creeps[i];
-                let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
-                if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
-                    creep.stopMove = true;
-                    creep.bump();
-                    this.ballState = BallState.Done;
-                    let dir = this.absolutePosition.subtract(creep.absolutePosition);
-                    if (Math.abs(dir.x) > Math.abs(dir.z)) {
-                        if (dir.x > 0) {
-                            this.bounceXValue = 1;
-                            this.bounceXTimer = this.bounceXDelay;
+            if (this.ballState === BallState.Move) {
+                for (let i = 0; i < this.puzzle.creeps.length; i++) {
+                    let creep = this.puzzle.creeps[i];
+                    let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
+                    if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
+                        creep.stopMove = true;
+                        creep.bump();
+                        let dir = this.absolutePosition.subtract(creep.absolutePosition);
+                        if (Math.abs(dir.x) > Math.abs(dir.z)) {
+                            if (dir.x > 0) {
+                                this.bounceXValue = 1;
+                                this.bounceXTimer = this.bounceXDelay;
+                            }
+                            else {
+                                this.bounceXValue = - 1;
+                                this.bounceXTimer = this.bounceXDelay;
+                            }
                         }
                         else {
-                            this.bounceXValue = - 1;
-                            this.bounceXTimer = this.bounceXDelay;
+                            if (dir.z > 0) {
+                                this.vZ = 1;
+                            }
+                            else {
+                                this.vZ = -1;
+                            }
                         }
-                        this.game.toonSoundManager.start(this.poc(impact));
-                        this.woodChocSound.play();
+                        this.puzzle.slashSound.play();
+                        setTimeout(() => {
+                            this.split();
+                        }, 100)
+                        setTimeout(() => {
+                            this.puzzle.lose();
+                        }, 1500);
+                        return;
                     }
-                    else {
-                        if (dir.z > 0) {
-                            this.vZ = 1;
-                        }
-                        else {
-                            this.vZ = -1;
-                        }
-                        this.game.toonSoundManager.start(this.poc(impact));
-                        this.woodChocSound.play();
-                    }
-                    setTimeout(() => {
-                        this.puzzle.lose();
-                    }, 500);
-                    return;
                 }
             }
 
@@ -913,6 +971,58 @@ class Ball extends BABYLON.Mesh {
         this.rightArrow.position.y += 0.1;
         this.leftArrow.position.copyFrom(this.position);
         this.leftArrow.position.y += 0.1;
+    }
+
+    public split(): void {
+        let explosionFire = new Explosion(this.game);
+        explosionFire.origin.copyFrom(this.absolutePosition);
+        explosionFire.setRadius(0.3);
+        explosionFire.color = BABYLON.Color3.FromHexString("#ffffff");
+        explosionFire.lifespan = 1;
+        explosionFire.tZero = 1.15;
+        explosionFire.boom();
+
+        this.isVisible = false;
+        this.shadow.isVisible = false;
+        this.leftArrow.isVisible = false;
+        this.rightArrow.isVisible = false;
+
+        this.ballTop.isVisible = false;
+        this.leftBox.position.copyFromFloats(0, 0, 0);
+        this.leftBox.rotation.copyFromFloats(0, 0, 0);
+        this.leftBox.isVisible = true;
+        this.leftTop.isVisible = true;
+        this.rightBox.position.copyFromFloats(0, 0, 0);
+        this.rightBox.rotation.copyFromFloats(0, 0, 0);
+        this.rightBox.isVisible = true;
+        this.rightTop.isVisible = true;
+        this.ballState = BallState.Split;
+    }
+
+    public reset(): void {
+        this.parent = undefined;
+        this.boost = false;
+        this.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.trailPoints = [];
+        this.trailPointColors = [];
+        this.trailMesh.isVisible = false;
+        this.ballState = BallState.Ready;
+        this.vZ = 1;
+        
+        this.leftBox.position.copyFromFloats(0, 0, 0);
+        this.leftBox.rotation.copyFromFloats(0, 0, 0);
+        this.leftBox.isVisible = false;
+        this.leftTop.isVisible = false;
+        this.rightBox.position.copyFromFloats(0, 0, 0);
+        this.rightBox.rotation.copyFromFloats(0, 0, 0);
+        this.rightBox.isVisible = false;
+        this.rightTop.isVisible = false;
+
+        this.shadow.isVisible = true;
+        this.leftArrow.isVisible = true;
+        this.rightArrow.isVisible = true;
+        
+        this.setVisible(true);
     }
 
     public poc(pos: BABYLON.Vector3) {

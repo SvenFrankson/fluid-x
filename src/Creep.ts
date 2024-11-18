@@ -279,7 +279,7 @@ class Creep extends BABYLON.Mesh {
             let rY0 = this.shell.rotation.z;
             let rZ0 = this.shell.rotation.z;
             let t0 = performance.now();
-            let origin = this.position.clone();
+            this.puzzle.wiishSound.play();
             let step = () => {
                 let dt = (performance.now() - t0) / 1000;
                 let f = dt / duration;

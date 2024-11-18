@@ -170,9 +170,11 @@ class Puzzle {
     public clicSound: MySound;
     public cricSound: MySound;
     public cracSound: MySound;
+    public wiishSound: MySound;
     public wooshSound: MySound;
     public longCrackSound: MySound;
     public fallImpactSound: MySound;
+    public slashSound: MySound;
 
     public getScene(): BABYLON.Scene {
         return this.game.scene;
@@ -271,9 +273,11 @@ class Puzzle {
         this.clicSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
         this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
         this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
+        this.wiishSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
         this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
         this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 }, 3);
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
+        this.slashSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
     }
 
     public async reset(): Promise<void> {
@@ -338,7 +342,7 @@ class Puzzle {
         setTimeout(() => {
             this.puzzleState = PuzzleState.Done;
             for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done) {
+                if (this.balls[i].ballState != BallState.Done && this.balls[i].ballState != BallState.Split) {
                     return;
                 }
             }
@@ -463,30 +467,20 @@ class Puzzle {
             bIndexZero = 2;
         }
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
-            this.balls[bIndex].parent = undefined;
+            this.balls[bIndex].reset();
             this.balls[bIndex].position.x = parseInt(ballLine[bIndexZero + 0 + 3 * bIndex]) * 1.1;
             this.balls[bIndex].position.y = 0;
             this.balls[bIndex].position.z = parseInt(ballLine[bIndexZero + 1 + 3 * bIndex]) * 1.1;
-            this.balls[bIndex].boost = false;
             this.ballsPositionZero[bIndex].copyFrom(this.balls[bIndex].position);
-            this.balls[bIndex].rotationQuaternion = BABYLON.Quaternion.Identity();
-            this.balls[bIndex].trailPoints = [];
-            this.balls[bIndex].trailPointColors = [];
-            this.balls[bIndex].trailMesh.isVisible = false;
             if (ballLine.length > 2) {
                 this.balls[bIndex].setColor(parseInt(ballLine[bIndexZero + 2 + 3 * bIndex]));
             }
             else {
                 this.balls[bIndex].setColor(TileColor.North);
             }
-            this.balls[bIndex].ballState = BallState.Ready;
             this.balls[bIndex].lockControl(0.2);
     
             this.game.setPlayTimer(0);
-            this.balls[bIndex].vZ = 1;
-
-            this.balls[bIndex].setVisible(true);
-
         }
         for (let bIndex = this.ballsCount; bIndex < this.balls.length; bIndex++) {
             this.balls[bIndex].setVisible(false);

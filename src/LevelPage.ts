@@ -570,11 +570,16 @@ class DevPuzzlesPage extends LevelPage {
         if (response.status === 200) {
             let text = await response.text();
             
-            let data = JSON.parse(text);
+            let data: IPuzzlesData = JSON.parse(text);
             CLEAN_IPuzzlesData(data);
     
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
                 let id = data.puzzles[i].id;
+
+                if (this.levelStateToFetch === 2 || this.levelStateToFetch === 3) {
+                    data.puzzles[i].title += " (" + data.puzzles[i].story_order.toFixed(0) + ")"; 
+                }
+
                 puzzleData[i] = {
                     data: data.puzzles[i],
                     onpointerup: () => {

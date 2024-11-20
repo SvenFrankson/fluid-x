@@ -12,7 +12,8 @@ enum EditorBrush {
     Box,
     Ramp,
     Bridge,
-    Creep
+    Creep,
+    Tree
 }
 
 class Editor {
@@ -76,9 +77,15 @@ class Editor {
     public ramp4Button: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
     public creepButton: HTMLButtonElement;
+    public treeButton: HTMLButtonElement;
     public deleteButton: HTMLButtonElement;
 
     public selectableButtons: HTMLButtonElement[] = [];
+
+    public haikuIInput: NumValueInput;
+    public haikuJInput: NumValueInput;
+    public haikuContent: HTMLTextAreaElement;
+    public haikuUpdateButton: HTMLButtonElement;
 
     public doClearButton: HTMLButtonElement;
     public clearButton: HTMLButtonElement;
@@ -106,6 +113,7 @@ class Editor {
         }
         return "";
     }
+    public puzzleIdInput: HTMLInputElement;
     public eulaCheckbox: HTMLInputElement;
     public get eulaAccepted(): boolean {
         if (this.eulaCheckbox) {
@@ -146,9 +154,12 @@ class Editor {
         this.heightInput.setValue(this.puzzle.h);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
-        this.puzzle.haikus.forEach(haiku => {
-            haiku.visibility = 1;
-        })
+        if (this.puzzle.haiku) {
+            this.puzzle.haiku.visibility = 1;
+            this.haikuIInput.setValue(Math.round(this.puzzle.haiku.position.x * 2));
+            this.haikuJInput.setValue(Math.round(this.puzzle.haiku.position.z * 2));
+            this.haikuContent.value = this.puzzle.haiku.text;
+        }
     }
 
     public activate(): void {
@@ -349,6 +360,7 @@ class Editor {
         this.ramp4Button = document.getElementById("ramp-4-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
         this.creepButton = document.getElementById("creep-btn") as HTMLButtonElement;
+        this.treeButton = document.getElementById("tree-btn") as HTMLButtonElement;
         this.deleteButton = document.getElementById("delete-btn") as HTMLButtonElement;
 
         this.selectableButtons = [
@@ -376,7 +388,8 @@ class Editor {
             this.ramp3Button,
             this.ramp4Button,
             this.bridgeButton,
-            this.creepButton
+            this.creepButton,
+            this.treeButton
         ];
 
         let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, value?: number, cursorSize?: { w?: number, h?: number, d?: number }) => {
@@ -428,8 +441,43 @@ class Editor {
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
+        makeBrushButton(this.treeButton, EditorBrush.Tree);
 
-        makeBrushButton(this.deleteButton, EditorBrush.Delete);        
+        makeBrushButton(this.deleteButton, EditorBrush.Delete);
+
+        this.haikuIInput = document.getElementById("haiku-i") as NumValueInput;
+        this.haikuIInput.onValueChange = (v) => {
+            if (this.puzzle.haiku) {
+                this.puzzle.haiku.position.x = v / 2;
+            }
+        }
+        this.haikuJInput = document.getElementById("haiku-j") as NumValueInput;
+        this.haikuJInput.onValueChange = (v) => {
+            if (this.puzzle.haiku) {
+                this.puzzle.haiku.position.z = v / 2;
+            }
+        }
+        this.haikuContent = document.getElementById("haiku-content") as HTMLTextAreaElement;
+        this.haikuUpdateButton = document.getElementById("haiku-update") as HTMLButtonElement;
+        this.haikuUpdateButton.onpointerup = () => {
+            let content = this.haikuContent.value;
+            console.log(content);
+            if (content === "") {
+                this.puzzle.data.haiku = undefined;
+                if (this.puzzle.haiku) {
+                    this.puzzle.haiku.dispose();
+                    this.puzzle.haiku = undefined;
+                }
+            }
+            else {
+                if (!this.puzzle.haiku) {
+                    let haiku = new Haiku(this.game, "", "", "", "");
+                    haiku.position.y = 0.1;
+                    this.puzzle.haiku = haiku;
+                }
+                this.puzzle.haiku.setText(content);
+            }
+        }
         
         document.getElementById("play-btn").onpointerup = async () => {
             this.dropClear();
@@ -442,7 +490,7 @@ class Editor {
         document.getElementById("save-btn").onpointerup = () => {
             this.dropClear();
             this.dropBrush();
-            let content = SaveAsText(this.puzzle);
+            let content = SaveAsText(this.puzzle, true);
             Nabu.download("puzzle.txt", content);
         };
         
@@ -459,11 +507,20 @@ class Editor {
                 const reader = new FileReader();
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result as string;
+                    let haiku: string;
+                    if (content && typeof(content) === "string") {
+                        if (content.indexOf("[HAIKU]") != -1) {
+                            let pslit = content.split("[HAIKU]");
+                            content = pslit[0];
+                            haiku = pslit[1].replaceAll("\\n", "\n");
+                        }
+                    }
                     this.puzzle.resetFromData({
                         id: null,
                         title: "Custom Machine",
                         author: "Editor",
-                        content: content
+                        content: content,
+                        haiku: haiku
                     });
                     await this.puzzle.instantiate();
                     this.initValues();
@@ -484,6 +541,7 @@ class Editor {
 
         this.titleInput = document.querySelector("#title-input") as HTMLInputElement;
         this.authorInput = document.querySelector("#author-input") as HTMLInputElement;
+        this.puzzleIdInput = document.querySelector("#id-input") as HTMLInputElement;
         this.eulaCheckbox = document.querySelector("#eula-checkbox") as HTMLInputElement;
 
         document.getElementById("publish-btn").onpointerup = async () => {
@@ -510,7 +568,7 @@ class Editor {
                 let data = {
                     title: this.title,
                     author: this.author,
-                    content: SaveAsText(this.puzzle),
+                    content: SaveAsText(this.puzzle, true),
                     id: null
                 }
                 let headers: any = {
@@ -518,7 +576,7 @@ class Editor {
                 };
                 if (DEV_MODE_ACTIVATED) {
                     let puzzleId = null;
-                    let idStr = (document.querySelector("#id-input") as HTMLInputElement).value;
+                    let idStr = this.puzzleIdInput.value;
                     if (idStr != "") {
                         puzzleId = parseInt(idStr);
                     }
@@ -647,12 +705,15 @@ class Editor {
 
     public updatePublishText(): void {
         if (DEV_MODE_ACTIVATED) {
-            document.querySelector("#id-input").parentElement.style.display = "";
+            this.puzzleIdInput.parentElement.style.display = "";
+            if (this.puzzle.data.id) {
+                (this.puzzleIdInput as HTMLInputElement).value = this.puzzle.data.id.toFixed(0);
+            }
             this.titleInput.value = this.puzzle.data.title;
             this.authorInput.value = this.puzzle.data.author;
         }
         else {
-            document.querySelector("#id-input").parentElement.style.display = "none";
+            this.puzzleIdInput.parentElement.style.display = "none";
         }
     }
 
@@ -934,6 +995,17 @@ class Editor {
                                 }
                             );
                             creep.instantiate();
+                        }
+                        else if (this.brush === EditorBrush.Tree) {
+                            tile = new CherryTree(
+                                this.game,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor,
+                                    noShadow: true
+                                }
+                            )
                         }
                         if (tile) {
                             if (tile instanceof WaterTile) {

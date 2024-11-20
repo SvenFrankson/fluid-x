@@ -1,4 +1,4 @@
-function SaveAsText(puzzle: Puzzle): string {
+function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
     let lines: string[][][] = [];
     for (let j = 0; j < puzzle.h; j++) {
         lines[j] = [];
@@ -123,7 +123,17 @@ function SaveAsText(puzzle: Puzzle): string {
 
     lines2.push(buildingBlocksLine);
 
-    return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
+    let content = lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
+
+    if (withHaiku && puzzle.haiku) {
+        let haikuLine = "[HAIKU]";
+        haikuLine += (puzzle.haiku.position.x * 2).toFixed(0) + "x";
+        haikuLine += (puzzle.haiku.position.z * 2).toFixed(0) + "x";
+        haikuLine += (puzzle.haiku.text.replaceAll("\n", "\\n"));
+        content += haikuLine;
+    }
+
+    return content;
 }
 
 function SerializeBuildingBlocks(buildingBlocks: number[][]): string {

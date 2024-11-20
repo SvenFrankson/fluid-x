@@ -11,7 +11,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 1.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 75 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -23,7 +23,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 3);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
 
             let testHaiku2 = new Haiku(
                 puzzle.game,
@@ -34,7 +34,7 @@ class HaikuMaker {
             );
             testHaiku2.position.copyFromFloats(1.1 * 7, 0.1, 1.1 * 1);
             testHaiku2.visibility = 0;
-            puzzle.haikus.push(testHaiku2);
+            puzzle.haiku = testHaiku2;
         }
         if (puzzle.data.id === 76 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -46,7 +46,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 3);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 60 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -58,7 +58,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 78 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -70,7 +70,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 2.7);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 62 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -82,7 +82,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 5, 0.1, 1.1 * 4.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 68 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -94,7 +94,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 1.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 80 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -106,7 +106,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 92 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(
@@ -118,7 +118,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
 
         if (puzzle.data.id === 58 && puzzle.data.state === 2) {
@@ -133,7 +133,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
     
             let testHaiku2 = new Haiku(
                 puzzle.game,
@@ -144,7 +144,7 @@ class HaikuMaker {
             );
             testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
             testHaiku2.visibility = 0;
-            puzzle.haikus.push(testHaiku2);
+            puzzle.haiku = testHaiku2;
     
             let testHaiku3 = new Haiku(
                 puzzle.game,
@@ -155,7 +155,7 @@ class HaikuMaker {
             );
             testHaiku3.position.copyFromFloats(1.1 * 14, 0.1, 1.1 * 2.5);
             testHaiku3.visibility = 0;
-            puzzle.haikus.push(testHaiku3);
+            puzzle.haiku = testHaiku3;
         }
         if (puzzle.data.id === 59 && puzzle.data.state === 2) {
             // First Level Haikus
@@ -169,7 +169,7 @@ class HaikuMaker {
             );
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
     }
 }
@@ -179,13 +179,14 @@ class Haiku extends BABYLON.Mesh {
     public dynamicTexture: BABYLON.DynamicTexture;
     public animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
     public inRange: boolean = false;
+    public text: string;
 
     constructor(
         public game: Game,
-        public title: string,
-        public text1: string,
-        public text2: string,
-        public text3: string
+        text: string,
+        title?: string,
+        text2?: string,
+        text3?: string
     ) {
         super("haiku");
         BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
@@ -198,25 +199,29 @@ class Haiku extends BABYLON.Mesh {
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         this.material = haikuMaterial;
 
+        this.setText(text);
+
+        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+
+    public setText(text: string): void {
+        this.text = text;
+        let lines = text.split("\n");
         let context = this.dynamicTexture.getContext();
-        context.fillStyle = "#00000000";
-        context.fillRect(0, 0, 1000, 1000);
+        context.clearRect(0, 0, 1000, 1000);
 
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";
         context.font = "130px Shalimar";
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
-                context.fillText(this.title, 100 + x, 150 + y);
-                context.fillText(this.text1, 30 + x, 550 + y);
-                context.fillText(this.text2, 30 + x, 700 + y);
-                context.fillText(this.text3, 30 + x, 850 + y);
+                for (let l = 0; l < lines.length; l++) {
+                    context.fillText(lines[l], 30 + x, 150 * (l + 1) + y);
+                }
             }
         }
 
         this.dynamicTexture.update();
-
-        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
 
     public update(dt: number): void {

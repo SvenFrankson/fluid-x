@@ -1827,6 +1827,7 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             document.querySelector("#editor-btn").style.display = "";
             await this.game.puzzle.reset();
+            this.game.puzzle.editorOrEditorPreview = true;
             this.game.puzzle.skipIntro();
             this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
@@ -1834,6 +1835,7 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#editor")) {
             this.show(this.editorUI, false, showTime);
             await this.game.puzzle.reset();
+            this.game.puzzle.editorOrEditorPreview = true;
             this.game.editor.activate();
             this.game.mode = GameMode.Editor;
         }
@@ -1853,6 +1855,7 @@ class CarillonRouter extends Nabu.Router {
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
+            this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
@@ -1882,6 +1885,7 @@ class CarillonRouter extends Nabu.Router {
             }
             this.show(this.playUI, false, showTime);
             await this.game.puzzle.reset();
+            this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
@@ -2336,6 +2340,7 @@ var EditorBrush;
     EditorBrush[EditorBrush["Ramp"] = 11] = "Ramp";
     EditorBrush[EditorBrush["Bridge"] = 12] = "Bridge";
     EditorBrush[EditorBrush["Creep"] = 13] = "Creep";
+    EditorBrush[EditorBrush["Tree"] = 14] = "Tree";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -2529,6 +2534,14 @@ class Editor {
                                 });
                                 creep.instantiate();
                             }
+                            else if (this.brush === EditorBrush.Tree) {
+                                tile = new CherryTree(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    color: this.brushColor,
+                                    noShadow: true
+                                });
+                            }
                             if (tile) {
                                 if (tile instanceof WaterTile) {
                                     this.puzzle.editorRegenerateWaterTiles();
@@ -2592,9 +2605,12 @@ class Editor {
         this.heightInput.setValue(this.puzzle.h);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
-        this.puzzle.haikus.forEach(haiku => {
-            haiku.visibility = 1;
-        });
+        if (this.puzzle.haiku) {
+            this.puzzle.haiku.visibility = 1;
+            this.haikuIInput.setValue(Math.round(this.puzzle.haiku.position.x * 2));
+            this.haikuJInput.setValue(Math.round(this.puzzle.haiku.position.z * 2));
+            this.haikuContent.value = this.puzzle.haiku.text;
+        }
     }
     activate() {
         this.ballCountButton = document.getElementById("ball-count-btn");
@@ -2762,6 +2778,7 @@ class Editor {
         this.ramp4Button = document.getElementById("ramp-4-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
         this.creepButton = document.getElementById("creep-btn");
+        this.treeButton = document.getElementById("tree-btn");
         this.deleteButton = document.getElementById("delete-btn");
         this.selectableButtons = [
             this.switchTileNorthButton,
@@ -2788,7 +2805,8 @@ class Editor {
             this.ramp3Button,
             this.ramp4Button,
             this.bridgeButton,
-            this.creepButton
+            this.creepButton,
+            this.treeButton
         ];
         let makeBrushButton = (button, brush, value, cursorSize) => {
             if (!cursorSize) {
@@ -2834,7 +2852,41 @@ class Editor {
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
+        makeBrushButton(this.treeButton, EditorBrush.Tree);
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
+        this.haikuIInput = document.getElementById("haiku-i");
+        this.haikuIInput.onValueChange = (v) => {
+            if (this.puzzle.haiku) {
+                this.puzzle.haiku.position.x = v / 2;
+            }
+        };
+        this.haikuJInput = document.getElementById("haiku-j");
+        this.haikuJInput.onValueChange = (v) => {
+            if (this.puzzle.haiku) {
+                this.puzzle.haiku.position.z = v / 2;
+            }
+        };
+        this.haikuContent = document.getElementById("haiku-content");
+        this.haikuUpdateButton = document.getElementById("haiku-update");
+        this.haikuUpdateButton.onpointerup = () => {
+            let content = this.haikuContent.value;
+            console.log(content);
+            if (content === "") {
+                this.puzzle.data.haiku = undefined;
+                if (this.puzzle.haiku) {
+                    this.puzzle.haiku.dispose();
+                    this.puzzle.haiku = undefined;
+                }
+            }
+            else {
+                if (!this.puzzle.haiku) {
+                    let haiku = new Haiku(this.game, "", "", "", "");
+                    haiku.position.y = 0.1;
+                    this.puzzle.haiku = haiku;
+                }
+                this.puzzle.haiku.setText(content);
+            }
+        };
         document.getElementById("play-btn").onpointerup = async () => {
             this.dropClear();
             this.dropBrush();
@@ -2845,7 +2897,7 @@ class Editor {
         document.getElementById("save-btn").onpointerup = () => {
             this.dropClear();
             this.dropBrush();
-            let content = SaveAsText(this.puzzle);
+            let content = SaveAsText(this.puzzle, true);
             Nabu.download("puzzle.txt", content);
         };
         document.getElementById("load-btn").onpointerup = () => {
@@ -2860,11 +2912,20 @@ class Editor {
                 const reader = new FileReader();
                 reader.addEventListener('load', async (event) => {
                     let content = event.target.result;
+                    let haiku;
+                    if (content && typeof (content) === "string") {
+                        if (content.indexOf("[HAIKU]") != -1) {
+                            let pslit = content.split("[HAIKU]");
+                            content = pslit[0];
+                            haiku = pslit[1].replaceAll("\\n", "\n");
+                        }
+                    }
                     this.puzzle.resetFromData({
                         id: null,
                         title: "Custom Machine",
                         author: "Editor",
-                        content: content
+                        content: content,
+                        haiku: haiku
                     });
                     await this.puzzle.instantiate();
                     this.initValues();
@@ -2882,6 +2943,7 @@ class Editor {
         this.publishPendingButton = document.querySelector("#publish-pending-btn");
         this.titleInput = document.querySelector("#title-input");
         this.authorInput = document.querySelector("#author-input");
+        this.puzzleIdInput = document.querySelector("#id-input");
         this.eulaCheckbox = document.querySelector("#eula-checkbox");
         document.getElementById("publish-btn").onpointerup = async () => {
             this.dropClear();
@@ -2904,7 +2966,7 @@ class Editor {
                 let data = {
                     title: this.title,
                     author: this.author,
-                    content: SaveAsText(this.puzzle),
+                    content: SaveAsText(this.puzzle, true),
                     id: null
                 };
                 let headers = {
@@ -2912,7 +2974,7 @@ class Editor {
                 };
                 if (DEV_MODE_ACTIVATED) {
                     let puzzleId = null;
-                    let idStr = document.querySelector("#id-input").value;
+                    let idStr = this.puzzleIdInput.value;
                     if (idStr != "") {
                         puzzleId = parseInt(idStr);
                     }
@@ -3018,12 +3080,15 @@ class Editor {
     }
     updatePublishText() {
         if (DEV_MODE_ACTIVATED) {
-            document.querySelector("#id-input").parentElement.style.display = "";
+            this.puzzleIdInput.parentElement.style.display = "";
+            if (this.puzzle.data.id) {
+                this.puzzleIdInput.value = this.puzzle.data.id.toFixed(0);
+            }
             this.titleInput.value = this.puzzle.data.title;
             this.authorInput.value = this.puzzle.data.author;
         }
         else {
-            document.querySelector("#id-input").parentElement.style.display = "none";
+            this.puzzleIdInput.parentElement.style.display = "none";
         }
     }
     setPublishState(state) {
@@ -3091,92 +3156,88 @@ class HaikuMaker {
             let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
             testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 1.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 75 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 3);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
             let testHaiku2 = new Haiku(puzzle.game, "", "- Objective -", "Hit all colored tiles.", "");
             testHaiku2.position.copyFromFloats(1.1 * 7, 0.1, 1.1 * 1);
             testHaiku2.visibility = 0;
-            puzzle.haikus.push(testHaiku2);
+            puzzle.haiku = testHaiku2;
         }
         if (puzzle.data.id === 76 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Color -", "Hit a drum to switch Color.", "");
             testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 3);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 60 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Caution -", "Holes are dangerous.", "");
             testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 78 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "                - Push -", "Wooden Tiles can be pushed.", "");
             testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 2.7);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 62 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Count -", "One Tile at a time.", "");
             testHaiku.position.copyFromFloats(1.1 * 5, 0.1, 1.1 * 4.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 68 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Satisfaction -", "", "");
             testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 1.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 80 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Lives -", "Don't look down.", "");
             testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 92 && puzzle.data.state === 2) {
             let testHaiku = new Haiku(puzzle.game, "", "- Water -", "Dip a toe !", "");
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
         if (puzzle.data.id === 58 && puzzle.data.state === 2) {
             // First Level Haikus
             let testHaiku = new Haiku(puzzle.game, "- Control -", "Left -west- to right -east-", "One may decide where he goes.", "Unless walls oppose.");
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
             let testHaiku2 = new Haiku(puzzle.game, "- Bounce -", "Up -north- and down -south-", "Some cycle one can't decide.", "A Vertical tide.");
             testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
             testHaiku2.visibility = 0;
-            puzzle.haikus.push(testHaiku2);
+            puzzle.haiku = testHaiku2;
             let testHaiku3 = new Haiku(puzzle.game, "- Complete -", "Find all colored tile", "Scattered around the area.", "Time is no limit.");
             testHaiku3.position.copyFromFloats(1.1 * 14, 0.1, 1.1 * 2.5);
             testHaiku3.visibility = 0;
-            puzzle.haikus.push(testHaiku3);
+            puzzle.haiku = testHaiku3;
         }
         if (puzzle.data.id === 59 && puzzle.data.state === 2) {
             // First Level Haikus
             let testHaiku = new Haiku(puzzle.game, "- Color -", "Four colors for tiles", "Use the right one to collide.", "Or else be bounced back.");
             testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
             testHaiku.visibility = 0;
-            puzzle.haikus.push(testHaiku);
+            puzzle.haiku = testHaiku;
         }
     }
 }
 class Haiku extends BABYLON.Mesh {
-    constructor(game, title, text1, text2, text3) {
+    constructor(game, text, title, text2, text3) {
         super("haiku");
         this.game = game;
-        this.title = title;
-        this.text1 = text1;
-        this.text2 = text2;
-        this.text3 = text3;
         this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
         this.inRange = false;
         BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
@@ -3187,22 +3248,25 @@ class Haiku extends BABYLON.Mesh {
         haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         this.material = haikuMaterial;
+        this.setText(text);
+        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+    setText(text) {
+        this.text = text;
+        let lines = text.split("\n");
         let context = this.dynamicTexture.getContext();
-        context.fillStyle = "#00000000";
-        context.fillRect(0, 0, 1000, 1000);
+        context.clearRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";
         context.font = "130px Shalimar";
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
-                context.fillText(this.title, 100 + x, 150 + y);
-                context.fillText(this.text1, 30 + x, 550 + y);
-                context.fillText(this.text2, 30 + x, 700 + y);
-                context.fillText(this.text3, 30 + x, 850 + y);
+                for (let l = 0; l < lines.length; l++) {
+                    context.fillText(lines[l], 30 + x, 150 * (l + 1) + y);
+                }
             }
         }
         this.dynamicTexture.update();
-        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
     update(dt) {
         if (this.game.puzzle.balls[0].ballState === BallState.Move) {
@@ -4082,6 +4146,9 @@ class DevPuzzlesPage extends LevelPage {
             CLEAN_IPuzzlesData(data);
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
                 let id = data.puzzles[i].id;
+                if (this.levelStateToFetch === 2 || this.levelStateToFetch === 3) {
+                    data.puzzles[i].title += " (" + data.puzzles[i].story_order.toFixed(0) + ")";
+                }
                 puzzleData[i] = {
                     data: data.puzzles[i],
                     onpointerup: () => {
@@ -4836,7 +4903,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -6561,6 +6628,51 @@ class WallTile extends Tile {
         data.applyToMesh(this);
     }
 }
+class CherryTree extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.material = this.game.brownMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this;
+        this.tileTop.position.y = 0.2;
+        this.tileTop.material = this.game.whiteMaterial;
+        this.trunk = new BABYLON.Mesh("trunk");
+        this.trunk.parent = this;
+        this.trunk.position.y = 0.2;
+        this.trunk.material = this.game.trueWhiteMaterial;
+        this.trunk.renderOutline = true;
+        this.trunk.outlineColor = BABYLON.Color3.Black();
+        this.trunk.outlineWidth = 0.02;
+        this.flower = new BABYLON.Mesh("flower");
+        this.flower.parent = this;
+        this.flower.position.y = 0.2;
+        this.flower.material = this.game.trueWhiteMaterial;
+        this.flower.renderOutline = true;
+        this.flower.outlineColor = BABYLON.Color3.Black();
+        this.flower.outlineWidth = 0.02;
+    }
+    async instantiate() {
+        await super.instantiate();
+        let tileData = CreateBoxFrameVertexData({
+            w: 1,
+            d: 1,
+            h: 0.3,
+            thickness: 0.05,
+            innerHeight: 0.1,
+            flatShading: false,
+            topCap: false,
+            bottomCap: true,
+        });
+        tileData.applyToMesh(this);
+        BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
+        let datas = await this.game.vertexDataLoader.get("./datas/meshes/cherry.babylon");
+        datas[0].applyToMesh(this.trunk);
+        datas[1].applyToMesh(this.flower);
+    }
+}
 /// <reference path="./Tile.ts"/>
 class WaterTile extends Tile {
     constructor(game, props) {
@@ -7335,6 +7447,7 @@ var PuzzleState;
 class Puzzle {
     constructor(game) {
         this.game = game;
+        this.editorOrEditorPreview = false;
         this.data = {
             id: null,
             title: "No Title",
@@ -7363,7 +7476,6 @@ class Puzzle {
         this.w = 10;
         this.h = 10;
         this._pendingPublish = false;
-        this.haikus = [];
         this.playerHaikus = [];
         this._ballCollisionTimeStamp = 0;
         this._timer = 0;
@@ -7603,7 +7715,7 @@ class Puzzle {
             }
             this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
             this.puzzleUI.win(firstTimeCompleted);
-            if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
+            if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
             }
             else {
@@ -7692,8 +7804,9 @@ class Puzzle {
         while (this.creeps.length > 0) {
             this.creeps.pop().dispose();
         }
-        while (this.haikus.length > 0) {
-            this.haikus.pop().dispose();
+        if (this.haiku) {
+            this.haiku.dispose();
+            this.haiku = undefined;
         }
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
@@ -8050,7 +8163,18 @@ class Puzzle {
                 i++;
             }
         }
-        HaikuMaker.MakeHaiku(this);
+        //HaikuMaker.MakeHaiku(this);
+        if (data.haiku) {
+            let split = data.haiku.split("x");
+            let x = parseInt(split[0]) * 0.5;
+            let z = parseInt(split[1]) * 0.5;
+            split.splice(0, 2);
+            let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+            let haiku = new Haiku(this.game, "", "", "", "");
+            haiku.position.copyFromFloats(x, 0.1, z);
+            haiku.setText(text);
+            this.haiku = haiku;
+        }
         this.game.updateMenuCameraRadius();
     }
     connectWaterTiles() {
@@ -8599,8 +8723,8 @@ class Puzzle {
                 this.win();
             }
         }
-        for (let i = 0; i < this.haikus.length; i++) {
-            this.haikus[i].update(dt);
+        if (this.haiku) {
+            this.haiku.update(dt);
         }
         if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {
             this.playTimer += dt;
@@ -8647,6 +8771,13 @@ function CLEAN_IPuzzleData(data) {
     }
     if (data.expert_puzzle_id != null && typeof (data.expert_puzzle_id) === "string") {
         data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
+    }
+    if (data.content && typeof (data.content) === "string") {
+        if (data.content.indexOf("[HAIKU]") != -1) {
+            let pslit = data.content.split("[HAIKU]");
+            data.content = pslit[0];
+            data.haiku = pslit[1].replaceAll("\\n", "\n");
+        }
     }
 }
 function CLEAN_IPuzzlesData(data) {
@@ -8846,7 +8977,7 @@ class PuzzleMiniatureMaker {
         return canvas;
     }
 }
-function SaveAsText(puzzle) {
+function SaveAsText(puzzle, withHaiku) {
     let lines = [];
     for (let j = 0; j < puzzle.h; j++) {
         lines[j] = [];
@@ -8962,7 +9093,15 @@ function SaveAsText(puzzle) {
         }
     }
     lines2.push(buildingBlocksLine);
-    return lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
+    let content = lines2.reduce((l1, l2) => { return l1 + "x" + l2; });
+    if (withHaiku && puzzle.haiku) {
+        let haikuLine = "[HAIKU]";
+        haikuLine += (puzzle.haiku.position.x * 2).toFixed(0) + "x";
+        haikuLine += (puzzle.haiku.position.z * 2).toFixed(0) + "x";
+        haikuLine += (puzzle.haiku.text.replaceAll("\n", "\\n"));
+        content += haikuLine;
+    }
+    return content;
 }
 function SerializeBuildingBlocks(buildingBlocks) {
     let buildingBlocksLine = "BB";

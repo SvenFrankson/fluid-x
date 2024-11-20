@@ -6,6 +6,7 @@ enum PuzzleState {
 
 class Puzzle {
 
+    public editorOrEditorPreview: boolean = false;
     public data: IPuzzleData = {
         id: null,
         title: "No Title",
@@ -224,7 +225,7 @@ class Puzzle {
 
     public puzzleUI: PuzzleUI;
     private _pendingPublish: boolean = false;
-    public haikus: Haiku[] = [];
+    public haiku: Haiku;
     public playerHaikus: HaikuPlayerStart[] = [];
 
     constructor(public game: Game) {
@@ -328,7 +329,7 @@ class Puzzle {
             }
             this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
             this.puzzleUI.win(firstTimeCompleted);
-            if (!OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
+            if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
             }
             else {
@@ -423,8 +424,9 @@ class Puzzle {
         while (this.creeps.length > 0) {
             this.creeps.pop().dispose();
         }
-        while (this.haikus.length > 0) {
-            this.haikus.pop().dispose();
+        if (this.haiku) {
+            this.haiku.dispose();
+            this.haiku = undefined;
         }
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
@@ -796,7 +798,18 @@ class Puzzle {
             }
         }
 
-        HaikuMaker.MakeHaiku(this);
+        //HaikuMaker.MakeHaiku(this);
+        if (data.haiku) {
+            let split = data.haiku.split("x");
+            let x = parseInt(split[0]) * 0.5;
+            let z = parseInt(split[1]) * 0.5;
+            split.splice(0, 2);
+            let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+            let haiku = new Haiku(this.game, "", "", "", "");
+            haiku.position.copyFromFloats(x, 0.1, z);
+            haiku.setText(text);
+            this.haiku = haiku;
+        }
         this.game.updateMenuCameraRadius();
     }
 
@@ -1398,8 +1411,8 @@ class Puzzle {
                 this.win();
             }
         }
-        for (let i = 0; i < this.haikus.length; i++) {
-            this.haikus[i].update(dt);
+        if (this.haiku) {
+            this.haiku.update(dt);
         }
 
         if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {

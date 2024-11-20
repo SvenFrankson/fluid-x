@@ -3,6 +3,7 @@ interface IPuzzleData {
     title: string;
     author: string;
     content: string;
+    haiku?: string;
     numLevel?: number;
     score?: number;
     player?: string;
@@ -30,6 +31,13 @@ function CLEAN_IPuzzleData(data: any): any {
     }
     if (data.expert_puzzle_id != null && typeof(data.expert_puzzle_id) === "string") {
         data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
+    }
+    if (data.content && typeof(data.content) === "string") {
+        if (data.content.indexOf("[HAIKU]") != -1) {
+            let pslit = data.content.split("[HAIKU]");
+            data.content = pslit[0];
+            data.haiku = pslit[1].replaceAll("\\n", "\n");
+        }
     }
 }
 

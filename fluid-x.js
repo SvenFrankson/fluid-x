@@ -22,6 +22,7 @@ class Ball extends BABYLON.Mesh {
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
         this.xForceAccelDelay = 0.8 * this.bounceXDelay;
+        this._loseTimout = 0;
         this.isControlLocked = false;
         this._lockControlTimout = 0;
         this.leftDown = 0;
@@ -627,12 +628,11 @@ class Ball extends BABYLON.Mesh {
                             }
                         }
                         this.puzzle.slashSound.play();
-                        setTimeout(() => {
-                            this.split();
-                        }, 100);
-                        setTimeout(() => {
+                        this.split();
+                        clearTimeout(this._loseTimout);
+                        this._loseTimout = setTimeout(() => {
                             this.puzzle.lose();
-                        }, 1500);
+                        }, 1000);
                         return;
                     }
                 }
@@ -837,9 +837,10 @@ class Ball extends BABYLON.Mesh {
                 }
                 else {
                     this.ballState = BallState.Done;
-                    setTimeout(() => {
+                    clearTimeout(this._loseTimout);
+                    this._loseTimout = setTimeout(() => {
                         this.puzzle.lose();
-                    }, 500);
+                    }, 1000);
                 }
                 return;
             }
@@ -879,6 +880,7 @@ class Ball extends BABYLON.Mesh {
         this.ballState = BallState.Split;
     }
     reset() {
+        clearTimeout(this._loseTimout);
         this.parent = undefined;
         this.boost = false;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
@@ -7475,6 +7477,7 @@ class Puzzle {
         this.balls = [];
         this.ballCollision = BABYLON.Vector3.Zero();
         this.ballCollisionDone = [true, true];
+        this._winloseTimout = 0;
         this.puzzleState = PuzzleState.Done;
         this.playTimer = 0;
         this.fishingPolesCount = 0;
@@ -7719,12 +7722,8 @@ class Puzzle {
         let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);
         stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
         stamp.classList.add("stamp-" + starCount);
-        setTimeout(() => {
-            for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done) {
-                    return;
-                }
-            }
+        clearTimeout(this._winloseTimout);
+        this._winloseTimout = setTimeout(() => {
             this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
             this.puzzleUI.win(firstTimeCompleted);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
@@ -7733,21 +7732,17 @@ class Puzzle {
             else {
                 this.puzzleUI.setHighscoreState(0);
             }
-        }, 3000);
+        }, 2000);
     }
     lose() {
         if (USE_POKI_SDK) {
             PokiGameplayStop();
         }
-        setTimeout(() => {
+        clearTimeout(this._winloseTimout);
+        this._winloseTimout = setTimeout(() => {
             this.puzzleState = PuzzleState.Done;
-            for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done && this.balls[i].ballState != BallState.Split) {
-                    return;
-                }
-            }
             this.puzzleUI.lose();
-        }, 1000);
+        }, 2000);
     }
     async submitHighscore() {
         if (this._pendingPublish) {
@@ -7807,6 +7802,7 @@ class Puzzle {
         });
     }
     resetFromData(data) {
+        clearTimeout(this._winloseTimout);
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }

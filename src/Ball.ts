@@ -75,6 +75,7 @@ class Ball extends BABYLON.Mesh {
     public bounceXDelay: number = 0.93;
     public xForceAccelDelay: number = 0.8 * this.bounceXDelay;
 
+    private _loseTimout: number = 0;
     public isControlLocked: boolean = false;
     private _lockControlTimout: number = 0;
     public lockControl(duration: number = 0.2): void {
@@ -725,12 +726,11 @@ class Ball extends BABYLON.Mesh {
                             }
                         }
                         this.puzzle.slashSound.play();
-                        setTimeout(() => {
-                            this.split();
-                        }, 100)
-                        setTimeout(() => {
+                        this.split();
+                        clearTimeout(this._loseTimout);
+                        this._loseTimout = setTimeout(() => {
                             this.puzzle.lose();
-                        }, 1500);
+                        }, 1000);
                         return;
                     }
                 }
@@ -951,9 +951,10 @@ class Ball extends BABYLON.Mesh {
                 }
                 else {
                     this.ballState = BallState.Done;
-                    setTimeout(() => {
+                    clearTimeout(this._loseTimout);
+                    this._loseTimout = setTimeout(() => {
                         this.puzzle.lose();
-                    }, 500);
+                    }, 1000);
                 }
                 return;
             }
@@ -1000,6 +1001,7 @@ class Ball extends BABYLON.Mesh {
     }
 
     public reset(): void {
+        clearTimeout(this._loseTimout);
         this.parent = undefined;
         this.boost = false;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();

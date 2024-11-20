@@ -26,6 +26,7 @@ class Puzzle {
     public ballCollision: BABYLON.Vector3 = BABYLON.Vector3.Zero();
     public ballCollisionDone: boolean[] = [true, true];
 
+    private _winloseTimout: number = 0;
     public puzzleState: PuzzleState = PuzzleState.Done;
     public playTimer: number = 0;
     public fishingPolesCount: number = 0;
@@ -321,12 +322,8 @@ class Puzzle {
         stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
         stamp.classList.add("stamp-" + starCount);
 
-        setTimeout(() => {
-            for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done) {
-                    return;
-                }
-            }
+        clearTimeout(this._winloseTimout);
+        this._winloseTimout = setTimeout(() => {
             this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
             this.puzzleUI.win(firstTimeCompleted);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
@@ -335,22 +332,18 @@ class Puzzle {
             else {
                 this.puzzleUI.setHighscoreState(0);
             }
-        }, 3000);
+        }, 2000);
     }
 
     public lose(): void {
         if (USE_POKI_SDK) {
             PokiGameplayStop();
         }
-        setTimeout(() => {
+        clearTimeout(this._winloseTimout);
+        this._winloseTimout = setTimeout(() => {
             this.puzzleState = PuzzleState.Done;
-            for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done && this.balls[i].ballState != BallState.Split) {
-                    return;
-                }
-            }
             this.puzzleUI.lose();
-        }, 1000);
+        }, 2000);
     }
 
     public async submitHighscore(): Promise<void> {
@@ -415,6 +408,7 @@ class Puzzle {
     }
 
     public resetFromData(data: IPuzzleData): void {
+        clearTimeout(this._winloseTimout);
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
         }

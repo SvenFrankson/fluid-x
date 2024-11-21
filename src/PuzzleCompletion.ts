@@ -18,8 +18,8 @@ class PuzzleCompletionElement {
         let ratio = this.highscore / this.score;
         let starsCount = 1;
         let s1 = ratio > 0.3 ? 1 : 0;
-        let s2 = ratio > 0.6 ? 1 : 0;
-        let s3 = ratio > 0.9 ? 1 : 0;
+        let s2 = ratio > 0.55 ? 1 : 0;
+        let s3 = ratio > 0.8 ? 1 : 0;
 
         return starsCount + s1 + s2 + s3;
     }

@@ -3948,18 +3948,14 @@ class StoryPuzzlesPage extends LevelPage {
         let puzzleData = [];
         let data = this.router.game.loadedStoryPuzzles;
         CLEAN_IPuzzlesData(data);
+        let unlockCount = this.router.game.puzzleCompletion.storyPuzzles.filter(puzzleComp => { return puzzleComp.getStarsCount() > 0; }).length;
+        unlockCount += Math.floor(unlockCount / 4);
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
-                if (n === 0) {
+                if (i <= unlockCount) {
                     locked = false;
-                }
-                else if (data.puzzles[n - 1]) {
-                    let prevId = data.puzzles[n - 1].id;
-                    if (this.router.game.puzzleCompletion.isPuzzleCompleted(prevId)) {
-                        locked = false;
-                    }
                 }
                 puzzleData[i] = {
                     data: data.puzzles[n],
@@ -6042,8 +6038,8 @@ class PuzzleCompletionElement {
         let ratio = this.highscore / this.score;
         let starsCount = 1;
         let s1 = ratio > 0.3 ? 1 : 0;
-        let s2 = ratio > 0.6 ? 1 : 0;
-        let s3 = ratio > 0.9 ? 1 : 0;
+        let s2 = ratio > 0.55 ? 1 : 0;
+        let s3 = ratio > 0.8 ? 1 : 0;
         return starsCount + s1 + s2 + s3;
     }
 }

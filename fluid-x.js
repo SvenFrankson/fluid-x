@@ -4199,7 +4199,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 1;
+var PATCH_VERSION = 2;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -9378,23 +9378,25 @@ class PuzzleUI {
     }
     async tryShowUnlockPanel() {
         let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
-        let data = await this.game.getPuzzleDataById(expertId);
-        if (data) {
-            let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
-            squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
-            squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
-            let existingImg = squareBtn.querySelector(".square-btn-miniature");
-            if (existingImg) {
-                squareBtn.removeChild(existingImg);
+        if (isFinite(expertId)) {
+            let data = await this.game.getPuzzleDataById(expertId);
+            if (data) {
+                let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
+                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
+                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+                let existingImg = squareBtn.querySelector(".square-btn-miniature");
+                if (existingImg) {
+                    squareBtn.removeChild(existingImg);
+                }
+                let newIcon = PuzzleMiniatureMaker.Generate(data.content);
+                newIcon.classList.add("square-btn-miniature");
+                squareBtn.appendChild(newIcon);
+                this.unlockContainer.style.display = "";
             }
-            let newIcon = PuzzleMiniatureMaker.Generate(data.content);
-            newIcon.classList.add("square-btn-miniature");
-            squareBtn.appendChild(newIcon);
-            this.unlockContainer.style.display = "";
-        }
-        else {
-            console.error("Puzzle Expert #" + expertId + " not found.");
-            this.unlockContainer.style.display = "none";
+            else {
+                console.error("Puzzle Expert #" + expertId + " not found.");
+                this.unlockContainer.style.display = "none";
+            }
         }
     }
     setHighscoreState(state) {

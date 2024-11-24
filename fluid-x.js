@@ -4199,11 +4199,12 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 0;
+var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
 var USE_POKI_SDK;
+var OFFLINE_MODE;
 var PokiSDK;
 var PokiSDKPlaying = false;
 function PokiGameplayStart() {
@@ -4236,7 +4237,6 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     //SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -5861,6 +5861,8 @@ class PerformanceWatcher {
         this.supportTexture3D = false;
         this.average = 24;
         this.worst = 24;
+        this.isWorstTooLow = false;
+        this.timout = 0;
     }
     update(rawDt) {
         let fps = 1 / rawDt;
@@ -5868,6 +5870,18 @@ class PerformanceWatcher {
             this.average = 0.995 * this.average + 0.005 * fps;
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
+            if (!this.isWorstTooLow && this.worst < 24) {
+                clearTimeout(this.timout);
+                this.timout = 0;
+                this.isWorstTooLow = true;
+            }
+            else if (this.isWorstTooLow && this.timout === 0) {
+                this.timout = setTimeout(() => {
+                    this.isWorstTooLow = false;
+                    clearTimeout(this.timout);
+                    this.timout = 0;
+                }, 3000);
+            }
         }
     }
 }
@@ -5959,9 +5973,13 @@ class PushTile extends Tile {
                         }
                     }
                     if (!borderBlock) {
-                        let tileAtDestination = this.game.puzzle.tiles.find(tile => {
-                            return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.6;
-                        });
+                        let stackAtDestination = this.game.puzzle.getGriddedStack(newI, newJ);
+                        let tileAtDestination;
+                        if (stackAtDestination) {
+                            tileAtDestination = stackAtDestination.array.find(tile => {
+                                return (tile.position.y - this.position.y) < 0.6;
+                            });
+                        }
                         if (tileAtDestination instanceof HoleTile) {
                             let newPos = this.position.clone();
                             newPos.x = (this.i + dir.x * 0.75) * 1.1;
@@ -6632,28 +6650,40 @@ class WallTile extends Tile {
         if (this.i === 0) {
             xMinus = -0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === (this.i - 1) && tile.j === this.j; })) {
-            xMinus = -0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i - 1, this.j);
+            if (stack && stack.array.find(t => { return t instanceof WallTile; })) {
+                xMinus = -0.05;
+            }
         }
         if (this.i === this.game.puzzle.w - 1) {
             xPlus = 0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === (this.i + 1) && tile.j === this.j; })) {
-            xPlus = 0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i + 1, this.j);
+            if (stack && stack.array.find(t => { return t instanceof WallTile; })) {
+                xPlus = 0.05;
+            }
         }
         let zPlus = 0;
         let zMinus = 0;
         if (this.j === 0) {
             zMinus = -0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === this.i && tile.j === (this.j - 1); })) {
-            zMinus = -0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i, this.j - 1);
+            if (stack && stack.array.find(t => { return t instanceof WallTile; })) {
+                zMinus = -0.05;
+            }
         }
         if (this.j === this.game.puzzle.h - 1) {
             zPlus = 0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === this.i && tile.j === (this.j + 1); })) {
-            zPlus = 0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i, this.j + 1);
+            if (stack && stack.array.find(t => { return t instanceof WallTile; })) {
+                zPlus = 0.05;
+            }
         }
         let data = BABYLON.CreateBoxVertexData({ width: 1 + xPlus - xMinus, height: 0.3, depth: 1 + zPlus - zMinus });
         Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(xPlus * 0.5 + xMinus * 0.5, 0.15, zPlus * 0.5 + zMinus * 0.5));
@@ -6804,32 +6834,48 @@ class WaterTile extends Tile {
     }
     recursiveConnect(d = 0) {
         this.distFromSource = d;
-        let down = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j - 1); });
-        if (down && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
-            this.jMinusWater = down;
-            down.jPlusWater = this;
-            down.recursiveConnect(d + 1);
+        let downStack = this.game.puzzle.getGriddedStack(this.i, this.j - 1);
+        let downWaterTile;
+        if (downStack) {
+            downWaterTile = downStack.array.find(tile => { return tile instanceof WaterTile; });
+        }
+        if (downWaterTile && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
+            this.jMinusWater = downWaterTile;
+            downWaterTile.jPlusWater = this;
+            downWaterTile.recursiveConnect(d + 1);
             return;
         }
-        let right = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i + 1) && tile.j === this.j; });
-        if (right && (!this.iPlusWater || this.iPlusWater.distFromSource > d + 1)) {
-            this.iPlusWater = right;
-            right.iMinusWater = this;
-            right.recursiveConnect(d + 1);
+        let rightStack = this.game.puzzle.getGriddedStack(this.i + 1, this.j);
+        let rightWaterTile;
+        if (rightStack) {
+            rightWaterTile = rightStack.array.find(tile => { return tile instanceof WaterTile; });
+        }
+        if (rightWaterTile && (!this.iPlusWater || this.iPlusWater.distFromSource > d + 1)) {
+            this.iPlusWater = rightWaterTile;
+            rightWaterTile.iMinusWater = this;
+            rightWaterTile.recursiveConnect(d + 1);
             return;
         }
-        let left = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i - 1) && tile.j === this.j; });
-        if (left && (!this.iMinusWater || this.iMinusWater.distFromSource > d + 1)) {
-            this.iMinusWater = left;
-            left.iPlusWater = this;
-            left.recursiveConnect(d + 1);
+        let leftStack = this.game.puzzle.getGriddedStack(this.i - 1, this.j);
+        let leftWaterTile;
+        if (leftStack) {
+            leftWaterTile = leftStack.array.find(tile => { return tile instanceof WaterTile; });
+        }
+        if (leftWaterTile && (!this.iMinusWater || this.iMinusWater.distFromSource > d + 1)) {
+            this.iMinusWater = leftWaterTile;
+            leftWaterTile.iPlusWater = this;
+            leftWaterTile.recursiveConnect(d + 1);
             return;
         }
-        let up = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j + 1); });
-        if (up && (!this.jPlusWater || this.jPlusWater.distFromSource > d + 1)) {
-            this.jPlusWater = up;
-            up.jMinusWater = this;
-            up.recursiveConnect(d + 1);
+        let upStack = this.game.puzzle.getGriddedStack(this.i, this.j + 1);
+        let upWaterTile;
+        if (upStack) {
+            upWaterTile = upStack.array.find(tile => { return tile instanceof WaterTile; });
+        }
+        if (upWaterTile && (!this.jPlusWater || this.jPlusWater.distFromSource > d + 1)) {
+            this.jPlusWater = upWaterTile;
+            upWaterTile.jMinusWater = this;
+            upWaterTile.recursiveConnect(d + 1);
             return;
         }
     }

@@ -122,35 +122,51 @@ class WaterTile extends Tile {
     public recursiveConnect(d: number = 0): void {
         this.distFromSource = d;
 
-        let down = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j - 1) }) as WaterTile;
-        if (down && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
-            this.jMinusWater = down;
-            down.jPlusWater = this;
-            down.recursiveConnect(d + 1);
+        let downStack = this.game.puzzle.getGriddedStack(this.i, this.j - 1);
+        let downWaterTile: WaterTile;
+        if (downStack) {
+            downWaterTile = downStack.array.find(tile => { return tile instanceof WaterTile}) as WaterTile;
+        }
+        if (downWaterTile && (!this.jMinusWater || this.jMinusWater.distFromSource > d + 1)) {
+            this.jMinusWater = downWaterTile;
+            downWaterTile.jPlusWater = this;
+            downWaterTile.recursiveConnect(d + 1);
             return;
         }
 
-        let right = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i + 1) && tile.j === this.j }) as WaterTile;
-        if (right && (!this.iPlusWater || this.iPlusWater.distFromSource > d + 1)) {
-            this.iPlusWater = right;
-            right.iMinusWater = this;
-            right.recursiveConnect(d + 1);
+        let rightStack = this.game.puzzle.getGriddedStack(this.i + 1, this.j);
+        let rightWaterTile: WaterTile;
+        if (rightStack) {
+            rightWaterTile = rightStack.array.find(tile => { return tile instanceof WaterTile}) as WaterTile;
+        }
+        if (rightWaterTile && (!this.iPlusWater || this.iPlusWater.distFromSource > d + 1)) {
+            this.iPlusWater = rightWaterTile;
+            rightWaterTile.iMinusWater = this;
+            rightWaterTile.recursiveConnect(d + 1);
             return;
         }
 
-        let left = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === (this.i - 1) && tile.j === this.j }) as WaterTile;
-        if (left && (!this.iMinusWater || this.iMinusWater.distFromSource > d + 1)) {
-            this.iMinusWater = left;
-            left.iPlusWater = this;
-            left.recursiveConnect(d + 1);
+        let leftStack = this.game.puzzle.getGriddedStack(this.i - 1, this.j);
+        let leftWaterTile: WaterTile;
+        if (leftStack) {
+            leftWaterTile = leftStack.array.find(tile => { return tile instanceof WaterTile}) as WaterTile;
+        }
+        if (leftWaterTile && (!this.iMinusWater || this.iMinusWater.distFromSource > d + 1)) {
+            this.iMinusWater = leftWaterTile;
+            leftWaterTile.iPlusWater = this;
+            leftWaterTile.recursiveConnect(d + 1);
             return;
         }
 
-        let up = this.game.puzzle.tiles.find(tile => { return tile instanceof WaterTile && tile.i === this.i && tile.j === (this.j + 1) }) as WaterTile;
-        if (up && (!this.jPlusWater || this.jPlusWater.distFromSource > d + 1)) {
-            this.jPlusWater = up;
-            up.jMinusWater = this;
-            up.recursiveConnect(d + 1);
+        let upStack = this.game.puzzle.getGriddedStack(this.i, this.j + 1);
+        let upWaterTile: WaterTile;
+        if (upStack) {
+            upWaterTile = upStack.array.find(tile => { return tile instanceof WaterTile}) as WaterTile;
+        }
+        if (upWaterTile && (!this.jPlusWater || this.jPlusWater.distFromSource > d + 1)) {
+            this.jPlusWater = upWaterTile;
+            upWaterTile.jMinusWater = this;
+            upWaterTile.recursiveConnect(d + 1);
             return;
         }
     }

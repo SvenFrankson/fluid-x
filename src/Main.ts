@@ -4,12 +4,13 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 0;
+var PATCH_VERSION: number = 1;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
 var observed_progress_speed_percent_second;
 var USE_POKI_SDK;
+var OFFLINE_MODE;
 var PokiSDK: any;
 
 var PokiSDKPlaying: boolean = false;
@@ -45,7 +46,6 @@ var IsTouchScreen = - 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
-var OFFLINE_MODE = false;
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     //SHARE_SERVICE_PATH = "http://localhost/index.php/";

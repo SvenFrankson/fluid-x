@@ -109,9 +109,13 @@ class PushTile extends Tile {
                     }
 
                     if (!borderBlock) {
-                        let tileAtDestination = this.game.puzzle.tiles.find(tile => {
-                            return tile.i === newI && tile.j === newJ && (tile.position.y - this.position.y) < 0.6;
-                        })
+                        let stackAtDestination = this.game.puzzle.getGriddedStack(newI, newJ);
+                        let tileAtDestination: Tile;
+                        if (stackAtDestination) {
+                            tileAtDestination = stackAtDestination.array.find(tile => {
+                                return (tile.position.y - this.position.y) < 0.6;
+                            })
+                        }
                         if (tileAtDestination instanceof HoleTile) {
                             let newPos = this.position.clone();
                             newPos.x = (this.i + dir.x * 0.75) * 1.1;

@@ -17,14 +17,20 @@ class WallTile extends Tile {
         if (this.i === 0) {
             xMinus = - 0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === (this.i - 1) && tile.j === this.j })) {
-            xMinus = - 0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i - 1, this.j);
+            if (stack && stack.array.find(t => { return t instanceof WallTile})) {
+                xMinus = - 0.05;
+            }
         }
         if (this.i === this.game.puzzle.w - 1) {
             xPlus = 0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === (this.i + 1) && tile.j === this.j })) {
-            xPlus = 0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i + 1, this.j);
+            if (stack && stack.array.find(t => { return t instanceof WallTile})) {
+                xPlus = 0.05;
+            }
         }
 
         let zPlus = 0;
@@ -32,14 +38,20 @@ class WallTile extends Tile {
         if (this.j === 0) {
             zMinus = - 0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === this.i && tile.j === (this.j - 1) })) {
-            zMinus = - 0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i, this.j - 1);
+            if (stack && stack.array.find(t => { return t instanceof WallTile})) {
+                zMinus = - 0.05;
+            }
         }
         if (this.j === this.game.puzzle.h - 1) {
             zPlus = 0.1;
         }
-        else if (this.game.puzzle.tiles.find(tile => { return tile instanceof WallTile && tile.i === this.i && tile.j === (this.j + 1) })) {
-            zPlus = 0.05;
+        else {
+            let stack = this.game.puzzle.getGriddedStack(this.i, this.j + 1);
+            if (stack && stack.array.find(t => { return t instanceof WallTile})) {
+                zPlus = 0.05;
+            }
         }
 
         let data = BABYLON.CreateBoxVertexData({ width: 1 + xPlus - xMinus, height: 0.3, depth: 1 + zPlus - zMinus });

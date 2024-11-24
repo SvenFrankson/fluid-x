@@ -552,6 +552,12 @@ class Editor {
             this.eulaCheckbox.checked = false;
             this.updatePublishBtn();
         };
+        if (OFFLINE_MODE) {
+            document.getElementById("publish-btn").classList.add("locked");
+        }
+        else {
+            document.getElementById("publish-btn").classList.remove("locked");
+        }
 
         this.titleInput.onchange = this.updatePublishBtn;
         this.authorInput.onchange = this.updatePublishBtn;

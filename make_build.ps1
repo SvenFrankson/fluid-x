@@ -1,40 +1,58 @@
 Write-Debug "Make Build for Marble Fall"
 
-if (Test-Path "../carillion-build") {
-    Remove-Item "../carillion-build" -Recurse -Force
+$build_name = "monkey-mind-build"
+
+$containsString = Select-String -Path "./index.js" -Pattern "USE_POKI_SDK = true" -Quiet
+if ($containsString) {
+    $build_name = $build_name + "_poki";
 }
-if (Test-Path "../carillion-build.zip") {
-    Remove-Item "../carillion-build.zip" -Force
+else {
+    $build_name = $build_name + "_common";
 }
 
-New-Item "../carillion-build" -ItemType "directory"
+$containsString = Select-String -Path "./index.js" -Pattern "OFFLINE_MODE = true" -Quiet
+if ($containsString) {
+    $build_name = $build_name + "_offline";
+}
+else {
+    $build_name = $build_name + "_online";
+}
+
+if (Test-Path ("../" + $build_name + "")) {
+    Remove-Item ("../" + $build_name + "") -Recurse -Force
+}
+if (Test-Path ("../" + $build_name + ".zip")) {
+    Remove-Item ("../" + $build_name + ".zip") -Force
+}
+
+New-Item ("../" + $build_name + "") -ItemType "directory"
 
 
-Copy-Item -Path "./*" -Destination "../carillion-build/" -Recurse -Force -Exclude ".git", "src", "lib", "work", ".vscode"
+Copy-Item -Path "./*" -Destination ("../" + $build_name + "/") -Recurse -Force -Exclude ".git", "src", "lib", "work", ".vscode"
 
-New-Item "../carillion-build/lib" -ItemType "directory"
-New-Item "../carillion-build/lib/nabu" -ItemType "directory"
-Copy-Item -Path "./lib/nabu/nabu.js" -Destination "../carillion-build/lib/nabu/nabu.js"
-New-Item "../carillion-build/lib/mummu" -ItemType "directory"
-Copy-Item -Path "./lib/mummu/mummu.js" -Destination "../carillion-build/lib/mummu/mummu.js"
+New-Item ("../" + $build_name + "/lib") -ItemType "directory"
+New-Item ("../" + $build_name + "/lib/nabu") -ItemType "directory"
+Copy-Item -Path "./lib/nabu/nabu.js" -Destination ("../" + $build_name + "/lib/nabu/nabu.js")
+New-Item ("../" + $build_name + "/lib/mummu") -ItemType "directory"
+Copy-Item -Path "./lib/mummu/mummu.js" -Destination ("../" + $build_name + "/lib/mummu/mummu.js")
 
-Copy-Item -Path "./lib/babylon.js" -Destination "../carillion-build/lib/babylon.js"
-Copy-Item -Path "./lib/babylonjs.loaders.js" -Destination "../carillion-build/lib/babylonjs.loaders.js"
+Copy-Item -Path "./lib/babylon.js" -Destination ("../" + $build_name + "/lib/babylon.js")
+Copy-Item -Path "./lib/babylonjs.loaders.js" -Destination ("../" + $build_name + "/lib/babylonjs.loaders.js")
 
-Get-ChildItem -Path "../carillion-build/" "*.blend" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.blend1" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.babylon.manifest" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.log" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.xcf" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.d.ts" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.pdn" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.kra" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
-Get-ChildItem -Path "../carillion-build/" "*.*~" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.blend" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.blend1" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.babylon.manifest" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.log" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.xcf" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.d.ts" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.pdn" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.kra" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+Get-ChildItem -Path ("../" + $build_name + "/") "*.*~" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
 
-Remove-Item -Path "../carillion-build/.gitignore"
-Remove-Item -Path "../carillion-build/make_build.ps1"
-Remove-Item -Path "../carillion-build/tsconfig.json"
+Remove-Item -Path ("../" + $build_name + "/.gitignore")
+Remove-Item -Path ("../" + $build_name + "/make_build.ps1")
+Remove-Item -Path ("../" + $build_name + "/tsconfig.json")
 
-(Get-Content "../carillion-build/index.js").Replace('./lib/babylon.max.js', './lib/babylon.js') | Set-Content "../carillion-build/index.js"
-(Get-Content "../carillion-build/fluid-x.js").Replace('this.DEBUG_MODE = true', 'this.DEBUG_MODE = false') | Set-Content "../carillion-build/fluid-x.js"
-(Get-Content "../carillion-build/fluid-x.js").Replace('this.DEBUG_USE_LOCAL_STORAGE = true', 'this.DEBUG_USE_LOCAL_STORAGE = false') | Set-Content "../carillion-build/fluid-x.js"
+(Get-Content ("../" + $build_name + "/index.js")).Replace('./lib/babylon.max.js', './lib/babylon.js') | Set-Content ("../" + $build_name + "/index.js")
+(Get-Content ("../" + $build_name + "/fluid-x.js")).Replace('this.DEBUG_MODE = true', 'this.DEBUG_MODE = false') | Set-Content ("../" + $build_name + "/fluid-x.js")
+(Get-Content ("../" + $build_name + "/fluid-x.js")).Replace('this.DEBUG_USE_LOCAL_STORAGE = true', 'this.DEBUG_USE_LOCAL_STORAGE = false') | Set-Content ("../" + $build_name + "/fluid-x.js")

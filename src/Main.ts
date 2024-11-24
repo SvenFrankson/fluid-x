@@ -3,8 +3,8 @@
 /// <reference path="../lib/babylon.d.ts"/>
 
 var MAJOR_VERSION: number = 0;
-var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 2;
+var MINOR_VERSION: number = 2;
+var PATCH_VERSION: number = 0;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -650,17 +650,29 @@ class Game {
             this.greenMaterial
         ]
 
-        let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.randomize();
-        cubicNoiseTexture.smooth();
-        this.noiseTexture = cubicNoiseTexture.get3DTexture();
+        if (this.engine.webGLVersion === 2) {
+            try {
+                let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.randomize();
+                cubicNoiseTexture.smooth();
+                this.noiseTexture = cubicNoiseTexture.get3DTexture();
+                this.performanceWatcher.supportTexture3D = true;
+            }
+            catch (e) {
+                console.error("[ERROR FALLBACKED] No support for 3DTexture, explosion effects are disabled.");
+                this.performanceWatcher.supportTexture3D = false;
+            }
+        }
+        else {
+            this.performanceWatcher.supportTexture3D = false;
+        }
 
         let borderDatas = await this.vertexDataLoader.get("./datas/meshes/border.babylon");
         borderDatas.forEach(data => {
@@ -856,6 +868,9 @@ class Game {
         }
 
         this.gameLoaded = true;
+        if (USE_POKI_SDK) {
+            PokiSDK.gameLoadingFinished();
+        }
         document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);

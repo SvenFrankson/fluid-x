@@ -2954,6 +2954,12 @@ class Editor {
             this.eulaCheckbox.checked = false;
             this.updatePublishBtn();
         };
+        if (OFFLINE_MODE) {
+            document.getElementById("publish-btn").classList.add("locked");
+        }
+        else {
+            document.getElementById("publish-btn").classList.remove("locked");
+        }
         this.titleInput.onchange = this.updatePublishBtn;
         this.authorInput.onchange = this.updatePublishBtn;
         this.eulaCheckbox.onchange = this.updatePublishBtn;
@@ -4192,8 +4198,8 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
-var MINOR_VERSION = 1;
-var PATCH_VERSION = 2;
+var MINOR_VERSION = 2;
+var PATCH_VERSION = 0;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4728,17 +4734,29 @@ class Game {
             this.blueMaterial,
             this.greenMaterial
         ];
-        let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.double();
-        cubicNoiseTexture.randomize();
-        cubicNoiseTexture.smooth();
-        this.noiseTexture = cubicNoiseTexture.get3DTexture();
+        if (this.engine.webGLVersion === 2) {
+            try {
+                let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.double();
+                cubicNoiseTexture.randomize();
+                cubicNoiseTexture.smooth();
+                this.noiseTexture = cubicNoiseTexture.get3DTexture();
+                this.performanceWatcher.supportTexture3D = true;
+            }
+            catch (e) {
+                console.error("[ERROR FALLBACKED] No support for 3DTexture, explosion effects are disabled.");
+                this.performanceWatcher.supportTexture3D = false;
+            }
+        }
+        else {
+            this.performanceWatcher.supportTexture3D = false;
+        }
         let borderDatas = await this.vertexDataLoader.get("./datas/meshes/border.babylon");
         borderDatas.forEach(data => {
             let positions = data.positions;
@@ -4897,6 +4915,9 @@ class Game {
             }
         }
         this.gameLoaded = true;
+        if (USE_POKI_SDK) {
+            PokiSDK.gameLoadingFinished();
+        }
         document.body.addEventListener("touchstart", onFirstPlayerInteractionTouch);
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
@@ -5837,6 +5858,7 @@ customElements.define("num-value-input", NumValueInput);
 class PerformanceWatcher {
     constructor(game) {
         this.game = game;
+        this.supportTexture3D = false;
         this.average = 24;
         this.worst = 24;
     }
@@ -7054,6 +7076,9 @@ class Explosion {
         this.keepAlive = false;
         this._timer = 0;
         this.update = () => {
+            if (!this.game.performanceWatcher.supportTexture3D) {
+                return;
+            }
             this._timer += this.game.scene.deltaTime / 1000;
             let globalF = 1;
             let done = true;
@@ -7092,9 +7117,11 @@ class Explosion {
                 }
             }
         };
-        this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
-        this.bubbleMaterial.setUseLightFromPOV(true);
-        this.bubbleMaterial.setAutoLight(0.8);
+        if (this.game.performanceWatcher.supportTexture3D) {
+            this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
+            this.bubbleMaterial.setUseLightFromPOV(true);
+            this.bubbleMaterial.setAutoLight(0.8);
+        }
     }
     setRadius(v) {
         this.radiusXZ = v;
@@ -7102,10 +7129,15 @@ class Explosion {
         this.particuleRadius = v;
     }
     get color() {
-        return this.bubbleMaterial.diffuse;
+        if (this.bubbleMaterial) {
+            return this.bubbleMaterial.diffuse;
+        }
+        return BABYLON.Color3.White();
     }
     set color(c) {
-        this.bubbleMaterial.setDiffuse(c);
+        if (this.bubbleMaterial) {
+            this.bubbleMaterial.setDiffuse(c);
+        }
     }
     static RandomInSphere() {
         let p = new BABYLON.Vector3(-1 + 2 * Math.random(), -1 + 2 * Math.random(), -1 + 2 * Math.random());
@@ -7136,6 +7168,9 @@ class Explosion {
         return data;
     }
     async boom() {
+        if (!this.game.performanceWatcher.supportTexture3D) {
+            return;
+        }
         this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
         if (this.particles.length > 0 && this.particles.length != this.particulesCount) {
             while (this.particles.length > 0) {

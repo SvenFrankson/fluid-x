@@ -7,9 +7,6 @@ var real_progress = 0;
 var next_progress = 0;
 var observed_progress_speed = 0.2;
 
-/*
-    <link rel="stylesheet" type="text/css" href="./styles/fonts.css">
-*/
 async function loadCSS(src) {
     let t0 = performance.now();
     return new Promise((resolve) => {

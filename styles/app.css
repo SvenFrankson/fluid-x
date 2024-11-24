@@ -499,7 +499,7 @@ body:not(.touchscreen) button:hover, .hovered {
     width: 100px;
     bottom: 21px;
     height: 80px;
-    border: 3px solid #2b2821ff;
+    border: 2px solid #2b2821ff;
     outline: 1px solid #FFFFFF00;
     background-color: color-mix(in srgb, #624c3c 75%, #b03a48 25%);
     background-image: url("../datas/textures/rainbow_pattern.png");
@@ -508,19 +508,23 @@ body:not(.touchscreen) button:hover, .hovered {
     box-shadow: 2px 2px 2px #2b2821ff;
 }
 
-body:not(.touchscreen) #input-boost {
-    bottom: 32px;
+body:not(.vertical) #input-boost {
+    bottom: 0px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+    height: 40px;
 }
 
 #input-boost-label {
     position: fixed;
     bottom: 1px;
     width: 100px;
-    left: calc(50vw - 50px);
+    left: calc(50vw + 60px);
     z-index: 1;
-    text-align: center;
+    text-align: left;
     font-family: Julee;
-    font-size: 24px;
+    font-size: 16px;
     font-weight: 900;
 }
 
@@ -1184,30 +1188,29 @@ body:not(.touchscreen) .line.hovered {
 
 #thumbnail {
     position: fixed;
-    width: calc(100svh - 2 * 15px);
-    height: calc(100svh - 2 * 15px);
+    width: calc(100svh);
+    height: calc(100svh);
     top: 0;
     left: calc(50vw - 50svh);
     z-index: 10;
     pointer-events: none;
-    border: 15px solid #624c3cff;
-    border-radius: 40px;
+    outline: 1px solid magenta;
 }
 
 #thumbnail-title {
     position: absolute;
-    left: calc(50% - 335px);
-    top: calc(15% - 76px);
+    left: calc((100% - 860px) * 0.5);
+    top: 40px;
     color: white;
-    font-size: 110px;
+    font-size: 150px;
     font-family: Julee;
     font-weight: 900;
     margin: 0;
     color: #2b2821;
-    width: 650px;
-    padding: 10px;
+    width: 860px;
+    padding-bottom: 10px;
     border: 4px solid black;
-    border-radius: 100px;
+    border-radius: 10px;
     text-align: center;
     background-image: url("../datas/textures/rainbow_pattern.png");
     background-size: 60px;
@@ -1233,6 +1236,7 @@ body:not(.touchscreen) .line.hovered {
 }
 
 .thumbnail-rect {
+    display: none;
     position: absolute;
     left: 0;
     height: 30px;

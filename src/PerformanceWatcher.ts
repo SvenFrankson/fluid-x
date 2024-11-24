@@ -1,5 +1,6 @@
 class PerformanceWatcher {
 
+    public supportTexture3D: boolean = false;
     public average: number = 24;
     public worst: number = 24;
 

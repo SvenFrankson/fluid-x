@@ -21,19 +21,26 @@ class /*Macron*/ Explosion {
     
     public bubbleMaterial: ExplosionMaterial;
     public get color(): BABYLON.Color3 {
-        return this.bubbleMaterial.diffuse;
+        if (this.bubbleMaterial) {
+            return this.bubbleMaterial.diffuse;
+        }
+        return BABYLON.Color3.White();
     }
     public set color(c: BABYLON.Color3) {
-        this.bubbleMaterial.setDiffuse(c);
+        if (this.bubbleMaterial) {
+            this.bubbleMaterial.setDiffuse(c);
+        }
     }
     
     public keepAlive: boolean = false;
     public sizeEasing: (v: number) => number;
 
     constructor(public game: Game) {
-        this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
-        this.bubbleMaterial.setUseLightFromPOV(true);
-        this.bubbleMaterial.setAutoLight(0.8);
+        if (this.game.performanceWatcher.supportTexture3D) {
+            this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
+            this.bubbleMaterial.setUseLightFromPOV(true);
+            this.bubbleMaterial.setAutoLight(0.8);
+        }
     }
 
     public static RandomInSphere(): BABYLON.Vector3 {
@@ -76,7 +83,9 @@ class /*Macron*/ Explosion {
     }
 
     public async boom(): Promise<void> {
-
+        if (!this.game.performanceWatcher.supportTexture3D) {
+            return
+        }
         this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
         if (this.particles.length > 0 && this.particles.length != this.particulesCount) {
             while (this.particles.length > 0) {
@@ -120,6 +129,9 @@ class /*Macron*/ Explosion {
 
     private _timer: number = 0;
     public update = () => {
+        if (!this.game.performanceWatcher.supportTexture3D) {
+            return
+        }
         this._timer += this.game.scene.deltaTime / 1000;
         
         let globalF = 1;

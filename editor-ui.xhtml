@@ -71,7 +71,7 @@
     </div>
     <div class="line">
         <button id="door-two-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-2.png);"></button>
-        <button id="door-three-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-2.png);"></button>
+        <button id="door-three-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/door-3.png);"></button>
         <button id="push-tile-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/push-tile.png);"></button>
         <button id="hole-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/hole-tile.png);"></button>
     </div>
@@ -91,25 +91,28 @@
     <div class="line">
         <button id="box-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/box.png);"></button>
         <button id="bridge-btn" class="medium-square-btn inline bged" style="background-image: url(datas/icons/bridge.png);"></button>
-        <button id="tree-btn" class="medium-square-btn inline bluegrey white-stroke" style="font-size: 20px;">TREE</button>
+        <button id="tree-btn" class="medium-square-btn inline bluegrey white-stroke" style="font-size: 20px; display: none;">TREE</button>
+        <button class="medium-square-btn inline" style="visibility: hidden;"></button>
         <button class="medium-square-btn inline" style="visibility: hidden;"></button>
     </div>
 
-    <div class="separator"></div>
-
-    <div class="line">
-        <span class="editor-label">haiku i</span>
-        <num-value-input id="haiku-i" min="-5" max="100" value-width="70px"></num-value-input>
-    </div>
-    <div class="line">
-        <span class="editor-label">haiku j</span>
-        <num-value-input id="haiku-j" min="-5" max="100" value-width="70px"></num-value-input>
-    </div>
-
-    <textarea id="haiku-content" style="width: 95%" rows="4"></textarea>
-
-    <div class="line">
-        <button id="haiku-update" class="medium-btn bluegrey" style="width: 208px;"><stroke-text>Update Haiku</stroke-text></button>
+    <div id="editor-haiku-container" style="display: none;">
+        <div class="separator"></div>
+    
+        <div class="line">
+            <span class="editor-label">haiku i</span>
+            <num-value-input id="haiku-i" min="-5" max="100" value-width="70px"></num-value-input>
+        </div>
+        <div class="line">
+            <span class="editor-label">haiku j</span>
+            <num-value-input id="haiku-j" min="-5" max="100" value-width="70px"></num-value-input>
+        </div>
+    
+        <textarea id="haiku-content" style="width: 95%" rows="4"></textarea>
+    
+        <div class="line">
+            <button id="haiku-update" class="medium-btn bluegrey" style="width: 208px;"><stroke-text>Update Haiku</stroke-text></button>
+        </div>
     </div>
 
     <div class="separator"></div>

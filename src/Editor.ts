@@ -254,6 +254,9 @@ class Editor {
 
         this.widthDelete = document.getElementById("editor-width-delete") as HTMLButtonElement;
         this.widthDelete.onpointerup = () => {
+            if (this.puzzle.w <= 3) {
+                return;
+            }
             let text = SaveAsText(this.puzzle);
 
             let split = text.split("x");
@@ -312,6 +315,9 @@ class Editor {
 
         this.heightDelete = document.getElementById("editor-height-delete") as HTMLButtonElement;
         this.heightDelete.onpointerup = () => {
+            if (this.puzzle.h <= 3) {
+                return;
+            }
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();

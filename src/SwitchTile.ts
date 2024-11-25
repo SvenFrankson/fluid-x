@@ -99,25 +99,9 @@ class ButtonTile extends Tile {
         this.bump();
         let animateWait = Mummu.AnimationFactory.CreateWait(this);
         let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
-        this.game.toonSoundManager.start({
-            text: "cric",
-            pos: this.absolutePosition.add(new BABYLON.Vector3(- 0.3, 0, 0.3)),
-            color: "#2b2821",
-            size: 0.3,
-            duration: 0.5,
-            type: ToonSoundType.Poc
-        });
         await animateRotation(- Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
         this.game.puzzle.cricSound.play();
         await animateWait(0.1);
-        this.game.toonSoundManager.start({
-            text: "crac",
-            pos: this.absolutePosition.add(new BABYLON.Vector3(0.3, 0, 0.3)),
-            color: "#2b2821",
-            size: 0.3,
-            duration: 0.5,
-            type: ToonSoundType.Poc
-        });
         await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
         this.game.puzzle.cracSound.play();
     }

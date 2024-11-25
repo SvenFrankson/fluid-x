@@ -1,3 +1,4 @@
+/*
 enum ToonSoundType {
     Poc,
     Rumble
@@ -179,3 +180,4 @@ class ToonSoundManager {
         }
     }
 }
+*/

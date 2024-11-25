@@ -66,14 +66,6 @@ class HoleTile extends Tile {
         if (this.rumbling) {
             return;
         }
-        this.game.toonSoundManager.start({
-            texts: ["KRR...", "KRR KRR...", "KRR KRR KRR..."],
-            pos: this.covers[0].absolutePosition.clone(),
-            color: "#5d7275",
-            size: 0.2,
-            duration: 0.7,
-            type: ToonSoundType.Rumble
-        });
         this.game.puzzle.longCrackSound.play();
 
         this.rumbling = true;

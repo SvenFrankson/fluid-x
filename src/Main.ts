@@ -228,7 +228,6 @@ class Game {
         return this.scene;
     }
     public soundManager: SoundManager;
-    public toonSoundManager: ToonSoundManager;
     public uiInputManager: UserInterfaceInputManager;
     public screenRatio: number = 1;
     public performanceWatcher: PerformanceWatcher;
@@ -363,7 +362,6 @@ class Game {
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
 
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
-        this.toonSoundManager = new ToonSoundManager(this);
         
         let rect = this.canvas.getBoundingClientRect();
         this.screenRatio = rect.width / rect.height;
@@ -1302,9 +1300,6 @@ class Game {
             (this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset += 0.5 * rawDT;
             if ((this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset > 1) {
                 (this.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset -= 1;
-            }
-            if (this.toonSoundManager) {
-                this.toonSoundManager.update(rawDT);
             }
             if (this.skybox) {
                 this.skybox.rotation.y += 0.02 * rawDT;

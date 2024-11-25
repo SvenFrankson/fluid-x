@@ -599,7 +599,6 @@ class Ball extends BABYLON.Mesh {
                 if (!this.water) {
                     let impact = this.position.clone();
                     impact.z = this.puzzle.zMax;
-                    this.game.toonSoundManager.start(this.tac(impact));
                     this.woodChocSound2.play();
                 }
             }
@@ -609,7 +608,6 @@ class Ball extends BABYLON.Mesh {
                 if (!this.water) {
                     let impact = this.position.clone();
                     impact.z = this.puzzle.zMin;
-                    this.game.toonSoundManager.start(this.tac(impact));
                     this.woodChocSound2.play();
                 }
             }
@@ -620,7 +618,6 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXTimer = this.bounceXDelay;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMax;
-                this.game.toonSoundManager.start(this.tac(impact));
                 this.woodChocSound2.play();
             }
             else if (this.position.x - this.radius < this.puzzle.xMin) {
@@ -629,7 +626,6 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXTimer = this.bounceXDelay;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMin;
-                this.game.toonSoundManager.start(this.tac(impact));
                 this.woodChocSound2.play();
             }
 
@@ -662,7 +658,6 @@ class Ball extends BABYLON.Mesh {
                                         this.vZ = - 1;
                                     }
                                 }
-                                this.game.toonSoundManager.start(this.poc(impact));
                                 this.woodChocSound2.play();
                                 break;
                             }
@@ -750,7 +745,6 @@ class Ball extends BABYLON.Mesh {
                             this.bounceXValue = - 1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
-                        this.game.toonSoundManager.start(this.poc(impact));
                         this.woodChocSound.play();
                     }
                     else {
@@ -760,7 +754,6 @@ class Ball extends BABYLON.Mesh {
                         else {
                             this.vZ = -1;
                         }
-                        this.game.toonSoundManager.start(this.poc(impact));
                         this.woodChocSound.play();
                     }
                     this.puzzle.ballCollisionDone[this.ballIndex] = true;
@@ -809,11 +802,9 @@ class Ball extends BABYLON.Mesh {
                                                 this.bounceXTimer = this.bounceXDelay;
                                             }
                                             if (tile instanceof WallTile) {
-                                                this.game.toonSoundManager.start(this.tac(impact));
                                                 this.woodChocSound2.play();
                                             }
                                             else {
-                                                this.game.toonSoundManager.start(this.poc(impact));
                                                 this.woodChocSound.play();
                                             }
                                         }
@@ -825,11 +816,9 @@ class Ball extends BABYLON.Mesh {
                                                 this.vZ = -1;
                                             }
                                             if (tile instanceof WallTile) {
-                                                this.game.toonSoundManager.start(this.tac(impact));
                                                 this.woodChocSound2.play();
                                             }
                                             else {
-                                                this.game.toonSoundManager.start(this.poc(impact));
                                                 this.woodChocSound.play();
                                             }
                                         }
@@ -1025,27 +1014,5 @@ class Ball extends BABYLON.Mesh {
         this.rightArrow.isVisible = true;
         
         this.setVisible(true);
-    }
-
-    public poc(pos: BABYLON.Vector3) {
-        return {
-            text: "POC",
-            pos: pos,
-            color: "#624c3c",
-            size: 0.25,
-            duration: 0.3,
-            type: ToonSoundType.Poc
-        }
-    }
-
-    public tac(pos: BABYLON.Vector3) {
-        return {
-            text: "TAC",
-            pos: pos,
-            color: "#2b2821",
-            size: 0.25,
-            duration: 0.3,
-            type: ToonSoundType.Poc
-        }
     }
 }

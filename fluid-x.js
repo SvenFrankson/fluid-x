@@ -507,7 +507,6 @@ class Ball extends BABYLON.Mesh {
                 if (!this.water) {
                     let impact = this.position.clone();
                     impact.z = this.puzzle.zMax;
-                    this.game.toonSoundManager.start(this.tac(impact));
                     this.woodChocSound2.play();
                 }
             }
@@ -517,7 +516,6 @@ class Ball extends BABYLON.Mesh {
                 if (!this.water) {
                     let impact = this.position.clone();
                     impact.z = this.puzzle.zMin;
-                    this.game.toonSoundManager.start(this.tac(impact));
                     this.woodChocSound2.play();
                 }
             }
@@ -527,7 +525,6 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXTimer = this.bounceXDelay;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMax;
-                this.game.toonSoundManager.start(this.tac(impact));
                 this.woodChocSound2.play();
             }
             else if (this.position.x - this.radius < this.puzzle.xMin) {
@@ -536,7 +533,6 @@ class Ball extends BABYLON.Mesh {
                 this.bounceXTimer = this.bounceXDelay;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMin;
-                this.game.toonSoundManager.start(this.tac(impact));
                 this.woodChocSound2.play();
             }
             let impact = BABYLON.Vector3.Zero();
@@ -567,7 +563,6 @@ class Ball extends BABYLON.Mesh {
                                         this.vZ = -1;
                                     }
                                 }
-                                this.game.toonSoundManager.start(this.poc(impact));
                                 this.woodChocSound2.play();
                                 break;
                             }
@@ -651,7 +646,6 @@ class Ball extends BABYLON.Mesh {
                             this.bounceXValue = -1;
                             this.bounceXTimer = this.bounceXDelay;
                         }
-                        this.game.toonSoundManager.start(this.poc(impact));
                         this.woodChocSound.play();
                     }
                     else {
@@ -661,7 +655,6 @@ class Ball extends BABYLON.Mesh {
                         else {
                             this.vZ = -1;
                         }
-                        this.game.toonSoundManager.start(this.poc(impact));
                         this.woodChocSound.play();
                     }
                     this.puzzle.ballCollisionDone[this.ballIndex] = true;
@@ -707,11 +700,9 @@ class Ball extends BABYLON.Mesh {
                                                 this.bounceXTimer = this.bounceXDelay;
                                             }
                                             if (tile instanceof WallTile) {
-                                                this.game.toonSoundManager.start(this.tac(impact));
                                                 this.woodChocSound2.play();
                                             }
                                             else {
-                                                this.game.toonSoundManager.start(this.poc(impact));
                                                 this.woodChocSound.play();
                                             }
                                         }
@@ -723,11 +714,9 @@ class Ball extends BABYLON.Mesh {
                                                 this.vZ = -1;
                                             }
                                             if (tile instanceof WallTile) {
-                                                this.game.toonSoundManager.start(this.tac(impact));
                                                 this.woodChocSound2.play();
                                             }
                                             else {
-                                                this.game.toonSoundManager.start(this.poc(impact));
                                                 this.woodChocSound.play();
                                             }
                                         }
@@ -901,26 +890,6 @@ class Ball extends BABYLON.Mesh {
         this.leftArrow.isVisible = true;
         this.rightArrow.isVisible = true;
         this.setVisible(true);
-    }
-    poc(pos) {
-        return {
-            text: "POC",
-            pos: pos,
-            color: "#624c3c",
-            size: 0.25,
-            duration: 0.3,
-            type: ToonSoundType.Poc
-        };
-    }
-    tac(pos) {
-        return {
-            text: "TAC",
-            pos: pos,
-            color: "#2b2821",
-            size: 0.25,
-            duration: 0.3,
-            type: ToonSoundType.Poc
-        };
     }
 }
 var TileState;
@@ -1171,14 +1140,6 @@ class Tile extends BABYLON.Mesh {
                     flash.rotation.x = Math.PI * 0.5;
                     SineFlashVisibility(flash, 0.3).then(() => {
                         flash.dispose();
-                    });
-                    this.game.toonSoundManager.start({
-                        text: "clic",
-                        pos: star.absolutePosition.clone(),
-                        color: "#e0c872",
-                        size: 0.2,
-                        duration: 0.4,
-                        type: ToonSoundType.Poc
                     });
                     this.game.puzzle.clicSound.play();
                 });
@@ -2691,6 +2652,9 @@ class Editor {
         };
         this.widthDelete = document.getElementById("editor-width-delete");
         this.widthDelete.onpointerup = () => {
+            if (this.puzzle.w <= 3) {
+                return;
+            }
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -2737,6 +2701,9 @@ class Editor {
         };
         this.heightDelete = document.getElementById("editor-height-delete");
         this.heightDelete.onpointerup = () => {
+            if (this.puzzle.h <= 3) {
+                return;
+            }
             let text = SaveAsText(this.puzzle);
             let split = text.split("x");
             split.pop();
@@ -3435,14 +3402,6 @@ class HoleTile extends Tile {
         if (this.rumbling) {
             return;
         }
-        this.game.toonSoundManager.start({
-            texts: ["KRR...", "KRR KRR...", "KRR KRR KRR..."],
-            pos: this.covers[0].absolutePosition.clone(),
-            color: "#5d7275",
-            size: 0.2,
-            duration: 0.7,
-            type: ToonSoundType.Rumble
-        });
         this.game.puzzle.longCrackSound.play();
         this.rumbling = true;
         let t0 = performance.now() / 1000;
@@ -4500,7 +4459,6 @@ class Game {
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
-        this.toonSoundManager = new ToonSoundManager(this);
         let rect = this.canvas.getBoundingClientRect();
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
@@ -5286,9 +5244,6 @@ class Game {
             this.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
             if (this.waterMaterial.diffuseTexture.vOffset > 1) {
                 this.waterMaterial.diffuseTexture.vOffset -= 1;
-            }
-            if (this.toonSoundManager) {
-                this.toonSoundManager.update(rawDT);
             }
             if (this.skybox) {
                 this.skybox.rotation.y += 0.02 * rawDT;
@@ -6337,25 +6292,9 @@ class ButtonTile extends Tile {
         this.bump();
         let animateWait = Mummu.AnimationFactory.CreateWait(this);
         let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
-        this.game.toonSoundManager.start({
-            text: "cric",
-            pos: this.absolutePosition.add(new BABYLON.Vector3(-0.3, 0, 0.3)),
-            color: "#2b2821",
-            size: 0.3,
-            duration: 0.5,
-            type: ToonSoundType.Poc
-        });
         await animateRotation(-Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
         this.game.puzzle.cricSound.play();
         await animateWait(0.1);
-        this.game.toonSoundManager.start({
-            text: "crac",
-            pos: this.absolutePosition.add(new BABYLON.Vector3(0.3, 0, 0.3)),
-            color: "#2b2821",
-            size: 0.3,
-            duration: 0.5,
-            type: ToonSoundType.Poc
-        });
         await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
         this.game.puzzle.cracSound.play();
     }
@@ -6423,24 +6362,48 @@ class DoorTile extends Tile {
         await this.animateBoxPosY(0, duration, Nabu.Easing.easeOutCubic);
     }
 }
-var ToonSoundType;
-(function (ToonSoundType) {
-    ToonSoundType[ToonSoundType["Poc"] = 0] = "Poc";
-    ToonSoundType[ToonSoundType["Rumble"] = 1] = "Rumble";
-})(ToonSoundType || (ToonSoundType = {}));
+/*
+enum ToonSoundType {
+    Poc,
+    Rumble
+}
+
+interface IToonSoundProp {
+    text?: string,
+    texts?: string[],
+    pos: BABYLON.Vector3,
+    color: string,
+    size: number,
+    duration: number,
+    type: ToonSoundType
+}
+
 class ToonSound extends BABYLON.Mesh {
-    constructor(game) {
+
+    public dynamicTexture: BABYLON.DynamicTexture;
+    public animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+
+    private _timer: number = 0;
+    public get active(): boolean {
+        return this.isVisible;
+    }
+    public soundProp: IToonSoundProp;
+    public get scale(): number {
+        return this.scaling.x;
+    }
+    public set scale(v: number) {
+        this.scaling.copyFromFloats(v, v, v);
+    }
+
+    constructor(
+        public game: Game
+    ) {
         super("haiku");
-        this.game = game;
-        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
-        this._timer = 0;
-        this.rotDir = 1;
-        this._lastDrawnTextIndex = 0;
-        this._dir = BABYLON.Vector3.Up();
         BABYLON.CreateGroundVertexData({ width: 5, height: 1 }).applyToMesh(this);
         this.renderingGroupId = 1;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.isVisible = false;
+
         let haikuMaterial = new BABYLON.StandardMaterial("toon-sound-material");
         this.dynamicTexture = new BABYLON.DynamicTexture("toon-sound-texture", { width: 200, height: 40 });
         this.dynamicTexture.hasAlpha = true;
@@ -6448,19 +6411,13 @@ class ToonSound extends BABYLON.Mesh {
         haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         this.material = haikuMaterial;
+
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
-    get active() {
-        return this.isVisible;
-    }
-    get scale() {
-        return this.scaling.x;
-    }
-    set scale(v) {
-        this.scaling.copyFromFloats(v, v, v);
-    }
-    start(soundProps) {
+
+    public start(soundProps: IToonSoundProp): void {
         this.soundProp = soundProps;
+
         if (this.soundProp.text) {
             this.writeText(this.soundProp.text);
         }
@@ -6468,17 +6425,22 @@ class ToonSound extends BABYLON.Mesh {
             this.writeText(this.soundProp.texts[0]);
             this._lastDrawnTextIndex = 0;
         }
+
         this.position.copyFrom(this.soundProp.pos);
-        this.rotDir = ((this.soundProp.pos.x - this.game.camera.target.x) > 0) ? 1 : -1;
+        this.rotDir = ((this.soundProp.pos.x - this.game.camera.target.x) > 0) ? 1 : - 1;
+
         this._timer = 0;
         this.scale = 0;
         this.isVisible = true;
     }
-    writeText(text) {
+
+    public writeText(text: string): void {
         let context = this.dynamicTexture.getContext();
         context.clearRect(0, 0, 200, 40);
+
         context.font = "40px Bangers";
         let l = context.measureText(text).width;
+
         let color = BABYLON.Color3.FromHexString(this.soundProp.color);
         let avg = (color.r + color.g + color.b) / 3;
         if (avg > 0.5) {
@@ -6492,11 +6454,18 @@ class ToonSound extends BABYLON.Mesh {
                 context.fillText(text, 100 - l * 0.5 + x, 34 + y);
             }
         }
+
         context.fillStyle = this.soundProp.color;
         context.fillText(text, 100 - l * 0.5, 34);
+
         this.dynamicTexture.update();
     }
-    update(dt) {
+
+    public rotDir: number = 1;
+    private _lastDrawnTextIndex: number = 0;
+    private _dir: BABYLON.Vector3 = BABYLON.Vector3.Up();
+    public update(dt: number): void {
+
         this._timer += dt;
         if (this._timer >= this.soundProp.duration) {
             this.isVisible = false;
@@ -6513,40 +6482,50 @@ class ToonSound extends BABYLON.Mesh {
                 let fScale = 4 * this._timer / this.soundProp.duration;
                 fScale = Nabu.MinMax(fScale, 0, 1);
                 this.scale = fScale * this.soundProp.size;
+
                 let fPos = 2 * this._timer / this.soundProp.duration;
                 fPos = Nabu.MinMax(fPos, 0, 1);
                 fPos = Nabu.Easing.easeOutSine(fPos);
                 this.position.copyFrom(this.soundProp.pos);
                 this.position.x += fPos * this.rotDir * this.soundProp.size * 0.5;
                 this.position.z += fPos * this.soundProp.size * 0.5;
+
                 this._dir.copyFrom(this.game.camera.globalPosition).subtractInPlace(this.position);
                 Mummu.QuaternionFromYZAxisToRef(this._dir, BABYLON.Axis.Z.add(BABYLON.Axis.X.scale(0.1 * fPos * this.rotDir)), this.rotationQuaternion);
+
                 this.visibility = 1;
             }
             else if (this.soundProp.type === ToonSoundType.Rumble) {
                 this._dir.copyFrom(this.game.camera.globalPosition).subtractInPlace(this.position);
                 Mummu.QuaternionFromYZAxisToRef(this._dir, BABYLON.Axis.Z.add(BABYLON.Axis.X.scale(0.1 * Math.sin(4 * 2 * Math.PI * this._timer))), this.rotationQuaternion);
+
                 let f = 4 * this._timer / this.soundProp.duration;
                 f = Nabu.MinMax(f, 0, 1);
                 f = Nabu.Easing.easeOutCubic(f);
                 this.scale = f * this.soundProp.size;
                 this.position.copyFrom(this.soundProp.pos);
                 this.position.y += f * 0.5 + 0.05 * Math.sin(6 * 2 * Math.PI * this._timer);
+    
                 this.visibility = 1;
             }
         }
     }
 }
+
 class ToonSoundManager {
-    constructor(game) {
-        this.game = game;
-        this.sounds = [];
+    
+    public sounds: ToonSound[] = [];
+
+    constructor(
+        public game: Game
+    ) {
         this.sounds = [];
         for (let i = 0; i < 10; i++) {
             this.sounds[i] = new ToonSound(this.game);
         }
     }
-    start(soundProps) {
+
+    public start(soundProps: IToonSoundProp): void {
         return;
         for (let i = 0; i < 10; i++) {
             if (!this.sounds[i].active) {
@@ -6555,7 +6534,8 @@ class ToonSoundManager {
             }
         }
     }
-    update(dt) {
+
+    public update(dt: number): void {
         return;
         for (let i = 0; i < 10; i++) {
             if (this.sounds[i].active) {
@@ -6564,6 +6544,7 @@ class ToonSoundManager {
         }
     }
 }
+*/ 
 class UserInterfaceInputManager {
     constructor(game) {
         this.game = game;

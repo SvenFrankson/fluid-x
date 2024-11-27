@@ -202,9 +202,9 @@ class Ball extends BABYLON.Mesh {
         this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
         this.rightTop.isVisible = false;
 
-        this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
-        this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
-        this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.woodChocSound = this.game.soundManager.createSound("ball-wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
+        this.woodChocSound2 = this.game.soundManager.createSound("ball-wood-choc-2", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
+        this.fallImpactSound = this.game.soundManager.createSound("ball-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
 
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
 
@@ -458,7 +458,7 @@ class Ball extends BABYLON.Mesh {
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
 
-            if (this.game.performanceWatcher.worst > 24) {
+            if (this.game.performanceWatcher.worst > 24 && false) {
                 let p = BABYLON.Vector3.Zero();
                 if (this.dropletMode) {
                     p = new BABYLON.Vector3(0, 0.1, -0.8);

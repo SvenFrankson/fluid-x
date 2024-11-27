@@ -88,8 +88,8 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public async shrink(): Promise<void> {
-        await this.animateSize(1.1, 0.1);
-        await this.animateSize(0.4, 0.3);
+        await this.animateSize(1.1, 0.1, Nabu.Easing.easeOutSine);
+        await this.animateSize(0.4, 0.3, Nabu.Easing.easeInSine);
     }
 
     public dispose(): void {

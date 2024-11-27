@@ -59,9 +59,11 @@ class CompletionBar extends HTMLElement {
                 requestAnimationFrame(step);
             }
             else {
+                this.classList.remove("animating");
                 this.setValue(vDestination);
             }
         }
+        this.classList.add("animating");
         step();
     }
 

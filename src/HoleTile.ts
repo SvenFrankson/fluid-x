@@ -24,7 +24,7 @@ class HoleTile extends Tile {
                 for (let n = 0; n < 3; n++) {
                     this.covers[n] = new BABYLON.Mesh("cover");
                     this.covers[n].parent = this;
-                    this.covers[n].material = this.game.floorMaterial;
+                    this.covers[n].material = this.game.puzzle.floorMaterial;
                 }
                 this.covers[0].position.copyFromFloats(-0.15, 0, 0.25);
                 Mummu.RotateInPlace(this.covers[0].position, BABYLON.Axis.Y, r);

@@ -81,7 +81,7 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
             this.game.mode = GameMode.Preplay;
-            await this.game.puzzle.reset();
+            await this.game.puzzle.reset(true);
             this.game.puzzle.editorOrEditorPreview = true;
             this.game.puzzle.skipIntro();
             this.game.globalTimer = 0;
@@ -89,7 +89,7 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#editor")) {
             this.show(this.editorUI, false, showTime);
             this.game.mode = GameMode.Editor;
-            await this.game.puzzle.reset();
+            await this.game.puzzle.reset(true);
             this.game.puzzle.editorOrEditorPreview = true;
             this.game.editor.activate();
         }

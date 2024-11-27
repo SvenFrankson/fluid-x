@@ -2,6 +2,13 @@
 
 class WaterTile extends Tile {
 
+    public get size(): number {
+        return this.scaling.y;
+    }
+    public set size(s: number) {
+        this.scaling.copyFromFloats(1, s, 1);
+    }
+
     public path: BABYLON.Vector3[] = [];
     public distFromSource: number = Infinity;
     public iMinusWater: WaterTile;
@@ -34,7 +41,7 @@ class WaterTile extends Tile {
 
         this.floorMesh = new BABYLON.Mesh("floor");
         this.floorMesh.parent = this;
-        this.floorMesh.material = this.game.floorMaterial;
+        this.floorMesh.material = this.game.puzzle.floorMaterial;
 
         let floorData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
         for (let i = 0; i < floorData.positions.length / 3; i++) {
@@ -320,5 +327,6 @@ class WaterTile extends Tile {
             floorData.uvs[2 * i + 1] = 0.5 * (floorData.positions[3 * i + 2] + this.position.z) - 0.5;
         }
         floorData.applyToMesh(this.floorMesh);
+        this.floorMesh.material = this.game.puzzle.floorMaterial;
     }
 }

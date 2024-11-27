@@ -489,7 +489,7 @@ class Editor {
             this.dropClear();
             this.dropBrush();
             this.puzzle.data.content = SaveAsText(this.puzzle);
-            this.puzzle.reset();
+            this.puzzle.reset(true);
             location.hash = "#editor-preview";
         };
 

@@ -4,6 +4,7 @@ class MySound {
     private _sounds: BABYLON.Sound[] = [];
 
     constructor(
+        public soundManager: SoundManager,
         private _name: string,
         private _urlOrArrayBuffer: any,
         private _scene?: BABYLON.Scene,
@@ -11,21 +12,22 @@ class MySound {
         private _options?: BABYLON.ISoundOptions,
         public instancesCount: number = 1
     ) {
-
+        this.instancesCount = 1;
     }
 
     public load(): void {
         if (this._loaded) {
             return;
         }
-        for (let i = 0; i < this.instancesCount; i++) {
-            this._sounds[i] = new BABYLON.Sound(
-                this._name,
-                this._urlOrArrayBuffer,
-                this._scene,
-                this._readyToPlayCallback,
-                this._options
-            );
+        this._sounds[0] = new BABYLON.Sound(
+            this._name,
+            this._urlOrArrayBuffer,
+            this._scene,
+            this._readyToPlayCallback,
+            this._options
+        );
+        for (let i = 1; i < this.instancesCount; i++) {
+            this._sounds[i] = this._sounds[0].clone();
         }
         this._loaded = true;
     }
@@ -61,10 +63,11 @@ class SoundManager {
         options?: BABYLON.ISoundOptions,
         instancesCount: number = 1
     ): MySound {
-        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
+        let mySound = new MySound(this, name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
         if (BABYLON.Engine.audioEngine.unlocked) {
             mySound.load();
         }
+        this.managedSounds.push(mySound);
         return mySound;
     }
 

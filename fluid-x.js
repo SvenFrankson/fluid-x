@@ -110,9 +110,9 @@ class Ball extends BABYLON.Mesh {
         this.rightTop.position.y = 0.3;
         this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
         this.rightTop.isVisible = false;
-        this.woodChocSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
-        this.woodChocSound2 = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
-        this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.woodChocSound = this.game.soundManager.createSound("ball-wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
+        this.woodChocSound2 = this.game.soundManager.createSound("ball-wood-choc-2", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
+        this.fallImpactSound = this.game.soundManager.createSound("ball-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         if (this.ballIndex === 0) {
             let inputLeft = document.querySelector("#input-left");
@@ -378,7 +378,7 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            if (this.game.performanceWatcher.worst > 24) {
+            if (this.game.performanceWatcher.worst > 24 && false) {
                 let p = BABYLON.Vector3.Zero();
                 if (this.dropletMode) {
                     p = new BABYLON.Vector3(0, 0.1, -0.8);
@@ -968,8 +968,8 @@ class Tile extends BABYLON.Mesh {
         await this.animateSize(1, duration * 0.5);
     }
     async shrink() {
-        await this.animateSize(1.1, 0.1);
-        await this.animateSize(0.4, 0.3);
+        await this.animateSize(1.1, 0.1, Nabu.Easing.easeOutSine);
+        await this.animateSize(0.4, 0.3, Nabu.Easing.easeInSine);
     }
     dispose() {
         let index = this.game.puzzle.tiles.indexOf(this);
@@ -1805,7 +1805,7 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.playUI, false, showTime);
             document.querySelector("#editor-btn").style.display = "";
             this.game.mode = GameMode.Preplay;
-            await this.game.puzzle.reset();
+            await this.game.puzzle.reset(true);
             this.game.puzzle.editorOrEditorPreview = true;
             this.game.puzzle.skipIntro();
             this.game.globalTimer = 0;
@@ -1813,7 +1813,7 @@ class CarillonRouter extends Nabu.Router {
         else if (page.startsWith("#editor")) {
             this.show(this.editorUI, false, showTime);
             this.game.mode = GameMode.Editor;
-            await this.game.puzzle.reset();
+            await this.game.puzzle.reset(true);
             this.game.puzzle.editorOrEditorPreview = true;
             this.game.editor.activate();
         }
@@ -1997,9 +1997,11 @@ class CompletionBar extends HTMLElement {
                 requestAnimationFrame(step);
             }
             else {
+                this.classList.remove("animating");
                 this.setValue(vDestination);
             }
         };
+        this.classList.add("animating");
         step();
     }
     setValue(v) {
@@ -2909,7 +2911,7 @@ class Editor {
             this.dropClear();
             this.dropBrush();
             this.puzzle.data.content = SaveAsText(this.puzzle);
-            this.puzzle.reset();
+            this.puzzle.reset(true);
             location.hash = "#editor-preview";
         };
         document.getElementById("save-btn").onpointerup = () => {
@@ -3412,7 +3414,7 @@ class HoleTile extends Tile {
                 for (let n = 0; n < 3; n++) {
                     this.covers[n] = new BABYLON.Mesh("cover");
                     this.covers[n].parent = this;
-                    this.covers[n].material = this.game.floorMaterial;
+                    this.covers[n].material = this.game.puzzle.floorMaterial;
                 }
                 this.covers[0].position.copyFromFloats(-0.15, 0, 0.25);
                 Mummu.RotateInPlace(this.covers[0].position, BABYLON.Axis.Y, r);
@@ -4207,7 +4209,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 4;
+var PATCH_VERSION = 5;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4556,6 +4558,10 @@ class Game {
         this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_2.png");
+        this.floorMaterial2 = new BABYLON.StandardMaterial("floor-material");
+        this.floorMaterial2.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial2.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMaterial2.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_3.png");
         this.woodFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
         this.woodFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.woodFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
@@ -4629,6 +4635,7 @@ class Game {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        /*
         let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
         let northTexture = new Image(256, 256);
         northTexture.src = "./datas/textures/red-north-wind.png";
@@ -4648,13 +4655,14 @@ class Game {
                         context.drawImage(southTexture, 0, 0, 256, 256, 0, 256, 256, 256);
                         context.drawImage(greenTexture, 0, 0, 256, 256, 256, 256, 256, 256);
                         collectedTileTexture.update();
-                    };
-                };
-            };
-        };
+                    }
+                }
+            }
+        }
         this.collectedTileMaterial = new BABYLON.StandardMaterial("collected-tile-material");
         this.collectedTileMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.collectedTileMaterial.diffuseTexture = collectedTileTexture;
+        */
         let oneMaterial = new BABYLON.StandardMaterial("one-material");
         //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
         //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272838");
@@ -5241,7 +5249,7 @@ class Game {
                 let w = this.puzzle.xMax - this.puzzle.xMin;
                 let d = this.puzzle.zMax - this.puzzle.zMin;
                 let targetCameraPos = new BABYLON.Vector3(0.5 * (this.puzzle.xMin + this.puzzle.xMax) + 0.2 * w * Math.cos(this.globalTimer / 30 * 2 * Math.PI), 0, 0.4 * (this.puzzle.zMin + this.puzzle.zMax) + 0.2 * d * Math.sin(this.globalTimer / 30 * 2 * Math.PI));
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 8 - this.globalTimer));
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 4 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
                 this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);
@@ -5887,8 +5895,8 @@ class PushTile extends Tile {
         pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
         pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
         this.tileTop.material = pushTileTopMaterial;
-        this.pushSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
-        this.fallImpactSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
+        this.pushSound = this.game.soundManager.createSound("push-wood-drag", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
+        this.fallImpactSound = this.game.soundManager.createSound("push-tile-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
     }
     async instantiate() {
         await super.instantiate();
@@ -6181,7 +6189,8 @@ class PuzzleCompletion {
     }
 }
 class MySound {
-    constructor(_name, _urlOrArrayBuffer, _scene, _readyToPlayCallback, _options, instancesCount = 1) {
+    constructor(soundManager, _name, _urlOrArrayBuffer, _scene, _readyToPlayCallback, _options, instancesCount = 1) {
+        this.soundManager = soundManager;
         this._name = _name;
         this._urlOrArrayBuffer = _urlOrArrayBuffer;
         this._scene = _scene;
@@ -6190,13 +6199,15 @@ class MySound {
         this.instancesCount = instancesCount;
         this._loaded = false;
         this._sounds = [];
+        this.instancesCount = 1;
     }
     load() {
         if (this._loaded) {
             return;
         }
-        for (let i = 0; i < this.instancesCount; i++) {
-            this._sounds[i] = new BABYLON.Sound(this._name, this._urlOrArrayBuffer, this._scene, this._readyToPlayCallback, this._options);
+        this._sounds[0] = new BABYLON.Sound(this._name, this._urlOrArrayBuffer, this._scene, this._readyToPlayCallback, this._options);
+        for (let i = 1; i < this.instancesCount; i++) {
+            this._sounds[i] = this._sounds[0].clone();
         }
         this._loaded = true;
     }
@@ -6223,10 +6234,11 @@ class SoundManager {
         this.managedSounds = [];
     }
     createSound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount = 1) {
-        let mySound = new MySound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
+        let mySound = new MySound(this, name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
         if (BABYLON.Engine.audioEngine.unlocked) {
             mySound.load();
         }
+        this.managedSounds.push(mySound);
         return mySound;
     }
     unlockEngine() {
@@ -6758,13 +6770,19 @@ class WaterTile extends Tile {
         this.waterMesh.material = this.game.waterMaterial;
         this.floorMesh = new BABYLON.Mesh("floor");
         this.floorMesh.parent = this;
-        this.floorMesh.material = this.game.floorMaterial;
+        this.floorMesh.material = this.game.puzzle.floorMaterial;
         let floorData = BABYLON.CreateGroundVertexData({ width: 1.1, height: 1.1 });
         for (let i = 0; i < floorData.positions.length / 3; i++) {
             floorData.uvs[2 * i] = 0.5 * (floorData.positions[3 * i] + this.position.x);
             floorData.uvs[2 * i + 1] = 0.5 * (floorData.positions[3 * i + 2] + this.position.z) - 0.5;
         }
         floorData.applyToMesh(this.floorMesh);
+    }
+    get size() {
+        return this.scaling.y;
+    }
+    set size(s) {
+        this.scaling.copyFromFloats(1, s, 1);
     }
     disconnect() {
         this.distFromSource = Infinity;
@@ -6984,6 +7002,7 @@ class WaterTile extends Tile {
             floorData.uvs[2 * i + 1] = 0.5 * (floorData.positions[3 * i + 2] + this.position.z) - 0.5;
         }
         floorData.applyToMesh(this.floorMesh);
+        this.floorMesh.material = this.game.puzzle.floorMaterial;
     }
 }
 class CubicNoiseTexture {
@@ -7623,15 +7642,15 @@ class Puzzle {
         this.fpsMaterial.diffuseTexture = this.fpsTexture;
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
-        this.clicSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
-        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
-        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
-        this.wiishSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
-        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
+        this.clicSound = this.game.soundManager.createSound("clic", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.cricSound = this.game.soundManager.createSound("cric", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
+        this.cracSound = this.game.soundManager.createSound("crac", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
+        this.wiishSound = this.game.soundManager.createSound("wiish", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
+        this.wooshSound = this.game.soundManager.createSound("woosh", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
         this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 1 }, 3);
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
-        this.slashSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
-        this.snapBassSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
+        this.slashSound = this.game.soundManager.createSound("slash", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
+        this.snapBassSound = this.game.soundManager.createSound("snap-bass", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {
@@ -7746,6 +7765,14 @@ class Puzzle {
             for (let j = 0; j < this.h; j++) {
                 this.buildingBlockSet(this.buildingBlockGet(i, j), i, j);
             }
+        }
+    }
+    get floorMaterial() {
+        if (this.data.id != null && this.data.id % 2 === 1) {
+            return this.game.floorMaterial2;
+        }
+        else {
+            return this.game.floorMaterial;
         }
     }
     getScene() {
@@ -8246,39 +8273,47 @@ class Puzzle {
                         j: j
                     });
                 }
-                else if (!replaying && c === "B") {
-                    this.buildingBlocks[i][j] = 1;
-                    this.buildingBlocks[i + 1][j] = 1;
-                    this.buildingBlocks[i][j + 1] = 1;
-                    this.buildingBlocks[i + 1][j + 1] = 1;
+                else if (c === "B") {
+                    if (!replaying) {
+                        this.buildingBlocks[i][j] = 1;
+                        this.buildingBlocks[i + 1][j] = 1;
+                        this.buildingBlocks[i][j + 1] = 1;
+                        this.buildingBlocks[i + 1][j + 1] = 1;
+                    }
                 }
-                else if (!replaying && c === "R") {
+                else if (c === "R") {
                     let s = parseInt(line[ii + 1]);
                     if (isNaN(s)) {
-                        let ramp = new Ramp(this.game, {
-                            i: i,
-                            j: j,
-                            size: 2
-                        });
+                        if (!replaying) {
+                            let ramp = new Ramp(this.game, {
+                                i: i,
+                                j: j,
+                                size: 2
+                            });
+                        }
                     }
                     else {
-                        let ramp = new Ramp(this.game, {
-                            i: i,
-                            j: j,
-                            size: s
-                        });
+                        if (!replaying) {
+                            let ramp = new Ramp(this.game, {
+                                i: i,
+                                j: j,
+                                size: s
+                            });
+                        }
                         ii++;
                     }
                 }
-                else if (!replaying && c === "U") {
-                    let bridge = new Bridge(this.game, {
-                        i: i,
-                        j: j,
-                        borderBottom: true,
-                        borderRight: true,
-                        borderLeft: true,
-                        borderTop: true
-                    });
+                else if (c === "U") {
+                    if (!replaying) {
+                        let bridge = new Bridge(this.game, {
+                            i: i,
+                            j: j,
+                            borderBottom: true,
+                            borderRight: true,
+                            borderLeft: true,
+                            borderTop: true
+                        });
+                    }
                 }
                 i++;
             }
@@ -8318,6 +8353,15 @@ class Puzzle {
     async NextFrame() {
         return new Promise(resolve => {
             requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    resolve();
+                });
+            });
+        });
+    }
+    async SkipNextFrame() {
+        return new Promise(resolve => {
+            requestAnimationFrame(() => {
                 resolve();
             });
         });
@@ -8329,7 +8373,7 @@ class Puzzle {
             this.boxesWood.isVisible = false;
             this.boxesFloor.isVisible = false;
             this.bordersMesh.isVisible = false;
-            this.buildingsContainer.scaling.y = 0;
+            this.buildingsContainer.scaling.y = 0.01;
             let instantiatableTiles = this.tiles.filter(tile => {
                 return tile instanceof BlockTile ||
                     tile instanceof SwitchTile ||
@@ -8346,9 +8390,9 @@ class Puzzle {
             }
             this.buildingUpValue = 0;
             this.regenerateHeightMap();
-            await this.NextFrame();
+            await this.SkipNextFrame();
             this.rebuildFloor();
-            await this.NextFrame();
+            await this.SkipNextFrame();
             for (let i = 0; i < this.buildings.length; i++) {
                 this.buildings[i].regenerateBorders();
             }
@@ -8368,6 +8412,7 @@ class Puzzle {
                         bordersVertexDatas.push(data);
                     }
                 }
+                await this.SkipNextFrame();
             }
             for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
                 let data = await this.buildingBlocksBorders[i].getVertexData();
@@ -8375,6 +8420,9 @@ class Puzzle {
                     Mummu.RotateAngleAxisVertexDataInPlace(data, this.buildingBlocksBorders[i].rotationY, BABYLON.Axis.Y);
                     Mummu.TranslateVertexDataInPlace(data, this.buildingBlocksBorders[i].position);
                     bordersVertexDatas.push(data);
+                }
+                if (i > 0 && i % 10 === 0) {
+                    await this.SkipNextFrame();
                 }
             }
             if (bordersVertexDatas.length > 0) {
@@ -8393,7 +8441,7 @@ class Puzzle {
             this.boxesWood.isVisible = true;
             this.boxesFloor.isVisible = true;
             let buildingScalingYAnimation = Mummu.AnimationFactory.CreateNumber(this.buildingsContainer, this.buildingsContainer.scaling, "y");
-            buildingScalingYAnimation(1, 1, Nabu.Easing.easeOutSine);
+            buildingScalingYAnimation(1, 2, Nabu.Easing.easeOutSine);
             await this.NextFrame();
         }
         for (let i = 0; i < this.tiles.length; i++) {
@@ -8417,8 +8465,12 @@ class Puzzle {
                     tile instanceof DoorTile ||
                     tile instanceof HoleTile && tile.covered ||
                     tile instanceof WaterTile) {
-                    tile.bump(0.5);
+                    tile.size = 0;
+                    tile.bump(1);
                     await this.NextFrame();
+                }
+                else if (tile instanceof WallTile) {
+                    await this.SkipNextFrame();
                 }
             }
         }
@@ -8804,6 +8856,7 @@ class Puzzle {
             floorData.uvs[2 * i + 1] = 0.5 * floorData.positions[3 * i + 2] - 0.5;
         }
         floorData.applyToMesh(this.floor);
+        this.floor.material = this.floorMaterial;
         if (holeOutlinePoints.length > 0) {
             this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {
                 lines: holeOutlinePoints,
@@ -9154,7 +9207,7 @@ function SaveAsText(puzzle, withHaiku) {
         let i = tile.i;
         let j = tile.j;
         if (j >= 0 && j < lines.length) {
-            if (i >= 0 && i < lines.length) {
+            if (i >= 0 && i < lines[j].length) {
                 if (tile instanceof BlockTile) {
                     if (tile.color === TileColor.North) {
                         lines[j][i] = ["n"];
@@ -9363,6 +9416,7 @@ class PuzzleUI {
         this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.successNextLabel = document.querySelector("#success-next-label");
+        this.completionBarLabel = document.querySelector("#play-success-completion-label");
         this.completionBar = document.querySelector("#play-success-panel-completion-container completion-bar");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement;
@@ -9421,12 +9475,15 @@ class PuzzleUI {
         let completion = 1;
         if (this.puzzle.data.state === PuzzleState.OKAY) {
             completion = this.game.puzzleCompletion.communityPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Community";
         }
         else if (this.puzzle.data.state === PuzzleState.STORY) {
             completion = this.game.puzzleCompletion.storyPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Story";
         }
         else if (this.puzzle.data.state === PuzzleState.XPERT) {
             completion = this.game.puzzleCompletion.expertPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Expert";
         }
         if (previousCompletion != completion) {
             this.completionBar.setValue(previousCompletion);
@@ -9435,7 +9492,6 @@ class PuzzleUI {
         else {
             this.completionBar.setValue(completion);
         }
-        this.completionBar.animateValueTo(completion, 3);
         if (this.puzzle.data.state === 2) {
             let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];
             if (nextPuzzle) {

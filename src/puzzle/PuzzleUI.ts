@@ -7,6 +7,7 @@ class PuzzleUI {
     public unlockContainer: HTMLDivElement;
     public failMessage: HTMLDivElement;
 
+    public completionBarLabel: CompletionBar;
     public completionBar: CompletionBar;
 
     public highscoreContainer: HTMLDivElement;
@@ -43,6 +44,7 @@ class PuzzleUI {
         this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.successNextLabel = document.querySelector("#success-next-label");
+        this.completionBarLabel = document.querySelector("#play-success-completion-label");
         this.completionBar = document.querySelector("#play-success-panel-completion-container completion-bar");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement as HTMLDivElement;
@@ -91,12 +93,15 @@ class PuzzleUI {
         let completion = 1;
         if (this.puzzle.data.state === PuzzleState.OKAY) {
             completion = this.game.puzzleCompletion.communityPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Community";
         }
         else if (this.puzzle.data.state === PuzzleState.STORY) {
             completion = this.game.puzzleCompletion.storyPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Story";
         }
         else if (this.puzzle.data.state === PuzzleState.XPERT) {
             completion = this.game.puzzleCompletion.expertPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Expert";
         }
         if (previousCompletion != completion) {
             this.completionBar.setValue(previousCompletion);
@@ -105,7 +110,6 @@ class PuzzleUI {
         else {
             this.completionBar.setValue(completion);
         }
-        this.completionBar.animateValueTo(completion, 3);
 
         if (this.puzzle.data.state === 2) {
             let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];

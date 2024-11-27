@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 4;
+var PATCH_VERSION: number = 5;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -267,6 +267,7 @@ class Game {
     public waterMaterial: BABYLON.StandardMaterial;
     public boostMaterial: BABYLON.StandardMaterial;
     public floorMaterial: BABYLON.StandardMaterial;
+    public floorMaterial2: BABYLON.StandardMaterial;
     public woodFloorMaterial: BABYLON.StandardMaterial;
     public roofMaterial: BABYLON.StandardMaterial;
     public woodMaterial: BABYLON.StandardMaterial;
@@ -428,6 +429,11 @@ class Game {
         this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_2.png");
             
+        this.floorMaterial2 = new BABYLON.StandardMaterial("floor-material");
+        this.floorMaterial2.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial2.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMaterial2.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_3.png");
+            
         this.woodFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
         this.woodFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.woodFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
@@ -514,6 +520,7 @@ class Game {
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
 
+        /*
         let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
         let northTexture = new Image(256, 256);
         northTexture.src = "./datas/textures/red-north-wind.png";
@@ -540,6 +547,7 @@ class Game {
         this.collectedTileMaterial = new BABYLON.StandardMaterial("collected-tile-material");
         this.collectedTileMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.collectedTileMaterial.diffuseTexture = collectedTileTexture;
+        */
 
         let oneMaterial = new BABYLON.StandardMaterial("one-material");
         //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
@@ -1239,7 +1247,7 @@ class Game {
                     0.4 * (this.puzzle.zMin + this.puzzle.zMax) + 0.2 * d * Math.sin(this.globalTimer / 30 * 2 * Math.PI)
                 )
                 
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 8 - this.globalTimer));
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 4 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
                 this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);

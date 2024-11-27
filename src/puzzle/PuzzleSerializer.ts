@@ -11,7 +11,7 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
         let i = tile.i;
         let j = tile.j;
         if (j >= 0 && j < lines.length) {
-            if (i >= 0 && i < lines.length) {
+            if (i >= 0 && i < lines[j].length) {
                 if (tile instanceof BlockTile) {
                     if (tile.color === TileColor.North) {
                         lines[j][i] = ["n"];

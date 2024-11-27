@@ -1,5 +1,5 @@
-var USE_POKI_SDK = true;
-var OFFLINE_MODE = true;
+var USE_POKI_SDK = false;
+var OFFLINE_MODE = false;
 
 var THE_ORIGIN_OF_TIME_ms = 0;
 var last_step_t = 0;

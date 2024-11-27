@@ -923,6 +923,19 @@ body.vertical #play-timer {
     font-size: 18px;
 }
 
+@keyframes completion-bar-highlight {
+    from {
+        border: 1px solid #624c3c;
+    }
+    to {
+        border: 1px solid white;
+    }
+}
+
+#play-success-panel completion-bar.animating {
+    animation: 0.5s ease-in-out 0s infinite alternate completion-bar-highlight;
+}
+
 #play-unlock-container {
     margin: 0px 5px 0px 5px;
     padding: 5px 15px 5px 15px;

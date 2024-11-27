@@ -172,6 +172,15 @@ class Puzzle {
     public fpsMaterial: BABYLON.StandardMaterial;
     public fpsTexture: BABYLON.DynamicTexture;
 
+    public get floorMaterial(): BABYLON.StandardMaterial {
+        if (this.data.id != null && this.data.id % 2 === 1) {
+            return this.game.floorMaterial2;
+        }
+        else {
+            return this.game.floorMaterial;
+        }
+    }
+
     public clicSound: MySound;
     public cricSound: MySound;
     public cracSound: MySound;
@@ -282,15 +291,15 @@ class Puzzle {
         this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
         this.fpsMaterial.useAlphaFromDiffuseTexture = true;
         
-        this.clicSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
-        this.cricSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
-        this.cracSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
-        this.wiishSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
-        this.wooshSound = this.game.soundManager.createSound("wood-choc", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
+        this.clicSound = this.game.soundManager.createSound("clic", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
+        this.cricSound = this.game.soundManager.createSound("cric", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
+        this.cracSound = this.game.soundManager.createSound("crac", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
+        this.wiishSound = this.game.soundManager.createSound("wiish", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
+        this.wooshSound = this.game.soundManager.createSound("woosh", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
         this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 1 }, 3);
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
-        this.slashSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
-        this.snapBassSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
+        this.slashSound = this.game.soundManager.createSound("slash", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
+        this.snapBassSound = this.game.soundManager.createSound("snap-bass", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
     }
 
     public async reset(replaying?: boolean): Promise<void> {
@@ -780,39 +789,47 @@ class Puzzle {
                         j: j
                     });
                 }
-                else if (!replaying && c === "B") {
-                    this.buildingBlocks[i][j] = 1;
-                    this.buildingBlocks[i + 1][j] = 1;
-                    this.buildingBlocks[i][j + 1] = 1;
-                    this.buildingBlocks[i + 1][j + 1] = 1;
+                else if (c === "B") {
+                    if (!replaying) {
+                        this.buildingBlocks[i][j] = 1;
+                        this.buildingBlocks[i + 1][j] = 1;
+                        this.buildingBlocks[i][j + 1] = 1;
+                        this.buildingBlocks[i + 1][j + 1] = 1;
+                    }
                 }
-                else if (!replaying && c === "R") {
+                else if (c === "R") {
                     let s = parseInt(line[ii + 1]);
                     if (isNaN(s)) {
-                        let ramp = new Ramp(this.game, {
-                            i: i,
-                            j: j,
-                            size: 2
-                        });
+                        if (!replaying) {
+                            let ramp = new Ramp(this.game, {
+                                i: i,
+                                j: j,
+                                size: 2
+                            });
+                        }
                     }
                     else {
-                        let ramp = new Ramp(this.game, {
-                            i: i,
-                            j: j,
-                            size: s
-                        });
+                        if (!replaying) {
+                            let ramp = new Ramp(this.game, {
+                                i: i,
+                                j: j,
+                                size: s
+                            });
+                        }
                         ii++;
                     }
                 }
-                else if (!replaying && c === "U") {
-                    let bridge = new Bridge(this.game, {
-                        i: i,
-                        j: j,
-                        borderBottom: true,
-                        borderRight: true,
-                        borderLeft: true,
-                        borderTop: true
-                    });
+                else if (c === "U") {
+                    if (!replaying) {
+                        let bridge = new Bridge(this.game, {
+                            i: i,
+                            j: j,
+                            borderBottom: true,
+                            borderRight: true,
+                            borderLeft: true,
+                            borderTop: true
+                        });
+                    }
                 }
                 i++;
             }
@@ -857,6 +874,15 @@ class Puzzle {
     public async NextFrame(): Promise<void> {
         return new Promise<void>(resolve => {
             requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    resolve();
+                });
+            });
+        });
+    }
+    public async SkipNextFrame(): Promise<void> {
+        return new Promise<void>(resolve => {
+            requestAnimationFrame(() => {
                 resolve();
             });
         });
@@ -869,7 +895,7 @@ class Puzzle {
             this.boxesWood.isVisible = false;
             this.boxesFloor.isVisible = false;
             this.bordersMesh.isVisible = false;
-            this.buildingsContainer.scaling.y = 0;
+            this.buildingsContainer.scaling.y = 0.01;
             let instantiatableTiles = this.tiles.filter(tile => {
                 return tile instanceof BlockTile ||
                 tile instanceof SwitchTile ||
@@ -887,10 +913,10 @@ class Puzzle {
             this.buildingUpValue = 0;
     
             this.regenerateHeightMap();
-            await this.NextFrame();
+            await this.SkipNextFrame();
     
             this.rebuildFloor();
-            await this.NextFrame();
+            await this.SkipNextFrame();
     
             for (let i = 0; i < this.buildings.length; i++) {
                 this.buildings[i].regenerateBorders();
@@ -912,6 +938,7 @@ class Puzzle {
                         bordersVertexDatas.push(data);
                     }
                 }
+                await this.SkipNextFrame();
             }
             for (let i = 0; i < this.buildingBlocksBorders.length; i++) {
                 let data = await this.buildingBlocksBorders[i].getVertexData();
@@ -919,6 +946,9 @@ class Puzzle {
                     Mummu.RotateAngleAxisVertexDataInPlace(data, this.buildingBlocksBorders[i].rotationY, BABYLON.Axis.Y);
                     Mummu.TranslateVertexDataInPlace(data, this.buildingBlocksBorders[i].position);
                     bordersVertexDatas.push(data);
+                }
+                if (i > 0 && i % 10 === 0) {
+                    await this.SkipNextFrame();
                 }
             }
     
@@ -940,7 +970,7 @@ class Puzzle {
             this.boxesFloor.isVisible = true;
 
             let buildingScalingYAnimation = Mummu.AnimationFactory.CreateNumber(this.buildingsContainer, this.buildingsContainer.scaling, "y");
-            buildingScalingYAnimation(1, 1, Nabu.Easing.easeOutSine);
+            buildingScalingYAnimation(1, 2, Nabu.Easing.easeOutSine);
 
             await this.NextFrame();
         }        
@@ -971,8 +1001,14 @@ class Puzzle {
                     tile instanceof HoleTile && tile.covered ||
                     tile instanceof WaterTile
                 ) {
-                    tile.bump(0.5);
+                    tile.size = 0;
+                    tile.bump(1);
                     await this.NextFrame();
+                }
+                else if (
+                    tile instanceof WallTile
+                ) {
+                    await this.SkipNextFrame();
                 }
             }
         }
@@ -1390,6 +1426,7 @@ class Puzzle {
             floorData.uvs[2 * i + 1] = 0.5 * floorData.positions[3 * i + 2] - 0.5;
         }
         floorData.applyToMesh(this.floor);
+        this.floor.material = this.floorMaterial;
 
         if (holeOutlinePoints.length > 0) {
             this.holeOutline = BABYLON.MeshBuilder.CreateLineSystem("hole-outline", {

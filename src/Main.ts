@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 2;
+var PATCH_VERSION: number = 4;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -42,7 +42,7 @@ function PokiGameplayStop(): void {
 }
 
 var PlayerHasInteracted = false;
-var IsTouchScreen = - 1;
+var IsTouchScreen = 0;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
@@ -107,7 +107,6 @@ let onFirstPlayerInteractionClick = (ev: Event) => {
     }, 300);
     Game.Instance.onResize();
 
-    IsTouchScreen = 0;
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
@@ -133,7 +132,6 @@ let onFirstPlayerInteractionKeyboard = (ev: Event) => {
     }, 300);
     Game.Instance.onResize();
 
-    IsTouchScreen = 0;
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
@@ -285,7 +283,6 @@ class Game {
         return this.brownMaterial;
     }
     public puzzle: Puzzle;
-    public bottom: BABYLON.Mesh;
     public stamp: StampEffect;
 
     public player1Name: string = "";
@@ -321,7 +318,6 @@ class Game {
 
         this.scene.clearColor = BABYLON.Color4.FromHexString(hexColors[5] + "FF");
         this.scene.clearColor.a = 1;
-        (this.bottom.material as BABYLON.StandardMaterial).diffuseColor = BABYLON.Color3.FromHexString(hexColors[this._bodyColorIndex]);
     }
 
     private _bodyPatternIndex = 0;
@@ -329,18 +325,7 @@ class Game {
         return this._bodyPatternIndex;
     }
     public set bodyPatternIndex(v: number) {
-        //document.body.classList.remove(cssPatterns[this._bodyPatternIndex]);
         this._bodyPatternIndex = v;
-        //document.body.classList.add(cssPatterns[this._bodyPatternIndex]);
-
-        if (v === 0) {
-            (this.bottom.material as BABYLON.StandardMaterial).emissiveTexture = new BABYLON.Texture("./datas/textures/cube_pattern_emissive.png");
-            ((this.bottom.material as BABYLON.StandardMaterial).emissiveTexture as BABYLON.Texture).vScale = 1 / (195 / 112);
-        }
-        else {
-            (this.bottom.material as BABYLON.StandardMaterial).emissiveTexture = new BABYLON.Texture("./datas/textures/rainbow_pattern_emissive.png");
-            ((this.bottom.material as BABYLON.StandardMaterial).emissiveTexture as BABYLON.Texture).vScale = 1 / (111 / 98);
-        }
     }
 
     constructor(canvasElement: string) {
@@ -396,14 +381,6 @@ class Game {
         skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
         skyboxMaterial.emissiveColor = BABYLON.Color3.FromHexString("#5c8b93").scaleInPlace(0.7);
         this.skybox.material = skyboxMaterial;
-
-        this.bottom = Mummu.CreateQuad("bottom", { width: 100, height: 100, uvInWorldSpace: true });
-        this.bottom.rotation.x = Math.PI * 0.5;
-        this.bottom.position.y = -5.05;
-
-        let bottomMaterial = new BABYLON.StandardMaterial("bottom-material");
-        bottomMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.bottom.material = bottomMaterial;
 
         this.stamp = new StampEffect(this);
 
@@ -704,7 +681,7 @@ class Game {
 
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
-        await this.puzzle.instantiate();
+        this.puzzle.instantiate();
 
         this.puzzleCompletion = new PuzzleCompletion(this);
         await this.puzzleCompletion.initialize();
@@ -795,7 +772,7 @@ class Game {
         }
 
         (document.querySelector("#reset-btn") as HTMLButtonElement).onpointerup = async () => {
-            await this.puzzle.reset();
+            await this.puzzle.reset(true);
             this.puzzle.skipIntro();
         }
 

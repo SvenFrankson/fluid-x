@@ -41,6 +41,8 @@ abstract class Build extends BABYLON.Mesh {
             this.position.z = props.j * 1.1;
         }
 
+        this.parent = this.game.puzzle.buildingsContainer;
+
         this.floor = new BABYLON.Mesh("building-floor");
         this.floor.parent = this;
 

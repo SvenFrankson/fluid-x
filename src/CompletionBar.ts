@@ -27,8 +27,10 @@ class CompletionBar extends HTMLElement {
 
         this.valueText = document.createElement("span");
         this.valueText.classList.add("completed-text");
+        this.valueText.style.position = "relative";
         this.valueText.style.display = "none";
         this.valueText.style.marginRight = "5px";
+        this.valueText.style.marginLeft = "5px";
         this.valueText.style.display = "inline-block";
         this.valueText.style.color = "white";
         this.valueText.style.fontWeight = "500";
@@ -38,6 +40,29 @@ class CompletionBar extends HTMLElement {
         if (this.hasAttribute("value")) {
             this.setValue(parseFloat(this.getAttribute("value")));
         }
+    }
+
+    public animateValueTo(v: number, duration: number = 1): void {
+        let t0 = performance.now();
+        let vOrigin = this.value;
+        let vDestination = v;
+        let step = () => {
+            let t = (performance.now() - t0) / 1000;
+            let f = t / duration;
+            if (f < 1) {
+                let val = vOrigin * (1 - f) + vDestination * f;
+                let currPercent = Math.floor(this.value * 100);
+                let valPercent = Math.floor(val * 100);
+                if (currPercent != valPercent) {
+                    this.setValue(val);
+                }
+                requestAnimationFrame(step);
+            }
+            else {
+                this.setValue(vDestination);
+            }
+        }
+        step();
     }
 
     public setValue(v: number): void {
@@ -58,13 +83,24 @@ class CompletionBar extends HTMLElement {
             this.valueText.innerHTML = percentString + " completed";
             if (percent > 50) {
                 this.completedBar.appendChild(this.valueText);
-                this.valueText.style.display = "inline-block";
+                this.style.textAlign = "left";
+                this.valueText.style.display = "block";
                 this.valueText.style.color = "black";
                 this.valueText.style.fontWeight = "900";
             }
             else {
                 this.appendChild(this.valueText);
-                this.valueText.style.display = "inline-block";
+                this.style.textAlign = "right";
+                this.valueText.style.display = "block";
+                this.valueText.style.color = "white";
+                this.valueText.style.fontWeight = "500";
+            }
+
+            if (percent > 70) {
+                this.valueText.style.color = "black";
+                this.valueText.style.fontWeight = "900";
+            }
+            else {
                 this.valueText.style.color = "white";
                 this.valueText.style.fontWeight = "500";
             }

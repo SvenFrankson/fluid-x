@@ -340,7 +340,7 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
     public get mouseCanControl(): boolean {
-        return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
+        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
     public mouseInControl: boolean = false;
     private _pointerDown: boolean = false;
@@ -348,6 +348,12 @@ class Ball extends BABYLON.Mesh {
         if (this.mouseCanControl) {
             this.mouseInControl = true;
             this._pointerDown = true;
+        }
+        else {
+            if (this.game.mode === GameMode.Preplay) {
+                this.puzzle.skipIntro();
+                this.lockControl(0.2);
+            }
         }
     }
 

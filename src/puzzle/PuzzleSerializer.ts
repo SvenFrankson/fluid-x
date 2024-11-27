@@ -10,72 +10,76 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
     puzzle.tiles.forEach(tile => {
         let i = tile.i;
         let j = tile.j;
-        if (tile instanceof BlockTile) {
-            if (tile.color === TileColor.North) {
-                lines[j][i] = ["n"];
+        if (j >= 0 && j < lines.length) {
+            if (i >= 0 && i < lines.length) {
+                if (tile instanceof BlockTile) {
+                    if (tile.color === TileColor.North) {
+                        lines[j][i] = ["n"];
+                    }
+                    else if (tile.color === TileColor.East) {
+                        lines[j][i] = ["e"];
+                    }
+                    else if (tile.color === TileColor.South) {
+                        lines[j][i] = ["s"];
+                    }
+                    else if (tile.color === TileColor.West) {
+                        lines[j][i] = ["w"];
+                    }
+                }
+                else if (tile instanceof SwitchTile) {
+                    if (tile.color === TileColor.North) {
+                        lines[j][i] = ["N"];
+                    }
+                    else if (tile.color === TileColor.East) {
+                        lines[j][i] = ["E"];
+                    }
+                    else if (tile.color === TileColor.South) {
+                        lines[j][i] = ["S"];
+                    }
+                    else if (tile.color === TileColor.West) {
+                        lines[j][i] = ["W"];
+                    }
+                }
+                else if (tile instanceof ButtonTile) {
+                    if (tile.props.value === 1) {
+                        lines[j][i] = ["I"];
+                    }
+                    else if (tile.props.value === 2) {
+                        lines[j][i] = ["D"];
+                    }
+                    else if (tile.props.value === 3) {
+                        lines[j][i] = ["T"];
+                    }
+                }
+                else if (tile instanceof DoorTile) {
+                    if (tile.props.value === 1) {
+                        lines[j][i] = tile.closed ? ["j"] : ["i"];
+                    }
+                    else if (tile.props.value === 2) {
+                        lines[j][i] = tile.closed ? ["f"] : ["d"];
+                    }
+                    else if (tile.props.value === 3) {
+                        lines[j][i] = tile.closed ? ["u"] : ["t"];
+                    }
+                }
+                else if (tile instanceof PushTile) {
+                    lines[j][i] = ["p"];
+                }
+                else if (tile instanceof HoleTile) {
+                    if (tile.covered) {
+                        lines[j][i] = ["Q"];
+                    }
+                    else {
+                        lines[j][i] = ["O"];
+                    }
+                }
+                else if (tile instanceof WallTile) {
+                    lines[j][i] = ["a"];
+                }
+                else if (tile instanceof WaterTile) {
+                    lines[j][i] = ["q"];
+                }        
             }
-            else if (tile.color === TileColor.East) {
-                lines[j][i] = ["e"];
-            }
-            else if (tile.color === TileColor.South) {
-                lines[j][i] = ["s"];
-            }
-            else if (tile.color === TileColor.West) {
-                lines[j][i] = ["w"];
-            }
-        }
-        else if (tile instanceof SwitchTile) {
-            if (tile.color === TileColor.North) {
-                lines[j][i] = ["N"];
-            }
-            else if (tile.color === TileColor.East) {
-                lines[j][i] = ["E"];
-            }
-            else if (tile.color === TileColor.South) {
-                lines[j][i] = ["S"];
-            }
-            else if (tile.color === TileColor.West) {
-                lines[j][i] = ["W"];
-            }
-        }
-        else if (tile instanceof ButtonTile) {
-            if (tile.props.value === 1) {
-                lines[j][i] = ["I"];
-            }
-            else if (tile.props.value === 2) {
-                lines[j][i] = ["D"];
-            }
-            else if (tile.props.value === 3) {
-                lines[j][i] = ["T"];
-            }
-        }
-        else if (tile instanceof DoorTile) {
-            if (tile.props.value === 1) {
-                lines[j][i] = tile.closed ? ["j"] : ["i"];
-            }
-            else if (tile.props.value === 2) {
-                lines[j][i] = tile.closed ? ["f"] : ["d"];
-            }
-            else if (tile.props.value === 3) {
-                lines[j][i] = tile.closed ? ["u"] : ["t"];
-            }
-        }
-        else if (tile instanceof PushTile) {
-            lines[j][i] = ["p"];
-        }
-        else if (tile instanceof HoleTile) {
-            if (tile.covered) {
-                lines[j][i] = ["Q"];
-            }
-            else {
-                lines[j][i] = ["O"];
-            }
-        }
-        else if (tile instanceof WallTile) {
-            lines[j][i] = ["a"];
-        }
-        else if (tile instanceof WaterTile) {
-            lines[j][i] = ["q"];
         }
     });
 

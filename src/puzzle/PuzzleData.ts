@@ -1,3 +1,14 @@
+enum PuzzleState {
+    TBD = 0,
+    OKAY,
+    STORY,
+    XPERT,
+    MULTI,
+    TRASH,
+    PRBLM,
+    INFO
+}
+
 interface IPuzzleData {
     id: number;
     title: string;

@@ -82,9 +82,9 @@ abstract class Tile extends BABYLON.Mesh {
         }
     }
 
-    public async bump(): Promise<void> {
-        await this.animateSize(1.1, 0.1);
-        await this.animateSize(1, 0.1);
+    public async bump(duration: number = 0.2): Promise<void> {
+        await this.animateSize(1.1, duration * 0.5);
+        await this.animateSize(1, duration * 0.5);
     }
 
     public async shrink(): Promise<void> {

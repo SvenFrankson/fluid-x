@@ -891,6 +891,38 @@ body.vertical #play-timer {
     right: 5px;
 }
 
+#play-success-panel-completion-container {
+    position: absolute;
+    top: -25px;
+    left: -15px;
+    padding: 3px 3px 3px 10px;
+    background-color: #e0c872;
+    background-color: #d4804d;
+    background-color: #5c8b93;
+    background-color: #5d7275;
+    border: 2px solid #624c3cff;
+    border-radius: 5px;
+    height: 24px;
+}
+
+#play-success-completion-label {
+    display: inline-block;
+    width: 90px;
+    text-align: left;
+    font-weight: 700;
+    color: #2b2821;
+    color: rgb(236, 224, 208);
+    vertical-align: top;
+}
+
+#play-success-panel completion-bar {
+    position: relative;
+    display: inline-block;
+    width: 180px;
+    height: 22px;
+    font-size: 18px;
+}
+
 #play-unlock-container {
     margin: 0px 5px 0px 5px;
     padding: 5px 15px 5px 15px;
@@ -913,6 +945,7 @@ body.vertical #play-timer {
     #play-unlock-container {
         display: inline-block;
         vertical-align: top;
+        margin-top: 15px;
     }
 
     #play-success-panel .stamp {
@@ -945,8 +978,8 @@ completion-bar {
     background-size: 30px;
 
     color: white;
-    text-align: right;
     font-weight: 500;
+    text-wrap: nowrap;
 }
 
 completion-bar .completed {

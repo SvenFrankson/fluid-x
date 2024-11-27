@@ -80,18 +80,18 @@ class CarillonRouter extends Nabu.Router {
             (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
             this.show(this.playUI, false, showTime);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
+            this.game.mode = GameMode.Preplay;
             await this.game.puzzle.reset();
             this.game.puzzle.editorOrEditorPreview = true;
             this.game.puzzle.skipIntro();
-            this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
         }
         else if (page.startsWith("#editor")) {
             this.show(this.editorUI, false, showTime);
+            this.game.mode = GameMode.Editor;
             await this.game.puzzle.reset();
             this.game.puzzle.editorOrEditorPreview = true;
             this.game.editor.activate();
-            this.game.mode = GameMode.Editor;
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
@@ -108,10 +108,10 @@ class CarillonRouter extends Nabu.Router {
                 }
             }
             this.show(this.playUI, false, showTime);
+            this.game.mode = GameMode.Preplay;
             await this.game.puzzle.reset();
             this.game.puzzle.editorOrEditorPreview = false;
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
         }
         else if (page.startsWith("#puzzle-")) {
@@ -138,10 +138,10 @@ class CarillonRouter extends Nabu.Router {
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community-puzzles";
             }
             this.show(this.playUI, false, showTime);
+            this.game.mode = GameMode.Preplay;
             await this.game.puzzle.reset();
             this.game.puzzle.editorOrEditorPreview = false;
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
-            this.game.mode = GameMode.Preplay;
             this.game.globalTimer = 0;
         }
         else if (page.startsWith("#levels")) {

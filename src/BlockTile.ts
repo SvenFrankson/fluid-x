@@ -17,6 +17,8 @@ class BlockTile extends Tile {
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
+        
+        this.game.puzzle.blockTiles.push(this);
     }
 
     public async instantiate(): Promise<void> {
@@ -35,5 +37,13 @@ class BlockTile extends Tile {
 
         this.tileTop.position.y = 0.3;
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
+    }
+
+    public dispose(): void {
+        let index = this.game.puzzle.blockTiles.indexOf(this);
+        if (index != -1) {
+            this.game.puzzle.blockTiles.splice(index, 1);
+        }
+        super.dispose();
     }
 }

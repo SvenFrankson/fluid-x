@@ -7,6 +7,8 @@ class PuzzleUI {
     public unlockContainer: HTMLDivElement;
     public failMessage: HTMLDivElement;
 
+    public completionBar: CompletionBar;
+
     public highscoreContainer: HTMLDivElement;
     public highscorePlayerLine: HTMLDivElement;
     public highscoreTwoPlayersLine: HTMLDivElement;
@@ -41,6 +43,7 @@ class PuzzleUI {
         this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.successNextLabel = document.querySelector("#success-next-label");
+        this.completionBar = document.querySelector("#play-success-panel-completion-container completion-bar");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement as HTMLDivElement;
         this.highscoreTwoPlayersLine = document.querySelector("#score-2-players-input").parentElement as HTMLDivElement;
@@ -52,8 +55,8 @@ class PuzzleUI {
         //this.unlockTryButton = document.querySelector("#play-unlock-try-btn") as HTMLButtonElement;
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
-        this.gameoverReplayButton.onpointerup = () => {
-            this.puzzle.reset();
+        this.gameoverReplayButton.onpointerup = async () => {
+            await this.puzzle.reset(true);
             this.puzzle.skipIntro();
         }
         
@@ -65,14 +68,15 @@ class PuzzleUI {
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
     }
 
-    public win(firstTimeCompleted: boolean): void {
+    public win(firstTimeCompleted: boolean, previousCompletion: number): void {
         this.successPanel.style.display = "";
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
+        let panelDY = document.body.classList.contains("vertical") ? 70 : 10;
         if (firstTimeCompleted) {
             this.tryShowUnlockPanel().then(() => {
-                CenterPanel(this.successPanel, panelDX, 0);
+                CenterPanel(this.successPanel, panelDX, panelDY);
                 requestAnimationFrame(() => {
-                    CenterPanel(this.successPanel, panelDX, 0);
+                    CenterPanel(this.successPanel, panelDX, panelDY);
                 })
             })
         }
@@ -83,6 +87,26 @@ class PuzzleUI {
         this.ingameTimer.style.display = "none";
         this.successNextLabel.style.display = "none";
         this.successNextButton.innerHTML = "CONTINUE";
+
+        let completion = 1;
+        if (this.puzzle.data.state === PuzzleState.OKAY) {
+            completion = this.game.puzzleCompletion.communityPuzzleCompletion;
+        }
+        else if (this.puzzle.data.state === PuzzleState.STORY) {
+            completion = this.game.puzzleCompletion.storyPuzzleCompletion;
+        }
+        else if (this.puzzle.data.state === PuzzleState.XPERT) {
+            completion = this.game.puzzleCompletion.expertPuzzleCompletion;
+        }
+        if (previousCompletion != completion) {
+            this.completionBar.setValue(previousCompletion);
+            this.completionBar.animateValueTo(completion, 3);
+        }
+        else {
+            this.completionBar.setValue(completion);
+        }
+        this.completionBar.animateValueTo(completion, 3);
+
         if (this.puzzle.data.state === 2) {
             let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];
             if (nextPuzzle) {
@@ -94,9 +118,9 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
-        CenterPanel(this.successPanel, panelDX, 0);
+        CenterPanel(this.successPanel, panelDX, panelDY);
         requestAnimationFrame(() => {
-            CenterPanel(this.successPanel, panelDX, 0);
+            CenterPanel(this.successPanel, panelDX, panelDY);
         })
     }
 

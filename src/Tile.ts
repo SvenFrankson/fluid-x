@@ -198,10 +198,7 @@ abstract class Tile extends BABYLON.Mesh {
         if (this.game.performanceWatcher.worst > 24) {
             tail = new BABYLON.Mesh("tail");
             tail.visibility = 1;
-            let tailMaterial = new BABYLON.StandardMaterial("tail-material");
-            tailMaterial.specularColor.copyFromFloats(0, 0, 0);
-            tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
-            tail.material = tailMaterial;
+            tail.material = this.game.tileStarTailMaterial;
             tailPoints = [];
         }
         

@@ -29,11 +29,7 @@ class PushTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
 
-        let pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
-        pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
-        pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
-
-        this.tileTop.material = pushTileTopMaterial;
+        this.tileTop.material = this.game.pushTileTopMaterial;
 
         this.pushSound = this.game.soundManager.createSound("push-wood-drag", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
         this.fallImpactSound = this.game.soundManager.createSound("push-tile-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });

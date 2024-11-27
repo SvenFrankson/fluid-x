@@ -204,6 +204,11 @@ class Haiku extends BABYLON.Mesh {
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
 
+    public dispose(): void {
+        this.material.dispose(true, true);
+        super.dispose(false, true);
+    }
+
     public setText(text: string): void {
         this.text = text;
         let lines = text.split("\n");
@@ -212,13 +217,9 @@ class Haiku extends BABYLON.Mesh {
 
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";
-        context.font = "130px Shalimar";
-        for (let x = 0; x < 3; x++) {
-            for (let y = 0; y < 3; y++) {
-                for (let l = 0; l < lines.length; l++) {
-                    context.fillText(lines[l], 30 + x, 150 * (l + 1) + y);
-                }
-            }
+        context.font = "90px Julee";
+        for (let l = 0; l < lines.length; l++) {
+            context.fillText(lines[l], 30, 120 * (l + 1));
         }
 
         this.dynamicTexture.update();
@@ -228,14 +229,14 @@ class Haiku extends BABYLON.Mesh {
         if (this.game.puzzle.balls[0].ballState === BallState.Move) {
             let dx = Math.abs(this.position.x - this.game.puzzle.balls[0].position.x);
             if (!this.inRange) {
-                if (dx < 3) {
+                if (dx < 10) {
                     this.inRange = true;
                     this.animateVisibility(1, 2, Nabu.Easing.easeInOutSine);
                 }
                 return;
             }
             else if (this.inRange) {
-                if (dx > 3.5) {
+                if (dx > 10.5) {
                     this.inRange = false;
                     this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
                 }

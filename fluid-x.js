@@ -1063,10 +1063,7 @@ class Tile extends BABYLON.Mesh {
         if (this.game.performanceWatcher.worst > 24) {
             tail = new BABYLON.Mesh("tail");
             tail.visibility = 1;
-            let tailMaterial = new BABYLON.StandardMaterial("tail-material");
-            tailMaterial.specularColor.copyFromFloats(0, 0, 0);
-            tailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
-            tail.material = tailMaterial;
+            tail.material = this.game.tileStarTailMaterial;
             tailPoints = [];
         }
         this.game.puzzle.wooshSound.play();
@@ -3277,6 +3274,10 @@ class Haiku extends BABYLON.Mesh {
         this.setText(text);
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
+    dispose() {
+        this.material.dispose(true, true);
+        super.dispose(false, true);
+    }
     setText(text) {
         this.text = text;
         let lines = text.split("\n");
@@ -3284,13 +3285,9 @@ class Haiku extends BABYLON.Mesh {
         context.clearRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";
-        context.font = "130px Shalimar";
-        for (let x = 0; x < 3; x++) {
-            for (let y = 0; y < 3; y++) {
-                for (let l = 0; l < lines.length; l++) {
-                    context.fillText(lines[l], 30 + x, 150 * (l + 1) + y);
-                }
-            }
+        context.font = "90px Julee";
+        for (let l = 0; l < lines.length; l++) {
+            context.fillText(lines[l], 30, 120 * (l + 1));
         }
         this.dynamicTexture.update();
     }
@@ -3298,14 +3295,14 @@ class Haiku extends BABYLON.Mesh {
         if (this.game.puzzle.balls[0].ballState === BallState.Move) {
             let dx = Math.abs(this.position.x - this.game.puzzle.balls[0].position.x);
             if (!this.inRange) {
-                if (dx < 3) {
+                if (dx < 10) {
                     this.inRange = true;
                     this.animateVisibility(1, 2, Nabu.Easing.easeInOutSine);
                 }
                 return;
             }
             else if (this.inRange) {
-                if (dx > 3.5) {
+                if (dx > 10.5) {
                     this.inRange = false;
                     this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
                 }
@@ -4209,7 +4206,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 5;
+var PATCH_VERSION = 7;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4531,6 +4528,7 @@ class Game {
         this.camera.wheelPrecision *= 10;
         this.camera.pinchPrecision *= 10;
         this.updatePlayCameraRadius();
+        this.performanceWatcher.showDebug();
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.postInitialize();
@@ -4630,6 +4628,12 @@ class Game {
         this.creepSlashMaterial.emissiveColor.copyFromFloats(1, 1, 1);
         this.creepSlashMaterial.useAlphaFromDiffuseTexture = true;
         this.creepSlashMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.tileStarTailMaterial = new BABYLON.StandardMaterial("tail-material");
+        this.tileStarTailMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.tileStarTailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+        this.pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
+        this.pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
         this.tileColorMaterials = [];
         this.tileColorMaterials[TileColor.North] = northMaterial;
         this.tileColorMaterials[TileColor.South] = southMaterial;
@@ -5859,9 +5863,9 @@ class PerformanceWatcher {
     update(rawDt) {
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
-            this.average = 0.995 * this.average + 0.005 * fps;
+            this.average = 0.99 * this.average + 0.01 * fps;
             this.worst = Math.min(fps, this.worst);
-            this.worst = 0.999 * this.worst + 0.001 * this.average;
+            this.worst = 0.995 * this.worst + 0.005 * this.average;
             if (this.worst < 24) {
                 this.isWorstTooLow = true;
             }
@@ -5869,6 +5873,50 @@ class PerformanceWatcher {
                 this.isWorstTooLow = false;
             }
         }
+    }
+    showDebug() {
+        let s = 0.3;
+        if (document.body.classList.contains("vertical")) {
+            s = 0.2;
+        }
+        let quad = BABYLON.CreateGround("quad", { width: s, height: s * 2 });
+        quad.parent = this.game.camera;
+        let hFov = this.game.getCameraHorizontalFOV();
+        let a = hFov / 2;
+        quad.position.z = 3;
+        quad.position.x = -Math.tan(a) * quad.position.z + s * 0.5;
+        quad.position.y = 2 * s;
+        quad.rotation.x = -0.5 * Math.PI;
+        let debugMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        let dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 150, height: 300 });
+        dynamicTexture.hasAlpha = true;
+        debugMaterial.diffuseTexture = dynamicTexture;
+        debugMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        debugMaterial.specularColor.copyFromFloats(0, 0, 0);
+        debugMaterial.useAlphaFromDiffuseTexture = true;
+        quad.material = debugMaterial;
+        let update = () => {
+            let context = dynamicTexture.getContext();
+            context.clearRect(0, 0, 150, 300);
+            context.fillStyle = "#00000080";
+            context.fillRect(0, 0, 150, 300);
+            context.fillStyle = "white";
+            context.font = "40px monospace";
+            context.fillText(this.average.toFixed(0) + " fa", 20, 50);
+            context.fillText(this.worst.toFixed(0) + " fm", 20, 100);
+            let meshesCount = this.game.scene.meshes.length;
+            context.fillText(meshesCount.toFixed(0) + " me", 20, 150);
+            let materialsCount = this.game.scene.materials.length;
+            context.fillText(materialsCount.toFixed(0) + " ma", 20, 200);
+            let trianglesCount = 0;
+            this.game.scene.meshes.forEach(mesh => {
+                let indices = mesh.getIndices();
+                trianglesCount += indices.length / 3;
+            });
+            context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 20, 250);
+            dynamicTexture.update();
+        };
+        setInterval(update, 100);
     }
 }
 /// <reference path="./Tile.ts"/>
@@ -5891,10 +5939,7 @@ class PushTile extends Tile {
         this.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        let pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
-        pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
-        pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
-        this.tileTop.material = pushTileTopMaterial;
+        this.tileTop.material = this.game.pushTileTopMaterial;
         this.pushSound = this.game.soundManager.createSound("push-wood-drag", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
         this.fallImpactSound = this.game.soundManager.createSound("push-tile-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
     }
@@ -7596,6 +7641,7 @@ class Puzzle {
         this.buildings = [];
         this.buildingBlocks = [];
         this.buildingBlocksBorders = [];
+        this.showFPS = false;
         this.w = 10;
         this.h = 10;
         this._pendingPublish = false;
@@ -7636,12 +7682,14 @@ class Puzzle {
         this.bordersMesh.outlineColor = BABYLON.Color3.Black();
         this.bordersMesh.outlineWidth = 0.01;
         this.puzzleUI = new PuzzleUI(this);
-        this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 200 });
-        this.fpsTexture.hasAlpha = true;
-        this.fpsMaterial.diffuseTexture = this.fpsTexture;
-        this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
-        this.fpsMaterial.useAlphaFromDiffuseTexture = true;
+        if (this.showFPS) {
+            this.fpsMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+            this.fpsTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 600, height: 200 });
+            this.fpsTexture.hasAlpha = true;
+            this.fpsMaterial.diffuseTexture = this.fpsTexture;
+            this.fpsMaterial.specularColor.copyFromFloats(0.3, 0.3, 0.3);
+            this.fpsMaterial.useAlphaFromDiffuseTexture = true;
+        }
         this.clicSound = this.game.soundManager.createSound("clic", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
         this.cricSound = this.game.soundManager.createSound("cric", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
         this.cracSound = this.game.soundManager.createSound("crac", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
@@ -7768,6 +7816,7 @@ class Puzzle {
         }
     }
     get floorMaterial() {
+        return this.game.floorMaterial;
         if (this.data.id != null && this.data.id % 2 === 1) {
             return this.game.floorMaterial2;
         }
@@ -7944,6 +7993,7 @@ class Puzzle {
             while (this.buildingBlocksBorders.length > 0) {
                 this.buildingBlocksBorders.pop().dispose();
             }
+            this.griddedBorders = [];
         }
         while (this.tiles.length > 0) {
             this.tiles[0].dispose();
@@ -7960,7 +8010,6 @@ class Puzzle {
         }
         this.blockTiles = [];
         this.griddedTiles = [];
-        this.griddedBorders = [];
         this.data = data;
         DEV_UPDATE_STATE_UI();
         if (isFinite(data.id)) {
@@ -8326,7 +8375,7 @@ class Puzzle {
             split.splice(0, 2);
             let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             let haiku = new Haiku(this.game, "", "", "", "");
-            haiku.position.copyFromFloats(x, 0.1, z);
+            haiku.position.copyFromFloats(x, 0.02, z);
             haiku.setText(text);
             this.haiku = haiku;
         }
@@ -8391,8 +8440,10 @@ class Puzzle {
             this.buildingUpValue = 0;
             this.regenerateHeightMap();
             await this.SkipNextFrame();
-            this.rebuildFloor();
-            await this.SkipNextFrame();
+        }
+        this.rebuildFloor();
+        await this.SkipNextFrame();
+        if (!replaying) {
             for (let i = 0; i < this.buildings.length; i++) {
                 this.buildings[i].regenerateBorders();
             }
@@ -8663,19 +8714,21 @@ class Puzzle {
         tiaratumLogo2.position.copyFromFloats(- width * 0.5 - 0.4, 0.21, depth * 0.5 + 0.4);
         tiaratumLogo2.material = haikuMaterial;
         */
-        let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.64, 0.03);
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32));
-        let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
-        fpsPlaqueData.applyToMesh(fpsPlaque);
-        fpsPlaque.parent = this.border;
-        fpsPlaque.position.copyFromFloats(-width * 0.5 - bThickness + 0.1, bHeight, -depth * 0.5 - bThickness + 0.1);
-        fpsPlaque.material = this.fpsMaterial;
-        Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32).scale(-2));
-        let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
-        fpsPlaqueData.applyToMesh(fpsPlaque2);
-        fpsPlaque2.parent = this.border;
-        fpsPlaque2.position.copyFromFloats(width * 0.5 + bThickness - 0.1, bHeight, depth * 0.5 + bThickness - 0.1);
-        fpsPlaque2.material = this.fpsMaterial;
+        if (this.showFPS) {
+            let fpsPlaqueData = CreatePlaqueVertexData(1.8, 0.64, 0.03);
+            Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32));
+            let fpsPlaque = new BABYLON.Mesh("tiaratum-fps");
+            fpsPlaqueData.applyToMesh(fpsPlaque);
+            fpsPlaque.parent = this.border;
+            fpsPlaque.position.copyFromFloats(-width * 0.5 - bThickness + 0.1, bHeight, -depth * 0.5 - bThickness + 0.1);
+            fpsPlaque.material = this.fpsMaterial;
+            Mummu.TranslateVertexDataInPlace(fpsPlaqueData, new BABYLON.Vector3(0.9, 0, 0.32).scale(-2));
+            let fpsPlaque2 = new BABYLON.Mesh("tiaratum-fps-2");
+            fpsPlaqueData.applyToMesh(fpsPlaque2);
+            fpsPlaque2.parent = this.border;
+            fpsPlaque2.position.copyFromFloats(width * 0.5 + bThickness - 0.1, bHeight, depth * 0.5 + bThickness - 0.1);
+            fpsPlaque2.material = this.fpsMaterial;
+        }
         this.winSlotsIndexes = [0, 0, 0, 0];
         for (let color = TileColor.North; color <= TileColor.West; color++) {
             this.winSlots[color] = new BABYLON.Mesh("winslots-south");
@@ -8939,24 +8992,26 @@ class Puzzle {
         }
         this._globalTime += dt;
         this._timer += dt;
-        let refreshRate = 0.1;
-        if (this.game.performanceWatcher.worst < 24) {
-            refreshRate = 1;
-        }
-        if (this._timer > refreshRate) {
-            this._timer = 0;
-            let context = this.fpsTexture.getContext();
-            context.fillStyle = "#e0c872ff";
-            context.fillRect(0, 0, 600, 200);
-            context.fillStyle = "#473a2fFF";
-            context.font = "900 90px Julee";
-            context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 60, 77);
-            context.fillText("fps (avg)", 200, 77);
-            context.fillStyle = "#473a2fFF";
-            context.font = "900 90px Julee";
-            context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 60, 177);
-            context.fillText("fps (min)", 200, 177);
-            this.fpsTexture.update();
+        if (this.showFPS) {
+            let refreshRate = 0.1;
+            if (this.game.performanceWatcher.worst < 24) {
+                refreshRate = 1;
+            }
+            if (this._timer > refreshRate) {
+                this._timer = 0;
+                let context = this.fpsTexture.getContext();
+                context.fillStyle = "#e0c872ff";
+                context.fillRect(0, 0, 600, 200);
+                context.fillStyle = "#473a2fFF";
+                context.font = "900 90px Julee";
+                context.fillText(this.game.performanceWatcher.average.toFixed(0).padStart(3, " "), 60, 77);
+                context.fillText("fps (avg)", 200, 77);
+                context.fillStyle = "#473a2fFF";
+                context.font = "900 90px Julee";
+                context.fillText(this.game.performanceWatcher.worst.toFixed(0).padStart(3, " "), 60, 177);
+                context.fillText("fps (min)", 200, 177);
+                this.fpsTexture.update();
+            }
         }
     }
 }

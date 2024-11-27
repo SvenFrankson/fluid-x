@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 5;
+var PATCH_VERSION: number = 7;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -280,6 +280,8 @@ class Game {
     public lightDiscMaterial: BABYLON.StandardMaterial;
     public puckSideMaterial: BABYLON.StandardMaterial;
     public creepSlashMaterial: BABYLON.StandardMaterial;
+    public tileStarTailMaterial: BABYLON.StandardMaterial;
+    public pushTileTopMaterial: BABYLON.StandardMaterial;
     public get borderMaterial() {
         return this.brownMaterial;
     }
@@ -392,6 +394,8 @@ class Game {
         this.camera.wheelPrecision *= 10;
         this.camera.pinchPrecision *= 10;
         this.updatePlayCameraRadius();
+
+        this.performanceWatcher.showDebug();
         
         this.router = new CarillonRouter(this);
         this.router.initialize();
@@ -513,6 +517,15 @@ class Game {
         this.creepSlashMaterial.emissiveColor.copyFromFloats(1, 1, 1);
         this.creepSlashMaterial.useAlphaFromDiffuseTexture = true;
         this.creepSlashMaterial.specularColor.copyFromFloats(0, 0, 0);
+
+        
+        this.tileStarTailMaterial = new BABYLON.StandardMaterial("tail-material");
+        this.tileStarTailMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.tileStarTailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+
+        this.pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
+        this.pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
 
         this.tileColorMaterials = [];
         this.tileColorMaterials[TileColor.North] = northMaterial;

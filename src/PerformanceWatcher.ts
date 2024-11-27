@@ -13,10 +13,10 @@ class PerformanceWatcher {
     public update(rawDt: number): void {
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
-            this.average = 0.995 * this.average + 0.005 * fps;
+            this.average = 0.99 * this.average + 0.01 * fps;
 
             this.worst = Math.min(fps, this.worst);
-            this.worst = 0.999 * this.worst + 0.001 * this.average;
+            this.worst = 0.995 * this.worst + 0.005 * this.average;
 
             if (this.worst < 24) {
                 this.isWorstTooLow = true;
@@ -25,5 +25,59 @@ class PerformanceWatcher {
                 this.isWorstTooLow = false;
             }
         }
+    }
+
+    public showDebug(): void {
+        let s = 0.3;
+        if (document.body.classList.contains("vertical")) {
+            s = 0.2;
+        }
+        let quad = BABYLON.CreateGround("quad", { width: s, height: s * 2 });
+        quad.parent = this.game.camera;
+        let hFov = this.game.getCameraHorizontalFOV();
+        let a = hFov / 2;
+        quad.position.z = 3;
+        quad.position.x = - Math.tan(a) * quad.position.z + s * 0.5;
+        quad.position.y = 2 * s;
+        quad.rotation.x = - 0.5 * Math.PI;
+
+        let debugMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        let dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 150, height: 300 });
+        dynamicTexture.hasAlpha = true;
+        debugMaterial.diffuseTexture = dynamicTexture;
+        debugMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        debugMaterial.specularColor.copyFromFloats(0, 0, 0);
+        debugMaterial.useAlphaFromDiffuseTexture = true;
+        quad.material = debugMaterial;
+
+        let update = () => {
+            let context = dynamicTexture.getContext();
+            context.clearRect(0, 0, 150, 300);
+            context.fillStyle = "#00000080";
+            context.fillRect(0, 0, 150, 300);
+    
+            context.fillStyle = "white";
+            context.font = "40px monospace";
+            context.fillText(this.average.toFixed(0) + " fa", 20, 50);
+            context.fillText(this.worst.toFixed(0) + " fm", 20, 100);
+
+            let meshesCount = this.game.scene.meshes.length;
+            context.fillText(meshesCount.toFixed(0) + " me", 20, 150);
+
+
+            let materialsCount = this.game.scene.materials.length;
+            context.fillText(materialsCount.toFixed(0) + " ma", 20, 200);
+
+            let trianglesCount = 0;
+            this.game.scene.meshes.forEach(mesh => {
+                let indices = mesh.getIndices();
+                trianglesCount += indices.length / 3;
+            })
+            context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 20, 250);
+    
+            dynamicTexture.update();
+        }
+
+        setInterval(update, 100);
     }
 }

@@ -7963,7 +7963,7 @@ class Puzzle {
             else {
                 this.puzzleUI.setHighscoreState(0);
             }
-        }, 2000);
+        }, 1000);
     }
     lose() {
         if (USE_POKI_SDK) {
@@ -7973,7 +7973,7 @@ class Puzzle {
         this._winloseTimout = setTimeout(() => {
             this.puzzleState = PuzzleState.Done;
             this.puzzleUI.lose();
-        }, 2000);
+        }, 1000);
     }
     async submitHighscore() {
         if (this._pendingPublish) {

@@ -366,7 +366,7 @@ class Puzzle {
             else {
                 this.puzzleUI.setHighscoreState(0);
             }
-        }, 2000);
+        }, 1000);
     }
 
     public lose(): void {
@@ -377,7 +377,7 @@ class Puzzle {
         this._winloseTimout = setTimeout(() => {
             this.puzzleState = PuzzleState.Done;
             this.puzzleUI.lose();
-        }, 2000);
+        }, 1000);
     }
 
     public async submitHighscore(): Promise<void> {

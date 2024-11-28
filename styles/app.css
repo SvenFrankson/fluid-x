@@ -508,6 +508,19 @@ body:not(.touchscreen) button:hover, .hovered {
     box-shadow: 2px 2px 2px #2b2821ff;
 }
 
+#input-boost-label {
+    position: fixed;
+    width: 100px;
+    bottom: 0px;
+    left: calc(50vw - 50px);
+    z-index: 1;
+    text-align: left;
+    font-family: Julee;
+    font-size: 18px;
+    font-weight: 900;
+    text-align: center;
+}
+
 body:not(.vertical) #input-boost {
     bottom: 0px;
     border-bottom-left-radius: 0;
@@ -516,16 +529,8 @@ body:not(.vertical) #input-boost {
     height: 40px;
 }
 
-#input-boost-label {
-    position: fixed;
-    bottom: 1px;
-    width: 100px;
-    left: calc(50vw + 60px);
-    z-index: 1;
-    text-align: left;
-    font-family: Julee;
-    font-size: 16px;
-    font-weight: 900;
+body:not(.vertical) #input-boost-label {
+    bottom: 38px;
 }
 
 @keyframes flash {

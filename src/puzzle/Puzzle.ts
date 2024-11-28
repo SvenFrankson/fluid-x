@@ -1499,33 +1499,35 @@ class Puzzle {
     private _timer: number = 0;
     private _globalTime: number = 0;
     public update(dt: number): void {
-        for (let i = 0; i < this.ballsCount; i++) {
-            this.balls[i].update(dt);
-        }
-        for (let i = 0; i < this.creeps.length; i++) {
-            this.creeps[i].update(dt);
-        }
-        if (this.blockTiles.length === 0) {
-            let ballNotDone = false;
+        if (this.puzzleState != PuzzleState.Loading) {
             for (let i = 0; i < this.ballsCount; i++) {
-                if (this.balls[i].ballState != BallState.Done) {
-                    ballNotDone = true;
+                this.balls[i].update(dt);
+            }
+            for (let i = 0; i < this.creeps.length; i++) {
+                this.creeps[i].update(dt);
+            }
+            if (this.blockTiles.length === 0) {
+                let ballNotDone = false;
+                for (let i = 0; i < this.ballsCount; i++) {
+                    if (this.balls[i].ballState != BallState.Done) {
+                        ballNotDone = true;
+                    }
+                }
+                if (ballNotDone) {
+                    for (let i = 0; i < this.ballsCount; i++) {
+                        this.balls[i].ballState = BallState.Done;
+                    }
+                    this.win();
                 }
             }
-            if (ballNotDone) {
-                for (let i = 0; i < this.ballsCount; i++) {
-                    this.balls[i].ballState = BallState.Done;
-                }
-                this.win();
+
+            if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {
+                this.playTimer += dt;
+                this.game.setPlayTimer(this.playTimer);
             }
         }
         if (this.haiku) {
             this.haiku.update(dt);
-        }
-
-        if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {
-            this.playTimer += dt;
-            this.game.setPlayTimer(this.playTimer);
         }
 
         this._globalTime += dt;

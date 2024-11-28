@@ -210,6 +210,10 @@ class Haiku extends BABYLON.Mesh {
     }
 
     public setText(text: string): void {
+        if (IsTouchScreen) {
+            text = text.replaceAll("[A]", " <- ");
+            text = text.replaceAll("[D]", " -> ");
+        }
         this.text = text;
         let lines = text.split("\n");
         let context = this.dynamicTexture.getContext();

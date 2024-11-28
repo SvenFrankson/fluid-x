@@ -32,7 +32,7 @@ class PerformanceWatcher {
         if (document.body.classList.contains("vertical")) {
             s = 0.2;
         }
-        let quad = BABYLON.CreateGround("quad", { width: s, height: s * 2 });
+        let quad = BABYLON.CreateGround("quad", { width: s, height: s * 1.5 });
         quad.parent = this.game.camera;
         let hFov = this.game.getCameraHorizontalFOV();
         let a = hFov / 2;
@@ -42,7 +42,7 @@ class PerformanceWatcher {
         quad.rotation.x = - 0.5 * Math.PI;
 
         let debugMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        let dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 150, height: 300 });
+        let dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 150, height: 225 });
         dynamicTexture.hasAlpha = true;
         debugMaterial.diffuseTexture = dynamicTexture;
         debugMaterial.emissiveColor.copyFromFloats(1, 1, 1);
@@ -52,28 +52,29 @@ class PerformanceWatcher {
 
         let update = () => {
             let context = dynamicTexture.getContext();
-            context.clearRect(0, 0, 150, 300);
+            context.clearRect(0, 0, 150, 225);
             context.fillStyle = "#00000080";
-            context.fillRect(0, 0, 150, 300);
+            context.fillRect(0, 0, 150, 225);
     
             context.fillStyle = "white";
-            context.font = "40px monospace";
-            context.fillText(this.average.toFixed(0) + " fa", 20, 50);
-            context.fillText(this.worst.toFixed(0) + " fm", 20, 100);
+            context.font = "35px monospace";
+            let lineHeight = 40;
+            context.fillText(this.average.toFixed(0) + " fa", 15, lineHeight);
+            context.fillText(this.worst.toFixed(0) + " fm", 15, 2 * lineHeight);
 
             let meshesCount = this.game.scene.meshes.length;
-            context.fillText(meshesCount.toFixed(0) + " me", 20, 150);
+            context.fillText(meshesCount.toFixed(0) + " me", 15, 3 * lineHeight);
 
 
             let materialsCount = this.game.scene.materials.length;
-            context.fillText(materialsCount.toFixed(0) + " ma", 20, 200);
+            context.fillText(materialsCount.toFixed(0) + " ma", 15, 4 * lineHeight);
 
             let trianglesCount = 0;
             this.game.scene.meshes.forEach(mesh => {
                 let indices = mesh.getIndices();
                 trianglesCount += indices.length / 3;
             })
-            context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 20, 250);
+            context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 15, 5 * lineHeight);
     
             dynamicTexture.update();
         }

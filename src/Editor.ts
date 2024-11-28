@@ -163,6 +163,9 @@ class Editor {
     }
 
     public activate(): void {
+        if (location.host.startsWith("127.0.0.1")) {
+            (document.querySelector("#editor-haiku-container") as HTMLElement).style.display = "block";
+        }
         this.ballCountButton = document.getElementById("ball-count-btn") as HTMLButtonElement;
         this.ballCountButton.onpointerup = () => {
             if (this.puzzle.ballsCount === 1) {

@@ -12,7 +12,7 @@ class MySound {
         private _options?: BABYLON.ISoundOptions,
         public instancesCount: number = 1
     ) {
-        this.instancesCount = 1;
+        
     }
 
     public load(): void {

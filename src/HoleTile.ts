@@ -13,6 +13,7 @@ class HoleTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         
         if (this.covered) {
@@ -63,6 +64,7 @@ class HoleTile extends Tile {
     }
 
     public async rumble(): Promise<void> {
+        //await RandomWait();
         if (this.rumbling) {
             return;
         }
@@ -99,6 +101,7 @@ class HoleTile extends Tile {
     }
 
     public async destroyCover(): Promise<void> {
+        //await RandomWait();
         if (this.cracking) {
             return;
         }

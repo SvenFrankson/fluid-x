@@ -37,6 +37,7 @@ class PuzzleCompletion {
     public expertPuzzles: PuzzleCompletionElement[] = [];
     public communityPuzzles: PuzzleCompletionElement[] = [];
 
+    public recentUnlocks: Nabu.UniqueList<number>;
 
     public getPuzzleCompletionElementById(id: number): PuzzleCompletionElement {
         let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
@@ -104,9 +105,11 @@ class PuzzleCompletion {
                 this.completedPuzzles = JSON.parse(dataString);
             }
         }
+        this.recentUnlocks = new Nabu.UniqueList<number>();
     }
 
     public async initialize(): Promise<void> {
+        //await RandomWait();
         this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
             let score = this.getPersonalBestScore(puzzle.id);
             this.storyPuzzles.push(
@@ -137,7 +140,8 @@ class PuzzleCompletion {
         let comp = this.completedPuzzles.find(comp => { return comp.id === id });
         if (!comp) {
             comp = { id: id, score: score };
-            this.completedPuzzles.push(comp)
+            this.completedPuzzles.push(comp);
+            this.recentUnlocks.push(id);
         }
         else if (comp.score > score) {
             comp.score = Math.min(comp.score, score);

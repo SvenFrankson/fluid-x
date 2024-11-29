@@ -2,9 +2,9 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var MAJOR_VERSION: number = 0;
+var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 9;
+var PATCH_VERSION: number = 10;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -871,7 +871,6 @@ class Game {
             }, devSecret < 6 ? 1000 : 6000);
         }
 
-        /*
         let ambient = this.soundManager.createSound(
             "ambient",
             "./datas/sounds/zen-ambient.mp3",
@@ -884,7 +883,6 @@ class Game {
                 loop: true
             }
         );
-        */
 
         let puzzleId: number;
         if (location.search != "") {
@@ -913,6 +911,7 @@ class Game {
 	}
 
     public async loadPuzzles(): Promise<void> {
+        //await RandomWait();
         let storyModePuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
@@ -1391,6 +1390,7 @@ class Game {
     public fadeIntroDir: number = 0;
 
     public async fadeInIntro(duration: number = 1): Promise<void> {
+        //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
     
@@ -1414,6 +1414,7 @@ class Game {
     }
 
     public async fadeOutIntro(duration: number = 1): Promise<void> {
+        //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
     
@@ -1451,6 +1452,19 @@ function DEBUG_LOG_MESHES_NAMES(): void {
     });
     countedMeshNames.sort((e1, e2) => { return e1.count - e2.count; });
     console.log(countedMeshNames);
+}
+
+async function RandomWait(): Promise<void> {
+    return new Promise<void>(resolve => {
+        if (Math.random() < 0.9) {
+            resolve();
+        }
+        else {
+            setTimeout(() => {
+                resolve()
+            }, Math.random() * 500);
+        }
+    });
 }
 
 async function DEV_GENERATE_ALL_LEVEL_FILES(): Promise<void> {

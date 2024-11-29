@@ -310,6 +310,7 @@ class Ball extends BABYLON.Mesh {
         return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
     async instantiate() {
+        //await RandomWait();
         let ballDatas;
         if (this.dropletMode) {
             ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
@@ -952,6 +953,7 @@ class Tile extends BABYLON.Mesh {
         this.position.z = v * 1.1;
     }
     async instantiate() {
+        //await RandomWait();
         if (this.props.noShadow != true) {
             let m = 0.06;
             let shadowData = Mummu.Create9SliceVertexData({
@@ -964,10 +966,12 @@ class Tile extends BABYLON.Mesh {
         }
     }
     async bump(duration = 0.2) {
+        //await RandomWait();
         await this.animateSize(1.1, duration * 0.5);
         await this.animateSize(1, duration * 0.5);
     }
     async shrink() {
+        //await RandomWait();
         await this.animateSize(1.1, 0.1, Nabu.Easing.easeOutSine);
         await this.animateSize(0.4, 0.3, Nabu.Easing.easeInSine);
     }
@@ -1166,6 +1170,7 @@ class BlockTile extends Tile {
         this.game.puzzle.blockTiles.push(this);
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         let tileData = CreateBoxFrameVertexData({
             w: 1,
@@ -1268,6 +1273,7 @@ class Border {
         return border;
     }
     async getVertexData() {
+        //await RandomWait();
         if (!this.ghost) {
             let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
             if (this.vertical) {
@@ -1538,6 +1544,7 @@ class Ramp extends Build {
 }
 class BuildingBlock {
     static async GenerateVertexDatas(puzzle) {
+        //await RandomWait();
         let walls = [];
         let woods = [];
         let floors = [];
@@ -1750,6 +1757,7 @@ class CarillonRouter extends Nabu.Router {
         this.game = game;
     }
     async postInitialize() {
+        //await RandomWait();
         for (let i = 0; i < this.pages.length; i++) {
             await this.pages[i].waitLoaded();
         }
@@ -1771,6 +1779,7 @@ class CarillonRouter extends Nabu.Router {
     }
     onUpdate() { }
     async onHRefChange(page, previousPage) {
+        //await RandomWait();
         console.log("onHRefChange from " + previousPage + " to " + page);
         //?gdmachineId=1979464530
         let showTime = 0.5;
@@ -1816,7 +1825,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
-            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#levels";
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;
@@ -2122,6 +2131,7 @@ class Creep extends BABYLON.Mesh {
         return this.puzzle.game;
     }
     async instantiate() {
+        //await RandomWait();
         let data = await this.game.vertexDataLoader.get("./datas/meshes/creep.babylon");
         data[0].applyToMesh(this.shell);
         data[1].applyToMesh(this.shellColored);
@@ -2130,6 +2140,7 @@ class Creep extends BABYLON.Mesh {
         BABYLON.CreateGroundVertexData({ width: 0.8, height: 0.8 }).applyToMesh(this.slash);
     }
     async shrink() {
+        //await RandomWait();
         await this.animateSize(1.1, 0.1);
         await this.animateSize(0.4, 0.3);
     }
@@ -3409,6 +3420,7 @@ class HoleTile extends Tile {
         this.color = props.color;
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         if (this.covered) {
             if (!this.covers) {
@@ -3454,6 +3466,7 @@ class HoleTile extends Tile {
         return true;
     }
     async rumble() {
+        //await RandomWait();
         if (this.rumbling) {
             return;
         }
@@ -3487,6 +3500,7 @@ class HoleTile extends Tile {
         rumblingLoop();
     }
     async destroyCover() {
+        //await RandomWait();
         if (this.cracking) {
             return;
         }
@@ -3622,9 +3636,11 @@ class HomePage {
         return this.nabuPage.shown;
     }
     async show(duration) {
+        //await RandomWait();
         return this.nabuPage.show(duration);
     }
     async hide(duration) {
+        //await RandomWait();
         return this.nabuPage.hide(duration);
     }
     updateCompletionBars() {
@@ -3794,9 +3810,11 @@ class LevelPage {
         return this.nabuPage.shown;
     }
     async show(duration) {
+        //await RandomWait();
         return this.nabuPage.show(duration);
     }
     async hide(duration) {
+        //await RandomWait();
         return this.nabuPage.hide(duration);
     }
     setSquareButtonOnpointerup(squareButton, n) {
@@ -3804,8 +3822,10 @@ class LevelPage {
     onPageRedrawn() {
     }
     async redraw() {
+        //await RandomWait();
         this.buttons = [];
         let container = this.nabuPage.querySelector(".square-btn-container");
+        let scroll = container.scrollTop;
         container.innerHTML = "";
         let rect = container.getBoundingClientRect();
         this.colCount = Math.floor(rect.width / 156);
@@ -3891,6 +3911,9 @@ class LevelPage {
                 completedStamp.classList.add("stamp-" + starCount);
                 squareButton.appendChild(completedStamp);
             }
+            else if (puzzleTileDatas[n].new) {
+                squareButton.classList.add("highlit", "lightblue");
+            }
         }
         if (puzzleTileDatas.length % this.colCount > 0) {
             for (let i = puzzleTileDatas.length; i < Math.ceil(puzzleTileDatas.length / this.colCount) * this.colCount; i++) {
@@ -3902,6 +3925,7 @@ class LevelPage {
                 container.appendChild(squareButton);
             }
         }
+        container.scrollTop = scroll;
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
         }
@@ -3965,11 +3989,20 @@ class StoryPuzzlesPage extends LevelPage {
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
+        //await RandomWait();
         let puzzleData = [];
         let data = this.router.game.loadedStoryPuzzles;
         CLEAN_IPuzzlesData(data);
-        let unlockCount = this.router.game.puzzleCompletion.storyPuzzles.filter(puzzleComp => { return puzzleComp.getStarsCount() > 0; }).length;
+        let completedPuzzles = this.router.game.puzzleCompletion.storyPuzzles.filter(puzzleComp => { return puzzleComp.getStarsCount() > 0; });
+        let unlockCount = completedPuzzles.length;
         unlockCount += Math.floor(unlockCount / 4);
+        let nextLevelIndex;
+        for (let i = 0; i < data.puzzles.length; i++) {
+            if (!completedPuzzles.find(e => { return e.puzzleId === data.puzzles[i].id; })) {
+                nextLevelIndex = i;
+                break;
+            }
+        }
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
@@ -3977,13 +4010,18 @@ class StoryPuzzlesPage extends LevelPage {
                 if (i <= unlockCount) {
                     locked = false;
                 }
+                let isNew = false;
+                if (n === nextLevelIndex) {
+                    isNew = true;
+                }
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
-                    locked: locked
+                    locked: locked,
+                    new: isNew
                 };
             }
             else if (n === data.puzzles.length) {
@@ -4030,6 +4068,7 @@ class ExpertPuzzlesPage extends LevelPage {
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
+        //await RandomWait();
         let puzzleData = [];
         let data = this.router.game.loadedExpertPuzzles;
         CLEAN_IPuzzlesData(data);
@@ -4094,6 +4133,7 @@ class CommunityPuzzlesPage extends LevelPage {
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
+        //await RandomWait();
         if (true) {
             return this.getPuzzlesDataOffline(page, levelsPerPage);
         }
@@ -4122,6 +4162,7 @@ class CommunityPuzzlesPage extends LevelPage {
         return puzzleData;
     }
     async getPuzzlesDataOffline(page, levelsPerPage) {
+        //await RandomWait();
         let puzzleData = [];
         let data = this.router.game.loadedCommunityPuzzles;
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
@@ -4150,6 +4191,7 @@ class DevPuzzlesPage extends LevelPage {
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
     }
     async getPuzzlesData(page, levelsPerPage) {
+        //await RandomWait();
         let puzzleData = [];
         const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
             method: "GET",
@@ -4190,6 +4232,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
         this.className = "MultiplayerLevelPage";
     }
     async getPuzzlesData(page, levelsPerPage) {
+        //await RandomWait();
         let puzzleData = [];
         let data = this.router.game.loadedMultiplayerPuzzles;
         CLEAN_IPuzzlesData(data);
@@ -4211,9 +4254,9 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
-var MAJOR_VERSION = 0;
+var MAJOR_VERSION = 1;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 9;
+var PATCH_VERSION = 10;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4939,20 +4982,12 @@ class Game {
                 devSecret = 0;
             }, devSecret < 6 ? 1000 : 6000);
         };
-        /*
-        let ambient = this.soundManager.createSound(
-            "ambient",
-            "./datas/sounds/zen-ambient.mp3",
-            this.scene,
-            () => {
-                ambient.setVolume(0.15)
-            },
-            {
-                autoplay: true,
-                loop: true
-            }
-        );
-        */
+        let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
+            ambient.setVolume(0.15);
+        }, {
+            autoplay: true,
+            loop: true
+        });
         let puzzleId;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
@@ -4976,6 +5011,7 @@ class Game {
         }
     }
     async loadPuzzles() {
+        //await RandomWait();
         let storyModePuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
@@ -5366,6 +5402,7 @@ class Game {
         }
     }
     async fadeInIntro(duration = 1) {
+        //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
             let t0 = performance.now();
@@ -5387,6 +5424,7 @@ class Game {
         }
     }
     async fadeOutIntro(duration = 1) {
+        //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
             let t0 = performance.now();
@@ -5422,6 +5460,18 @@ function DEBUG_LOG_MESHES_NAMES() {
     });
     countedMeshNames.sort((e1, e2) => { return e1.count - e2.count; });
     console.log(countedMeshNames);
+}
+async function RandomWait() {
+    return new Promise(resolve => {
+        if (Math.random() < 0.9) {
+            resolve();
+        }
+        else {
+            setTimeout(() => {
+                resolve();
+            }, Math.random() * 500);
+        }
+    });
 }
 async function DEV_GENERATE_ALL_LEVEL_FILES() {
     Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
@@ -5993,6 +6043,7 @@ class PushTile extends Tile {
         this.fallImpactSound = this.game.soundManager.createSound("push-tile-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         let tileData = CreateBoxFrameVertexData({
             w: 1,
@@ -6008,6 +6059,7 @@ class PushTile extends Tile {
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
     }
     async push(dir) {
+        //await RandomWait();
         if (this.tileState === TileState.Moving) {
             this._pushCallback = () => {
                 this.push(dir);
@@ -6179,6 +6231,7 @@ class PuzzleCompletion {
                 this.completedPuzzles = JSON.parse(dataString);
             }
         }
+        this.recentUnlocks = new Nabu.UniqueList();
     }
     getPuzzleCompletionElementById(id) {
         let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
@@ -6235,6 +6288,7 @@ class PuzzleCompletion {
         this.communityPuzzleCompletion = totalStarsCount / max;
     }
     async initialize() {
+        //await RandomWait();
         this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
             let score = this.getPersonalBestScore(puzzle.id);
             this.storyPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
@@ -6256,6 +6310,7 @@ class PuzzleCompletion {
         if (!comp) {
             comp = { id: id, score: score };
             this.completedPuzzles.push(comp);
+            this.recentUnlocks.push(id);
         }
         else if (comp.score > score) {
             comp.score = Math.min(comp.score, score);
@@ -6375,6 +6430,7 @@ class SwitchTile extends Tile {
         this.tileBottom.material = this.game.salmonMaterial;
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
         tileData[0].applyToMesh(this);
@@ -6409,6 +6465,7 @@ class ButtonTile extends Tile {
         this.tileBottom.material = this.game.grayMaterial;
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/buttonbox.babylon");
         tileData[0].applyToMesh(this);
@@ -6417,6 +6474,7 @@ class ButtonTile extends Tile {
         tileData[3].applyToMesh(this.tileBottom);
     }
     async clicClack() {
+        //await RandomWait();
         this.bump();
         let animateWait = Mummu.AnimationFactory.CreateWait(this);
         let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
@@ -6462,6 +6520,7 @@ class DoorTile extends Tile {
         this.animateBoxPosY = Mummu.AnimationFactory.CreateNumber(this.tileBox, this.tileBox.position, "y");
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/door.babylon");
         //tileData[0].applyToMesh(this);
@@ -6478,12 +6537,14 @@ class DoorTile extends Tile {
         tileData[1].applyToMesh(this.tileTopFrame);
     }
     async open(duration = 0.5) {
+        //await RandomWait();
         this.animateTopPosY(0, duration, Nabu.Easing.easeOutCubic);
         this.animateTopRotY(0, duration, Nabu.Easing.easeOutCubic);
         await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeOutCubic);
         this.closed = false;
     }
     async close(duration = 0.5) {
+        //await RandomWait();
         this.closed = true;
         this.animateTopPosY(0.1, duration, Nabu.Easing.easeOutCubic);
         this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeOutCubic);
@@ -6753,6 +6814,7 @@ class WallTile extends Tile {
         this.material = this.game.blackMaterial;
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         let xPlus = 0;
         let xMinus = 0;
@@ -7001,6 +7063,7 @@ class WaterTile extends Tile {
         }
     }
     async instantiate() {
+        //await RandomWait();
         await super.instantiate();
         this.path = this._getPath();
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/water-canal.babylon");
@@ -7321,6 +7384,7 @@ class Explosion {
         }
     }
     async MakeNoisedBlob(radius) {
+        //await RandomWait();
         let data = await this.game.vertexDataLoader.getAtIndex("datas/meshes/explosion.babylon", 0);
         data = Mummu.CloneVertexData(data);
         data = Mummu.ScaleVertexDataInPlace(data, radius);
@@ -7552,6 +7616,7 @@ class StampEffect {
         return this.game.scene;
     }
     async play(div) {
+        //await RandomWait();
         div.style.visibility = "hidden";
         await Mummu.AnimationFactory.CreateWait(this)(0.2);
         this.sound.play();
@@ -7909,6 +7974,7 @@ class Puzzle {
         return this.h * 1.1 - 0.55 + 0.05;
     }
     async reset(replaying) {
+        //await RandomWait();
         this.game.fadeOutIntro(0);
         this.fishingPole.stop = true;
         this.puzzleUI.reset();
@@ -7976,6 +8042,7 @@ class Puzzle {
         }, 1000);
     }
     async submitHighscore() {
+        //await RandomWait();
         if (this._pendingPublish) {
             return;
         }
@@ -8023,6 +8090,7 @@ class Puzzle {
         }
     }
     async loadFromFile(path) {
+        //await RandomWait();
         let file = await fetch(path);
         let content = await file.text();
         this.resetFromData({
@@ -8464,6 +8532,7 @@ class Puzzle {
         });
     }
     async instantiate(replaying) {
+        //await RandomWait();
         this.puzzleState = PuzzleState.Loading;
         if (!replaying) {
             this.boxesWall.isVisible = false;
@@ -9534,6 +9603,7 @@ class PuzzleUI {
         this.gameoverBackButton = document.querySelector("#gameover-back-btn");
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn");
         this.gameoverReplayButton.onpointerup = async () => {
+            //await RandomWait();
             await this.puzzle.reset(true);
             this.puzzle.skipIntro();
         };
@@ -9642,6 +9712,7 @@ class PuzzleUI {
         }
     }
     async tryShowUnlockPanel() {
+        //await RandomWait();
         let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
         if (isFinite(expertId)) {
             let data = await this.game.getPuzzleDataById(expertId);

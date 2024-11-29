@@ -58,6 +58,7 @@ class PuzzleUI {
         this.gameoverBackButton = document.querySelector("#gameover-back-btn") as HTMLButtonElement;
         this.gameoverReplayButton = document.querySelector("#gameover-replay-btn") as HTMLButtonElement;
         this.gameoverReplayButton.onpointerup = async () => {
+            //await RandomWait();
             await this.puzzle.reset(true);
             this.puzzle.skipIntro();
         }
@@ -159,6 +160,7 @@ class PuzzleUI {
     }
 
     public async tryShowUnlockPanel(): Promise<void> {
+        //await RandomWait();
         let expertId = this.game.storyIdToExpertId(this.puzzle.data.id);
         if (isFinite(expertId)) {
             let data: IPuzzleData = await this.game.getPuzzleDataById(expertId);

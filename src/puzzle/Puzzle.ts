@@ -307,6 +307,7 @@ class Puzzle {
     }
 
     public async reset(replaying?: boolean): Promise<void> {
+        //await RandomWait();
         this.game.fadeOutIntro(0);
         this.fishingPole.stop = true;
         this.puzzleUI.reset();
@@ -381,6 +382,7 @@ class Puzzle {
     }
 
     public async submitHighscore(): Promise<void> {
+        //await RandomWait();
         if (this._pendingPublish) {
             return;
         }
@@ -431,6 +433,7 @@ class Puzzle {
     }
 
     public async loadFromFile(path: string): Promise<void> {
+        //await RandomWait();
         let file = await fetch(path);
         let content = await file.text();
         this.resetFromData({
@@ -893,6 +896,7 @@ class Puzzle {
     }
 
     public async instantiate(replaying?: boolean): Promise<void> {
+        //await RandomWait();
         this.puzzleState = PuzzleState.Loading;
         if (!replaying) {
             this.boxesWall.isVisible = false;

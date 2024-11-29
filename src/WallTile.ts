@@ -10,6 +10,7 @@ class WallTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         
         let xPlus = 0;

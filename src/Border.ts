@@ -100,6 +100,7 @@ class Border {
     }
 
     public async getVertexData(): Promise<BABYLON.VertexData> {
+        //await RandomWait();
         if (!this.ghost) {
             let borderDatas = await this.game.vertexDataLoader.get("./datas/meshes/border.babylon");
             if (this.vertical) {

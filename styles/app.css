@@ -6,10 +6,18 @@ html {
 }
 
 body {
-    --main-ui-color: white;
-    --main-ui-bg1: #125185B0;
-    --main-ui-bg-btn: #164c79;
-    --main-ui-bg-btn-active: #2b72ac;
+    --color-black: #2b2821;
+    --color-white: rgb(236, 224, 208);    
+    --color-brown: #624c3c;    
+    --color-salmon: #d9ac8b;    
+    --color-blue: #243d5c;    
+    --color-bluegrey: #5d7275;    
+    --color-lightblue: #5c8b93;    
+    --color-beige: #b1a58d;    
+    --color-red: #b03a48;    
+    --color-orange: #d4804d;    
+    --color-yellow: #e0c872;    
+    --color-green: #3e6958;
     background-size: 50px;
     background-position: center;
     width: 100vw;
@@ -177,7 +185,7 @@ h1 {
     position: relative;
     display: block;
     text-align: center;
-    font-size: 60px;
+    font-size: 50px;
     font-family: Julee;
     font-weight: 900;
     margin: 0;
@@ -186,8 +194,8 @@ h1 {
 #title-version {
     position: absolute;
     font-size: 18px;
-    top: 58px;
-    right: calc(50% - 160px);
+    top: 48px;
+    right: calc(50% - 150px);
     font-family: monospace;
     font-weight: 500;
     color: white;
@@ -256,6 +264,10 @@ button {
     -ms-user-select: none;
 }
 
+button.lockable {
+    transition: all 1s cubic-bezier(0.64, 0.57, 0.67, 1.53);
+}
+
 button.locked {
     background-color: #404040;
     color: #504d46;
@@ -264,16 +276,22 @@ button.locked {
 }
 
 @keyframes border_color_highlight {
-    from {
-        outline: 2px solid #624c3c00;
+    0% {
+        border-color: var(--color-brown);
     }
-    to {
-        outline: 2px solid #624c3cff;
+    33% {
+        border-color: var(--color-white);
+    }
+    66% {
+        border-color: var(--color-brown);
+    }
+    100% {
+        border-color: var(--color-brown);
     }
 }
 
 button.highlit {
-    animation: 1s ease-in-out 0s infinite alternate border_color_highlight;
+    animation: 1.5s ease-in-out 0s infinite alternate border_color_highlight;
 }
 
 .black {
@@ -775,7 +793,6 @@ body.vertical .square-btn-container {
     position: absolute;
     width: 70px;
     height: 70px;
-    border-radius: 70px;
     background-size: cover;
     background-image: url("../datas/icons/stamp-0-star.svg");
 }
@@ -794,6 +811,10 @@ body.vertical .square-btn-container {
 
 .stamp-4 {
     background-image: url("../datas/icons/stamp-3-stars.svg");
+}
+
+.stamp-play {
+    background-image: url("../datas/icons/play.svg");
 }
 
 input[type="text"] {

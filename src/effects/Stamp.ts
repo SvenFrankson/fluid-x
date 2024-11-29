@@ -11,6 +11,7 @@ class StampEffect {
     } 
 
     public async play(div: HTMLDivElement): Promise<void> {
+        //await RandomWait();
         div.style.visibility = "hidden";
         await Mummu.AnimationFactory.CreateWait(this)(0.2);
         this.sound.play();

@@ -36,6 +36,7 @@ class PushTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         
         let tileData = CreateBoxFrameVertexData({
@@ -56,6 +57,7 @@ class PushTile extends Tile {
     private _pushCallback = () => {};
 
     public async push(dir: BABYLON.Vector3): Promise<void> {
+        //await RandomWait();
         if (this.tileState === TileState.Moving) {
             this._pushCallback = () => {
                 this.push(dir);

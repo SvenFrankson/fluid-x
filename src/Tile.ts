@@ -70,6 +70,7 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         if (this.props.noShadow != true) {
             let m = 0.06;
             let shadowData = Mummu.Create9SliceVertexData({
@@ -83,11 +84,13 @@ abstract class Tile extends BABYLON.Mesh {
     }
 
     public async bump(duration: number = 0.2): Promise<void> {
+        //await RandomWait();
         await this.animateSize(1.1, duration * 0.5);
         await this.animateSize(1, duration * 0.5);
     }
 
     public async shrink(): Promise<void> {
+        //await RandomWait();
         await this.animateSize(1.1, 0.1, Nabu.Easing.easeOutSine);
         await this.animateSize(0.4, 0.3, Nabu.Easing.easeInSine);
     }

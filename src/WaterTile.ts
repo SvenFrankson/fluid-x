@@ -186,6 +186,7 @@ class WaterTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
 
         this.path = this._getPath();

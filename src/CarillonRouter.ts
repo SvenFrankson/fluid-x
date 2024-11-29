@@ -22,6 +22,7 @@ class CarillonRouter extends Nabu.Router {
     }
 
     public async postInitialize(): Promise<void> {
+        //await RandomWait();
         for (let i = 0; i < this.pages.length; i++) {
             await this.pages[i].waitLoaded();
         }
@@ -47,6 +48,7 @@ class CarillonRouter extends Nabu.Router {
     protected onUpdate(): void {}
 
     protected async onHRefChange(page: string, previousPage: string): Promise<void> {
+        //await RandomWait();
         console.log("onHRefChange from " + previousPage + " to " + page);
         //?gdmachineId=1979464530
 
@@ -95,7 +97,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
-            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#levels";
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;

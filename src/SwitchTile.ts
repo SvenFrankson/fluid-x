@@ -36,6 +36,7 @@ class SwitchTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/switchbox.babylon");
         tileData[0].applyToMesh(this);
@@ -87,6 +88,7 @@ class ButtonTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/buttonbox.babylon");
         tileData[0].applyToMesh(this);
@@ -96,6 +98,7 @@ class ButtonTile extends Tile {
     }
 
     public async clicClack(): Promise<void> {
+        //await RandomWait();
         this.bump();
         let animateWait = Mummu.AnimationFactory.CreateWait(this);
         let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
@@ -158,6 +161,7 @@ class DoorTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         let tileData = await this.game.vertexDataLoader.get("./datas/meshes/door.babylon");
         //tileData[0].applyToMesh(this);
@@ -177,6 +181,7 @@ class DoorTile extends Tile {
     }
 
     public async open(duration: number = 0.5): Promise<void> {
+        //await RandomWait();
         this.animateTopPosY(0, duration, Nabu.Easing.easeOutCubic);
         this.animateTopRotY(0, duration, Nabu.Easing.easeOutCubic);
         await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeOutCubic);
@@ -184,6 +189,7 @@ class DoorTile extends Tile {
     }
 
     public async close(duration: number = 0.5): Promise<void> {
+        //await RandomWait();
         this.closed = true;
         this.animateTopPosY(0.1, duration, Nabu.Easing.easeOutCubic);
         this.animateTopRotY(2 * Math.PI, duration, Nabu.Easing.easeOutCubic);

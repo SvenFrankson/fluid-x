@@ -102,6 +102,7 @@ class Creep extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         let data = await this.game.vertexDataLoader.get("./datas/meshes/creep.babylon");
         data[0].applyToMesh(this.shell);
         data[1].applyToMesh(this.shellColored);
@@ -111,6 +112,7 @@ class Creep extends BABYLON.Mesh {
     }
 
     public async shrink(): Promise<void> {
+        //await RandomWait();
         await this.animateSize(1.1, 0.1);
         await this.animateSize(0.4, 0.3);
     }

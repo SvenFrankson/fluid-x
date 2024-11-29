@@ -365,6 +365,7 @@ class Ball extends BABYLON.Mesh {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         let ballDatas: BABYLON.VertexData[];
         if (this.dropletMode) {
             ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");

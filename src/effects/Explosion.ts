@@ -67,6 +67,7 @@ class /*Macron*/ Explosion {
     }
 
     public async MakeNoisedBlob(radius: number): Promise<BABYLON.VertexData> {
+        //await RandomWait();
         let data = await this.game.vertexDataLoader.getAtIndex("datas/meshes/explosion.babylon", 0);
         data = Mummu.CloneVertexData(data);
         data = Mummu.ScaleVertexDataInPlace(data, radius);

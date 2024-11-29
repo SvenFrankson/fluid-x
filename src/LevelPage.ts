@@ -2,6 +2,7 @@ interface IPuzzleTileData {
     data: IPuzzleData;
     onpointerup: () => void;
     locked?: boolean;
+    new?: boolean;
     completed?: boolean;
     classList?: string[];
 }
@@ -28,10 +29,12 @@ abstract class LevelPage {
     }
 
     public async show(duration?: number): Promise<void> {
+        //await RandomWait();
         return this.nabuPage.show(duration);
     }
 
     public async hide(duration?: number): Promise<void> {
+        //await RandomWait();
         return this.nabuPage.hide(duration);
     }
 
@@ -46,9 +49,11 @@ abstract class LevelPage {
     }
 
     public async redraw(): Promise<void> {
+        //await RandomWait();
         this.buttons = [];
 
         let container = this.nabuPage.querySelector(".square-btn-container");
+        let scroll = container.scrollTop;
         container.innerHTML = "";
 
         let rect = container.getBoundingClientRect();
@@ -145,6 +150,9 @@ abstract class LevelPage {
                 completedStamp.classList.add("stamp-" + starCount);
                 squareButton.appendChild(completedStamp);
             }
+            else if (puzzleTileDatas[n].new) {
+                squareButton.classList.add("highlit", "lightblue");
+            }
         }
 
         if (puzzleTileDatas.length % this.colCount > 0) {
@@ -157,6 +165,8 @@ abstract class LevelPage {
                 container.appendChild(squareButton);
             }
         }
+
+        container.scrollTop = scroll;
         
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
@@ -343,12 +353,22 @@ class StoryPuzzlesPage extends LevelPage {
     }
 
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.loadedStoryPuzzles;
         CLEAN_IPuzzlesData(data);
 
-        let unlockCount = this.router.game.puzzleCompletion.storyPuzzles.filter(puzzleComp => { return puzzleComp.getStarsCount() > 0; }).length;
+        let completedPuzzles = this.router.game.puzzleCompletion.storyPuzzles.filter(puzzleComp => { return puzzleComp.getStarsCount() > 0; });
+        let unlockCount = completedPuzzles.length;
         unlockCount += Math.floor(unlockCount / 4);
+
+        let nextLevelIndex: number;
+        for (let i = 0; i < data.puzzles.length; i++) {
+            if (!completedPuzzles.find(e => { return e.puzzleId === data.puzzles[i].id; })) {
+                nextLevelIndex = i;
+                break;
+            }
+        }
 
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
@@ -357,13 +377,18 @@ class StoryPuzzlesPage extends LevelPage {
                 if (i <= unlockCount) {
                     locked = false;
                 }
+                let isNew = false;
+                if (n === nextLevelIndex) {
+                    isNew = true;
+                }
                 puzzleData[i] = {
                     data: data.puzzles[n],
                     onpointerup: () => {
                         this.router.game.puzzle.resetFromData(data.puzzles[n]);
                         location.hash = "level-" + (n + 1).toFixed(0);
                     },
-                    locked: locked
+                    locked: locked,
+                    new: isNew
                 }
             }
             else if (n === data.puzzles.length) {
@@ -415,6 +440,7 @@ class ExpertPuzzlesPage extends LevelPage {
     }
 
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.loadedExpertPuzzles;
         CLEAN_IPuzzlesData(data);
@@ -486,6 +512,7 @@ class CommunityPuzzlesPage extends LevelPage {
     }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
         if (true) {
             return this.getPuzzlesDataOffline(page, levelsPerPage);
         }
@@ -519,6 +546,7 @@ class CommunityPuzzlesPage extends LevelPage {
     }
 
     protected async getPuzzlesDataOffline(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.loadedCommunityPuzzles;
 
@@ -554,6 +582,7 @@ class DevPuzzlesPage extends LevelPage {
     }
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
         let puzzleData: IPuzzleTileData[] = [];
 
         const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/" + page.toFixed(0) + "/" + levelsPerPage.toFixed(0) + "/" + this.levelStateToFetch.toFixed(0), {
@@ -605,6 +634,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
     public levelStateToFetch: number = 0;
     
     protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
         let puzzleData: IPuzzleTileData[] = [];
         let data = this.router.game.loadedMultiplayerPuzzles;
         CLEAN_IPuzzlesData(data);

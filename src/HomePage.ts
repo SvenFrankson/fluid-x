@@ -16,10 +16,12 @@ class HomePage {
     }
 
     public async show(duration?: number): Promise<void> {
+        //await RandomWait();
         return this.nabuPage.show(duration);
     }
 
     public async hide(duration?: number): Promise<void> {
+        //await RandomWait();
         return this.nabuPage.hide(duration);
     }
 

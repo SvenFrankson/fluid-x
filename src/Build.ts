@@ -252,6 +252,7 @@ class Ramp extends Build {
 class BuildingBlock {
     
     public static async GenerateVertexDatas(puzzle: Puzzle): Promise<BABYLON.VertexData[]> {
+        //await RandomWait();
         let walls: BABYLON.VertexData[] = [];
         let woods: BABYLON.VertexData[] = [];
         let floors: BABYLON.VertexData[] = [];

@@ -22,6 +22,7 @@ class BlockTile extends Tile {
     }
 
     public async instantiate(): Promise<void> {
+        //await RandomWait();
         await super.instantiate();
         
         let tileData = CreateBoxFrameVertexData({

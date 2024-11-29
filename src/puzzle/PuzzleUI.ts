@@ -40,6 +40,8 @@ class PuzzleUI {
         return this.puzzle.game;
     }
 
+    public winSound: MySound;
+
     constructor(public puzzle: Puzzle) {
         this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
@@ -67,11 +69,24 @@ class PuzzleUI {
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.unlockContainer = document.querySelector("#play-unlock-container");
 
+        this.winSound = this.game.soundManager.createSound(
+            "ambient",
+            "./datas/sounds/marimba-win-e-2-209686.mp3",
+            this.game.scene,
+            undefined,
+            {
+                autoplay: false,
+                volume: 0.3
+            }
+        );
+
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
     }
 
     public win(firstTimeCompleted: boolean, previousCompletion: number): void {
+        let stamp = this.successPanel.querySelector(".stamp") as HTMLDivElement;
+        stamp.style.visibility = "hidden";
         this.successPanel.style.display = "";
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
         let panelDY = document.body.classList.contains("vertical") ? 70 : 10;
@@ -123,6 +138,15 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
+        
+        let starCount = this.game.puzzleCompletion.getStarCount(this.puzzle.data.id);
+        stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
+        stamp.classList.add("stamp-" + starCount);
+        this.winSound.play();
+        setTimeout(() => {
+            this.game.stamp.play(this.successPanel.querySelector(".stamp"));
+        }, this.winSound.duration * 1000 - 1000);
+
         CenterPanel(this.successPanel, panelDX, panelDY);
         requestAnimationFrame(() => {
             CenterPanel(this.successPanel, panelDX, panelDY);

@@ -6349,6 +6349,12 @@ class MySound {
         this._loaded = false;
         this._sounds = [];
     }
+    get duration() {
+        if (this._sounds[0]) {
+            return this._sounds[0].getAudioBuffer().duration;
+        }
+        return 0;
+    }
     load() {
         if (this._loaded) {
             return;
@@ -8015,13 +8021,8 @@ class Puzzle {
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
-        let stamp = this.puzzleUI.successPanel.querySelector(".stamp");
-        let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);
-        stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
-        stamp.classList.add("stamp-" + starCount);
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
-            this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
             this.puzzleUI.win(firstTimeCompleted, previousCompletion);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
@@ -9610,6 +9611,10 @@ class PuzzleUI {
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.unlockContainer = document.querySelector("#play-unlock-container");
+        this.winSound = this.game.soundManager.createSound("ambient", "./datas/sounds/marimba-win-e-2-209686.mp3", this.game.scene, undefined, {
+            autoplay: false,
+            volume: 0.3
+        });
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
     }
@@ -9629,6 +9634,8 @@ class PuzzleUI {
         return this.puzzle.game;
     }
     win(firstTimeCompleted, previousCompletion) {
+        let stamp = this.successPanel.querySelector(".stamp");
+        stamp.style.visibility = "hidden";
         this.successPanel.style.display = "";
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
         let panelDY = document.body.classList.contains("vertical") ? 70 : 10;
@@ -9678,6 +9685,13 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.successNextButton);
         }
+        let starCount = this.game.puzzleCompletion.getStarCount(this.puzzle.data.id);
+        stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
+        stamp.classList.add("stamp-" + starCount);
+        this.winSound.play();
+        setTimeout(() => {
+            this.game.stamp.play(this.successPanel.querySelector(".stamp"));
+        }, this.winSound.duration * 1000 - 1000);
         CenterPanel(this.successPanel, panelDX, panelDY);
         requestAnimationFrame(() => {
             CenterPanel(this.successPanel, panelDX, panelDY);

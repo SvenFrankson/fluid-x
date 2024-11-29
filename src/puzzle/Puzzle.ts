@@ -352,14 +352,8 @@ class Puzzle {
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score);
 
-        let stamp = this.puzzleUI.successPanel.querySelector(".stamp");
-        let starCount = this.game.puzzleCompletion.getStarCount(this.data.id);
-        stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
-        stamp.classList.add("stamp-" + starCount);
-
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
-            this.game.stamp.play(this.puzzleUI.successPanel.querySelector(".stamp"));
             this.puzzleUI.win(firstTimeCompleted, previousCompletion);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);

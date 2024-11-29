@@ -3,6 +3,13 @@ class MySound {
     private _loaded: boolean = false;
     private _sounds: BABYLON.Sound[] = [];
 
+    public get duration(): number {
+        if (this._sounds[0]) {
+            return this._sounds[0].getAudioBuffer().duration;
+        }
+        return 0;
+    }
+
     constructor(
         public soundManager: SoundManager,
         private _name: string,

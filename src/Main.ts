@@ -1038,24 +1038,27 @@ class Game {
 
         this.dayOfXMasCal = new Date().getDate();
         this.dayOfXMasCal = 1;
+        this.dayOfXMasCal = Nabu.MinMax(this.dayOfXMasCal, 1, 24);
         
+        let iFallback = 0;
         for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
             let puzzleData: IPuzzleData = {
-                id: xMasPuzzles.puzzles[i - xMasPuzzles.puzzles.length].id,
+                id: xMasPuzzles.puzzles[iFallback].id,
                 title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
                 author: "TiaratumGames",
-                content: xMasPuzzles.puzzles[i - xMasPuzzles.puzzles.length].content,
+                content: xMasPuzzles.puzzles[iFallback].content,
                 difficulty: 2
             }
             xMasPuzzles.puzzles[i] = puzzleData;
+            iFallback = (iFallback + 1) % xMasPuzzles.puzzles.length;
         }
         let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
-        for (let i = i0; i < 25; i++) {
+        for (let i = i0; i < 24; i++) {
             let puzzleData: IPuzzleData = {
                 id: null,
                 title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
                 author: "TiaratumGames",
-                content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 difficulty: 2
             }
             xMasPuzzles.puzzles[i] = puzzleData;

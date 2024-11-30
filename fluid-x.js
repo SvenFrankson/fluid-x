@@ -3250,6 +3250,15 @@ class HaikuMaker {
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
+        if (puzzle.data.id === 151 && puzzle.data.state === 8) {
+            let switchTile = puzzle.tiles.filter((tile) => {
+                return tile instanceof SwitchTile && tile.color === 3;
+            });
+            if (switchTile[0]) {
+                let tileHaiku = new HaikuTile(puzzle.game, "Color Switch           ", switchTile[0]);
+                puzzle.tileHaikus.push(tileHaiku);
+            }
+        }
     }
 }
 class Haiku extends BABYLON.Mesh {
@@ -5213,23 +5222,26 @@ class Game {
         }
         this.dayOfXMasCal = new Date().getDate();
         this.dayOfXMasCal = 1;
+        this.dayOfXMasCal = Nabu.MinMax(this.dayOfXMasCal, 1, 24);
+        let iFallback = 0;
         for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
             let puzzleData = {
-                id: xMasPuzzles.puzzles[i - xMasPuzzles.puzzles.length].id,
+                id: xMasPuzzles.puzzles[iFallback].id,
                 title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
                 author: "TiaratumGames",
-                content: xMasPuzzles.puzzles[i - xMasPuzzles.puzzles.length].content,
+                content: xMasPuzzles.puzzles[iFallback].content,
                 difficulty: 2
             };
             xMasPuzzles.puzzles[i] = puzzleData;
+            iFallback = (iFallback + 1) % xMasPuzzles.puzzles.length;
         }
         let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
-        for (let i = i0; i < 25; i++) {
+        for (let i = i0; i < 24; i++) {
             let puzzleData = {
                 id: null,
                 title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
                 author: "TiaratumGames",
-                content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 difficulty: 2
             };
             xMasPuzzles.puzzles[i] = puzzleData;

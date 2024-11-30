@@ -67,6 +67,19 @@ class HaikuMaker {
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
+        if (puzzle.data.id === 151 && puzzle.data.state === 8) {
+            let switchTile = puzzle.tiles.filter((tile) => {
+                return tile instanceof SwitchTile && tile.color === 3;
+            })
+            if (switchTile[0]) {
+                let tileHaiku = new HaikuTile(
+                    puzzle.game,
+                    "Color Switch           ",
+                    switchTile[0]
+                );
+                puzzle.tileHaikus.push(tileHaiku);
+            }
+        }
     }
 }
 

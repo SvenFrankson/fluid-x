@@ -429,7 +429,7 @@ class XMasPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Advent Cal.";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Advent Cal. 2024";
         this.className = "XMasPuzzlesPage";
     }
 
@@ -465,26 +465,15 @@ class XMasPuzzlesPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "Try the Expert Mode",
+                        title: "Play MonkeyMind original levels !\n\n(clic to leave this page)",
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onpointerup: () => {
-                        location.hash = "#expert-puzzles"
-                    },
-                    classList: ["red"]
-                }
-            }
-            else if (n === data.puzzles.length + 1) {
-                puzzleData[i] = {
-                    data: {
-                        id: null,
-                        title: "Enjoy many more Custom Puzzles !",
-                        author: "Community",
-                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
-                    },
-                    onpointerup: () => {
-                        location.hash = "#community-puzzles"
+                        let a = document.createElement("a");
+                        a.href = "https://svenfrankson.itch.io/monkeymind";
+                        a.target = "_blank";
+                        a.click();
                     },
                     classList: ["green"]
                 }

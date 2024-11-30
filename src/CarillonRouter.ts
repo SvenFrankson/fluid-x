@@ -129,7 +129,11 @@ class CarillonRouter extends Nabu.Router {
                 }
                 this.game.puzzle.resetFromData(data);
             }
-            if (this.game.puzzle.data.state === 4) {
+            if (this.game.puzzle.data.state === 8) {
+                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#xmas-puzzles";
+                (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#xmas-puzzles";
+            }
+            else if (this.game.puzzle.data.state === 4) {
                 (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#multiplayer-puzzles";
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#multiplayer-puzzles";
             }
@@ -220,6 +224,9 @@ class CarillonRouter extends Nabu.Router {
             })
         }
         else if (page.startsWith("#home")) {
+            if (ADVENT_CAL) {
+                location.hash = "#xmas-puzzles";
+            }
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }

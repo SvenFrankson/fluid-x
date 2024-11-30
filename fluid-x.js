@@ -1856,7 +1856,11 @@ class CarillonRouter extends Nabu.Router {
                 }
                 this.game.puzzle.resetFromData(data);
             }
-            if (this.game.puzzle.data.state === 4) {
+            if (this.game.puzzle.data.state === 8) {
+                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#xmas-puzzles";
+                this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#xmas-puzzles";
+            }
+            else if (this.game.puzzle.data.state === 4) {
                 this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#multiplayer-puzzles";
                 this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#multiplayer-puzzles";
             }
@@ -1947,6 +1951,9 @@ class CarillonRouter extends Nabu.Router {
             });
         }
         else if (page.startsWith("#home")) {
+            if (ADVENT_CAL) {
+                location.hash = "#xmas-puzzles";
+            }
             if (USE_POKI_SDK) {
                 PokiGameplayStop();
             }
@@ -4086,7 +4093,7 @@ class StoryPuzzlesPage extends LevelPage {
 class XMasPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Advent Cal.";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Advent Cal. 2024";
         this.className = "XMasPuzzlesPage";
     }
     onPageRedrawn() {
@@ -4119,26 +4126,15 @@ class XMasPuzzlesPage extends LevelPage {
                 puzzleData[i] = {
                     data: {
                         id: null,
-                        title: "Try the Expert Mode",
+                        title: "Play MonkeyMind original levels !\n\n(clic to leave this page)",
                         author: "Tiaratum Games",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onpointerup: () => {
-                        location.hash = "#expert-puzzles";
-                    },
-                    classList: ["red"]
-                };
-            }
-            else if (n === data.puzzles.length + 1) {
-                puzzleData[i] = {
-                    data: {
-                        id: null,
-                        title: "Enjoy many more Custom Puzzles !",
-                        author: "Community",
-                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
-                    },
-                    onpointerup: () => {
-                        location.hash = "#community-puzzles";
+                        let a = document.createElement("a");
+                        a.href = "https://svenfrankson.itch.io/monkeymind";
+                        a.target = "_blank";
+                        a.click();
                     },
                     classList: ["green"]
                 };
@@ -4353,6 +4349,7 @@ var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_V
 var observed_progress_speed_percent_second;
 var USE_POKI_SDK;
 var OFFLINE_MODE;
+var ADVENT_CAL;
 var PokiSDK;
 var PokiSDKPlaying = false;
 function PokiGameplayStart() {
@@ -5216,8 +5213,17 @@ class Game {
         }
         this.dayOfXMasCal = new Date().getDate();
         this.dayOfXMasCal = 1;
-        console.log("dayOfXMasCal " + this.dayOfXMasCal);
-        let i0 = Math.min(this.dayOfXMasCal + 1, xMasPuzzles.puzzles.length);
+        for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
+            let puzzleData = {
+                id: xMasPuzzles.puzzles[i - xMasPuzzles.puzzles.length].id,
+                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                author: "TiaratumGames",
+                content: xMasPuzzles.puzzles[i - xMasPuzzles.puzzles.length].content,
+                difficulty: 2
+            };
+            xMasPuzzles.puzzles[i] = puzzleData;
+        }
+        let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
         for (let i = i0; i < 25; i++) {
             let puzzleData = {
                 id: null,

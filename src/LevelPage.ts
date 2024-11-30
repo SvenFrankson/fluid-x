@@ -425,6 +425,76 @@ class StoryPuzzlesPage extends LevelPage {
     }
 }
 
+class XMasPuzzlesPage extends LevelPage {
+    
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Advent Cal.";
+        this.className = "XMasPuzzlesPage";
+    }
+
+    public onPageRedrawn(): void {
+        if (this.router.game.puzzleCompletion) {
+            (this.nabuPage.querySelector(".puzzle-level-completion completion-bar") as CompletionBar).setAttribute("value", this.router.game.puzzleCompletion.storyPuzzleCompletion.toFixed(2));
+        }
+    }
+
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        //await RandomWait();
+        let puzzleData: IPuzzleTileData[] = [];
+        let data = this.router.game.loadedXMasPuzzles;
+        CLEAN_IPuzzlesData(data);
+
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                let locked = true;
+                if (data.puzzles[n].numLevel <= this.router.game.dayOfXMasCal) {
+                    locked = false;
+                }
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onpointerup: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
+                    },
+                    locked: locked
+                }
+            }
+            else if (n === data.puzzles.length) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Try the Expert Mode",
+                        author: "Tiaratum Games",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onpointerup: () => {
+                        location.hash = "#expert-puzzles"
+                    },
+                    classList: ["red"]
+                }
+            }
+            else if (n === data.puzzles.length + 1) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Enjoy many more Custom Puzzles !",
+                        author: "Community",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onpointerup: () => {
+                        location.hash = "#community-puzzles"
+                    },
+                    classList: ["green"]
+                }
+            }
+        }
+
+        return puzzleData;
+    }
+}
+
 class ExpertPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {

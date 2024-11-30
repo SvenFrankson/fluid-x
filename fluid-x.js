@@ -1764,6 +1764,7 @@ class CarillonRouter extends Nabu.Router {
         this.homeMenu = new HomePage("#home-menu", this);
         this.storyPuzzlesPage = new StoryPuzzlesPage("#base-puzzles-page", this);
         this.expertPuzzlesPage = new ExpertPuzzlesPage("#expert-puzzles-page", this);
+        this.xmasPuzzlesPage = new XMasPuzzlesPage("#xmas-puzzles-page", this);
         this.communityPuzzlesPage = new CommunityPuzzlesPage("#community-puzzles-page", this);
         this.devPuzzlesPage = new DevPuzzlesPage("#dev-puzzles-page", this);
         this.multiplayerPuzzlesPage = new MultiplayerPuzzlesPage("#multiplayer-puzzles-page", this);
@@ -1890,6 +1891,15 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.expertPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.expertPuzzlesPage.redraw();
+            });
+        }
+        else if (page.startsWith("#xmas-puzzles")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.xmasPuzzlesPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.xmasPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#community-puzzles")) {
@@ -3190,84 +3200,48 @@ class Editor {
 class HaikuMaker {
     static MakeHaiku(puzzle) {
         if (puzzle.data.id === 74 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
-            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 1.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
+            let tile = puzzle.tiles.filter((tile) => {
+                return tile instanceof BlockTile;
+            });
+            tile = tile.sort((t1, t2) => {
+                return (t1.i + t1.j) - (t2.i + t2.j);
+            });
+            if (tile[0]) {
+                let tileHaiku = new HaikuTile(puzzle.game, "Collect all Tiles", tile[0]);
+                puzzle.tileHaikus.push(tileHaiku);
+            }
         }
         if (puzzle.data.id === 75 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Control -", IsTouchScreen ? "Hold ← or → to move" : "Hold A or D to move.", "");
-            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 3);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-            let testHaiku2 = new Haiku(puzzle.game, "", "- Objective -", "Hit all colored tiles.", "");
-            testHaiku2.position.copyFromFloats(1.1 * 7, 0.1, 1.1 * 1);
-            testHaiku2.visibility = 0;
-            puzzle.haiku = testHaiku2;
+            let buttonTile = puzzle.tiles.filter((tile) => {
+                return tile instanceof ButtonTile;
+            });
+            if (buttonTile[0]) {
+                let tileHaiku = new HaikuTile(puzzle.game, "Open / Close Doors", buttonTile[0]);
+                puzzle.tileHaikus.push(tileHaiku);
+            }
+            let doorTiles = puzzle.tiles.filter((tile) => {
+                return tile instanceof DoorTile;
+            });
+            doorTiles = doorTiles.sort((t1, t2) => {
+                return (t1.i + t1.j) - (t2.i + t2.j);
+            });
+            if (doorTiles[0]) {
+                let tileHaiku = new HaikuTile(puzzle.game, "Door", doorTiles[0], -1);
+                puzzle.tileHaikus.push(tileHaiku);
+            }
         }
         if (puzzle.data.id === 76 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Color -", "Hit a drum to switch Color.", "");
-            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 3);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 60 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Caution -", "Holes are dangerous.", "");
-            testHaiku.position.copyFromFloats(1.1 * 3, 0.1, 1.1 * 2.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 78 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "                - Push -", "Wooden Tiles can be pushed.", "");
-            testHaiku.position.copyFromFloats(1.1 * 2.2, 0.1, 1.1 * 2.7);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 62 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Count -", "One Tile at a time.", "");
-            testHaiku.position.copyFromFloats(1.1 * 5, 0.1, 1.1 * 4.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 68 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Satisfaction -", "", "");
-            testHaiku.position.copyFromFloats(1.1 * 2.5, 0.1, 1.1 * 1.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 80 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Lives -", "Don't look down.", "");
-            testHaiku.position.copyFromFloats(1.1 * 4, 0.1, 1.1 * 3.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 92 && puzzle.data.state === 2) {
-            let testHaiku = new Haiku(puzzle.game, "", "- Water -", "Dip a toe !", "");
-            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-        }
-        if (puzzle.data.id === 58 && puzzle.data.state === 2) {
-            // First Level Haikus
-            let testHaiku = new Haiku(puzzle.game, "- Control -", "Left -west- to right -east-", "One may decide where he goes.", "Unless walls oppose.");
-            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
-            let testHaiku2 = new Haiku(puzzle.game, "- Bounce -", "Up -north- and down -south-", "Some cycle one can't decide.", "A Vertical tide.");
-            testHaiku2.position.copyFromFloats(1.1 * 8, 0.1, 1.1 * 2.5);
-            testHaiku2.visibility = 0;
-            puzzle.haiku = testHaiku2;
-            let testHaiku3 = new Haiku(puzzle.game, "- Complete -", "Find all colored tile", "Scattered around the area.", "Time is no limit.");
-            testHaiku3.position.copyFromFloats(1.1 * 14, 0.1, 1.1 * 2.5);
-            testHaiku3.visibility = 0;
-            puzzle.haiku = testHaiku3;
-        }
-        if (puzzle.data.id === 59 && puzzle.data.state === 2) {
-            // First Level Haikus
-            let testHaiku = new Haiku(puzzle.game, "- Color -", "Four colors for tiles", "Use the right one to collide.", "Or else be bounced back.");
-            testHaiku.position.copyFromFloats(1.1 * 2, 0.1, 1.1 * 2.5);
-            testHaiku.visibility = 0;
-            puzzle.haiku = testHaiku;
+            let switchTiles = puzzle.tiles.filter((tile) => {
+                return tile instanceof SwitchTile;
+            });
+            if (switchTiles[0]) {
+                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[0]);
+                puzzle.tileHaikus.push(tileHaiku);
+            }
+            if (switchTiles[1]) {
+                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[1]);
+                puzzle.tileHaikus.push(tileHaiku);
+            }
         }
     }
 }
@@ -3381,6 +3355,59 @@ class HaikuPlayerStart extends BABYLON.Mesh {
     }
     hide() {
         this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
+    }
+}
+class HaikuTile extends BABYLON.Mesh {
+    constructor(game, text, tile, align = 0) {
+        super("haiku");
+        this.game = game;
+        this.text = text;
+        this.tile = tile;
+        this.align = align;
+        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.shown = false;
+        BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
+        this.position.copyFrom(this.tile.position);
+        this.position.y += 0.01;
+        let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 1000, height: 1000 });
+        this.dynamicTexture.hasAlpha = true;
+        haikuMaterial.diffuseTexture = this.dynamicTexture;
+        haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
+        haikuMaterial.useAlphaFromDiffuseTexture = true;
+        this.material = haikuMaterial;
+        let context = this.dynamicTexture.getContext();
+        context.clearRect(0, 0, 1000, 1000);
+        context.strokeStyle = "#e3cfb4ff";
+        context.lineWidth = 8;
+        for (let i = 0; i < 4; i++) {
+            let a1 = i * Math.PI * 0.5 + Math.PI * 0.1 - Math.PI * 0.25;
+            let a2 = (i + 1) * Math.PI * 0.5 - Math.PI * 0.1 - Math.PI * 0.25;
+            context.beginPath();
+            context.arc(500, 500, 140, a1, a2);
+            context.stroke();
+        }
+        context.fillStyle = "#e3cfb4ff";
+        context.font = "90px Julee";
+        if (align === -1) {
+            let l = context.measureText(this.text).width;
+            context.fillText(this.text, 500 - 180 - l, 530);
+        }
+        else {
+            let l = context.measureText(this.text).width;
+            context.fillText(this.text, Math.floor(500 - l * 0.5), 740);
+        }
+        this.dynamicTexture.update();
+        this.visibility = 0;
+        this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+    }
+    show() {
+        this.shown = true;
+        this.animateVisibility(1, 2, Nabu.Easing.easeInOutSine);
+    }
+    hide() {
+        this.shown = false;
+        this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
     }
 }
 class HaikuDebug extends BABYLON.Mesh {
@@ -4056,6 +4083,70 @@ class StoryPuzzlesPage extends LevelPage {
         return puzzleData;
     }
 }
+class XMasPuzzlesPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Advent Cal.";
+        this.className = "XMasPuzzlesPage";
+    }
+    onPageRedrawn() {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.storyPuzzleCompletion.toFixed(2));
+        }
+    }
+    async getPuzzlesData(page, levelsPerPage) {
+        //await RandomWait();
+        let puzzleData = [];
+        let data = this.router.game.loadedXMasPuzzles;
+        CLEAN_IPuzzlesData(data);
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                let locked = true;
+                if (data.puzzles[n].numLevel <= this.router.game.dayOfXMasCal) {
+                    locked = false;
+                }
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onpointerup: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "puzzle-" + data.puzzles[n].id.toFixed(0);
+                    },
+                    locked: locked
+                };
+            }
+            else if (n === data.puzzles.length) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Try the Expert Mode",
+                        author: "Tiaratum Games",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onpointerup: () => {
+                        location.hash = "#expert-puzzles";
+                    },
+                    classList: ["red"]
+                };
+            }
+            else if (n === data.puzzles.length + 1) {
+                puzzleData[i] = {
+                    data: {
+                        id: null,
+                        title: "Enjoy many more Custom Puzzles !",
+                        author: "Community",
+                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                    },
+                    onpointerup: () => {
+                        location.hash = "#community-puzzles";
+                    },
+                    classList: ["green"]
+                };
+            }
+        }
+        return puzzleData;
+    }
+}
 class ExpertPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
@@ -4254,9 +4345,9 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
-var MAJOR_VERSION = 1;
+var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 10;
+var PATCH_VERSION = 11;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4460,6 +4551,7 @@ class Game {
         this.cameraOrtho = false;
         this.player1Name = "";
         this.player2Name = "";
+        this.dayOfXMasCal = 1;
         this._mode = GameMode.Menu;
         this.gameLoaded = false;
         this._bodyColorIndex = 0;
@@ -5087,6 +5179,59 @@ class Game {
             }
         }
         this.loadedExpertPuzzles = expertPuzzles;
+        let xMasPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            xMasPuzzles = await response.json();
+            CLEAN_IPuzzlesData(xMasPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/8", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                xMasPuzzles = await response.json();
+                for (let i = 0; i < xMasPuzzles.puzzles.length; i++) {
+                    xMasPuzzles.puzzles[i].title = "December " + (i + 1).toFixed(0) + ".\n" + xMasPuzzles.puzzles[i].title;
+                }
+                CLEAN_IPuzzlesData(xMasPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                xMasPuzzles = await response.json();
+                CLEAN_IPuzzlesData(xMasPuzzles);
+            }
+        }
+        this.dayOfXMasCal = new Date().getDate();
+        this.dayOfXMasCal = 1;
+        console.log("dayOfXMasCal " + this.dayOfXMasCal);
+        let i0 = Math.min(this.dayOfXMasCal + 1, xMasPuzzles.puzzles.length);
+        for (let i = i0; i < 25; i++) {
+            let puzzleData = {
+                id: null,
+                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                author: "TiaratumGames",
+                content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                difficulty: 2
+            };
+            xMasPuzzles.puzzles[i] = puzzleData;
+        }
+        this.loadedXMasPuzzles = xMasPuzzles;
+        for (let i = 0; i < this.loadedXMasPuzzles.puzzles.length; i++) {
+            this.loadedXMasPuzzles.puzzles[i].numLevel = (i + 1);
+        }
         let communityPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
@@ -5476,6 +5621,7 @@ async function RandomWait() {
 async function DEV_GENERATE_ALL_LEVEL_FILES() {
     Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
     Nabu.download("tiaratum_expert_levels.json", JSON.stringify(Game.Instance.loadedExpertPuzzles));
+    Nabu.download("tiaratum_xmas_levels.json", JSON.stringify(Game.Instance.loadedXMasPuzzles));
     Nabu.download("tiaratum_community_levels.json", JSON.stringify(Game.Instance.loadedCommunityPuzzles));
     Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
     Nabu.download("story_expert_table.json", JSON.stringify(Game.Instance.storyExpertTable));
@@ -5488,7 +5634,8 @@ var DEV_MODES_NAMES = [
     "MULTI",
     "TRASH",
     "PRBLM",
-    "INFO"
+    "INFO",
+    "XMAS"
 ];
 var DEV_MODE_ACTIVATED = false;
 var var1 = "";
@@ -5531,7 +5678,7 @@ function DEV_ACTIVATE() {
     info.style.pointerEvents = "none";
     document.body.appendChild(info);
     let devStateBtns = [];
-    for (let i = 0; i <= 7; i++) {
+    for (let i = 0; i <= 8; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
         devStateBtns.push(btn);
     }
@@ -6221,9 +6368,11 @@ class PuzzleCompletion {
         this.completedPuzzles = [];
         this.storyPuzzleCompletion = 0;
         this.expertPuzzleCompletion = 0;
+        this.xmasPuzzleCompletion = 0;
         this.communityPuzzleCompletion = 0;
         this.storyPuzzles = [];
         this.expertPuzzles = [];
+        this.xmasPuzzles = [];
         this.communityPuzzles = [];
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
@@ -6241,6 +6390,10 @@ class PuzzleCompletion {
         let expertElement = this.expertPuzzles.find(e => { return e.puzzleId === id; });
         if (expertElement) {
             return expertElement;
+        }
+        let xmasElement = this.xmasPuzzles.find(e => { return e.puzzleId === id; });
+        if (xmasElement) {
+            return xmasElement;
         }
         let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
         if (communityElement) {
@@ -6276,6 +6429,17 @@ class PuzzleCompletion {
         });
         this.expertPuzzleCompletion = totalStarsCount / max;
     }
+    _updateXmasPuzzleCompletion() {
+        let max = this.xmasPuzzles.length * 4;
+        if (max < 1) {
+            return;
+        }
+        let totalStarsCount = 0;
+        this.xmasPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        this.xmasPuzzleCompletion = totalStarsCount / max;
+    }
     _updateCommunityPuzzleCompletion() {
         let max = this.communityPuzzles.length * 4;
         if (max < 1) {
@@ -6301,8 +6465,13 @@ class PuzzleCompletion {
             let score = this.getPersonalBestScore(puzzle.id);
             this.expertPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
         });
+        this.game.loadedXMasPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.xmasPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+        });
         this._updateStoryPuzzleCompletion();
         this._updateExpertPuzzleCompletion();
+        this._updateXmasPuzzleCompletion();
         this._updateCommunityPuzzleCompletion();
     }
     completePuzzle(id, score) {
@@ -7764,6 +7933,7 @@ class Puzzle {
         this.w = 10;
         this.h = 10;
         this._pendingPublish = false;
+        this.tileHaikus = [];
         this.playerHaikus = [];
         this.buildingUpStep = 0.1;
         this.buildingUpValue = 1;
@@ -8121,6 +8291,9 @@ class Puzzle {
         if (this.haiku) {
             this.haiku.dispose();
             this.haiku = undefined;
+        }
+        while (this.tileHaikus.length > 0) {
+            this.tileHaikus.pop().dispose();
         }
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
@@ -8660,6 +8833,7 @@ class Puzzle {
             this.playerHaikus[0].show();
             this.playerHaikus[1].show();
         }
+        HaikuMaker.MakeHaiku(this);
         if (!replaying) {
             await this.NextFrame();
         }
@@ -9068,6 +9242,9 @@ class Puzzle {
                 this.playerHaikus[i].hide();
             }
         }
+        for (let i = 0; i < this.tileHaikus.length; i++) {
+            this.tileHaikus[i].show();
+        }
         this.puzzleState = PuzzleState.Playing;
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
@@ -9110,6 +9287,12 @@ class Puzzle {
         if (this.haiku) {
             this.haiku.update(dt);
         }
+        for (let i = 0; i < this.tileHaikus.length; i++) {
+            let tileHaiku = this.tileHaikus[i];
+            if (tileHaiku.shown && tileHaiku.tile.isDisposed()) {
+                tileHaiku.hide();
+            }
+        }
         this._globalTime += dt;
         this._timer += dt;
         if (this.showFPS) {
@@ -9145,6 +9328,7 @@ var PuzzleState;
     PuzzleState[PuzzleState["TRASH"] = 5] = "TRASH";
     PuzzleState[PuzzleState["PRBLM"] = 6] = "PRBLM";
     PuzzleState[PuzzleState["INFO"] = 7] = "INFO";
+    PuzzleState[PuzzleState["XMAS"] = 8] = "XMAS";
 })(PuzzleState || (PuzzleState = {}));
 function CLEAN_IPuzzleData(data) {
     if (data.id != null && typeof (data.id) === "string") {
@@ -9615,6 +9799,10 @@ class PuzzleUI {
             autoplay: false,
             volume: 0.3
         });
+        this.loseSound = this.game.soundManager.createSound("ambient", "./datas/sounds/violin-lose-1-175615.mp3", this.game.scene, undefined, {
+            autoplay: false,
+            volume: 0.2
+        });
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
     }
@@ -9706,6 +9894,7 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
+        this.loseSound.play();
         CenterPanel(this.gameoverPanel, panelDX, 0);
         requestAnimationFrame(() => {
             CenterPanel(this.gameoverPanel, panelDX, 0);

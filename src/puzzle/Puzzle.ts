@@ -241,6 +241,7 @@ class Puzzle {
     public puzzleUI: PuzzleUI;
     private _pendingPublish: boolean = false;
     public haiku: Haiku;
+    public tileHaikus: HaikuTile[] = [];
     public playerHaikus: HaikuPlayerStart[] = [];
 
     constructor(public game: Game) {
@@ -458,6 +459,9 @@ class Puzzle {
         if (this.haiku) {
             this.haiku.dispose();
             this.haiku = undefined;
+        }
+        while (this.tileHaikus.length > 0) {
+            this.tileHaikus.pop().dispose();
         }
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
@@ -1036,6 +1040,7 @@ class Puzzle {
             this.playerHaikus[0].show();
             this.playerHaikus[1].show();
         }
+        HaikuMaker.MakeHaiku(this);
         if (!replaying) {
             await this.NextFrame();
         }
@@ -1479,6 +1484,9 @@ class Puzzle {
                 this.playerHaikus[i].hide();
             }
         }
+        for (let i = 0; i < this.tileHaikus.length; i++) {
+            this.tileHaikus[i].show();
+        }
         this.puzzleState = PuzzleState.Playing;
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
@@ -1526,6 +1534,12 @@ class Puzzle {
         }
         if (this.haiku) {
             this.haiku.update(dt);
+        }
+        for (let i = 0; i < this.tileHaikus.length; i++) {
+            let tileHaiku = this.tileHaikus[i];
+            if (tileHaiku.shown && tileHaiku.tile.isDisposed()) {
+                tileHaiku.hide();
+            }
         }
 
         this._globalTime += dt;

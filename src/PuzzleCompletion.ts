@@ -31,10 +31,12 @@ class PuzzleCompletion {
 
     public storyPuzzleCompletion: number = 0;
     public expertPuzzleCompletion: number = 0;
+    public xmasPuzzleCompletion: number = 0;
     public communityPuzzleCompletion: number = 0;
 
     public storyPuzzles: PuzzleCompletionElement[] = [];
     public expertPuzzles: PuzzleCompletionElement[] = [];
+    public xmasPuzzles: PuzzleCompletionElement[] = [];
     public communityPuzzles: PuzzleCompletionElement[] = [];
 
     public recentUnlocks: Nabu.UniqueList<number>;
@@ -47,6 +49,10 @@ class PuzzleCompletion {
         let expertElement = this.expertPuzzles.find(e => { return e.puzzleId === id; });
         if (expertElement) {
             return expertElement;
+        }
+        let xmasElement = this.xmasPuzzles.find(e => { return e.puzzleId === id; });
+        if (xmasElement) {
+            return xmasElement;
         }
         let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
         if (communityElement) {
@@ -84,6 +90,18 @@ class PuzzleCompletion {
             totalStarsCount += e.getStarsCount();
         });
         this.expertPuzzleCompletion =  totalStarsCount / max;
+    }
+
+    private _updateXmasPuzzleCompletion(): void {
+        let max = this.xmasPuzzles.length * 4;
+        if (max < 1) {
+            return;
+        }
+        let totalStarsCount = 0;
+        this.xmasPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        this.xmasPuzzleCompletion =  totalStarsCount / max;
     }
 
     private _updateCommunityPuzzleCompletion(): void {
@@ -131,8 +149,16 @@ class PuzzleCompletion {
             );
         });
 
+        this.game.loadedXMasPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.xmasPuzzles.push(
+                new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
+            );
+        });
+
         this._updateStoryPuzzleCompletion();
         this._updateExpertPuzzleCompletion();
+        this._updateXmasPuzzleCompletion();
         this._updateCommunityPuzzleCompletion();
     }
 

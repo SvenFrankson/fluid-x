@@ -6,7 +6,8 @@ enum PuzzleState {
     MULTI,
     TRASH,
     PRBLM,
-    INFO
+    INFO,
+    XMAS
 }
 
 interface IPuzzleData {

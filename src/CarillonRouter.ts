@@ -2,6 +2,7 @@ class CarillonRouter extends Nabu.Router {
     public homeMenu: HomePage;
     public storyPuzzlesPage: StoryPuzzlesPage;
     public expertPuzzlesPage: ExpertPuzzlesPage;
+    public xmasPuzzlesPage: XMasPuzzlesPage;
     public communityPuzzlesPage: CommunityPuzzlesPage;
     public devPuzzlesPage: DevPuzzlesPage;
     public multiplayerPuzzlesPage: MultiplayerPuzzlesPage;
@@ -30,6 +31,7 @@ class CarillonRouter extends Nabu.Router {
         this.homeMenu = new HomePage("#home-menu", this);
         this.storyPuzzlesPage = new StoryPuzzlesPage("#base-puzzles-page", this);
         this.expertPuzzlesPage = new ExpertPuzzlesPage("#expert-puzzles-page", this);
+        this.xmasPuzzlesPage = new XMasPuzzlesPage("#xmas-puzzles-page", this);
         this.communityPuzzlesPage = new CommunityPuzzlesPage("#community-puzzles-page", this);
         this.devPuzzlesPage = new DevPuzzlesPage("#dev-puzzles-page", this);
         this.multiplayerPuzzlesPage = new MultiplayerPuzzlesPage("#multiplayer-puzzles-page", this);
@@ -162,6 +164,15 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.expertPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.expertPuzzlesPage.redraw();
+            })
+        }
+        else if (page.startsWith("#xmas-puzzles")) {
+            if (USE_POKI_SDK) {
+                PokiGameplayStop();
+            }
+            this.show(this.xmasPuzzlesPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.xmasPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#community-puzzles")) {

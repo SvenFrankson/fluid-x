@@ -41,6 +41,7 @@ class PuzzleUI {
     }
 
     public winSound: MySound;
+    public loseSound: MySound;
 
     constructor(public puzzle: Puzzle) {
         this.ingameTimer = document.querySelector("#play-timer");
@@ -77,6 +78,17 @@ class PuzzleUI {
             {
                 autoplay: false,
                 volume: 0.3
+            }
+        );
+
+        this.loseSound = this.game.soundManager.createSound(
+            "ambient",
+            "./datas/sounds/violin-lose-1-175615.mp3",
+            this.game.scene,
+            undefined,
+            {
+                autoplay: false,
+                volume: 0.2
             }
         );
 
@@ -162,6 +174,7 @@ class PuzzleUI {
         if (this.game.uiInputManager.inControl) {
             this.setHoveredElement(this.gameoverReplayButton);
         }
+        this.loseSound.play();
         CenterPanel(this.gameoverPanel, panelDX, 0);
         requestAnimationFrame(() => {
             CenterPanel(this.gameoverPanel, panelDX, 0);

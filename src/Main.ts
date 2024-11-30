@@ -2,9 +2,9 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var MAJOR_VERSION: number = 1;
+var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 10;
+var PATCH_VERSION: number = 11;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -293,6 +293,8 @@ class Game {
 
     public loadedStoryPuzzles: IPuzzlesData;
     public loadedExpertPuzzles: IPuzzlesData;
+    public loadedXMasPuzzles: IPuzzlesData;
+    public dayOfXMasCal: number = 1;
     public loadedCommunityPuzzles: IPuzzlesData;
     public loadedMultiplayerPuzzles: IPuzzlesData;
 
@@ -995,6 +997,65 @@ class Game {
 
         this.loadedExpertPuzzles = expertPuzzles;
 
+        let xMasPuzzles: IPuzzlesData;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
+                method: "GET",
+                mode: "cors"
+            });
+            xMasPuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(xMasPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/8", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                xMasPuzzles = await response.json() as IPuzzlesData;
+
+                for (let i = 0; i < xMasPuzzles.puzzles.length; i++) {
+                    xMasPuzzles.puzzles[i].title = "December " + (i + 1).toFixed(0) + ".\n" + xMasPuzzles.puzzles[i].title;
+                }
+
+                CLEAN_IPuzzlesData(xMasPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
+                    method: "GET",
+                    mode: "cors"
+                });
+                xMasPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(xMasPuzzles);
+            }
+        }
+
+        this.dayOfXMasCal = new Date().getDate();
+        this.dayOfXMasCal = 1;
+        console.log("dayOfXMasCal " + this.dayOfXMasCal)
+        
+        let i0 = Math.min(this.dayOfXMasCal + 1, xMasPuzzles.puzzles.length);
+        for (let i = i0; i < 25; i++) {
+            let puzzleData: IPuzzleData = {
+                id: null,
+                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                author: "TiaratumGames",
+                content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
+                difficulty: 2
+            }
+            xMasPuzzles.puzzles[i] = puzzleData;
+        }
+
+        this.loadedXMasPuzzles = xMasPuzzles;
+        for (let i = 0; i < this.loadedXMasPuzzles.puzzles.length; i++) {
+            this.loadedXMasPuzzles.puzzles[i].numLevel = (i + 1);
+        }
+
         let communityPuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
@@ -1470,6 +1531,7 @@ async function RandomWait(): Promise<void> {
 async function DEV_GENERATE_ALL_LEVEL_FILES(): Promise<void> {
     Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
     Nabu.download("tiaratum_expert_levels.json", JSON.stringify(Game.Instance.loadedExpertPuzzles));
+    Nabu.download("tiaratum_xmas_levels.json", JSON.stringify(Game.Instance.loadedXMasPuzzles));
     Nabu.download("tiaratum_community_levels.json", JSON.stringify(Game.Instance.loadedCommunityPuzzles));
     Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
     Nabu.download("story_expert_table.json", JSON.stringify(Game.Instance.storyExpertTable));
@@ -1483,7 +1545,8 @@ var DEV_MODES_NAMES = [
     "MULTI",
     "TRASH",
     "PRBLM",
-    "INFO"
+    "INFO",
+    "XMAS"
 ];
 var DEV_MODE_ACTIVATED: boolean = false;
 var var1: string = "";
@@ -1531,7 +1594,7 @@ function DEV_ACTIVATE(): void {
     document.body.appendChild(info);
 
     let devStateBtns: HTMLButtonElement[] = [];
-    for (let i = 0; i <= 7; i++) {
+    for (let i = 0; i <= 8; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
         devStateBtns.push(btn);
     }

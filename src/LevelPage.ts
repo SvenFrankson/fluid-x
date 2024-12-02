@@ -312,8 +312,8 @@ abstract class LevelPage {
             return;
         }
         let btn = this.buttons[this._hoveredButtonIndex];
-        if (btn && btn.onpointerup) {
-            btn.onpointerup(undefined);
+        if (btn && btn.onclick) {
+            btn.onclick(undefined);
             return;
         }
     }

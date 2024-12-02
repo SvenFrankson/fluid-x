@@ -3850,8 +3850,8 @@ class LevelPage {
                 return;
             }
             let btn = this.buttons[this._hoveredButtonIndex];
-            if (btn && btn.onpointerup) {
-                btn.onpointerup(undefined);
+            if (btn && btn.onclick) {
+                btn.onclick(undefined);
                 return;
             }
         };
@@ -7012,31 +7012,37 @@ class UserInterfaceInputManager {
             }
             this.inControl = true;
             if (ev.code === "KeyW" || ev.code === "ArrowUp") {
+                ev.preventDefault();
                 this.onUpCallbacks.forEach(cb => {
                     cb();
                 });
             }
             if (ev.code === "KeyA" || ev.code === "ArrowLeft") {
+                ev.preventDefault();
                 this.onLeftCallbacks.forEach(cb => {
                     cb();
                 });
             }
             if (ev.code === "KeyS" || ev.code === "ArrowDown") {
+                ev.preventDefault();
                 this.onDownCallbacks.forEach(cb => {
                     cb();
                 });
             }
             if (ev.code === "KeyD" || ev.code === "ArrowRight") {
+                ev.preventDefault();
                 this.onRightCallbacks.forEach(cb => {
                     cb();
                 });
             }
             if (ev.code === "Enter" || ev.code === "Space" || ev.code === "KeyE") {
+                ev.preventDefault();
                 this.onEnterCallbacks.forEach(cb => {
                     cb();
                 });
             }
             if (ev.code === "Backspace" || ev.code === "KeyX") {
+                ev.preventDefault();
                 this.onBackCallbacks.forEach(cb => {
                     cb();
                 });

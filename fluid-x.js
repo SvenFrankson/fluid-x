@@ -16,27 +16,8 @@ class Ball extends BABYLON.Mesh {
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
-        /*
-        private _boost: boolean = false;
-        public get boost(): boolean {
-            return this._boost;
-        }
-        public set boost(v: boolean) {
-            this._boost = v;
-    
-            this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
-    
-            let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
-            if (inputBoost) {
-                if (this._boost) {
-                    inputBoost.classList.add("active");
-                }
-                else {
-                    inputBoost.classList.remove("active");
-                }
-            }
-        }
-        */
+        this.canBoost = false;
+        this._boost = false;
         this.nominalSpeed = 2.5;
         this.vZ = 1;
         this.radius = 0.25;
@@ -48,10 +29,24 @@ class Ball extends BABYLON.Mesh {
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.mouseDown = (ev) => {
+        this.mouseInControl = false;
+        this._pointerDown = false;
+        this.pointerDown = (ev) => {
             if (this.game.mode === GameMode.Preplay) {
                 this.puzzle.skipIntro();
                 this.lockControl(0.2);
+            }
+        };
+        this.mouseDown = (ev) => {
+            if (this.mouseCanControl) {
+                this.mouseInControl = true;
+                this._pointerDown = true;
+            }
+        };
+        this.mouseUp = (ev) => {
+            if (this.mouseCanControl) {
+                this.mouseInControl = true;
+                this._pointerDown = false;
             }
         };
         this.xForce = 1;
@@ -125,22 +120,25 @@ class Ball extends BABYLON.Mesh {
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
                     this.leftDown = 1;
+                    this.mouseInControl = false;
                 });
                 inputLeft.addEventListener("pointerup", () => {
+                    this.mouseInControl = false;
                     this.leftDown = 0;
                 });
             }
             let inputRight = document.querySelector("#input-right");
             if (inputRight) {
                 inputRight.addEventListener("pointerdown", () => {
+                    this.mouseInControl = false;
                     this.rightDown = 1;
                 });
                 inputRight.addEventListener("pointerup", () => {
+                    this.mouseInControl = false;
                     this.rightDown = 0;
                 });
             }
-            /*
-            let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
+            let inputBoost = document.querySelector("#input-boost");
             inputBoost.addEventListener("pointerdown", () => {
                 if (this.boost) {
                     this.boost = false;
@@ -148,66 +146,89 @@ class Ball extends BABYLON.Mesh {
                 else {
                     this.boost = true;
                 }
-            })
-            */
+            });
+            this.game.canvas.addEventListener("pointerdown", this.pointerDown);
             this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+            this.game.canvas.addEventListener("pointerup", this.mouseUp);
+            this.game.canvas.addEventListener("pointerleave", this.mouseUp);
+            this.game.canvas.addEventListener("pointerout", this.mouseUp);
             document.addEventListener("keydown", (ev) => {
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.leftDown = 1;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
                     if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.leftDown = 1;
                     }
                 }
                 if (ev.code === "KeyD") {
                     if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.rightDown = 1;
                     }
                 }
                 if (ev.code === "ArrowRight") {
                     if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.rightDown = 1;
                     }
                 }
-                /*
                 if (ev.code === "Space") {
-                    if (this.wasdCanControl) {
+                    if (this.wasdCanControl && this.canBoost) {
                         this.boost = true;
                     }
                 }
-                    */
             });
             document.addEventListener("keyup", (ev) => {
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.leftDown = 0;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
                     if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.leftDown = 0;
                     }
                 }
                 if (ev.code === "KeyD") {
                     if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.rightDown = 0;
                     }
                 }
                 if (ev.code === "ArrowRight") {
                     if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
                         this.rightDown = 0;
                     }
                 }
-                /*
                 if (ev.code === "Space") {
-                    if (this.wasdCanControl) {
+                    if (this.wasdCanControl && this.canBoost) {
                         this.boost = false;
                     }
                 }
-                */
             });
         }
     }
@@ -222,6 +243,22 @@ class Ball extends BABYLON.Mesh {
     }
     set rightArrowSize(v) {
         this.rightArrow.scaling.copyFromFloats(v, v, v);
+    }
+    get boost() {
+        return this._boost;
+    }
+    set boost(v) {
+        this._boost = v;
+        this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
+        let inputBoost = document.querySelector("#input-boost");
+        if (inputBoost) {
+            if (this._boost) {
+                inputBoost.classList.add("active");
+            }
+            else {
+                inputBoost.classList.remove("active");
+            }
+        }
     }
     lockControl(duration = 0.2) {
         clearTimeout(this._lockControlTimout);
@@ -271,6 +308,9 @@ class Ball extends BABYLON.Mesh {
     get arrowCanControl() {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
+    get mouseCanControl() {
+        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
+    }
     async instantiate() {
         //await RandomWait();
         let ballDatas;
@@ -301,10 +341,33 @@ class Ball extends BABYLON.Mesh {
         }
     }
     get boostedSpeed() {
-        //return this.boost ? this.speed * 1.6 : this.speed;
-        return this.speed;
+        if (this.canBoost) {
+            return this.boost ? this.speed * 1.6 : this.speed;
+        }
+        else {
+            return this.speed;
+        }
     }
     update(dt) {
+        if (this.mouseCanControl && this.mouseInControl) {
+            this.rightDown = 0;
+            this.leftDown = 0;
+            if (this._pointerDown) {
+                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
+                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
+                });
+                if (pick.hit) {
+                    let point = pick.pickedPoint;
+                    let dx = point.x - this.absolutePosition.x;
+                    if (dx > 0) {
+                        this.rightDown = Math.min(1, dx / 0.5);
+                    }
+                    else if (dx < 0) {
+                        this.leftDown = Math.min(1, dx / -0.5);
+                    }
+                }
+            }
+        }
         let vX = 0;
         if (this.leftDown > 0) {
             this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftDown) * 0.2;
@@ -340,8 +403,7 @@ class Ball extends BABYLON.Mesh {
                         p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                     }
                     this.trailPoints.push(p);
-                    //let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
-                    let c = new BABYLON.Color4(0.8, 0.8, 0.8);
+                    let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
                     this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
                     this.trailPointColors.push(this.trailColor.clone());
                     let count = 20;
@@ -390,7 +452,7 @@ class Ball extends BABYLON.Mesh {
             this.rightArrow.position.y += 0.1;
             this.leftArrow.position.copyFrom(this.position);
             this.leftArrow.position.y += 0.1;
-            if (!this.isControlLocked && (this.leftDown > 0 || this.rightDown > 0)) {
+            if (!this.isControlLocked && (this.leftDown || this.rightDown)) {
                 if (this.game.mode === GameMode.Preplay) {
                     this.puzzle.skipIntro();
                     this.lockControl(0.2);
@@ -823,6 +885,7 @@ class Ball extends BABYLON.Mesh {
     reset() {
         clearTimeout(this._loseTimout);
         this.parent = undefined;
+        this.boost = false;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.trailPoints = [];
         this.trailPointColors = [];
@@ -3839,7 +3902,7 @@ class LevelPage {
             if (puzzleTileDatas[n].classList) {
                 squareButton.classList.add(...puzzleTileDatas[n].classList);
             }
-            squareButton.onpointerup = puzzleTileDatas[n].onpointerup;
+            squareButton.onclick = puzzleTileDatas[n].onpointerup;
             let titleField = document.createElement("div");
             titleField.classList.add("square-btn-title");
             let titleText = document.createElement("stroke-text");
@@ -5517,6 +5580,7 @@ class Game {
         //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
+            this.router.puzzleIntro.style.display = "";
             let t0 = performance.now();
             let step = () => {
                 if (this.fadeIntroDir < 0) {
@@ -5529,6 +5593,7 @@ class Game {
                 }
                 else {
                     this.router.puzzleIntro.style.opacity = "1";
+                    this.router.puzzleIntro.style.display = "";
                 }
             };
             this.fadeIntroDir = 1;
@@ -5539,6 +5604,7 @@ class Game {
         //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
+            this.router.puzzleIntro.style.display = "";
             let t0 = performance.now();
             let step = () => {
                 if (this.fadeIntroDir > 0) {
@@ -5551,6 +5617,7 @@ class Game {
                 }
                 else {
                     this.router.puzzleIntro.style.opacity = "0";
+                    this.router.puzzleIntro.style.display = "none";
                 }
             };
             this.fadeIntroDir = -1;

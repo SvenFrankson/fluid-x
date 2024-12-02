@@ -1476,6 +1476,7 @@ class Game {
         //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "0";
+            this.router.puzzleIntro.style.display = "";
     
             let t0 = performance.now();
             let step = () => {
@@ -1489,6 +1490,7 @@ class Game {
                 }
                 else {
                     this.router.puzzleIntro.style.opacity = "1";
+                    this.router.puzzleIntro.style.display = "";
                 }
             }
             this.fadeIntroDir = 1;
@@ -1500,6 +1502,7 @@ class Game {
         //await RandomWait();
         if (this.router.puzzleIntro) {
             this.router.puzzleIntro.style.opacity = "1";
+            this.router.puzzleIntro.style.display = "";
     
             let t0 = performance.now();
             let step = () => {
@@ -1513,6 +1516,7 @@ class Game {
                 }
                 else {
                     this.router.puzzleIntro.style.opacity = "0";
+                    this.router.puzzleIntro.style.display = "none";
                 }
             }
             this.fadeIntroDir = -1;

@@ -729,6 +729,7 @@ body.vertical .square-btn-container {
     z-index: 1;
     border: 2px solid #1b1811;
     opacity: 0.6;
+    pointer-events: none;
 }
 
 .locked .square-btn-miniature {

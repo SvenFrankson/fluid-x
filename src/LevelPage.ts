@@ -85,7 +85,7 @@ abstract class LevelPage {
                 squareButton.classList.add(...puzzleTileDatas[n].classList);
             }
 
-            squareButton.onpointerup = puzzleTileDatas[n].onpointerup;
+            squareButton.onclick = puzzleTileDatas[n].onpointerup;
 
             let titleField = document.createElement("div");
             titleField.classList.add("square-btn-title");

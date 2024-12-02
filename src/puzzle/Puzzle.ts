@@ -247,7 +247,6 @@ class Puzzle {
     constructor(public game: Game) {
         this.balls = [
             new Ball(this, { color: TileColor.North }, 0),
-            new Ball(this, { color: TileColor.North }, 1)
         ];
 
         this.fishingPole = new FishingPole(this);

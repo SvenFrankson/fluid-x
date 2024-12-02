@@ -22,6 +22,7 @@ class Ball extends BABYLON.Mesh {
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
+        this.bounceXDelayWall = 0.7;
         this.xForceAccelDelay = 0.8 * this.bounceXDelay;
         this._loseTimout = 0;
         this.isControlLocked = false;
@@ -119,10 +120,12 @@ class Ball extends BABYLON.Mesh {
             let inputLeft = document.querySelector("#input-left");
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
+                    console.log("lpd");
                     this.leftDown = 1;
                     this.mouseInControl = false;
                 });
                 inputLeft.addEventListener("pointerup", () => {
+                    console.log("lpu");
                     this.mouseInControl = false;
                     this.leftDown = 0;
                 });
@@ -130,10 +133,12 @@ class Ball extends BABYLON.Mesh {
             let inputRight = document.querySelector("#input-right");
             if (inputRight) {
                 inputRight.addEventListener("pointerdown", () => {
+                    console.log("rpd");
                     this.mouseInControl = false;
                     this.rightDown = 1;
                 });
                 inputRight.addEventListener("pointerup", () => {
+                    console.log("rpu");
                     this.mouseInControl = false;
                     this.rightDown = 0;
                 });
@@ -148,10 +153,6 @@ class Ball extends BABYLON.Mesh {
                 }
             });
             this.game.canvas.addEventListener("pointerdown", this.pointerDown);
-            this.game.canvas.addEventListener("pointerdown", this.mouseDown);
-            this.game.canvas.addEventListener("pointerup", this.mouseUp);
-            this.game.canvas.addEventListener("pointerleave", this.mouseUp);
-            this.game.canvas.addEventListener("pointerout", this.mouseUp);
             document.addEventListener("keydown", (ev) => {
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
@@ -302,6 +303,12 @@ class Ball extends BABYLON.Mesh {
     get game() {
         return this.puzzle.game;
     }
+    connectMouse() {
+        this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+        this.game.canvas.addEventListener("pointerup", this.mouseUp);
+        this.game.canvas.addEventListener("pointerleave", this.mouseUp);
+        this.game.canvas.addEventListener("pointerout", this.mouseUp);
+    }
     get wasdCanControl() {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
     }
@@ -327,8 +334,8 @@ class Ball extends BABYLON.Mesh {
         ballDatas[5].applyToMesh(this.rightBox);
         ballDatas[6].applyToMesh(this.rightTop);
         BABYLON.CreateGroundVertexData({ width: 1.35, height: 1.35 }).applyToMesh(this.shadow);
-        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
-        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.6 * 2 * this.radius, height: 2.6 * 2 * this.radius }).applyToMesh(this.leftArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.6 * 2 * this.radius, height: 2.6 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
     setVisible(v) {
         this.isVisible = v;
@@ -536,7 +543,7 @@ class Ball extends BABYLON.Mesh {
             if (this.position.x + this.radius > this.puzzle.xMax) {
                 this.position.x = this.puzzle.xMax - this.radius;
                 this.bounceXValue = -1;
-                this.bounceXTimer = this.bounceXDelay;
+                this.bounceXTimer = this.bounceXDelayWall;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMax;
                 this.woodChocSound2.play();
@@ -544,7 +551,7 @@ class Ball extends BABYLON.Mesh {
             else if (this.position.x - this.radius < this.puzzle.xMin) {
                 this.position.x = this.puzzle.xMin + this.radius;
                 this.bounceXValue = 1;
-                this.bounceXTimer = this.bounceXDelay;
+                this.bounceXTimer = this.bounceXDelayWall;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMin;
                 this.woodChocSound2.play();
@@ -562,11 +569,11 @@ class Ball extends BABYLON.Mesh {
                                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
                                     if (dir.x > 0) {
                                         this.bounceXValue = 1;
-                                        this.bounceXTimer = this.bounceXDelay;
+                                        this.bounceXTimer = this.bounceXDelayWall;
                                     }
                                     else {
                                         this.bounceXValue = -1;
-                                        this.bounceXTimer = this.bounceXDelay;
+                                        this.bounceXTimer = this.bounceXDelayWall;
                                     }
                                 }
                                 else {
@@ -706,14 +713,14 @@ class Ball extends BABYLON.Mesh {
                                             if (dir.x > 0) {
                                                 this.position.x = impact.x + this.radius;
                                                 this.bounceXValue = 1;
-                                                this.bounceXTimer = this.bounceXDelay;
+                                                this.bounceXTimer = (tile instanceof WallTile || tile instanceof DoorTile) ? this.bounceXDelayWall : this.bounceXDelay;
                                             }
                                             else {
                                                 this.position.x = impact.x - this.radius;
                                                 this.bounceXValue = -1;
-                                                this.bounceXTimer = this.bounceXDelay;
+                                                this.bounceXTimer = (tile instanceof WallTile || tile instanceof DoorTile) ? this.bounceXDelayWall : this.bounceXDelay;
                                             }
-                                            if (tile instanceof WallTile) {
+                                            if (tile instanceof WallTile || tile instanceof DoorTile) {
                                                 this.woodChocSound2.play();
                                             }
                                             else {
@@ -2644,9 +2651,11 @@ class Editor {
         this.p1OriginColorInput.setValue(this.puzzle.balls[0].color);
         this.p1OriginIInput.setValue(this.puzzle.balls[0].i);
         this.p1OriginJInput.setValue(this.puzzle.balls[0].j);
-        this.p2OriginColorInput.setValue(this.puzzle.balls[1].color);
-        this.p2OriginIInput.setValue(this.puzzle.balls[1].i);
-        this.p2OriginJInput.setValue(this.puzzle.balls[1].j);
+        if (this.puzzle.balls[1]) {
+            this.p2OriginColorInput.setValue(this.puzzle.balls[1].color);
+            this.p2OriginIInput.setValue(this.puzzle.balls[1].i);
+            this.p2OriginJInput.setValue(this.puzzle.balls[1].j);
+        }
         this.widthInput.setValue(this.puzzle.w);
         this.heightInput.setValue(this.puzzle.h);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
@@ -2666,12 +2675,16 @@ class Editor {
         this.ballCountButton.onpointerup = () => {
             if (this.puzzle.ballsCount === 1) {
                 this.puzzle.ballsCount = 2;
-                this.puzzle.balls[1].instantiate();
-                this.puzzle.balls[1].setVisible(true);
+                if (this.puzzle.balls[1]) {
+                    this.puzzle.balls[1].instantiate();
+                    this.puzzle.balls[1].setVisible(true);
+                }
             }
             else if (this.puzzle.ballsCount === 2) {
                 this.puzzle.ballsCount = 1;
-                this.puzzle.balls[1].setVisible(false);
+                if (this.puzzle.balls[1]) {
+                    this.puzzle.balls[1].setVisible(false);
+                }
             }
             document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
             this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
@@ -2697,7 +2710,9 @@ class Editor {
         this.p2OriginColorInput = document.getElementById("editor-p2-origin-color");
         this.p2OriginColorInput.onValueChange = (v) => {
             let color = v;
-            this.puzzle.balls[1].setColor(color);
+            if (this.puzzle.balls[1]) {
+                this.puzzle.balls[1].setColor(color);
+            }
         };
         this.p2OriginColorInput.valueToString = (v) => {
             return TileColorNames[v];
@@ -2705,12 +2720,16 @@ class Editor {
         this.p2OriginIInput = document.getElementById("editor-p2-origin-i");
         this.p2OriginIInput.onValueChange = (v) => {
             this.dropClear();
-            this.puzzle.balls[1].i = Math.min(v, this.puzzle.w - 1);
+            if (this.puzzle.balls[1]) {
+                this.puzzle.balls[1].i = Math.min(v, this.puzzle.w - 1);
+            }
         };
         this.p2OriginJInput = document.getElementById("editor-p2-origin-j");
         this.p2OriginJInput.onValueChange = (v) => {
             this.dropClear();
-            this.puzzle.balls[1].j = Math.min(v, this.puzzle.h - 1);
+            if (this.puzzle.balls[1]) {
+                this.puzzle.balls[1].j = Math.min(v, this.puzzle.h - 1);
+            }
         };
         this.widthInput = document.getElementById("editor-width");
         this.widthInput.onValueChange = (v) => {
@@ -4355,7 +4374,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 16;
+var PATCH_VERSION = 17;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4419,6 +4438,8 @@ let onFirstPlayerInteractionTouch = (ev) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
+    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
+    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -4444,7 +4465,6 @@ let onFirstPlayerInteractionClick = (ev) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Clic");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -4454,19 +4474,24 @@ let onFirstPlayerInteractionClick = (ev) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
+    if (Game.Instance.puzzle && Game.Instance.puzzle.balls[0]) {
+        Game.Instance.puzzle.balls[0].connectMouse();
+    }
     Game.Instance.soundManager.unlockEngine();
     if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 };
 let onFirstPlayerInteractionKeyboard = (ev) => {
+    if (!ev.code) {
+        return;
+    }
     if (!Game.Instance.gameLoaded) {
         return;
     }
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     PlayerHasInteracted = true;
-    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
     setTimeout(() => {
@@ -7980,7 +8005,6 @@ class Puzzle {
         this._globalTime = 0;
         this.balls = [
             new Ball(this, { color: TileColor.North }, 0),
-            new Ball(this, { color: TileColor.North }, 1)
         ];
         this.fishingPole = new FishingPole(this);
         this.floor = new BABYLON.Mesh("floor");

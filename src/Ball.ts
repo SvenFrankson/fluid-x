@@ -74,6 +74,7 @@ class Ball extends BABYLON.Mesh {
     public vZ: number = 1;
     public radius: number = 0.25;
     public bounceXDelay: number = 0.93;
+    public bounceXDelayWall: number = 0.7;
     public xForceAccelDelay: number = 0.8 * this.bounceXDelay;
 
     private _loseTimout: number = 0;
@@ -213,10 +214,12 @@ class Ball extends BABYLON.Mesh {
             let inputLeft = document.querySelector("#input-left");
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
+                    console.log("lpd");
                     this.leftDown = 1;
                     this.mouseInControl = false;
                 })
                 inputLeft.addEventListener("pointerup", () => {
+                    console.log("lpu");
                     this.mouseInControl = false;
                     this.leftDown = 0;
                 })
@@ -225,10 +228,12 @@ class Ball extends BABYLON.Mesh {
             let inputRight = document.querySelector("#input-right");
             if (inputRight) {
                 inputRight.addEventListener("pointerdown", () => {
+                    console.log("rpd");
                     this.mouseInControl = false;
                     this.rightDown = 1;
                 })
                 inputRight.addEventListener("pointerup", () => {
+                    console.log("rpu");
                     this.mouseInControl = false;
                     this.rightDown = 0;
                 })
@@ -245,10 +250,6 @@ class Ball extends BABYLON.Mesh {
             })
     
             this.game.canvas.addEventListener("pointerdown", this.pointerDown);
-            this.game.canvas.addEventListener("pointerdown", this.mouseDown);
-            this.game.canvas.addEventListener("pointerup", this.mouseUp);
-            this.game.canvas.addEventListener("pointerleave", this.mouseUp);
-            this.game.canvas.addEventListener("pointerout", this.mouseUp);
 
             document.addEventListener("keydown", (ev: KeyboardEvent) => {
                 if (ev.code === "KeyA") {
@@ -335,6 +336,13 @@ class Ball extends BABYLON.Mesh {
         
     }
 
+    public connectMouse(): void {
+        this.game.canvas.addEventListener("pointerdown", this.mouseDown);
+        this.game.canvas.addEventListener("pointerup", this.mouseUp);
+        this.game.canvas.addEventListener("pointerleave", this.mouseUp);
+        this.game.canvas.addEventListener("pointerout", this.mouseUp);
+    }
+
     public get wasdCanControl(): boolean {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 0;
     }
@@ -384,8 +392,8 @@ class Ball extends BABYLON.Mesh {
         ballDatas[6].applyToMesh(this.rightTop);
 
         BABYLON.CreateGroundVertexData({ width: 1.35, height: 1.35 }).applyToMesh(this.shadow);
-        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.leftArrow);
-        BABYLON.CreateGroundVertexData({ width: 2.2 * 2 * this.radius, height: 2.2 * 2 * this.radius }).applyToMesh(this.rightArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.6 * 2 * this.radius, height: 2.6 * 2 * this.radius }).applyToMesh(this.leftArrow);
+        BABYLON.CreateGroundVertexData({ width: 2.6 * 2 * this.radius, height: 2.6 * 2 * this.radius }).applyToMesh(this.rightArrow);
     }
 
     public setVisible(v: boolean): void {
@@ -629,7 +637,7 @@ class Ball extends BABYLON.Mesh {
             if (this.position.x + this.radius > this.puzzle.xMax) {
                 this.position.x = this.puzzle.xMax - this.radius;
                 this.bounceXValue = - 1;
-                this.bounceXTimer = this.bounceXDelay;
+                this.bounceXTimer = this.bounceXDelayWall;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMax;
                 this.woodChocSound2.play();
@@ -637,7 +645,7 @@ class Ball extends BABYLON.Mesh {
             else if (this.position.x - this.radius < this.puzzle.xMin) {
                 this.position.x = this.puzzle.xMin + this.radius;
                 this.bounceXValue = 1;
-                this.bounceXTimer = this.bounceXDelay;
+                this.bounceXTimer = this.bounceXDelayWall;
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMin;
                 this.woodChocSound2.play();
@@ -657,11 +665,11 @@ class Ball extends BABYLON.Mesh {
                                 if (Math.abs(dir.x) > Math.abs(dir.z)) {
                                     if (dir.x > 0) {
                                         this.bounceXValue = 1;
-                                        this.bounceXTimer = this.bounceXDelay;
+                                        this.bounceXTimer = this.bounceXDelayWall;
                                     }
                                     else {
                                         this.bounceXValue = - 1;
-                                        this.bounceXTimer = this.bounceXDelay;
+                                        this.bounceXTimer = this.bounceXDelayWall;
                                     }
                                 }
                                 else {
@@ -808,14 +816,14 @@ class Ball extends BABYLON.Mesh {
                                             if (dir.x > 0) {
                                                 this.position.x = impact.x + this.radius;
                                                 this.bounceXValue = 1;
-                                                this.bounceXTimer = this.bounceXDelay;
+                                                this.bounceXTimer = (tile instanceof WallTile || tile instanceof DoorTile) ? this.bounceXDelayWall : this.bounceXDelay;
                                             }
                                             else {
                                                 this.position.x = impact.x - this.radius;
                                                 this.bounceXValue = - 1;
-                                                this.bounceXTimer = this.bounceXDelay;
+                                                this.bounceXTimer = (tile instanceof WallTile || tile instanceof DoorTile) ? this.bounceXDelayWall : this.bounceXDelay;
                                             }
-                                            if (tile instanceof WallTile) {
+                                            if (tile instanceof WallTile || tile instanceof DoorTile) {
                                                 this.woodChocSound2.play();
                                             }
                                             else {

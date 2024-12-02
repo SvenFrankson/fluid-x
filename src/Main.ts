@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 16;
+var PATCH_VERSION: number = 17;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -74,6 +74,8 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
+    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
+    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Touch");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -93,7 +95,7 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     Game.Instance.camera.panningSensibility *= 0.4;
 }
 
-let onFirstPlayerInteractionClick = (ev: Event) => {
+let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     if (!Game.Instance.gameLoaded) {
         return;
     }
@@ -101,7 +103,6 @@ let onFirstPlayerInteractionClick = (ev: Event) => {
     ev.stopPropagation();
     PlayerHasInteracted = true;
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Clic");
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -112,20 +113,25 @@ let onFirstPlayerInteractionClick = (ev: Event) => {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
+    if (Game.Instance.puzzle && Game.Instance.puzzle.balls[0]) {
+        Game.Instance.puzzle.balls[0].connectMouse();
+    }
     Game.Instance.soundManager.unlockEngine();
     if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
         location.hash = "#level-1";
     }
 }
 
-let onFirstPlayerInteractionKeyboard = (ev: Event) => {
+let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
+    if (!ev.code) {
+        return;
+    }
     if (!Game.Instance.gameLoaded) {
         return;
     }
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     PlayerHasInteracted = true;
-    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
     setTimeout(() => {

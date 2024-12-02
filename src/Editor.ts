@@ -147,9 +147,11 @@ class Editor {
         this.p1OriginColorInput.setValue(this.puzzle.balls[0].color);
         this.p1OriginIInput.setValue(this.puzzle.balls[0].i);
         this.p1OriginJInput.setValue(this.puzzle.balls[0].j);
-        this.p2OriginColorInput.setValue(this.puzzle.balls[1].color);
-        this.p2OriginIInput.setValue(this.puzzle.balls[1].i);
-        this.p2OriginJInput.setValue(this.puzzle.balls[1].j);
+        if (this.puzzle.balls[1]) {
+            this.p2OriginColorInput.setValue(this.puzzle.balls[1].color);
+            this.p2OriginIInput.setValue(this.puzzle.balls[1].i);
+            this.p2OriginJInput.setValue(this.puzzle.balls[1].j);
+        }
         this.widthInput.setValue(this.puzzle.w);
         this.heightInput.setValue(this.puzzle.h);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
@@ -170,12 +172,16 @@ class Editor {
         this.ballCountButton.onpointerup = () => {
             if (this.puzzle.ballsCount === 1) {
                 this.puzzle.ballsCount = 2;
-                this.puzzle.balls[1].instantiate();
-                this.puzzle.balls[1].setVisible(true);
+                if (this.puzzle.balls[1]) {
+                    this.puzzle.balls[1].instantiate();
+                    this.puzzle.balls[1].setVisible(true);
+                }
             }
             else if (this.puzzle.ballsCount === 2) {
                 this.puzzle.ballsCount = 1;
-                this.puzzle.balls[1].setVisible(false);
+                if (this.puzzle.balls[1]) {
+                    this.puzzle.balls[1].setVisible(false);
+                }
             }
             document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
             this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
@@ -205,7 +211,9 @@ class Editor {
         this.p2OriginColorInput = document.getElementById("editor-p2-origin-color") as NumValueInput;
         this.p2OriginColorInput.onValueChange = (v: number) => {
             let color = v;
-            this.puzzle.balls[1].setColor(color);
+            if (this.puzzle.balls[1]) {
+                this.puzzle.balls[1].setColor(color);
+            }
         }
         this.p2OriginColorInput.valueToString = (v: number) => {
             return TileColorNames[v];
@@ -214,13 +222,17 @@ class Editor {
         this.p2OriginIInput = document.getElementById("editor-p2-origin-i") as NumValueInput;
         this.p2OriginIInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.puzzle.balls[1].i = Math.min(v, this.puzzle.w - 1);
+            if (this.puzzle.balls[1]) {
+                this.puzzle.balls[1].i = Math.min(v, this.puzzle.w - 1);
+            }
         }
 
         this.p2OriginJInput = document.getElementById("editor-p2-origin-j") as NumValueInput;
         this.p2OriginJInput.onValueChange = (v: number) => {
             this.dropClear();
-            this.puzzle.balls[1].j = Math.min(v, this.puzzle.h - 1);
+            if (this.puzzle.balls[1]) {
+                this.puzzle.balls[1].j = Math.min(v, this.puzzle.h - 1);
+            }
         }
 
         this.widthInput = document.getElementById("editor-width") as NumValueInput;

@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 11;
+var PATCH_VERSION: number = 16;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -1037,7 +1037,6 @@ class Game {
         }
 
         this.dayOfXMasCal = new Date().getDate();
-        this.dayOfXMasCal = 1;
         this.dayOfXMasCal = Nabu.MinMax(this.dayOfXMasCal, 1, 24);
         
         let iFallback = 0;
@@ -1060,6 +1059,12 @@ class Game {
                 author: "TiaratumGames",
                 content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 difficulty: 2
+            }
+            if (i % 3 === 0) {
+                puzzleData.content = puzzleData.content.replaceAll("s", "n");
+            }
+            else if (i % 3 === 2) {
+                puzzleData.content = puzzleData.content.replaceAll("s", "w");
             }
             xMasPuzzles.puzzles[i] = puzzleData;
         }
@@ -1191,6 +1196,10 @@ class Game {
             return puzzle;
         }
         puzzle = this.loadedMultiplayerPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        puzzle = this.loadedXMasPuzzles.puzzles.find(e => { return e.id === id; });
         if (puzzle) {
             return puzzle;
         }

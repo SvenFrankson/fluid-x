@@ -373,10 +373,7 @@ class StoryPuzzlesPage extends LevelPage {
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
-                let locked = true;
-                if (i <= unlockCount) {
-                    locked = false;
-                }
+                let locked = false;
                 let isNew = false;
                 if (n === nextLevelIndex) {
                     isNew = true;
@@ -435,7 +432,7 @@ class XMasPuzzlesPage extends LevelPage {
 
     public onPageRedrawn(): void {
         if (this.router.game.puzzleCompletion) {
-            (this.nabuPage.querySelector(".puzzle-level-completion completion-bar") as CompletionBar).setAttribute("value", this.router.game.puzzleCompletion.storyPuzzleCompletion.toFixed(2));
+            (this.nabuPage.querySelector(".puzzle-level-completion completion-bar") as CompletionBar).setAttribute("value", this.router.game.puzzleCompletion.xmasPuzzleCompletion.toFixed(2));
         }
     }
 
@@ -445,7 +442,7 @@ class XMasPuzzlesPage extends LevelPage {
         let data = this.router.game.loadedXMasPuzzles;
         CLEAN_IPuzzlesData(data);
 
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
@@ -461,24 +458,24 @@ class XMasPuzzlesPage extends LevelPage {
                     locked: locked
                 }
             }
-            else if (n === data.puzzles.length) {
-                puzzleData[i] = {
-                    data: {
-                        id: null,
-                        title: "Play MonkeyMind original levels !\n\n(clic to leave this page)",
-                        author: "Tiaratum Games",
-                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
-                    },
-                    onpointerup: () => {
-                        let a = document.createElement("a");
-                        a.href = "https://svenfrankson.itch.io/monkeymind";
-                        a.target = "_blank";
-                        a.click();
-                    },
-                    classList: ["green"]
-                }
-            }
         }
+
+        let externalLinkData = {
+            data: {
+                id: null,
+                title: "Play MonkeyMind original puzzles !\n\n(clic to leave this page)",
+                author: "Tiaratum Games",
+                content: "11u14u5u9u2xoooooooooooxoooosssooooxoooosssooooxoooosssooooxoooososooooxoooosssooooxoooosssooooxoooosssooooxoooosssooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxooooooooooo",
+            },
+            onpointerup: () => {
+                let a = document.createElement("a");
+                a.href = "https://svenfrankson.itch.io/monkeymind";
+                a.target = "_blank";
+                a.click();
+            },
+            classList: ["green"]
+        }
+        puzzleData.splice(this.router.game.dayOfXMasCal, 0, externalLinkData);
 
         return puzzleData;
     }

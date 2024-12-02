@@ -131,6 +131,10 @@ class PuzzleUI {
             completion = this.game.puzzleCompletion.expertPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Expert";
         }
+        else if (this.puzzle.data.state === PuzzleState.XMAS) {
+            completion = this.game.puzzleCompletion.xmasPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Christmas";
+        }
         if (previousCompletion != completion) {
             this.completionBar.setValue(previousCompletion);
             this.completionBar.animateValueTo(completion, 3);

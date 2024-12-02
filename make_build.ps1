@@ -18,6 +18,11 @@ else {
     $build_name = $build_name + "_online";
 }
 
+$containsString = Select-String -Path "./index.js" -Pattern "ADVENT_CAL = true" -Quiet
+if ($containsString) {
+    $build_name = $build_name + "_advent_calendar";
+}
+
 if (Test-Path ("../" + $build_name + "")) {
     Remove-Item ("../" + $build_name + "") -Recurse -Force
 }

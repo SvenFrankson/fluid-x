@@ -16,8 +16,28 @@ class Ball extends BABYLON.Mesh {
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
-        this._boost = false;
-        this.nominalSpeed = 2;
+        /*
+        private _boost: boolean = false;
+        public get boost(): boolean {
+            return this._boost;
+        }
+        public set boost(v: boolean) {
+            this._boost = v;
+    
+            this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
+    
+            let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
+            if (inputBoost) {
+                if (this._boost) {
+                    inputBoost.classList.add("active");
+                }
+                else {
+                    inputBoost.classList.remove("active");
+                }
+            }
+        }
+        */
+        this.nominalSpeed = 2.5;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
@@ -28,24 +48,10 @@ class Ball extends BABYLON.Mesh {
         this.leftDown = 0;
         this.rightDown = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.mouseInControl = false;
-        this._pointerDown = false;
         this.mouseDown = (ev) => {
-            if (this.mouseCanControl) {
-                this.mouseInControl = true;
-                this._pointerDown = true;
-            }
-            else {
-                if (this.game.mode === GameMode.Preplay) {
-                    this.puzzle.skipIntro();
-                    this.lockControl(0.2);
-                }
-            }
-        };
-        this.mouseUp = (ev) => {
-            if (this.mouseCanControl) {
-                this.mouseInControl = true;
-                this._pointerDown = false;
+            if (this.game.mode === GameMode.Preplay) {
+                this.puzzle.skipIntro();
+                this.lockControl(0.2);
             }
         };
         this.xForce = 1;
@@ -119,25 +125,22 @@ class Ball extends BABYLON.Mesh {
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
                     this.leftDown = 1;
-                    this.mouseInControl = false;
                 });
                 inputLeft.addEventListener("pointerup", () => {
-                    this.mouseInControl = false;
                     this.leftDown = 0;
                 });
             }
             let inputRight = document.querySelector("#input-right");
             if (inputRight) {
                 inputRight.addEventListener("pointerdown", () => {
-                    this.mouseInControl = false;
                     this.rightDown = 1;
                 });
                 inputRight.addEventListener("pointerup", () => {
-                    this.mouseInControl = false;
                     this.rightDown = 0;
                 });
             }
-            let inputBoost = document.querySelector("#input-boost");
+            /*
+            let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
             inputBoost.addEventListener("pointerdown", () => {
                 if (this.boost) {
                     this.boost = false;
@@ -145,88 +148,66 @@ class Ball extends BABYLON.Mesh {
                 else {
                     this.boost = true;
                 }
-            });
+            })
+            */
             this.game.canvas.addEventListener("pointerdown", this.mouseDown);
-            this.game.canvas.addEventListener("pointerup", this.mouseUp);
-            this.game.canvas.addEventListener("pointerleave", this.mouseUp);
-            this.game.canvas.addEventListener("pointerout", this.mouseUp);
             document.addEventListener("keydown", (ev) => {
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.leftDown = 1;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
                     if (this.arrowCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.leftDown = 1;
                     }
                 }
                 if (ev.code === "KeyD") {
                     if (this.wasdCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.rightDown = 1;
                     }
                 }
                 if (ev.code === "ArrowRight") {
                     if (this.arrowCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.rightDown = 1;
                     }
                 }
+                /*
                 if (ev.code === "Space") {
                     if (this.wasdCanControl) {
                         this.boost = true;
                     }
                 }
+                    */
             });
             document.addEventListener("keyup", (ev) => {
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.leftDown = 0;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
                     if (this.arrowCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.leftDown = 0;
                     }
                 }
                 if (ev.code === "KeyD") {
                     if (this.wasdCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.rightDown = 0;
                     }
                 }
                 if (ev.code === "ArrowRight") {
                     if (this.arrowCanControl) {
-                        if (this.mouseCanControl) {
-                            this.mouseInControl = false;
-                        }
                         this.rightDown = 0;
                     }
                 }
+                /*
                 if (ev.code === "Space") {
                     if (this.wasdCanControl) {
                         this.boost = false;
                     }
                 }
+                */
             });
         }
     }
@@ -241,22 +222,6 @@ class Ball extends BABYLON.Mesh {
     }
     set rightArrowSize(v) {
         this.rightArrow.scaling.copyFromFloats(v, v, v);
-    }
-    get boost() {
-        return this._boost;
-    }
-    set boost(v) {
-        this._boost = v;
-        this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
-        let inputBoost = document.querySelector("#input-boost");
-        if (inputBoost) {
-            if (this._boost) {
-                inputBoost.classList.add("active");
-            }
-            else {
-                inputBoost.classList.remove("active");
-            }
-        }
     }
     lockControl(duration = 0.2) {
         clearTimeout(this._lockControlTimout);
@@ -306,9 +271,6 @@ class Ball extends BABYLON.Mesh {
     get arrowCanControl() {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
-    get mouseCanControl() {
-        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
-    }
     async instantiate() {
         //await RandomWait();
         let ballDatas;
@@ -339,28 +301,10 @@ class Ball extends BABYLON.Mesh {
         }
     }
     get boostedSpeed() {
-        return this.boost ? this.speed * 1.6 : this.speed;
+        //return this.boost ? this.speed * 1.6 : this.speed;
+        return this.speed;
     }
     update(dt) {
-        if (this.mouseCanControl && this.mouseInControl) {
-            this.rightDown = 0;
-            this.leftDown = 0;
-            if (this._pointerDown) {
-                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
-                });
-                if (pick.hit) {
-                    let point = pick.pickedPoint;
-                    let dx = point.x - this.absolutePosition.x;
-                    if (dx > 0) {
-                        this.rightDown = Math.min(1, dx / 0.5);
-                    }
-                    else if (dx < 0) {
-                        this.leftDown = Math.min(1, dx / -0.5);
-                    }
-                }
-            }
-        }
         let vX = 0;
         if (this.leftDown > 0) {
             this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftDown) * 0.2;
@@ -396,7 +340,8 @@ class Ball extends BABYLON.Mesh {
                         p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                     }
                     this.trailPoints.push(p);
-                    let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                    //let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                    let c = new BABYLON.Color4(0.8, 0.8, 0.8);
                     this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
                     this.trailPointColors.push(this.trailColor.clone());
                     let count = 20;
@@ -445,7 +390,7 @@ class Ball extends BABYLON.Mesh {
             this.rightArrow.position.y += 0.1;
             this.leftArrow.position.copyFrom(this.position);
             this.leftArrow.position.y += 0.1;
-            if (!this.isControlLocked && (this.leftDown || this.rightDown)) {
+            if (!this.isControlLocked && (this.leftDown > 0 || this.rightDown > 0)) {
                 if (this.game.mode === GameMode.Preplay) {
                     this.puzzle.skipIntro();
                     this.lockControl(0.2);
@@ -878,7 +823,6 @@ class Ball extends BABYLON.Mesh {
     reset() {
         clearTimeout(this._loseTimout);
         this.parent = undefined;
-        this.boost = false;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.trailPoints = [];
         this.trailPointColors = [];
@@ -4049,10 +3993,7 @@ class StoryPuzzlesPage extends LevelPage {
         for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
-                let locked = true;
-                if (i <= unlockCount) {
-                    locked = false;
-                }
+                let locked = false;
                 let isNew = false;
                 if (n === nextLevelIndex) {
                     isNew = true;
@@ -4107,7 +4048,7 @@ class XMasPuzzlesPage extends LevelPage {
     }
     onPageRedrawn() {
         if (this.router.game.puzzleCompletion) {
-            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.storyPuzzleCompletion.toFixed(2));
+            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.xmasPuzzleCompletion.toFixed(2));
         }
     }
     async getPuzzlesData(page, levelsPerPage) {
@@ -4115,7 +4056,7 @@ class XMasPuzzlesPage extends LevelPage {
         let puzzleData = [];
         let data = this.router.game.loadedXMasPuzzles;
         CLEAN_IPuzzlesData(data);
-        for (let i = 0; i < levelsPerPage && i < data.puzzles.length + 2; i++) {
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
@@ -4131,24 +4072,23 @@ class XMasPuzzlesPage extends LevelPage {
                     locked: locked
                 };
             }
-            else if (n === data.puzzles.length) {
-                puzzleData[i] = {
-                    data: {
-                        id: null,
-                        title: "Play MonkeyMind original levels !\n\n(clic to leave this page)",
-                        author: "Tiaratum Games",
-                        content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
-                    },
-                    onpointerup: () => {
-                        let a = document.createElement("a");
-                        a.href = "https://svenfrankson.itch.io/monkeymind";
-                        a.target = "_blank";
-                        a.click();
-                    },
-                    classList: ["green"]
-                };
-            }
         }
+        let externalLinkData = {
+            data: {
+                id: null,
+                title: "Play MonkeyMind original puzzles !\n\n(clic to leave this page)",
+                author: "Tiaratum Games",
+                content: "11u14u5u9u2xoooooooooooxoooosssooooxoooosssooooxoooosssooooxoooososooooxoooosssooooxoooosssooooxoooosssooooxoooosssooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxooooooooooo",
+            },
+            onpointerup: () => {
+                let a = document.createElement("a");
+                a.href = "https://svenfrankson.itch.io/monkeymind";
+                a.target = "_blank";
+                a.click();
+            },
+            classList: ["green"]
+        };
+        puzzleData.splice(this.router.game.dayOfXMasCal, 0, externalLinkData);
         return puzzleData;
     }
 }
@@ -4352,7 +4292,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 11;
+var PATCH_VERSION = 16;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5221,7 +5161,6 @@ class Game {
             }
         }
         this.dayOfXMasCal = new Date().getDate();
-        this.dayOfXMasCal = 1;
         this.dayOfXMasCal = Nabu.MinMax(this.dayOfXMasCal, 1, 24);
         let iFallback = 0;
         for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
@@ -5244,6 +5183,12 @@ class Game {
                 content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 difficulty: 2
             };
+            if (i % 3 === 0) {
+                puzzleData.content = puzzleData.content.replaceAll("s", "n");
+            }
+            else if (i % 3 === 2) {
+                puzzleData.content = puzzleData.content.replaceAll("s", "w");
+            }
             xMasPuzzles.puzzles[i] = puzzleData;
         }
         this.loadedXMasPuzzles = xMasPuzzles;
@@ -5367,6 +5312,10 @@ class Game {
             return puzzle;
         }
         puzzle = this.loadedMultiplayerPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        puzzle = this.loadedXMasPuzzles.puzzles.find(e => { return e.id === id; });
         if (puzzle) {
             return puzzle;
         }
@@ -6366,7 +6315,7 @@ class PuzzleCompletionElement {
         this.highscore = highscore;
     }
     getStarsCount() {
-        if (!isFinite(this.score) || this.score === null) {
+        if (!isFinite(this.score) || this.score === null || this.score === 0) {
             return 0;
         }
         if (this.highscore === null) {
@@ -6456,6 +6405,7 @@ class PuzzleCompletion {
         this.xmasPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
+        console.log(totalStarsCount + " " + max);
         this.xmasPuzzleCompletion = totalStarsCount / max;
     }
     _updateCommunityPuzzleCompletion() {
@@ -6493,24 +6443,27 @@ class PuzzleCompletion {
         this._updateCommunityPuzzleCompletion();
     }
     completePuzzle(id, score) {
-        let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
-        if (!comp) {
-            comp = { id: id, score: score };
-            this.completedPuzzles.push(comp);
-            this.recentUnlocks.push(id);
-        }
-        else if (comp.score > score) {
-            comp.score = Math.min(comp.score, score);
-        }
-        let e = this.getPuzzleCompletionElementById(id);
-        if (e) {
-            e.score = Math.min(e.score, score);
-        }
-        this._updateStoryPuzzleCompletion();
-        this._updateExpertPuzzleCompletion();
-        this._updateCommunityPuzzleCompletion();
-        if (HasLocalStorage) {
-            window.localStorage.setItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+        if (id != null && isFinite(id)) {
+            let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
+            if (!comp) {
+                comp = { id: id, score: score };
+                this.completedPuzzles.push(comp);
+                this.recentUnlocks.push(id);
+            }
+            else if (comp.score > score) {
+                comp.score = Math.min(comp.score, score);
+            }
+            let e = this.getPuzzleCompletionElementById(id);
+            if (e) {
+                e.score = Math.min(e.score, score);
+            }
+            this._updateStoryPuzzleCompletion();
+            this._updateExpertPuzzleCompletion();
+            this._updateXmasPuzzleCompletion();
+            this._updateCommunityPuzzleCompletion();
+            if (HasLocalStorage) {
+                window.localStorage.setItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+            }
         }
     }
     isPuzzleCompleted(id) {
@@ -6518,7 +6471,7 @@ class PuzzleCompletion {
     }
     getPersonalBestScore(id) {
         let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
-        if (comp) {
+        if (comp && comp.score > 0) {
             return comp.score;
         }
         return Infinity;
@@ -8206,6 +8159,9 @@ class Puzzle {
         else if (this.data.state === PuzzleState.XPERT) {
             previousCompletion = this.game.puzzleCompletion.expertPuzzleCompletion;
         }
+        else if (this.data.state === PuzzleState.XMAS) {
+            previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
+        }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
@@ -9872,6 +9828,10 @@ class PuzzleUI {
         else if (this.puzzle.data.state === PuzzleState.XPERT) {
             completion = this.game.puzzleCompletion.expertPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Expert";
+        }
+        else if (this.puzzle.data.state === PuzzleState.XMAS) {
+            completion = this.game.puzzleCompletion.xmasPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Christmas";
         }
         if (previousCompletion != completion) {
             this.completionBar.setValue(previousCompletion);

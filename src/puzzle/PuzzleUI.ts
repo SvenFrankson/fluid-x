@@ -22,6 +22,8 @@ class PuzzleUI {
     public gameoverBackButton: HTMLButtonElement;
     public gameoverReplayButton: HTMLButtonElement;
 
+    public touchInput: HTMLDivElement;
+
     private _hoveredElement: HTMLElement;
     public get hoveredElement(): HTMLElement {
         return this._hoveredElement;
@@ -69,6 +71,8 @@ class PuzzleUI {
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.unlockContainer = document.querySelector("#play-unlock-container");
+
+        this.touchInput = document.querySelector("#touch-input");
 
         this.winSound = this.game.soundManager.createSound(
             "ambient",
@@ -272,6 +276,14 @@ class PuzzleUI {
                 this.setHoveredElement(this.successNextButton);
             }
         }
+    }
+
+    public showTouchInput(): void {
+        this.touchInput.style.display = "";
+    }
+
+    public hideTouchInput(): void {
+        this.touchInput.style.display = "none";
     }
 
     private _registerToInputManager(): void {

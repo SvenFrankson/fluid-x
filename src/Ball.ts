@@ -87,8 +87,10 @@ class Ball extends BABYLON.Mesh {
             this.isControlLocked = false;
         }, duration * 1000);
     }
-    public leftDown: number = 0;
-    public rightDown: number = 0;
+    public leftPressed: number = 0;
+    public rightPressed: number = 0;
+    public upPressed: number = 0;
+    public downPressed: number = 0;
     public animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
 
     public setColor(color: TileColor) {
@@ -215,13 +217,13 @@ class Ball extends BABYLON.Mesh {
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
                     console.log("lpd");
-                    this.leftDown = 1;
+                    this.leftPressed = 1;
                     this.mouseInControl = false;
                 })
                 inputLeft.addEventListener("pointerup", () => {
                     console.log("lpu");
                     this.mouseInControl = false;
-                    this.leftDown = 0;
+                    this.leftPressed = 0;
                 })
             }
     
@@ -230,12 +232,12 @@ class Ball extends BABYLON.Mesh {
                 inputRight.addEventListener("pointerdown", () => {
                     console.log("rpd");
                     this.mouseInControl = false;
-                    this.rightDown = 1;
+                    this.rightPressed = 1;
                 })
                 inputRight.addEventListener("pointerup", () => {
                     console.log("rpu");
                     this.mouseInControl = false;
-                    this.rightDown = 0;
+                    this.rightPressed = 0;
                 })
             }
     
@@ -252,12 +254,29 @@ class Ball extends BABYLON.Mesh {
             this.game.canvas.addEventListener("pointerdown", this.pointerDown);
 
             document.addEventListener("keydown", (ev: KeyboardEvent) => {
+                if (ev.code === "KeyW") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 1;
+                    }
+                }
+                if (ev.code === "ArrowUp") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 1;
+                    }
+                }
+
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 1;
+                        this.leftPressed = 1;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
@@ -265,7 +284,23 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 1;
+                        this.leftPressed = 1;
+                    }
+                }
+                if (ev.code === "KeyS") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 1;
+                    }
+                }
+                if (ev.code === "ArrowDown") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 1;
                     }
                 }
                 
@@ -274,7 +309,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 1;
+                        this.rightPressed = 1;
                     }
                 }
                 if (ev.code === "ArrowRight") {
@@ -282,7 +317,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 1;
+                        this.rightPressed = 1;
                     }
                 }
                 if (ev.code === "Space") {
@@ -293,12 +328,29 @@ class Ball extends BABYLON.Mesh {
             })
     
             document.addEventListener("keyup", (ev: KeyboardEvent) => {
+                if (ev.code === "KeyW") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 0;
+                    }
+                }
+                if (ev.code === "ArrowUp") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 0;
+                    }
+                }
+
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 0;
+                        this.leftPressed = 0;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
@@ -306,7 +358,23 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 0;
+                        this.leftPressed = 0;
+                    }
+                }
+                if (ev.code === "KeyS") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 0;
+                    }
+                }
+                if (ev.code === "ArrowDown") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 0;
                     }
                 }
                 
@@ -315,7 +383,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 0;
+                        this.rightPressed = 0;
                     }
                 }
                 if (ev.code === "ArrowRight") {
@@ -323,7 +391,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 0;
+                        this.rightPressed = 0;
                     }
                 }
                 if (ev.code === "Space") {
@@ -356,8 +424,10 @@ class Ball extends BABYLON.Mesh {
     private _pointerDown: boolean = false;
     public pointerDown = (ev: PointerEvent) => {
         if (this.game.mode === GameMode.Preplay) {
-            this.puzzle.skipIntro();
-            this.lockControl(0.2);
+            if (!this.game.router.tutoPage.shown) {
+                this.puzzle.skipIntro();
+                this.lockControl(0.2);
+            }
         }
     }
     public mouseDown = (ev: PointerEvent) => {
@@ -409,13 +479,18 @@ class Ball extends BABYLON.Mesh {
 
     public xForce: number = 1;
     public speed: number = this.nominalSpeed;
+    public dumdumFactor = 1;
+    public dumdumFactorTarget = 1;
     public get boostedSpeed(): number {
+        let s = this.speed;
         if (this.canBoost) {
-            return this.boost ? this.speed * 1.6 : this.speed;
+            s = this.boost ? this.speed * 1.6 : this.speed;
         }
         else {
-            return this.speed;
+            return this.speed * this.dumdumFactor;
         }
+
+        return s;
     }
     public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Forward();
     public smoothedMoveDir: BABYLON.Vector3 = BABYLON.Vector3.Forward();
@@ -429,8 +504,10 @@ class Ball extends BABYLON.Mesh {
     
     public update(dt: number): void {
         if (this.mouseCanControl && this.mouseInControl) {
-            this.rightDown = 0;
-            this.leftDown = 0;
+            this.rightPressed = 0;
+            this.leftPressed = 0;
+            this.upPressed = 0;
+            this.downPressed = 0;
             if (this._pointerDown) {
                 let pick = this.game.scene.pick(
                     this.game.scene.pointerX * window.devicePixelRatio,
@@ -443,27 +520,57 @@ class Ball extends BABYLON.Mesh {
                     let point = pick.pickedPoint;
                     let dx = point.x - this.absolutePosition.x;
                     if (dx > 0) {
-                        this.rightDown = Math.min(1, dx / 0.5);
+                        this.rightPressed = Math.min(1, dx / 0.5);
                     }
                     else if (dx < 0) {
-                        this.leftDown = Math.min(1, dx / -0.5);
+                        this.leftPressed = Math.min(1, dx / -0.5);
+                    }
+                    let dz = point.z - this.absolutePosition.z;
+                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 3) {
+                        if (dz > 0) {
+                            this.upPressed = 1;
+                        }
+                        else if (dz < 0) {
+                            this.downPressed = 1;
+                        }
                     }
                 }
             }
         }
 
+        
+        this.dumdumFactorTarget = 1;
+        if (this.vZ > 0) {
+            if (this.upPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
+            }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1 / 1.5;
+            }
+        }
+        if (this.vZ < 0) {
+            if (this.upPressed > 0) {
+                this.dumdumFactorTarget = 1 / 1.5;
+            }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
+            }
+        }
+        let f = Nabu.Easing.smooth05Sec(1 / dt);
+        this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
+
         let vX = 0;
-        if (this.leftDown > 0) {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftDown) * 0.2;
-            vX -= this.leftDown;
+        if (this.leftPressed > 0) {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftPressed) * 0.2;
+            vX -= this.leftPressed;
         }
         else {
             this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
         }
 
-        if (this.rightDown > 0) {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightDown) * 0.2;
-            vX += this.rightDown;
+        if (this.rightPressed > 0) {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightPressed) * 0.2;
+            vX += this.rightPressed;
         }
         else {
             this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
@@ -492,7 +599,15 @@ class Ball extends BABYLON.Mesh {
                     }
 
                     this.trailPoints.push(p);
-                    let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                    let col = 0.2;
+                    let s = this.boostedSpeed;
+                    if (s < this.nominalSpeed / 1.1) {
+                        col = 0.05;
+                    }
+                    else if (s > this.nominalSpeed * 1.1) {
+                        col = 0.8;
+                    }
+                    let c = new BABYLON.Color4(col, col, col, 1);
                     this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
                     this.trailPointColors.push(this.trailColor.clone());
                     let count = 20;
@@ -545,13 +660,15 @@ class Ball extends BABYLON.Mesh {
             this.leftArrow.position.copyFrom(this.position);
             this.leftArrow.position.y += 0.1;
 
-            if (!this.isControlLocked && (this.leftDown || this.rightDown)) {
-                if (this.game.mode === GameMode.Preplay) {
-                    this.puzzle.skipIntro();
-                    this.lockControl(0.2);
-                }
-                else {
-                    this.puzzle.start();
+            if (!this.isControlLocked && (this.leftPressed || this.rightPressed)) {
+                if (!this.game.router.tutoPage.shown) {
+                    if (this.game.mode === GameMode.Preplay) {
+                        this.puzzle.skipIntro();
+                        this.lockControl(0.2);
+                    }
+                    else {
+                        this.puzzle.start();
+                    }
                 }
             }
             return;

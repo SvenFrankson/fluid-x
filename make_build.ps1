@@ -1,6 +1,6 @@
-Write-Debug "Make Build for Marble Fall"
+Write-Debug "Make Build for Carillion"
 
-$build_name = "monkey-mind-build"
+$build_name = "carillion-build"
 
 $containsString = Select-String -Path "./index.js" -Pattern "USE_POKI_SDK = true" -Quiet
 if ($containsString) {

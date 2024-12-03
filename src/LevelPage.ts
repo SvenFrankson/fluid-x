@@ -463,7 +463,7 @@ class XMasPuzzlesPage extends LevelPage {
         let externalLinkData = {
             data: {
                 id: null,
-                title: "Play MonkeyMind original puzzles !\n\n(clic to leave this page)",
+                title: "Play Carillion original puzzles !\n\n(clic to leave this page)",
                 author: "Tiaratum Games",
                 content: "11u14u5u9u2xoooooooooooxoooosssooooxoooosssooooxoooosssooooxoooososooooxoooosssooooxoooosssooooxoooosssooooxoooosssooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxooooooooooo",
             },

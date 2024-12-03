@@ -504,13 +504,35 @@ body:not(.touchscreen) button:hover, .hovered {
 }
 
 #input-left {
-    left: 10px;
     background-color: #b1a58d;
 }
 
 #input-right {
-    right: 10px;
     background-color: #624c3c;
+}
+
+body:not(.vertical) #input-left {
+    right: calc(50% + 10px);
+    bottom: 8px;
+    width: 80px;
+    height: 60px;
+    border: 2px solid #2b2821ff;
+}
+
+body.vertical #input-left {
+    left: 10px;
+}
+
+body:not(.vertical) #input-right {
+    left: calc(50% + 10px);
+    bottom: 8px;
+    width: 80px;
+    height: 60px;
+    border: 2px solid #2b2821ff;
+}
+
+body.vertical #input-right {
+    right: 10px;
 }
 
 #input-boost {
@@ -1167,22 +1189,25 @@ body:not(.touchscreen) .line.hovered {
 
 #tuto-page {
     width: 280px;
+    text-align: center;
 }
 
 #tuto-page .tutorial-container {
     position: relative;
     background-color: #31343a;
+    margin-bottom: 10px;
 }
 
 #tuto-page .tutorial-text {
     position: absolute;
     color: white;
     font-size: 22px;
-    font-weight: 200;
+    font-weight: 100;
     width: 90%;
     left: 5%;
     top: 5px;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Roboto;
+    text-align: left;
 }
 
 #multiplayer-page {

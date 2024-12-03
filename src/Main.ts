@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 19;
+var PATCH_VERSION: number = 21;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -1341,7 +1341,6 @@ class Game {
                 rawDT = Math.min(rawDT, 1);
                 targetCameraPos.y = Math.max(targetCameraPos.y, - 2.5);
                 let margin = 3;
-                margin = 10;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }

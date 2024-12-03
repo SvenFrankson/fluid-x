@@ -27,15 +27,19 @@ class Ball extends BABYLON.Mesh {
         this._loseTimout = 0;
         this.isControlLocked = false;
         this._lockControlTimout = 0;
-        this.leftDown = 0;
-        this.rightDown = 0;
+        this.leftPressed = 0;
+        this.rightPressed = 0;
+        this.upPressed = 0;
+        this.downPressed = 0;
         this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
         this.mouseInControl = false;
         this._pointerDown = false;
         this.pointerDown = (ev) => {
             if (this.game.mode === GameMode.Preplay) {
-                this.puzzle.skipIntro();
-                this.lockControl(0.2);
+                if (!this.game.router.tutoPage.shown) {
+                    this.puzzle.skipIntro();
+                    this.lockControl(0.2);
+                }
             }
         };
         this.mouseDown = (ev) => {
@@ -52,6 +56,8 @@ class Ball extends BABYLON.Mesh {
         };
         this.xForce = 1;
         this.speed = this.nominalSpeed;
+        this.dumdumFactor = 1;
+        this.dumdumFactorTarget = 1;
         this.moveDir = BABYLON.Vector3.Forward();
         this.smoothedMoveDir = BABYLON.Vector3.Forward();
         this.inputSpeed = 1000;
@@ -121,13 +127,13 @@ class Ball extends BABYLON.Mesh {
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
                     console.log("lpd");
-                    this.leftDown = 1;
+                    this.leftPressed = 1;
                     this.mouseInControl = false;
                 });
                 inputLeft.addEventListener("pointerup", () => {
                     console.log("lpu");
                     this.mouseInControl = false;
-                    this.leftDown = 0;
+                    this.leftPressed = 0;
                 });
             }
             let inputRight = document.querySelector("#input-right");
@@ -135,12 +141,12 @@ class Ball extends BABYLON.Mesh {
                 inputRight.addEventListener("pointerdown", () => {
                     console.log("rpd");
                     this.mouseInControl = false;
-                    this.rightDown = 1;
+                    this.rightPressed = 1;
                 });
                 inputRight.addEventListener("pointerup", () => {
                     console.log("rpu");
                     this.mouseInControl = false;
-                    this.rightDown = 0;
+                    this.rightPressed = 0;
                 });
             }
             let inputBoost = document.querySelector("#input-boost");
@@ -154,12 +160,28 @@ class Ball extends BABYLON.Mesh {
             });
             this.game.canvas.addEventListener("pointerdown", this.pointerDown);
             document.addEventListener("keydown", (ev) => {
+                if (ev.code === "KeyW") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 1;
+                    }
+                }
+                if (ev.code === "ArrowUp") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 1;
+                    }
+                }
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 1;
+                        this.leftPressed = 1;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
@@ -167,7 +189,23 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 1;
+                        this.leftPressed = 1;
+                    }
+                }
+                if (ev.code === "KeyS") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 1;
+                    }
+                }
+                if (ev.code === "ArrowDown") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 1;
                     }
                 }
                 if (ev.code === "KeyD") {
@@ -175,7 +213,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 1;
+                        this.rightPressed = 1;
                     }
                 }
                 if (ev.code === "ArrowRight") {
@@ -183,7 +221,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 1;
+                        this.rightPressed = 1;
                     }
                 }
                 if (ev.code === "Space") {
@@ -193,12 +231,28 @@ class Ball extends BABYLON.Mesh {
                 }
             });
             document.addEventListener("keyup", (ev) => {
+                if (ev.code === "KeyW") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 0;
+                    }
+                }
+                if (ev.code === "ArrowUp") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.upPressed = 0;
+                    }
+                }
                 if (ev.code === "KeyA") {
                     if (this.wasdCanControl) {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 0;
+                        this.leftPressed = 0;
                     }
                 }
                 if (ev.code === "ArrowLeft") {
@@ -206,7 +260,23 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.leftDown = 0;
+                        this.leftPressed = 0;
+                    }
+                }
+                if (ev.code === "KeyS") {
+                    if (this.wasdCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 0;
+                    }
+                }
+                if (ev.code === "ArrowDown") {
+                    if (this.arrowCanControl) {
+                        if (this.mouseCanControl) {
+                            this.mouseInControl = false;
+                        }
+                        this.downPressed = 0;
                     }
                 }
                 if (ev.code === "KeyD") {
@@ -214,7 +284,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 0;
+                        this.rightPressed = 0;
                     }
                 }
                 if (ev.code === "ArrowRight") {
@@ -222,7 +292,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.rightDown = 0;
+                        this.rightPressed = 0;
                     }
                 }
                 if (ev.code === "Space") {
@@ -348,17 +418,21 @@ class Ball extends BABYLON.Mesh {
         }
     }
     get boostedSpeed() {
+        let s = this.speed;
         if (this.canBoost) {
-            return this.boost ? this.speed * 1.6 : this.speed;
+            s = this.boost ? this.speed * 1.6 : this.speed;
         }
         else {
-            return this.speed;
+            return this.speed * this.dumdumFactor;
         }
+        return s;
     }
     update(dt) {
         if (this.mouseCanControl && this.mouseInControl) {
-            this.rightDown = 0;
-            this.leftDown = 0;
+            this.rightPressed = 0;
+            this.leftPressed = 0;
+            this.upPressed = 0;
+            this.downPressed = 0;
             if (this._pointerDown) {
                 let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
                     return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
@@ -367,25 +441,53 @@ class Ball extends BABYLON.Mesh {
                     let point = pick.pickedPoint;
                     let dx = point.x - this.absolutePosition.x;
                     if (dx > 0) {
-                        this.rightDown = Math.min(1, dx / 0.5);
+                        this.rightPressed = Math.min(1, dx / 0.5);
                     }
                     else if (dx < 0) {
-                        this.leftDown = Math.min(1, dx / -0.5);
+                        this.leftPressed = Math.min(1, dx / -0.5);
+                    }
+                    let dz = point.z - this.absolutePosition.z;
+                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 3) {
+                        if (dz > 0) {
+                            this.upPressed = 1;
+                        }
+                        else if (dz < 0) {
+                            this.downPressed = 1;
+                        }
                     }
                 }
             }
         }
+        this.dumdumFactorTarget = 1;
+        if (this.vZ > 0) {
+            if (this.upPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
+            }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1 / 1.5;
+            }
+        }
+        if (this.vZ < 0) {
+            if (this.upPressed > 0) {
+                this.dumdumFactorTarget = 1 / 1.5;
+            }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
+            }
+        }
+        let f = Nabu.Easing.smooth05Sec(1 / dt);
+        this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         let vX = 0;
-        if (this.leftDown > 0) {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftDown) * 0.2;
-            vX -= this.leftDown;
+        if (this.leftPressed > 0) {
+            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftPressed) * 0.2;
+            vX -= this.leftPressed;
         }
         else {
             this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
         }
-        if (this.rightDown > 0) {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightDown) * 0.2;
-            vX += this.rightDown;
+        if (this.rightPressed > 0) {
+            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightPressed) * 0.2;
+            vX += this.rightPressed;
         }
         else {
             this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
@@ -410,7 +512,15 @@ class Ball extends BABYLON.Mesh {
                         p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
                     }
                     this.trailPoints.push(p);
-                    let c = new BABYLON.Color4(0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 0.2 + (this.boost ? 0.6 : 0), 1);
+                    let col = 0.2;
+                    let s = this.boostedSpeed;
+                    if (s < this.nominalSpeed / 1.1) {
+                        col = 0.05;
+                    }
+                    else if (s > this.nominalSpeed * 1.1) {
+                        col = 0.8;
+                    }
+                    let c = new BABYLON.Color4(col, col, col, 1);
                     this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
                     this.trailPointColors.push(this.trailColor.clone());
                     let count = 20;
@@ -459,13 +569,15 @@ class Ball extends BABYLON.Mesh {
             this.rightArrow.position.y += 0.1;
             this.leftArrow.position.copyFrom(this.position);
             this.leftArrow.position.y += 0.1;
-            if (!this.isControlLocked && (this.leftDown || this.rightDown)) {
-                if (this.game.mode === GameMode.Preplay) {
-                    this.puzzle.skipIntro();
-                    this.lockControl(0.2);
-                }
-                else {
-                    this.puzzle.start();
+            if (!this.isControlLocked && (this.leftPressed || this.rightPressed)) {
+                if (!this.game.router.tutoPage.shown) {
+                    if (this.game.mode === GameMode.Preplay) {
+                        this.puzzle.skipIntro();
+                        this.lockControl(0.2);
+                    }
+                    else {
+                        this.puzzle.start();
+                    }
                 }
             }
             return;
@@ -4159,7 +4271,7 @@ class XMasPuzzlesPage extends LevelPage {
         let externalLinkData = {
             data: {
                 id: null,
-                title: "Play MonkeyMind original puzzles !\n\n(clic to leave this page)",
+                title: "Play Carillion original puzzles !\n\n(clic to leave this page)",
                 author: "Tiaratum Games",
                 content: "11u14u5u9u2xoooooooooooxoooosssooooxoooosssooooxoooosssooooxoooososooooxoooosssooooxoooosssooooxoooosssooooxoooosssooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxooooooooooo",
             },
@@ -4375,7 +4487,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 19;
+var PATCH_VERSION = 21;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5504,7 +5616,6 @@ class Game {
                 rawDT = Math.min(rawDT, 1);
                 targetCameraPos.y = Math.max(targetCameraPos.y, -2.5);
                 let margin = 3;
-                margin = 10;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -6977,16 +7088,95 @@ class ToonSoundManager {
 class TutoPage {
     constructor(queryString, router) {
         this.router = router;
+        this._tuto2Path = [
+            new BABYLON.Vector2(50, 130),
+            new BABYLON.Vector2(50, 90),
+            new BABYLON.Vector2(70, 70),
+            new BABYLON.Vector2(110, 110),
+            new BABYLON.Vector2(110, 130)
+        ];
+        this._tuto2SumNormalizedDist = [0];
+        this._tuto3Path = [
+            new BABYLON.Vector2(50, 130),
+            new BABYLON.Vector2(50, 90),
+            new BABYLON.Vector2(70, 70),
+            new BABYLON.Vector2(110, 110),
+            new BABYLON.Vector2(110, 130)
+        ];
+        this._tuto3SumNormalizedDist = [0];
         this._timer = 0;
         this.update = () => {
             let dt = this.router.game.scene.deltaTime / 1000;
             this._timer += dt;
-            let t = this._timer - Math.floor(this._timer / 2) * 2;
-            if (t > 1) {
-                t = 2 - t;
+            if (this._tutoIndex === 0) {
+                this.svgBall.setAttribute("transform", "translate(80 105)");
             }
-            let y = 70 + 70 * t;
-            this.svgBall.setAttribute("cy", y.toFixed(1));
+            else if (this._tutoIndex === 1) {
+                let t = this._timer - Math.floor(this._timer / 2) * 2;
+                if (t > 1) {
+                    t = 2 - t;
+                }
+                let y = 75 + 60 * t;
+                this.svgBall.setAttribute("transform", "translate(80 " + y.toFixed(1) + ")");
+            }
+            else if (this._tutoIndex === 2) {
+                let P = 6;
+                let t = this._timer - Math.floor(this._timer / P) * P;
+                let tBase = t;
+                if (t > P / 2) {
+                    t = P - t;
+                }
+                t = t / (P / 2);
+                if (tBase > this._tuto2SumNormalizedDist[1] * P / 2 && tBase < this._tuto2SumNormalizedDist[2] * P / 2) {
+                    this.svgKeyD.setAttribute("transform", "translate(0 5)");
+                    this.svgKeyD.querySelector("rect").setAttribute("fill", "white");
+                    this.svgElement.querySelector("#tutorial-key-d-base").setAttribute("stroke-width", "4");
+                    this.svgBallArrowRight.setAttribute("opacity", "1");
+                }
+                else {
+                    this.svgKeyD.setAttribute("transform", "translate(0 0)");
+                    this.svgKeyD.querySelector("rect").setAttribute("fill", "#808080");
+                    this.svgElement.querySelector("#tutorial-key-d-base").setAttribute("stroke-width", "2");
+                    this.svgBallArrowRight.setAttribute("opacity", "0");
+                }
+                if (tBase > (P - this._tuto2SumNormalizedDist[2] * P / 2) &&
+                    tBase < (P - this._tuto2SumNormalizedDist[1] * P / 2)) {
+                    this.svgKeyA.setAttribute("transform", "translate(0 5)");
+                    this.svgKeyA.querySelector("rect").setAttribute("fill", "white");
+                    this.svgElement.querySelector("#tutorial-key-a-base").setAttribute("stroke-width", "4");
+                    this.svgBallArrowLeft.setAttribute("opacity", "1");
+                }
+                else {
+                    this.svgKeyA.setAttribute("transform", "translate(0 0)");
+                    this.svgKeyA.querySelector("rect").setAttribute("fill", "#808080");
+                    this.svgElement.querySelector("#tutorial-key-a-base").setAttribute("stroke-width", "2");
+                    this.svgBallArrowLeft.setAttribute("opacity", "0");
+                }
+                let p = this._evaluatePath(t, this._tuto2Path, this._tuto2SumNormalizedDist);
+                this.svgBall.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+                this.svgBallArrowRight.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+                this.svgBallArrowLeft.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+            }
+            else if (this._tutoIndex === 3) {
+                let P = 4;
+                let t = this._timer - Math.floor(this._timer / P) * P;
+                let tBase = t;
+                t = t / P;
+                if (tBase > this._tuto3SumNormalizedDist[2] * P && tBase < this._tuto3SumNormalizedDist[5] * P) {
+                    this.svgElement.querySelector("#tutorial-tile-2").setAttribute("opacity", "0");
+                }
+                else {
+                    this.svgElement.querySelector("#tutorial-tile-2").setAttribute("opacity", "1");
+                }
+                if (tBase > this._tuto3SumNormalizedDist[4] * P && tBase < this._tuto3SumNormalizedDist[5] * P) {
+                    this.svgElement.querySelector("#tutorial-tile-1").setAttribute("opacity", "0");
+                }
+                else {
+                    this.svgElement.querySelector("#tutorial-tile-1").setAttribute("opacity", "1");
+                }
+                let p = this._evaluatePath(t, this._tuto3Path, this._tuto3SumNormalizedDist);
+                this.svgBall.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+            }
         };
         this._animating = false;
         this._tutoIndex = 0;
@@ -6998,11 +7188,63 @@ class TutoPage {
         };
         this.tutoNext = this.nabuPage.querySelector("#tutorial-next-btn");
         this.tutoNext.onclick = () => {
-            this.setTutoIndex(this._tutoIndex + 1);
+            if (this._tutoIndex < 3) {
+                this.setTutoIndex(this._tutoIndex + 1);
+            }
+            else {
+                this.hide(0.5);
+            }
         };
         this.tutoText = this.tutoContainer.querySelector(".tutorial-text");
         this.svgBall = this.tutoContainer.querySelector("#tutorial-ball");
+        this.svgBallArrowRight = this.tutoContainer.querySelector("#tutorial-ball-arrow-r");
+        this.svgBallArrowLeft = this.tutoContainer.querySelector("#tutorial-ball-arrow-l");
+        this.svgKeyA = this.tutoContainer.querySelector("#tutorial-key-a");
+        this.svgKeyD = this.tutoContainer.querySelector("#tutorial-key-d");
         this.svgElement = this.tutoContainer.querySelector("svg");
+        this._tuto2Path = [
+            new BABYLON.Vector2(60, 135),
+            new BABYLON.Vector2(60, 125),
+            new BABYLON.Vector2(100, 85),
+            new BABYLON.Vector2(100, 75),
+            new BABYLON.Vector2(100, 135),
+        ];
+        this._tuto2SumNormalizedDist = [0];
+        for (let i = 1; i < this._tuto2Path.length; i++) {
+            this._tuto2SumNormalizedDist[i] = BABYLON.Vector2.Distance(this._tuto2Path[i], this._tuto2Path[i - 1]) + this._tuto2SumNormalizedDist[i - 1];
+        }
+        let l2 = this._tuto2SumNormalizedDist[this._tuto2SumNormalizedDist.length - 1];
+        for (let i = 0; i < this._tuto2Path.length; i++) {
+            this._tuto2SumNormalizedDist[i] = this._tuto2SumNormalizedDist[i] / l2;
+        }
+        this._tuto3Path = [
+            new BABYLON.Vector2(50, 75),
+            new BABYLON.Vector2(50, 135),
+            new BABYLON.Vector2(70, 122),
+            new BABYLON.Vector2(70 - 17, 105),
+            new BABYLON.Vector2(70, 88),
+            new BABYLON.Vector2(50, 75)
+        ];
+        this._tuto3SumNormalizedDist = [0];
+        for (let i = 1; i < this._tuto3Path.length; i++) {
+            this._tuto3SumNormalizedDist[i] = BABYLON.Vector2.Distance(this._tuto3Path[i], this._tuto3Path[i - 1]) + this._tuto3SumNormalizedDist[i - 1];
+        }
+        let l3 = this._tuto3SumNormalizedDist[this._tuto3SumNormalizedDist.length - 1];
+        for (let i = 0; i < this._tuto3Path.length; i++) {
+            this._tuto3SumNormalizedDist[i] = this._tuto3SumNormalizedDist[i] / l3;
+        }
+    }
+    _evaluatePath(f, path, sumDist) {
+        let n = 0;
+        while (n + 1 < sumDist.length &&
+            n + 1 < path.length &&
+            f > sumDist[n + 1]) {
+            n++;
+        }
+        let d1 = sumDist[n];
+        let d2 = sumDist[n + 1];
+        let ff = (f - d1) / (d2 - d1);
+        return BABYLON.Vector2.Lerp(path[n], path[n + 1], ff);
     }
     get shown() {
         return this.nabuPage.shown;
@@ -7013,12 +7255,14 @@ class TutoPage {
             CenterPanel(this.nabuPage, 0, 0);
         });
         this.router.game.scene.onBeforeRenderObservable.add(this.update);
-        await this.nabuPage.show(duration);
         this.setTutoIndex(0, true);
+        this.router.game.puzzle.puzzleUI.hideTouchInput();
+        await this.nabuPage.show(duration);
     }
     async hide(duration) {
         //await RandomWait();
         this.router.game.scene.onBeforeRenderObservable.removeCallback(this.update);
+        this.router.game.puzzle.puzzleUI.showTouchInput();
         return this.nabuPage.hide(duration);
     }
     async fadeOutBoard(duration = 1) {
@@ -7073,33 +7317,61 @@ class TutoPage {
         if (this._animating) {
             return;
         }
-        v = Nabu.MinMax(v, 0, 1);
+        v = Nabu.MinMax(v, 0, 3);
         if (v != this._tutoIndex || force) {
-            this._tutoIndex = v;
             if (force) {
                 this._animating = true;
                 await this.fadeOutBoard(0);
             }
             else {
                 this._animating = true;
-                await this.fadeOutBoard(0.5);
+                await this.fadeOutBoard(0.25);
             }
+            this._tutoIndex = v;
             this._timer = 0;
+            document.querySelector("#tutorial-panel-0").setAttribute("visibility", "hidden");
+            document.querySelector("#tutorial-panel-1").setAttribute("visibility", "hidden");
+            document.querySelector("#tutorial-panel-2").setAttribute("visibility", "hidden");
+            document.querySelector("#tutorial-panel-3").setAttribute("visibility", "hidden");
             if (this._tutoIndex === 0) {
                 this.showTuto0();
             }
             else if (this._tutoIndex === 1) {
                 this.showTuto1();
             }
-            await this.fadeInBoard(0.5);
+            else if (this._tutoIndex === 2) {
+                this.showTuto2();
+            }
+            else if (this._tutoIndex === 3) {
+                this.showTuto3();
+            }
+            await this.fadeInBoard(0.25);
             this._animating = false;
         }
     }
     async showTuto0() {
-        this.tutoText.innerHTML = "This is the ball. You control the ball.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>1) Context</i><br/>This is the Ball.";
+        document.querySelector("#tutorial-panel-0").setAttribute("visibility", "visible");
     }
     async showTuto1() {
-        this.tutoText.innerHTML = "The ball moves up and down until the ball bounces on a surface.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>2) Rule</i><br/>The Ball <b>always</b> moves <b>up</b> and <b>down</b>.";
+        document.querySelector("#tutorial-panel-1").setAttribute("visibility", "visible");
+    }
+    async showTuto2() {
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>3) Control</i><br/>You can only steer the Ball <b>Left</b> or <b>Right</b>.";
+        if (IsTouchScreen) {
+            this.svgKeyA.querySelector("text").innerHTML = "&lt;";
+            this.svgKeyD.querySelector("text").innerHTML = "&gt;";
+        }
+        else {
+            this.svgKeyA.querySelector("text").innerHTML = "A";
+            this.svgKeyD.querySelector("text").innerHTML = "D";
+        }
+        document.querySelector("#tutorial-panel-2").setAttribute("visibility", "visible");
+    }
+    async showTuto3() {
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) Objective</i><br/>Collect all the <b>Tiles</b> to complete the <b>Puzzle</b> !";
+        document.querySelector("#tutorial-panel-3").setAttribute("visibility", "visible");
     }
 }
 class UserInterfaceInputManager {
@@ -8369,7 +8641,7 @@ class Puzzle {
         document.querySelector("#puzzle-skip-intro").style.display = "none";
         document.querySelector("#puzzle-ready").style.display = "";
         if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
-            this.game.router.tutoPage.show(1);
+            this.game.router.tutoPage.show(0.5);
         }
         this.game.mode = GameMode.Play;
     }
@@ -9999,6 +10271,7 @@ class PuzzleUI {
         this.successPanel = document.querySelector("#play-success-panel");
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.unlockContainer = document.querySelector("#play-unlock-container");
+        this.touchInput = document.querySelector("#touch-input");
         this.winSound = this.game.soundManager.createSound("ambient", "./datas/sounds/marimba-win-e-2-209686.mp3", this.game.scene, undefined, {
             autoplay: false,
             volume: 0.3
@@ -10185,6 +10458,12 @@ class PuzzleUI {
                 this.setHoveredElement(this.successNextButton);
             }
         }
+    }
+    showTouchInput() {
+        this.touchInput.style.display = "";
+    }
+    hideTouchInput() {
+        this.touchInput.style.display = "none";
     }
     _registerToInputManager() {
         this.game.uiInputManager.onUpCallbacks.push(this._inputUp);

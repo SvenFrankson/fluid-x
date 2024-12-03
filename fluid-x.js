@@ -18,7 +18,7 @@ class Ball extends BABYLON.Mesh {
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
         this.canBoost = false;
         this._boost = false;
-        this.nominalSpeed = 2.5;
+        this.nominalSpeed = 2.2;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
@@ -1787,6 +1787,7 @@ class CarillonRouter extends Nabu.Router {
         this.playUI = document.querySelector("#play-ui");
         this.editorUI = document.querySelector("#editor-ui");
         this.devPage = document.querySelector("#dev-page");
+        this.tutoPage = new TutoPage("#tuto-page", this);
         this.eulaPage = document.querySelector("#eula-page");
         this.playBackButton = document.querySelector("#play-ui .back-btn");
         this.timerText = document.querySelector("#play-timer");
@@ -1840,7 +1841,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
-            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#levels";
+            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;
@@ -4374,7 +4375,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 17;
+var PATCH_VERSION = 19;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5131,7 +5132,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -5503,6 +5504,7 @@ class Game {
                 rawDT = Math.min(rawDT, 1);
                 targetCameraPos.y = Math.max(targetCameraPos.y, -2.5);
                 let margin = 3;
+                margin = 10;
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -6972,6 +6974,134 @@ class ToonSoundManager {
     }
 }
 */ 
+class TutoPage {
+    constructor(queryString, router) {
+        this.router = router;
+        this._timer = 0;
+        this.update = () => {
+            let dt = this.router.game.scene.deltaTime / 1000;
+            this._timer += dt;
+            let t = this._timer - Math.floor(this._timer / 2) * 2;
+            if (t > 1) {
+                t = 2 - t;
+            }
+            let y = 70 + 70 * t;
+            this.svgBall.setAttribute("cy", y.toFixed(1));
+        };
+        this._animating = false;
+        this._tutoIndex = 0;
+        this.nabuPage = document.querySelector(queryString);
+        this.tutoContainer = this.nabuPage.querySelector(".tutorial-container");
+        this.tutoPrev = this.nabuPage.querySelector("#tutorial-prev-btn");
+        this.tutoPrev.onclick = () => {
+            this.setTutoIndex(this._tutoIndex - 1);
+        };
+        this.tutoNext = this.nabuPage.querySelector("#tutorial-next-btn");
+        this.tutoNext.onclick = () => {
+            this.setTutoIndex(this._tutoIndex + 1);
+        };
+        this.tutoText = this.tutoContainer.querySelector(".tutorial-text");
+        this.svgBall = this.tutoContainer.querySelector("#tutorial-ball");
+        this.svgElement = this.tutoContainer.querySelector("svg");
+    }
+    get shown() {
+        return this.nabuPage.shown;
+    }
+    async show(duration) {
+        //await RandomWait();
+        requestAnimationFrame(() => {
+            CenterPanel(this.nabuPage, 0, 0);
+        });
+        this.router.game.scene.onBeforeRenderObservable.add(this.update);
+        await this.nabuPage.show(duration);
+        this.setTutoIndex(0, true);
+    }
+    async hide(duration) {
+        //await RandomWait();
+        this.router.game.scene.onBeforeRenderObservable.removeCallback(this.update);
+        return this.nabuPage.hide(duration);
+    }
+    async fadeOutBoard(duration = 1) {
+        if (this.svgElement) {
+            return new Promise(resolve => {
+                this.svgElement.style.opacity = "1";
+                this.tutoText.style.opacity = "1";
+                let t0 = performance.now();
+                let step = () => {
+                    let f = (performance.now() - t0) / 1000 / duration;
+                    if (f < 1) {
+                        f = Nabu.Easing.easeInOutSine(f);
+                        this.svgElement.style.opacity = (1 - f).toFixed(2);
+                        this.tutoText.style.opacity = (1 - f).toFixed(2);
+                        requestAnimationFrame(step);
+                    }
+                    else {
+                        this.svgElement.style.opacity = "0";
+                        this.tutoText.style.opacity = "0";
+                        resolve();
+                    }
+                };
+                step();
+            });
+        }
+    }
+    async fadeInBoard(duration = 1) {
+        if (this.svgElement) {
+            return new Promise(resolve => {
+                this.svgElement.style.opacity = "0";
+                this.tutoText.style.opacity = "0";
+                let t0 = performance.now();
+                let step = () => {
+                    let f = (performance.now() - t0) / 1000 / duration;
+                    if (f < 1) {
+                        f = Nabu.Easing.easeInOutSine(f);
+                        this.svgElement.style.opacity = f.toFixed(2);
+                        this.tutoText.style.opacity = f.toFixed(2);
+                        requestAnimationFrame(step);
+                    }
+                    else {
+                        this.svgElement.style.opacity = "1";
+                        this.tutoText.style.opacity = "1";
+                        resolve();
+                    }
+                };
+                step();
+            });
+        }
+    }
+    async setTutoIndex(v, force) {
+        if (this._animating) {
+            return;
+        }
+        v = Nabu.MinMax(v, 0, 1);
+        if (v != this._tutoIndex || force) {
+            this._tutoIndex = v;
+            if (force) {
+                this._animating = true;
+                await this.fadeOutBoard(0);
+            }
+            else {
+                this._animating = true;
+                await this.fadeOutBoard(0.5);
+            }
+            this._timer = 0;
+            if (this._tutoIndex === 0) {
+                this.showTuto0();
+            }
+            else if (this._tutoIndex === 1) {
+                this.showTuto1();
+            }
+            await this.fadeInBoard(0.5);
+            this._animating = false;
+        }
+    }
+    async showTuto0() {
+        this.tutoText.innerHTML = "This is the ball. You control the ball.";
+    }
+    async showTuto1() {
+        this.tutoText.innerHTML = "The ball moves up and down until the ball bounces on a surface.";
+    }
+}
 class UserInterfaceInputManager {
     constructor(game) {
         this.game = game;
@@ -8238,6 +8368,9 @@ class Puzzle {
     skipIntro() {
         document.querySelector("#puzzle-skip-intro").style.display = "none";
         document.querySelector("#puzzle-ready").style.display = "";
+        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+            this.game.router.tutoPage.show(1);
+        }
         this.game.mode = GameMode.Play;
     }
     win() {
@@ -9959,6 +10092,7 @@ class PuzzleUI {
         requestAnimationFrame(() => {
             CenterPanel(this.successPanel, panelDX, panelDY);
         });
+        console.log("PuzzleUI win");
     }
     lose() {
         let panelDX = document.body.classList.contains("vertical") ? 0 : -50;
@@ -9974,6 +10108,7 @@ class PuzzleUI {
         requestAnimationFrame(() => {
             CenterPanel(this.gameoverPanel, panelDX, 0);
         });
+        console.log("PuzzleUI lose");
     }
     reset() {
         if (this.successPanel) {

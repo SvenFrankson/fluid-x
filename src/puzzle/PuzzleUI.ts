@@ -167,6 +167,7 @@ class PuzzleUI {
         requestAnimationFrame(() => {
             CenterPanel(this.successPanel, panelDX, panelDY);
         })
+        console.log("PuzzleUI win");
     }
 
     public lose(): void {
@@ -183,6 +184,7 @@ class PuzzleUI {
         requestAnimationFrame(() => {
             CenterPanel(this.gameoverPanel, panelDX, 0);
         })
+        console.log("PuzzleUI lose");
     }
 
     public reset(): void {

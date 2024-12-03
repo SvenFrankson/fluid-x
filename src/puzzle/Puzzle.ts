@@ -328,6 +328,9 @@ class Puzzle {
     public skipIntro(): void {
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "none";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "";
+        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+            this.game.router.tutoPage.show(1);
+        }
         this.game.mode = GameMode.Play;
     }
 

@@ -1,4 +1,4 @@
-function CenterPanel(panel: HTMLDivElement, dx: number = 0, dy: number = 0) {
+function CenterPanel(panel: HTMLElement, dx: number = 0, dy: number = 0) {
     let bodyRect = document.body.getBoundingClientRect();
     let panelRect = panel.getBoundingClientRect();
 

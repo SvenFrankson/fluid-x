@@ -11,6 +11,7 @@ class CarillonRouter extends Nabu.Router {
     public creditsPage: Nabu.DefaultPage;
     public multiplayerPage: MultiplayerPage;
     public devPage: Nabu.DefaultPage;
+    public tutoPage: TutoPage;
     public eulaPage: Nabu.DefaultPage;
 
     public timerText: HTMLDivElement;
@@ -40,6 +41,7 @@ class CarillonRouter extends Nabu.Router {
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
         this.editorUI = document.querySelector("#editor-ui") as Nabu.DefaultPage;
         this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
+        this.tutoPage = new TutoPage("#tuto-page", this);
         this.eulaPage = document.querySelector("#eula-page") as Nabu.DefaultPage;
         
         this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
@@ -99,7 +101,7 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
-            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#levels";
+            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;

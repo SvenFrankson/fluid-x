@@ -1165,6 +1165,26 @@ body:not(.touchscreen) .line.hovered {
     background-color: #ffffff40;
 }
 
+#tuto-page {
+    width: 280px;
+}
+
+#tuto-page .tutorial-container {
+    position: relative;
+    background-color: #31343a;
+}
+
+#tuto-page .tutorial-text {
+    position: absolute;
+    color: white;
+    font-size: 22px;
+    font-weight: 200;
+    width: 90%;
+    left: 5%;
+    top: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
 #multiplayer-page {
     text-align: center;
     width: 300px;

@@ -13,8 +13,6 @@ enum BallState {
 
 class Ball extends BABYLON.Mesh {
 
-    public dropletMode: boolean = false;
-
     public woodChocSound: MySound;
     public woodChocSound2: MySound;
     public fallImpactSound: MySound;
@@ -216,12 +214,10 @@ class Ball extends BABYLON.Mesh {
             let inputLeft = document.querySelector("#input-left");
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
-                    console.log("lpd");
                     this.leftPressed = 1;
                     this.mouseInControl = false;
                 })
                 inputLeft.addEventListener("pointerup", () => {
-                    console.log("lpu");
                     this.mouseInControl = false;
                     this.leftPressed = 0;
                 })
@@ -230,12 +226,10 @@ class Ball extends BABYLON.Mesh {
             let inputRight = document.querySelector("#input-right");
             if (inputRight) {
                 inputRight.addEventListener("pointerdown", () => {
-                    console.log("rpd");
                     this.mouseInControl = false;
                     this.rightPressed = 1;
                 })
                 inputRight.addEventListener("pointerup", () => {
-                    console.log("rpu");
                     this.mouseInControl = false;
                     this.rightPressed = 0;
                 })
@@ -447,12 +441,7 @@ class Ball extends BABYLON.Mesh {
     public async instantiate(): Promise<void> {
         //await RandomWait();
         let ballDatas: BABYLON.VertexData[];
-        if (this.dropletMode) {
-            ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
-        }
-        else {
-            ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
-        }
+        ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
@@ -526,7 +515,7 @@ class Ball extends BABYLON.Mesh {
                         this.leftPressed = Math.min(1, dx / -0.5);
                     }
                     let dz = point.z - this.absolutePosition.z;
-                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 3) {
+                    if (Math.abs(dz) > Math.abs(dx)) {
                         if (dz > 0) {
                             this.upPressed = 1;
                         }
@@ -538,26 +527,30 @@ class Ball extends BABYLON.Mesh {
             }
         }
 
-        
-        this.dumdumFactorTarget = 1;
-        if (this.vZ > 0) {
-            if (this.upPressed > 0) {
-                this.dumdumFactorTarget = 1.5;
+        if (false) {
+            this.dumdumFactorTarget = 1;
+            if (this.vZ > 0) {
+                if (this.upPressed > 0) {
+                    //this.dumdumFactorTarget = 1.5;
+                    
+                }
+                if (this.downPressed > 0) {
+                    //this.dumdumFactorTarget = 1 / 1.5;
+                    this.vZ = -1;
+                }
             }
-            if (this.downPressed > 0) {
-                this.dumdumFactorTarget = 1 / 1.5;
+            if (this.vZ < 0) {
+                if (this.upPressed > 0) {
+                    this.vZ = 1;
+                    //this.dumdumFactorTarget = 1 / 1.5;
+                }
+                if (this.downPressed > 0) {
+                    //this.dumdumFactorTarget = 1.5;
+                }
             }
+            let f = Nabu.Easing.smooth05Sec(1 / dt);
+            this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         }
-        if (this.vZ < 0) {
-            if (this.upPressed > 0) {
-                this.dumdumFactorTarget = 1 / 1.5;
-            }
-            if (this.downPressed > 0) {
-                this.dumdumFactorTarget = 1.5;
-            }
-        }
-        let f = Nabu.Easing.smooth05Sec(1 / dt);
-        this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
 
         let vX = 0;
         if (this.leftPressed > 0) {
@@ -583,13 +576,8 @@ class Ball extends BABYLON.Mesh {
 
             if (this.game.performanceWatcher.worst > 24) {
                 let p = BABYLON.Vector3.Zero();
-                if (this.dropletMode) {
-                    p = new BABYLON.Vector3(0, 0.1, -0.8);
-                }
-                else {
-                    p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
-                    p.y += 0.15;
-                }
+                p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
+                p.y += 0.15;
                 BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
                 if (this.trailTimer > 0.02) {
                     this.trailTimer = 0;

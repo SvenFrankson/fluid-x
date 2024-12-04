@@ -482,6 +482,8 @@ body:not(.touchscreen) button:hover, .hovered {
     bottom: 16px;
     width: 120px;
     height: 90px;
+    font-size: 80px;
+    font-weight: 900;
     border-radius: 20px;
     border: 3px solid #2b2821ff;
     padding: 0;
@@ -505,10 +507,18 @@ body:not(.touchscreen) button:hover, .hovered {
 
 #input-left {
     background-color: #b1a58d;
+    background-image: url(../datas/icons/arrow_left.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 #input-right {
     background-color: #624c3c;
+    background-image: url(../datas/icons/arrow_right.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 body:not(.vertical) #input-left {
@@ -1276,7 +1286,7 @@ body:not(.touchscreen) .line.hovered {
     font-size: 40px;
     color: white;
     font-weight: 100;
-    font-family: Shalimar;
+    font-family: Julee;
 }
 
 #click-anywhere-screen .message-bottom {

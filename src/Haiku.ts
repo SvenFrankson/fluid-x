@@ -206,7 +206,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
 
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#231d17FF";
-        context.font = "130px Shalimar";
+        context.font = "130px Julee";
         let l = context.measureText(this.playerName).width;
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -319,7 +319,7 @@ class HaikuDebug extends BABYLON.Mesh {
         context.fillRect(0, 0, 200, 100);
 
         context.fillStyle = "#231d17FF";
-        context.font = "100px Shalimar";
+        context.font = "100px Julee";
         let l = context.measureText(this.text).width;
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {

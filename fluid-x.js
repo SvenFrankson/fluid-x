@@ -12,7 +12,6 @@ class Ball extends BABYLON.Mesh {
         super("ball");
         this.puzzle = puzzle;
         this.ballIndex = ballIndex;
-        this.dropletMode = false;
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
@@ -126,12 +125,10 @@ class Ball extends BABYLON.Mesh {
             let inputLeft = document.querySelector("#input-left");
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
-                    console.log("lpd");
                     this.leftPressed = 1;
                     this.mouseInControl = false;
                 });
                 inputLeft.addEventListener("pointerup", () => {
-                    console.log("lpu");
                     this.mouseInControl = false;
                     this.leftPressed = 0;
                 });
@@ -139,12 +136,10 @@ class Ball extends BABYLON.Mesh {
             let inputRight = document.querySelector("#input-right");
             if (inputRight) {
                 inputRight.addEventListener("pointerdown", () => {
-                    console.log("rpd");
                     this.mouseInControl = false;
                     this.rightPressed = 1;
                 });
                 inputRight.addEventListener("pointerup", () => {
-                    console.log("rpu");
                     this.mouseInControl = false;
                     this.rightPressed = 0;
                 });
@@ -391,12 +386,7 @@ class Ball extends BABYLON.Mesh {
     async instantiate() {
         //await RandomWait();
         let ballDatas;
-        if (this.dropletMode) {
-            ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball-droplet.babylon");
-        }
-        else {
-            ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
-        }
+        ballDatas = await this.game.vertexDataLoader.get("./datas/meshes/ball.babylon");
         ballDatas[0].applyToMesh(this);
         ballDatas[1].applyToMesh(this.ballTop);
         ballDatas[3].applyToMesh(this.leftBox);
@@ -447,7 +437,7 @@ class Ball extends BABYLON.Mesh {
                         this.leftPressed = Math.min(1, dx / -0.5);
                     }
                     let dz = point.z - this.absolutePosition.z;
-                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 3) {
+                    if (Math.abs(dz) > Math.abs(dx)) {
                         if (dz > 0) {
                             this.upPressed = 1;
                         }
@@ -458,25 +448,29 @@ class Ball extends BABYLON.Mesh {
                 }
             }
         }
-        this.dumdumFactorTarget = 1;
-        if (this.vZ > 0) {
-            if (this.upPressed > 0) {
-                this.dumdumFactorTarget = 1.5;
+        if (false) {
+            this.dumdumFactorTarget = 1;
+            if (this.vZ > 0) {
+                if (this.upPressed > 0) {
+                    //this.dumdumFactorTarget = 1.5;
+                }
+                if (this.downPressed > 0) {
+                    //this.dumdumFactorTarget = 1 / 1.5;
+                    this.vZ = -1;
+                }
             }
-            if (this.downPressed > 0) {
-                this.dumdumFactorTarget = 1 / 1.5;
+            if (this.vZ < 0) {
+                if (this.upPressed > 0) {
+                    this.vZ = 1;
+                    //this.dumdumFactorTarget = 1 / 1.5;
+                }
+                if (this.downPressed > 0) {
+                    //this.dumdumFactorTarget = 1.5;
+                }
             }
+            let f = Nabu.Easing.smooth05Sec(1 / dt);
+            this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         }
-        if (this.vZ < 0) {
-            if (this.upPressed > 0) {
-                this.dumdumFactorTarget = 1 / 1.5;
-            }
-            if (this.downPressed > 0) {
-                this.dumdumFactorTarget = 1.5;
-            }
-        }
-        let f = Nabu.Easing.smooth05Sec(1 / dt);
-        this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         let vX = 0;
         if (this.leftPressed > 0) {
             this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftPressed) * 0.2;
@@ -497,13 +491,8 @@ class Ball extends BABYLON.Mesh {
             this.trailTimer += dt;
             if (this.game.performanceWatcher.worst > 24) {
                 let p = BABYLON.Vector3.Zero();
-                if (this.dropletMode) {
-                    p = new BABYLON.Vector3(0, 0.1, -0.8);
-                }
-                else {
-                    p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
-                    p.y += 0.15;
-                }
+                p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
+                p.y += 0.15;
                 BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
                 if (this.trailTimer > 0.02) {
                     this.trailTimer = 0;
@@ -3495,7 +3484,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         }
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#231d17FF";
-        context.font = "130px Shalimar";
+        context.font = "130px Julee";
         let l = context.measureText(this.playerName).width;
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -3582,7 +3571,7 @@ class HaikuDebug extends BABYLON.Mesh {
         context.fillStyle = "#00000000";
         context.fillRect(0, 0, 200, 100);
         context.fillStyle = "#231d17FF";
-        context.font = "100px Shalimar";
+        context.font = "100px Julee";
         let l = context.measureText(this.text).width;
         for (let x = 0; x < 3; x++) {
             for (let y = 0; y < 3; y++) {
@@ -4487,12 +4476,13 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 0;
 var MINOR_VERSION = 2;
-var PATCH_VERSION = 21;
+var PATCH_VERSION = 22;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
 var USE_POKI_SDK;
 var OFFLINE_MODE;
+var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK;
 var PokiSDKPlaying = false;
@@ -4565,8 +4555,13 @@ let onFirstPlayerInteractionTouch = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
-        location.hash = "#level-1";
+    if (USE_POKI_SDK) {
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
+        }
     }
     Game.Instance.camera.panningSensibility *= 0.4;
 };
@@ -4591,8 +4586,13 @@ let onFirstPlayerInteractionClick = (ev) => {
         Game.Instance.puzzle.balls[0].connectMouse();
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
-        location.hash = "#level-1";
+    if (USE_POKI_SDK) {
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
+        }
     }
 };
 let onFirstPlayerInteractionKeyboard = (ev) => {
@@ -4616,8 +4616,13 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
-        location.hash = "#level-1";
+    if (USE_POKI_SDK) {
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
+        }
     }
 };
 function addLine(text) {
@@ -4783,6 +4788,10 @@ class Game {
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
+        if (NO_VERTEX_DATA_LOADER) {
+            let datas = await fetch("./datas/meshes/vertexDatas.json");
+            this.vertexDataLoader.deserialize(await datas.json());
+        }
         let rect = this.canvas.getBoundingClientRect();
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
@@ -4817,7 +4826,6 @@ class Game {
         this.camera.wheelPrecision *= 10;
         this.camera.pinchPrecision *= 10;
         this.updatePlayCameraRadius();
-        //this.performanceWatcher.showDebug();
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.postInitialize();
@@ -6978,7 +6986,7 @@ class ToonSound extends BABYLON.Mesh {
         let context = this.dynamicTexture.getContext();
         context.clearRect(0, 0, 200, 40);
 
-        context.font = "40px Bangers";
+        context.font = "40px Julee";
         let l = context.measureText(text).width;
 
         let color = BABYLON.Color3.FromHexString(this.soundProp.color);

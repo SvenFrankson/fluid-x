@@ -23,6 +23,8 @@ if ($containsString) {
     $build_name = $build_name + "_advent_calendar";
 }
 
+$noVertexDataLoader = Select-String -Path "./index.js" -Pattern "NO_VERTEX_DATA_LOADER = true" -Quiet
+
 if (Test-Path ("../" + $build_name + "")) {
     Remove-Item ("../" + $build_name + "") -Recurse -Force
 }
@@ -42,7 +44,9 @@ New-Item ("../" + $build_name + "/lib/mummu") -ItemType "directory"
 Copy-Item -Path "./lib/mummu/mummu.js" -Destination ("../" + $build_name + "/lib/mummu/mummu.js")
 
 Copy-Item -Path "./lib/babylon.js" -Destination ("../" + $build_name + "/lib/babylon.js")
-Copy-Item -Path "./lib/babylonjs.loaders.js" -Destination ("../" + $build_name + "/lib/babylonjs.loaders.js")
+if (!$noVertexDataLoader) {
+    Copy-Item -Path "./lib/babylonjs.loaders.js" -Destination ("../" + $build_name + "/lib/babylonjs.loaders.js")
+}
 
 Get-ChildItem -Path ("../" + $build_name + "/") "*.blend" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
 Get-ChildItem -Path ("../" + $build_name + "/") "*.blend1" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
@@ -53,6 +57,9 @@ Get-ChildItem -Path ("../" + $build_name + "/") "*.d.ts" -Recurse | ForEach-Obje
 Get-ChildItem -Path ("../" + $build_name + "/") "*.pdn" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
 Get-ChildItem -Path ("../" + $build_name + "/") "*.kra" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
 Get-ChildItem -Path ("../" + $build_name + "/") "*.*~" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+if ($noVertexDataLoader) {
+    Get-ChildItem -Path ("../" + $build_name + "/") "*.babylon" -Recurse | ForEach-Object { Remove-Item -Path $_.FullName }
+}
 
 Remove-Item -Path ("../" + $build_name + "/.gitignore")
 Remove-Item -Path ("../" + $build_name + "/make_build.ps1")

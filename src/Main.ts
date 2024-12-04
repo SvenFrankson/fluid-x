@@ -4,13 +4,14 @@
 
 var MAJOR_VERSION: number = 0;
 var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 21;
+var PATCH_VERSION: number = 22;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
 var observed_progress_speed_percent_second;
 var USE_POKI_SDK;
 var OFFLINE_MODE;
+var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK: any;
 
@@ -89,8 +90,13 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
-        location.hash = "#level-1";
+    if (USE_POKI_SDK) {
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
+        }
     }
     Game.Instance.camera.panningSensibility *= 0.4;
 }
@@ -117,8 +123,13 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
         Game.Instance.puzzle.balls[0].connectMouse();
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
-        location.hash = "#level-1";
+    if (USE_POKI_SDK) {
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
+        }
     }
 }
 
@@ -144,8 +155,13 @@ let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
         document.body.classList.add("mobile");
     }
     Game.Instance.soundManager.unlockEngine();
-    if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0 && USE_POKI_SDK) {
-        location.hash = "#level-1";
+    if (USE_POKI_SDK) {
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
+        }
     }
 }
 
@@ -359,6 +375,10 @@ class Game {
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
 
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
+        if (NO_VERTEX_DATA_LOADER) {
+            let datas = await fetch("./datas/meshes/vertexDatas.json");
+            this.vertexDataLoader.deserialize(await datas.json());
+        }
         
         let rect = this.canvas.getBoundingClientRect();
         this.screenRatio = rect.width / rect.height;
@@ -403,8 +423,6 @@ class Game {
         this.camera.wheelPrecision *= 10;
         this.camera.pinchPrecision *= 10;
         this.updatePlayCameraRadius();
-
-        //this.performanceWatcher.showDebug();
         
         this.router = new CarillonRouter(this);
         this.router.initialize();

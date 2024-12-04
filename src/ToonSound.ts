@@ -74,7 +74,7 @@ class ToonSound extends BABYLON.Mesh {
         let context = this.dynamicTexture.getContext();
         context.clearRect(0, 0, 200, 40);
 
-        context.font = "40px Bangers";
+        context.font = "40px Julee";
         let l = context.measureText(text).width;
 
         let color = BABYLON.Color3.FromHexString(this.soundProp.color);

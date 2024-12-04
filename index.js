@@ -1,5 +1,6 @@
 var USE_POKI_SDK = true;
 var OFFLINE_MODE = true;
+var NO_VERTEX_DATA_LOADER = true;
 var ADVENT_CAL = false;
 
 var THE_ORIGIN_OF_TIME_ms = 0;
@@ -134,8 +135,10 @@ async function doLoad() {
     setProgressIndex(pIndex++);
     await loadScript("./lib/babylon.js");
     setProgressIndex(pIndex++);
-    await loadScript("./lib/babylonjs.loaders.js");
-    setProgressIndex(pIndex++);
+    if (!NO_VERTEX_DATA_LOADER) {
+        await loadScript("./lib/babylonjs.loaders.js");
+        setProgressIndex(pIndex++);
+    }
     await loadScript("./lib/nabu/nabu.js");
     setProgressIndex(pIndex++);
     await loadScript("./lib/mummu/mummu.js");

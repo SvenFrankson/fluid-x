@@ -471,15 +471,7 @@ class Ball extends BABYLON.Mesh {
     public dumdumFactor = 1;
     public dumdumFactorTarget = 1;
     public get boostedSpeed(): number {
-        let s = this.speed;
-        if (this.canBoost) {
-            s = this.boost ? this.speed * 1.5 : this.speed;
-        }
-        else {
-            return this.speed * this.dumdumFactor;
-        }
-
-        return s;
+        return this.speed * this.dumdumFactor;
     }
     public moveDir: BABYLON.Vector3 = BABYLON.Vector3.Forward();
     public smoothedMoveDir: BABYLON.Vector3 = BABYLON.Vector3.Forward();
@@ -515,7 +507,7 @@ class Ball extends BABYLON.Mesh {
                         this.leftPressed = Math.min(1, dx / -0.5);
                     }
                     let dz = point.z - this.absolutePosition.z;
-                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 4) {
+                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 1) {
                         if (dz > 0) {
                             this.upPressed = 1;
                         }
@@ -547,6 +539,9 @@ class Ball extends BABYLON.Mesh {
             if (this.downPressed > 0) {
                 this.dumdumFactorTarget = 1.5;
             }
+        }
+        if (this.boost) {
+            this.dumdumFactorTarget = 1.5;
         }
         let f = Nabu.Easing.smooth05Sec(1 / dt);
         this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);

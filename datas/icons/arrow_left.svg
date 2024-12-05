@@ -13,8 +13,8 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="arrow_right.svg"
-   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\icons\arrow_right.png"
+   sodipodi:docname="arrow_left.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\icons\arrow_left.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
   <defs
@@ -47,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -56,34 +56,32 @@
      inkscape:groupmode="layer"
      id="layer1">
     <circle
-       style="fill:none;fill-opacity:1;stroke:#e3cfb4;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
+       style="fill:none;fill-opacity:1;stroke:#2b2821;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
        id="path1414-9"
-       cx="-50"
-       cy="-50"
-       r="37.082371"
-       transform="scale(-1)" />
+       cx="50"
+       cy="50"
+       r="37.082371" />
     <circle
-       style="fill:none;fill-opacity:1;stroke:#2b2821;stroke-width:2.99999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
+       style="fill:none;fill-opacity:1;stroke:#e3cfb4;stroke-width:2.99999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
        id="path1414"
        cx="50"
        cy="50"
        r="37.082371" />
     <path
        sodipodi:type="star"
-       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#e3cfb4;fill-opacity:1;stroke:#2b2821;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:markers fill stroke"
        id="path2589"
        sodipodi:sides="3"
-       sodipodi:cx="-50.246002"
-       sodipodi:cy="-49.999996"
-       sodipodi:r1="19.161572"
-       sodipodi:r2="9.5807867"
+       sodipodi:cx="49.753998"
+       sodipodi:cy="50"
+       sodipodi:r1="19.123514"
+       sodipodi:r2="9.561758"
        sodipodi:arg1="3.1415927"
        sodipodi:arg2="4.1887902"
        inkscape:flatsided="true"
        inkscape:rounded="-3.46945e-18"
        inkscape:randomized="0"
-       d="m -69.407574,-49.999997 28.742358,-16.594406 -10e-7,33.188815 z"
-       inkscape:transform-center-x="-4.7903933"
-       transform="scale(-1)" />
+       d="m 30.630484,49.999999 28.685272,-16.561448 -2e-6,33.122899 z"
+       inkscape:transform-center-x="4.7808791" />
   </g>
 </svg>

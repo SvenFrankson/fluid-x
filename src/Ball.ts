@@ -573,7 +573,7 @@ class Ball extends BABYLON.Mesh {
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
 
-            if (this.game.performanceWatcher.worst > 24) {
+            if (this.game.performanceWatcher.worst > 1) {
                 let p = BABYLON.Vector3.Zero();
                 p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
                 p.y += 0.15;
@@ -597,7 +597,7 @@ class Ball extends BABYLON.Mesh {
                     let c = new BABYLON.Color4(col, col, col, 1);
                     this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
                     this.trailPointColors.push(this.trailColor.clone());
-                    let count = 20;
+                    let count = 15;
                     //count = 200; // debug
                     if (this.trailPoints.length > count) {
                         this.trailPoints.splice(0, 1);

@@ -117,7 +117,6 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     }, 300);
     Game.Instance.onResize();
 
-    document.body.classList.add("touchscreen");
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
@@ -1223,7 +1222,6 @@ class Game {
                 this.storyExpertTable = await response.json();
             }
         }
-        console.log(this.storyExpertTable);
     }
 
     public async getPuzzleDataById(id: number): Promise<IPuzzleData> {

@@ -489,7 +489,7 @@ class Ball extends BABYLON.Mesh {
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
             this.trailTimer += dt;
-            if (this.game.performanceWatcher.worst > 24) {
+            if (this.game.performanceWatcher.worst > 1) {
                 let p = BABYLON.Vector3.Zero();
                 p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
                 p.y += 0.15;
@@ -512,7 +512,7 @@ class Ball extends BABYLON.Mesh {
                     let c = new BABYLON.Color4(col, col, col, 1);
                     this.trailColor.scaleInPlace(0.8).addInPlace(c.scaleInPlace(0.2));
                     this.trailPointColors.push(this.trailColor.clone());
-                    let count = 20;
+                    let count = 15;
                     //count = 200; // debug
                     if (this.trailPoints.length > count) {
                         this.trailPoints.splice(0, 1);
@@ -4593,7 +4593,6 @@ let onFirstPlayerInteractionClick = (ev) => {
         document.getElementById("click-anywhere-screen").style.display = "none";
     }, 300);
     Game.Instance.onResize();
-    document.body.classList.add("touchscreen");
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
@@ -5537,7 +5536,6 @@ class Game {
                 this.storyExpertTable = await response.json();
             }
         }
-        console.log(this.storyExpertTable);
     }
     async getPuzzleDataById(id) {
         if (id === null || isNaN(id)) {
@@ -6653,7 +6651,6 @@ class PuzzleCompletion {
         this.xmasPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log(totalStarsCount + " " + max);
         this.xmasPuzzleCompletion = totalStarsCount / max;
     }
     _updateCommunityPuzzleCompletion() {

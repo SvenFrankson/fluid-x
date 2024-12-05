@@ -101,7 +101,6 @@ class PuzzleCompletion {
         this.xmasPuzzles.forEach(e => {
             totalStarsCount += e.getStarsCount();
         });
-        console.log(totalStarsCount + " " + max);
         this.xmasPuzzleCompletion = totalStarsCount / max;
     }
 

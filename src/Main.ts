@@ -977,6 +977,7 @@ class Game {
                         storyModePuzzles.puzzles[i].title = n.toFixed(0) + ". " + title;
                         n++;
                     }
+                    storyModePuzzles.puzzles[i].author = "Story Mode";
                 }
 
                 CLEAN_IPuzzlesData(storyModePuzzles);
@@ -1020,6 +1021,7 @@ class Game {
         
                 for (let i = 0; i < expertPuzzles.puzzles.length; i++) {
                     expertPuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + expertPuzzles.puzzles[i].title;
+                    expertPuzzles.puzzles[i].author = "Expert Mode";
                 }
 
                 CLEAN_IPuzzlesData(expertPuzzles);

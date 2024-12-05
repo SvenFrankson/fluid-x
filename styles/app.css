@@ -815,7 +815,7 @@ body.vertical .square-btn-container {
 .square-btn-panel .stamp {
     display: block;
     position: absolute;
-    bottom: 50px;
+    bottom: 45px;
     right: 5px;
     z-index: 2;
 }
@@ -823,8 +823,8 @@ body.vertical .square-btn-container {
 .stamp {
     display: block;
     position: absolute;
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
     background-size: cover;
     background-image: url("../datas/icons/stamp-0-star.svg");
 }

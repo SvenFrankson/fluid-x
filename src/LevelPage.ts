@@ -140,7 +140,7 @@ abstract class LevelPage {
                 authorText.setContent(val);
             }
             else {
-                authorText.setContent("by " + puzzleTileDatas[n].data.author);
+                authorText.setContent(puzzleTileDatas[n].data.author);
             }
 
             if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
@@ -149,6 +149,7 @@ abstract class LevelPage {
                 completedStamp.classList.add("stamp");
                 completedStamp.classList.add("stamp-" + starCount);
                 squareButton.appendChild(completedStamp);
+                squareButton.style.borderColor = "var(--color-yellow)";
             }
             else if (puzzleTileDatas[n].new) {
                 squareButton.classList.add("highlit", "lightblue");
@@ -393,7 +394,7 @@ class StoryPuzzlesPage extends LevelPage {
                     data: {
                         id: null,
                         title: "Try the Expert Mode",
-                        author: "Tiaratum Games",
+                        author: "Expert Mode",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onpointerup: () => {
@@ -526,7 +527,7 @@ class ExpertPuzzlesPage extends LevelPage {
                     data: {
                         id: null,
                         title: "Back to Story Mode",
-                        author: "Tiaratum Games",
+                        author: "Story Mode",
                         content: "0u0u0xaoooooooaxoowwnnnoaxonnwnnnorxonnwNoooOxonnwWoooOxonnwwnnorxoowwwnnoaxooooooooa",
                     },
                     onpointerup: () => {

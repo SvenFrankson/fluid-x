@@ -4709,8 +4709,8 @@ class Game {
         this.menuCamRadius = 15;
         this.playCameraRange = 15;
         this.playCameraRadius = 20;
-        this.playCameraMinRadius = 8;
-        this.playCameraMaxRadius = 100;
+        this.playCameraMinRadius = 5;
+        this.playCameraMaxRadius = 50;
         this.cameraOrtho = false;
         this.player1Name = "";
         this.player2Name = "";
@@ -4808,11 +4808,11 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
-            this.playCameraRange = 9;
+            this.playCameraRange = 10;
         }
         else {
             document.body.classList.remove("vertical");
-            this.playCameraRange = 9;
+            this.playCameraRange = 10;
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
@@ -5210,12 +5210,12 @@ class Game {
         };
         document.querySelector("#zoom-out-btn").onpointerup = () => {
             this.playCameraRange += 1;
-            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 6, 20);
+            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 5, 20);
             this.updatePlayCameraRadius();
         };
         document.querySelector("#zoom-in-btn").onpointerup = () => {
             this.playCameraRange -= 1;
-            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 6, 20);
+            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 5, 20);
             this.updatePlayCameraRadius();
         };
         document.querySelector("#dev-mode-activate-btn").onpointerup = () => {
@@ -5611,11 +5611,11 @@ class Game {
         return 2 * Math.atan(this.screenRatio * Math.tan(this.camera.fov / 2));
     }
     updatePlayCameraRadius() {
-        let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
+        let minFov = Math.min(this.camera.fov * 1.1, this.getCameraHorizontalFOV());
         this.playCameraRadius = Nabu.MinMax(this.playCameraRange / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
     updateMenuCameraRadius() {
-        let minFov = Math.min(this.camera.fov, this.getCameraHorizontalFOV());
+        let minFov = Math.min(this.camera.fov * 1.1, this.getCameraHorizontalFOV());
         this.menuCamRadius = Nabu.MinMax(Math.min(this.playCameraRange, Math.max(this.puzzle.w, this.puzzle.h) * 1.1) / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
     update() {

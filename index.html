@@ -6,6 +6,138 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui, shrink-to-fit=no viewport-fit=cover">
 		<meta property="og:title" content="Carillion"/>
 		<script src="index.js"></script>
+		<style>
+			#click-anywhere-screen {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: #0f0f0ff0;
+				z-index: 10;
+				color: white;
+			}
+
+			#click-anywhere-screen-container {
+				position: fixed;
+				top: calc(50svh - 0.5 * min(100vw, 100svh));
+				left: calc(50vw - 0.5 * min(100vw, 100svh));
+				width: min(100vw, 100svh);
+				height: min(100vw, 100svh);
+				z-index: 10;
+				color: white;
+				display: flex;
+				flex-direction: column;
+			}
+
+			#click-anywhere-screen h1 {
+				font-family: Julee, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				font-size: 70px;
+				position: absolute;
+				bottom: 0;
+				width: 100%;
+				text-align: center;
+				color: white;
+			}
+
+			#click-anywhere-screen-top {
+				position: relative;
+				width: 100%;
+				flex: 2;
+			}
+
+			#click-anywhere-screen-mid {
+				position: relative;
+				width: 100%;
+				flex: 4;
+			}
+
+			#click-anywhere-screen img {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				width: 70%;
+				border-radius: 20px;
+				border: 1px solid white;
+			}
+
+			.cas-message {
+				position: absolute;
+				left: 15%;
+				padding: 2px;
+				padding-left: 8px;
+				padding-right: 8px;
+				border-top-right-radius: 5px;
+				border-bottom-right-radius: 5px;
+				background-color: #243d5c;
+				border: 1px solid white;
+				border-left: none;
+				font-size: calc(min(100vw, 100svh) * 0.03);
+				font-family: Roboto, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				font-weight: 300;
+				transition: opacity 1s ease-in-out;
+			}
+
+			#cas-message-1 {
+				top: 10%;
+			}
+
+			#cas-message-2 {
+				top: 25%;
+			}
+
+			#cas-message-3 {
+				bottom: 10%;
+			}
+
+			#click-anywhere-screen-bottom {
+				position: relative;
+				width: 100%;
+				flex: 2;
+			}
+
+			#loading-bar-base {
+				position: absolute;
+				top: 10%;
+				left: calc(15% - 1px);
+				width: 70%;
+				height: 25%;
+				border-radius: 5px;
+				border: 1px solid white;
+				background-color: black;
+			}
+
+			#loading-bar-progress {
+				position: absolute;
+				top: 10%;
+				left: calc(15% - 1px);
+				width: 70%;
+				height: 25%;
+				border-radius: 5px;
+				border: 1px solid white;
+				background: linear-gradient(90deg, white 0%,white 50%, #5c8b93 100%);
+			}
+
+			#loading-bar-text {
+				position: absolute;
+				top: 13%;
+				width: 100%;
+				text-align: center;
+				font-size: calc(min(100vw, 100svh) * 0.04);
+				font-family: Roboto, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				font-weight: 300;
+			}
+
+			#loading-text {
+				position: absolute;
+				top: 45%;
+				width: 100%;
+				text-align: center;
+				font-size: 28px;
+				font-family: Roboto, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				font-weight: 200;
+			}
+		</style>
 	</head>
 	<body class="vertical">
 		<canvas id="render-canvas"></canvas>
@@ -27,13 +159,22 @@
 		<default-page id="tuto-page" class="panel" file="tuto-page.xhtml" style="display: none;"></default-page>
 		<default-page id="eula-page" class="panel" file="eula-page.xhtml" style="display: none;"></default-page>
 		<div id="click-anywhere-screen">
-			<div class="container">
-				<img class="splash-title"/>
-				<img class="white-track" src="./datas/textures/splash.png" style="opacity: 0;"/>
-				<div class="message-description">CARILLION</div>
-				<div class="message-description-2">Solve, Create, Share !</div>
-				<div class="message-bottom">Click or press anywhere to Enter</div>
-				<div id="loading-info" class="message-loading"></div>
+			<div id="click-anywhere-screen-container">
+				<div id="click-anywhere-screen-top">
+					<h1>CARILLION</h1>
+				</div>
+				<div id="click-anywhere-screen-mid">
+					<img src="./datas/textures/splash-2.jpeg" style="opacity: 0;">
+					<div id="cas-message-1" class="cas-message" style="opacity: 0;">3D Puzzle !</div>
+					<div id="cas-message-2" class="cas-message" style="opacity: 0;">+40 Levels !</div>
+					<div id="cas-message-3" class="cas-message" style="opacity: 0;">Level Editor !</div>
+				</div>
+				<div id="click-anywhere-screen-bottom">
+					<div id="loading-bar-base"></div>
+					<div id="loading-bar-progress"></div>
+					<div id="loading-bar-text">Loading...</div>
+					<div id="loading-text">Press to Start</div>
+				</div>
 			</div>
 		</div>
 		<div id="thumbnail" style="display: none;">

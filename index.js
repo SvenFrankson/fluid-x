@@ -1,9 +1,10 @@
-var USE_POKI_SDK = true;
-var OFFLINE_MODE = true;
+var USE_POKI_SDK = false;
+var OFFLINE_MODE = false;
 var NO_VERTEX_DATA_LOADER = true;
 var ADVENT_CAL = false;
 
 var THE_ORIGIN_OF_TIME_ms = 0;
+var GLOBAL_GAME_LOAD_CURRENT_STEP = 0;
 var last_step_t = 0;
 var displayed_progress = 0;
 var real_progress = 0;
@@ -92,9 +93,10 @@ async function mainMachineInstantiated() {
 
 var steps = []
 
-function setProgressIndex(i) {
+function setProgressIndex(i, label) {
     let t = performance.now();
     let t_since_start = (t - THE_ORIGIN_OF_TIME_ms);
+    console.log("step " + i + " (" + label + ") reached at " + t_since_start.toFixed(3) + " ms.");
     real_progress = steps[i];
     next_progress = steps[i + 1];
     observed_progress_speed_percent_second = real_progress / (t_since_start / 1000);
@@ -102,78 +104,90 @@ function setProgressIndex(i) {
 
 function loadStep() {
     if (real_progress < 1) {
-        displayed_progress = real_progress;
+        displayed_progress = displayed_progress * 0.985 + real_progress * 0.015;
 
-        document.querySelector("#click-anywhere-screen .white-track").style.opacity = displayed_progress;
-        document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "loading... " + (displayed_progress * 100).toFixed(0) + "%";
+        let ok = Math.sqrt(displayed_progress);
+        if (ok > 0.1) {
+            document.querySelector("#cas-message-1").style.opacity = "1";
+        }
+        if (ok > 0.3) {
+            document.querySelector("#cas-message-2").style.opacity = "1";
+        }
+        if (ok > 0.6) {
+            document.querySelector("#cas-message-3").style.opacity = "1";
+        }
+        let c = Math.floor((1 - ok) * (1 - ok) * 256).toString(16).padStart(2, "0").substring(0, 2);
+        document.querySelector("#loading-bar-text").style.color = "#" + c + c + c;
+        document.querySelector("#loading-bar-text").innerHTML = "Loading...";
+        document.querySelector("#loading-bar-progress").style.width = (ok * 70).toFixed(2) + "%";
+        document.querySelector("#loading-text").innerHTML = "Loading... " + (ok * 100).toFixed(0) + "%";
+        document.querySelector("#click-anywhere-screen img").style.opacity = ok;
+
+        //document.querySelector("#click-anywhere-screen .white-track").style.opacity = displayed_progress;
+        //document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "loading... " + (displayed_progress * 100).toFixed(0) + "%";
         requestAnimationFrame(loadStep);
     }
     else {
-        document.querySelector("#click-anywhere-screen .white-track").style.opacity = "1";
-        document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "Click or press anywhere to Enter";
+        document.querySelector("#cas-message-1").style.opacity = "1";
+        document.querySelector("#cas-message-2").style.opacity = "1";
+        document.querySelector("#cas-message-3").style.opacity = "1";
+        document.querySelector("#loading-bar-progress").style.width = "70%";
+        document.querySelector("#loading-text").innerHTML = "Press to Enter";
+        document.querySelector("#loading-bar-text").style.color = "#000000";
+        document.querySelector("#loading-bar-text").innerHTML = "Done !";
+        document.querySelector("#click-anywhere-screen img").style.opacity = "1";
+        //document.querySelector("#click-anywhere-screen .white-track").style.opacity = "1";
+        //document.querySelector("#click-anywhere-screen .message-bottom").innerHTML = "Click or press anywhere to Enter";
     }
 }
 
 async function doLoad() {
-    let pIndex = 0;
     let stepsCount = 9;
+    if (USE_POKI_SDK) {
+        stepsCount++;
+    }
+    if (!NO_VERTEX_DATA_LOADER) {
+        stepsCount++;
+    }
     steps = [];
     for (let i = 0; i <= stepsCount; i++) {
         steps[i] = i / stepsCount;
     }
-    setProgressIndex(pIndex++);
-    updateLoadingText();
+    setProgressIndex(0);
     loadStep();
     
     await loadCSS("./styles/fonts.css");
-    setProgressIndex(pIndex++);
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+
     await loadCSS("./styles/app.css");
-    setProgressIndex(pIndex++);
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+
     if (USE_POKI_SDK) {
         await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
     }
-    setProgressIndex(pIndex++);
+
     await loadScript("./lib/babylon.js");
-    setProgressIndex(pIndex++);
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+
     if (!NO_VERTEX_DATA_LOADER) {
         await loadScript("./lib/babylonjs.loaders.js");
-        setProgressIndex(pIndex++);
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
     }
-    await loadScript("./lib/nabu/nabu.js");
-    setProgressIndex(pIndex++);
-    await loadScript("./lib/mummu/mummu.js");
-    setProgressIndex(pIndex++);
-    await loadScript("./fluid-x.js");
-    setProgressIndex(pIndex++);
-    await gameLoaded();
-    setProgressIndex(pIndex++);
-}
 
-function updateLoadingText() {
-    let d = 250;
-    let text = "> " + loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
-    let e = document.getElementById("loading-info");
-    e.innerText = text;
-    if (real_progress < 1) {
-        setTimeout(() => {
-            text += ".";
-            e.innerText = text;
-            setTimeout(() => {
-                text += ".";
-                e.innerText = text;
-                setTimeout(() => {
-                    text += ".";
-                    e.innerText = text;
-                    setTimeout(() => {
-                        updateLoadingText();
-                    }, d);
-                }, d);
-            }, d);
-        }, d);
-    }
-    else {
-        e.innerText = "";
-    }
+    await loadScript("./lib/nabu/nabu.js");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "nabu.js loaded");
+
+    await loadScript("./lib/mummu/mummu.js");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "mummu.js loaded");
+
+    await loadScript("./fluid-x.js");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "fluid-x.js loaded");
+
+    await gameLoaded();
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP, "all done");
+
+    console.log("Load complete. GLOBAL_GAME_LOAD_CURRENT_STEP is " + GLOBAL_GAME_LOAD_CURRENT_STEP.toFixed(0));
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -181,27 +195,3 @@ window.addEventListener("DOMContentLoaded", async () => {
     last_step_t = THE_ORIGIN_OF_TIME_ms;
     doLoad();
 });
-
-const loadingTexts = [
-    "computing g 7th digit",
-    "waiting for wikipedia 'Isaac Newton' page to load",
-    "implementing CNRS latest researches on point dynamic",
-    "recalculating Pi 56th decimal",
-    "calibrating pixels #3, #71, #99 and #204",
-    "baking lightmaps temp 7",
-    "indexing the vertices by size",
-    "verticing the indexes by color",
-    "checking procedural generation procedures",
-    "running 1 (one) unitary unit test",
-    "please do not touch screen while loading",
-    "initializing the initializer",
-    "managing master manager disposal",
-    "thanking user for his patience",
-    "waiting for loading screen to update",
-    "updating loading screen offscreen features",
-    "running last minute bug removal script",
-    "cleaning up unused assets at runtime",
-    "cleaning up unused assets at runtime",
-    "pretending to do something useful",
-    "allowing the loader to take a short break"
-]

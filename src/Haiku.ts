@@ -16,8 +16,18 @@ class HaikuMaker {
                 );
                 puzzle.tileHaikus.push(tileHaiku);
             }
+            for (let i = 1; i < tile.length; i++) {
+                if (tile[i]) {
+                    let tileHaiku = new HaikuTile(
+                        puzzle.game,
+                        "",
+                        tile[i]
+                    );
+                    puzzle.tileHaikus.push(tileHaiku);
+                }
+            }
         }
-        if (puzzle.data.id === 75 && puzzle.data.state === 2) {
+        if (puzzle.data.id === 161 && puzzle.data.state === 2) {
             let buttonTile = puzzle.tiles.filter((tile) => {
                 return tile instanceof ButtonTile;
             })
@@ -41,19 +51,19 @@ class HaikuMaker {
                     puzzle.game,
                     "Door",
                     doorTiles[0],
-                    -1
+                    1
                 );
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
-        if (puzzle.data.id === 76 && puzzle.data.state === 2) {
+        if (puzzle.data.id === 157 && puzzle.data.state === 2) {
             let switchTiles = puzzle.tiles.filter((tile) => {
                 return tile instanceof SwitchTile;
             })
             if (switchTiles[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "",
+                    "   Drum",
                     switchTiles[0]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -61,7 +71,7 @@ class HaikuMaker {
             if (switchTiles[1]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "",
+                    "Drum   ",
                     switchTiles[1]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -273,6 +283,10 @@ class HaikuTile extends BABYLON.Mesh {
             let l = context.measureText(this.text).width;
             context.fillText(this.text, 500 - 180 - l, 530);
         }
+        else if (align === 1) {
+            let l = context.measureText(this.text).width;
+            context.fillText(this.text, 500 + 180, 530);
+        }
         else {
             let l = context.measureText(this.text).width;
             context.fillText(this.text, Math.floor(500 - l * 0.5), 740);
@@ -291,7 +305,7 @@ class HaikuTile extends BABYLON.Mesh {
 
     public hide(): void {
         this.shown = false;
-        this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
+        this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
     }
 }
 

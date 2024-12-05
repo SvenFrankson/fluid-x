@@ -41,6 +41,9 @@ class UserInterfaceInputManager {
                 }
                 return;
             }
+            if (document.activeElement instanceof HTMLTextAreaElement) {
+                return;
+            }
             this.inControl = true;
             if (ev.code === "KeyW" || ev.code === "ArrowUp") {
                 ev.preventDefault();

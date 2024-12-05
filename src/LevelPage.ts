@@ -505,10 +505,12 @@ class ExpertPuzzlesPage extends LevelPage {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
-                let storyId = this.router.game.expertIdToStoryId(data.puzzles[n].id);
-                if (this.router.game.puzzleCompletion.isPuzzleCompleted(storyId)) {
-                    locked = false;
-                }
+                let storyIds = this.router.game.expertIdToStoryId(data.puzzles[n].id);
+                for (let j = 0; j < storyIds.length; j++) {
+                    if (this.router.game.puzzleCompletion.isPuzzleCompleted(storyIds[j])) {
+                        locked = false;
+                    }
+                }                
                 
                 puzzleData[i] = {
                     data: data.puzzles[n],
@@ -659,7 +661,7 @@ class DevPuzzlesPage extends LevelPage {
                 let id = data.puzzles[i].id;
 
                 if (this.levelStateToFetch === 2 || this.levelStateToFetch === 3) {
-                    data.puzzles[i].title += " (" + data.puzzles[i].story_order.toFixed(0) + ")"; 
+                    data.puzzles[i].title += " (" + data.puzzles[i].story_order.toFixed(0) + ")" + " #" + data.puzzles[i].id.toFixed(0); 
                 }
 
                 puzzleData[i] = {

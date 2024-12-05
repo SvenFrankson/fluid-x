@@ -10,7 +10,7 @@
 
 <div id="play-timer"><stroke-text>00 :</stroke-text><stroke-text>00 :</stroke-text><stroke-text>00</stroke-text></div>
 <a href="#home"><button class="back-btn medium-btn bluegrey"><stroke-text>MENU</stroke-text></button></a>
-<button id="reset-btn" class="medium-btn red"><stroke-text>REPLAY</stroke-text></button>
+<button id="reset-btn" class="medium-btn red"><stroke-text>RESET</stroke-text></button>
 <button id="zoom-out-btn" class="medium-btn lightblue"><img style="margin-top: 10%; height: 80%" src="datas/icons/zoom-out.svg"/></button>
 <button id="zoom-in-btn" class="medium-btn lightblue"><img style="margin-top: 10%; height: 80%" src="datas/icons/zoom-in.svg"/></button>
 <a href="#editor"><button id="editor-btn" class="medium-btn orange"><stroke-text>EDITOR</stroke-text></button></a>
@@ -41,12 +41,12 @@
     <button id="dev-xpert-puzzle-send" class="xsmall-btn"><stroke-text>U</stroke-text></button>
 </div>
 
-<div id="puzzle-intro" style="padding-top: 20svh; text-align: center; opacity: 0; pointer-events: none;">
-    <h2 id="puzzle-title" style="font-size: 50px;"><stroke-text>The Great Line</stroke-text></h2>
-    <h3 id="puzzle-author"><stroke-text>created by Tiaratum Games</stroke-text></h3>
-    <h3 id="puzzle-skip-intro" style="margin-top: 50px; font-size: 30px;">
-        <stroke-text class="touchscreen-hide">Click to play</stroke-text>
-        <stroke-text class="touchscreen-show">Touch to play</stroke-text>
+<div id="puzzle-intro" style="position: relative; padding-top: 20svh; text-align: center; opacity: 0; pointer-events: none;">
+    <h2 id="puzzle-title" class="white-stroke" style="font-size: 50px;">The Great Line</h2>
+    <h3 id="puzzle-author" class="white-stroke">created by Tiaratum Games</h3>
+    <h3 id="puzzle-skip-intro" class="white-stroke" style="margin-top: 50px; font-size: 30px;">
+        <span class="touchscreen-hide">Click to play</span>
+        <span class="touchscreen-show">Touch to play</span>
     </h3>
     <div id="puzzle-ready">
         <h3 class="touchscreen-hide" style="margin-top: 50px; font-size: 20px;"><stroke-text>Hold [A] & [D] or [&larr;] & [&rarr;] to move the puck</stroke-text></h3>

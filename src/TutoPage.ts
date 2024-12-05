@@ -2,8 +2,8 @@ class TutoPage {
 
     public nabuPage: Nabu.DefaultPage;
     public tutoContainer: HTMLDivElement;
-    public tutoPrev: HTMLDivElement;
-    public tutoNext: HTMLDivElement;
+    public tutoPrev: HTMLButtonElement[];
+    public tutoNext: HTMLButtonElement[];
 
     public svgElement: SVGElement;
     public tutoText: HTMLDivElement;
@@ -51,19 +51,23 @@ class TutoPage {
     constructor(queryString: string, public router: CarillonRouter) {
         this.nabuPage = document.querySelector(queryString);
         this.tutoContainer = this.nabuPage.querySelector(".tutorial-container");
-        this.tutoPrev = this.nabuPage.querySelector("#tutorial-prev-btn");
-        this.tutoPrev.onclick = () => {
+        this.tutoPrev = [...this.nabuPage.querySelectorAll(".tutorial-prev-btn")] as HTMLButtonElement[];
+        this.tutoPrev.forEach(btn => 
+            btn.onclick = () => {
             this.setTutoIndex(this._tutoIndex - 1);
-        }
-        this.tutoNext = this.nabuPage.querySelector("#tutorial-next-btn");
-        this.tutoNext.onclick = () => {
+        });
+        this.tutoNext = [...this.nabuPage.querySelectorAll(".tutorial-next-btn")] as HTMLButtonElement[];
+        this.tutoNext.forEach(btn => 
+            btn.onclick = () => {
             if (this._tutoIndex < 3) {
                 this.setTutoIndex(this._tutoIndex + 1);
             }
             else {
                 this.hide(0.5);
+                this.router.game.fadeInIntro();
+                this.router.game.puzzle.skipIntro();
             }
-        }
+        });
         this.tutoText = this.tutoContainer.querySelector(".tutorial-text");
         this.svgBall = this.tutoContainer.querySelector("#tutorial-ball");
         this.svgBallArrowRight = this.tutoContainer.querySelector("#tutorial-ball-arrow-r");
@@ -146,10 +150,13 @@ class TutoPage {
             this.svgBall.setAttribute("transform", "translate(80 105)");
         }
         else if (this._tutoIndex === 1) {
-            let t = this._timer - Math.floor(this._timer / 2) * 2;
-            if (t > 1) {
-                t = 2 - t;
+            let P = 3;
+            let t = this._timer - Math.floor(this._timer / P) * P;
+            if (t > P / 2) {
+                t = P - t;
             }
+            t = t / (P / 2);
+
             let y = 75 + 60 * t;
             this.svgBall.setAttribute("transform", "translate(80 " + y.toFixed(1) + ")");
         }

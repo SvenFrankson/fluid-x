@@ -315,11 +315,16 @@ class Puzzle {
             this.resetFromData(this.data, replaying);
             await this.instantiate(replaying);
         }
-        (document.querySelector("#puzzle-title stroke-text") as StrokeText).setContent(this.data.title);
-        (document.querySelector("#puzzle-author stroke-text") as StrokeText).setContent("created by " + this.data.author);
+        document.querySelector("#puzzle-title").innerHTML = this.data.title;
+        document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";
-        this.game.fadeInIntro();
+        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+            this.game.router.tutoPage.show(0.5);
+        }
+        else {
+            this.game.fadeInIntro()
+        }
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
@@ -328,9 +333,6 @@ class Puzzle {
     public skipIntro(): void {
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "none";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "";
-        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
-            this.game.router.tutoPage.show(0.5);
-        }
         this.game.mode = GameMode.Play;
     }
 

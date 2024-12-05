@@ -68,7 +68,7 @@ class Ball extends BABYLON.Mesh {
             }
         }
     }
-    public nominalSpeed: number = 2.2;
+    public nominalSpeed: number = 2.3;
     public vZ: number = 1;
     public radius: number = 0.25;
     public bounceXDelay: number = 0.93;
@@ -527,30 +527,29 @@ class Ball extends BABYLON.Mesh {
             }
         }
 
-        if (false) {
-            this.dumdumFactorTarget = 1;
-            if (this.vZ > 0) {
-                if (this.upPressed > 0) {
-                    //this.dumdumFactorTarget = 1.5;
-                    
-                }
-                if (this.downPressed > 0) {
-                    //this.dumdumFactorTarget = 1 / 1.5;
-                    this.vZ = -1;
-                }
+        this.dumdumFactorTarget = 1;
+        if (this.vZ > 0) {
+            if (this.upPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
             }
-            if (this.vZ < 0) {
-                if (this.upPressed > 0) {
-                    this.vZ = 1;
-                    //this.dumdumFactorTarget = 1 / 1.5;
-                }
-                if (this.downPressed > 0) {
-                    //this.dumdumFactorTarget = 1.5;
-                }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1 / 1.5;
+                this.dumdumFactorTarget = 1.5;
+                //this.vZ = -1;
             }
-            let f = Nabu.Easing.smooth05Sec(1 / dt);
-            this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         }
+        if (this.vZ < 0) {
+            if (this.upPressed > 0) {
+                //this.vZ = 1;
+                this.dumdumFactorTarget = 1 / 1.5;
+                this.dumdumFactorTarget = 1.5;
+            }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
+            }
+        }
+        let f = Nabu.Easing.smooth05Sec(1 / dt);
+        this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
 
         let vX = 0;
         if (this.leftPressed > 0) {

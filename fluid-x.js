@@ -17,7 +17,7 @@ class Ball extends BABYLON.Mesh {
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
         this.canBoost = false;
         this._boost = false;
-        this.nominalSpeed = 2.2;
+        this.nominalSpeed = 2.3;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
@@ -448,29 +448,29 @@ class Ball extends BABYLON.Mesh {
                 }
             }
         }
-        if (false) {
-            this.dumdumFactorTarget = 1;
-            if (this.vZ > 0) {
-                if (this.upPressed > 0) {
-                    //this.dumdumFactorTarget = 1.5;
-                }
-                if (this.downPressed > 0) {
-                    //this.dumdumFactorTarget = 1 / 1.5;
-                    this.vZ = -1;
-                }
+        this.dumdumFactorTarget = 1;
+        if (this.vZ > 0) {
+            if (this.upPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
             }
-            if (this.vZ < 0) {
-                if (this.upPressed > 0) {
-                    this.vZ = 1;
-                    //this.dumdumFactorTarget = 1 / 1.5;
-                }
-                if (this.downPressed > 0) {
-                    //this.dumdumFactorTarget = 1.5;
-                }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1 / 1.5;
+                this.dumdumFactorTarget = 1.5;
+                //this.vZ = -1;
             }
-            let f = Nabu.Easing.smooth05Sec(1 / dt);
-            this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         }
+        if (this.vZ < 0) {
+            if (this.upPressed > 0) {
+                //this.vZ = 1;
+                this.dumdumFactorTarget = 1 / 1.5;
+                this.dumdumFactorTarget = 1.5;
+            }
+            if (this.downPressed > 0) {
+                this.dumdumFactorTarget = 1.5;
+            }
+        }
+        let f = Nabu.Easing.smooth05Sec(1 / dt);
+        this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         let vX = 0;
         if (this.leftPressed > 0) {
             this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftPressed) * 0.2;
@@ -3345,8 +3345,14 @@ class HaikuMaker {
                 let tileHaiku = new HaikuTile(puzzle.game, "Collect all Tiles", tile[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
+            for (let i = 1; i < tile.length; i++) {
+                if (tile[i]) {
+                    let tileHaiku = new HaikuTile(puzzle.game, "", tile[i]);
+                    puzzle.tileHaikus.push(tileHaiku);
+                }
+            }
         }
-        if (puzzle.data.id === 75 && puzzle.data.state === 2) {
+        if (puzzle.data.id === 161 && puzzle.data.state === 2) {
             let buttonTile = puzzle.tiles.filter((tile) => {
                 return tile instanceof ButtonTile;
             });
@@ -3361,20 +3367,20 @@ class HaikuMaker {
                 return (t1.i + t1.j) - (t2.i + t2.j);
             });
             if (doorTiles[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Door", doorTiles[0], -1);
+                let tileHaiku = new HaikuTile(puzzle.game, "Door", doorTiles[0], 1);
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
-        if (puzzle.data.id === 76 && puzzle.data.state === 2) {
+        if (puzzle.data.id === 157 && puzzle.data.state === 2) {
             let switchTiles = puzzle.tiles.filter((tile) => {
                 return tile instanceof SwitchTile;
             });
             if (switchTiles[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[0]);
+                let tileHaiku = new HaikuTile(puzzle.game, "   Drum", switchTiles[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
             if (switchTiles[1]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[1]);
+                let tileHaiku = new HaikuTile(puzzle.game, "Drum   ", switchTiles[1]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
@@ -3537,6 +3543,10 @@ class HaikuTile extends BABYLON.Mesh {
             let l = context.measureText(this.text).width;
             context.fillText(this.text, 500 - 180 - l, 530);
         }
+        else if (align === 1) {
+            let l = context.measureText(this.text).width;
+            context.fillText(this.text, 500 + 180, 530);
+        }
         else {
             let l = context.measureText(this.text).width;
             context.fillText(this.text, Math.floor(500 - l * 0.5), 740);
@@ -3551,7 +3561,7 @@ class HaikuTile extends BABYLON.Mesh {
     }
     hide() {
         this.shown = false;
-        this.animateVisibility(0, 2, Nabu.Easing.easeInOutSine);
+        this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
     }
 }
 class HaikuDebug extends BABYLON.Mesh {
@@ -4296,9 +4306,11 @@ class ExpertPuzzlesPage extends LevelPage {
             let n = i + page * levelsPerPage;
             if (data.puzzles[n]) {
                 let locked = true;
-                let storyId = this.router.game.expertIdToStoryId(data.puzzles[n].id);
-                if (this.router.game.puzzleCompletion.isPuzzleCompleted(storyId)) {
-                    locked = false;
+                let storyIds = this.router.game.expertIdToStoryId(data.puzzles[n].id);
+                for (let j = 0; j < storyIds.length; j++) {
+                    if (this.router.game.puzzleCompletion.isPuzzleCompleted(storyIds[j])) {
+                        locked = false;
+                    }
                 }
                 puzzleData[i] = {
                     data: data.puzzles[n],
@@ -4427,7 +4439,7 @@ class DevPuzzlesPage extends LevelPage {
             for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
                 let id = data.puzzles[i].id;
                 if (this.levelStateToFetch === 2 || this.levelStateToFetch === 3) {
-                    data.puzzles[i].title += " (" + data.puzzles[i].story_order.toFixed(0) + ")";
+                    data.puzzles[i].title += " (" + data.puzzles[i].story_order.toFixed(0) + ")" + " #" + data.puzzles[i].id.toFixed(0);
                 }
                 puzzleData[i] = {
                     data: data.puzzles[i],
@@ -4474,12 +4486,14 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
-var MAJOR_VERSION = 0;
-var MINOR_VERSION = 2;
-var PATCH_VERSION = 22;
+var MAJOR_VERSION = 1;
+var MINOR_VERSION = 0;
+var PATCH_VERSION = 0;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
+var setProgressIndex;
+var GLOBAL_GAME_LOAD_CURRENT_STEP;
 var USE_POKI_SDK;
 var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
@@ -4792,6 +4806,7 @@ class Game {
             let datas = await fetch("./datas/meshes/vertexDatas.json");
             this.vertexDataLoader.deserialize(await datas.json());
         }
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "fetch VertexDataLoader");
         let rect = this.canvas.getBoundingClientRect();
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
@@ -4829,6 +4844,7 @@ class Game {
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.postInitialize();
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "router initialized");
         this.uiInputManager.initialize();
         let northMaterial = new BABYLON.StandardMaterial("north-material");
         northMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -5110,6 +5126,7 @@ class Game {
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
         await this.loadPuzzles();
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "puzzles loaded");
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
         this.puzzle.instantiate();
@@ -5252,7 +5269,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -5278,8 +5295,15 @@ class Game {
                     throw new Error("Response status: " + response.status);
                 }
                 storyModePuzzles = await response.json();
+                let n = 1;
                 for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
-                    storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
+                    let title = storyModePuzzles.puzzles[i].title;
+                    if (title.startsWith("Lesson") || title.startsWith("Bonus")) {
+                    }
+                    else {
+                        storyModePuzzles.puzzles[i].title = n.toFixed(0) + ". " + title;
+                        n++;
+                    }
                 }
                 CLEAN_IPuzzlesData(storyModePuzzles);
             }
@@ -5507,6 +5531,7 @@ class Game {
                 this.storyExpertTable = await response.json();
             }
         }
+        console.log(this.storyExpertTable);
     }
     async getPuzzleDataById(id) {
         if (id === null || isNaN(id)) {
@@ -5704,10 +5729,11 @@ class Game {
         }
     }
     expertIdToStoryId(expertId) {
-        let element = this.storyExpertTable.find(e => { return e.expert_id === expertId; });
+        let element = this.storyExpertTable.filter(e => { return e.expert_id === expertId; });
         if (element) {
-            return element.story_id;
+            return element.map(e => { return e.story_id; });
         }
+        return [];
     }
     get curtainOpacity() {
         return this._curtainOpacity;
@@ -5724,27 +5750,30 @@ class Game {
     }
     async fadeInIntro(duration = 1) {
         //await RandomWait();
-        if (this.router.puzzleIntro) {
-            this.router.puzzleIntro.style.opacity = "0";
-            this.router.puzzleIntro.style.display = "";
-            let t0 = performance.now();
-            let step = () => {
-                if (this.fadeIntroDir < 0) {
-                    return;
-                }
-                let f = (performance.now() - t0) / 1000 / duration;
-                if (f < 1) {
-                    this.router.puzzleIntro.style.opacity = f.toFixed(2);
-                    requestAnimationFrame(step);
-                }
-                else {
-                    this.router.puzzleIntro.style.opacity = "1";
-                    this.router.puzzleIntro.style.display = "";
-                }
-            };
-            this.fadeIntroDir = 1;
-            step();
-        }
+        return new Promise(resolve => {
+            if (this.router.puzzleIntro) {
+                this.router.puzzleIntro.style.opacity = "0";
+                this.router.puzzleIntro.style.display = "";
+                let t0 = performance.now();
+                let step = () => {
+                    if (this.fadeIntroDir < 0) {
+                        return;
+                    }
+                    let f = (performance.now() - t0) / 1000 / duration;
+                    if (f < 1) {
+                        this.router.puzzleIntro.style.opacity = f.toFixed(2);
+                        requestAnimationFrame(step);
+                    }
+                    else {
+                        this.router.puzzleIntro.style.opacity = "1";
+                        this.router.puzzleIntro.style.display = "";
+                        resolve();
+                    }
+                };
+                this.fadeIntroDir = 1;
+                step();
+            }
+        });
     }
     async fadeOutIntro(duration = 1) {
         //await RandomWait();
@@ -7120,10 +7149,12 @@ class TutoPage {
                 this.svgBall.setAttribute("transform", "translate(80 105)");
             }
             else if (this._tutoIndex === 1) {
-                let t = this._timer - Math.floor(this._timer / 2) * 2;
-                if (t > 1) {
-                    t = 2 - t;
+                let P = 3;
+                let t = this._timer - Math.floor(this._timer / P) * P;
+                if (t > P / 2) {
+                    t = P - t;
                 }
+                t = t / (P / 2);
                 let y = 75 + 60 * t;
                 this.svgBall.setAttribute("transform", "translate(80 " + y.toFixed(1) + ")");
             }
@@ -7190,19 +7221,21 @@ class TutoPage {
         this._tutoIndex = 0;
         this.nabuPage = document.querySelector(queryString);
         this.tutoContainer = this.nabuPage.querySelector(".tutorial-container");
-        this.tutoPrev = this.nabuPage.querySelector("#tutorial-prev-btn");
-        this.tutoPrev.onclick = () => {
+        this.tutoPrev = [...this.nabuPage.querySelectorAll(".tutorial-prev-btn")];
+        this.tutoPrev.forEach(btn => btn.onclick = () => {
             this.setTutoIndex(this._tutoIndex - 1);
-        };
-        this.tutoNext = this.nabuPage.querySelector("#tutorial-next-btn");
-        this.tutoNext.onclick = () => {
+        });
+        this.tutoNext = [...this.nabuPage.querySelectorAll(".tutorial-next-btn")];
+        this.tutoNext.forEach(btn => btn.onclick = () => {
             if (this._tutoIndex < 3) {
                 this.setTutoIndex(this._tutoIndex + 1);
             }
             else {
                 this.hide(0.5);
+                this.router.game.fadeInIntro();
+                this.router.game.puzzle.skipIntro();
             }
-        };
+        });
         this.tutoText = this.tutoContainer.querySelector(".tutorial-text");
         this.svgBall = this.tutoContainer.querySelector("#tutorial-ball");
         this.svgBallArrowRight = this.tutoContainer.querySelector("#tutorial-ball-arrow-r");
@@ -7418,6 +7451,9 @@ class UserInterfaceInputManager {
                 if (ev.code === "Enter") {
                     this.game.canvas.focus();
                 }
+                return;
+            }
+            if (document.activeElement instanceof HTMLTextAreaElement) {
                 return;
             }
             this.inControl = true;
@@ -8636,11 +8672,16 @@ class Puzzle {
             this.resetFromData(this.data, replaying);
             await this.instantiate(replaying);
         }
-        document.querySelector("#puzzle-title stroke-text").setContent(this.data.title);
-        document.querySelector("#puzzle-author stroke-text").setContent("created by " + this.data.author);
+        document.querySelector("#puzzle-title").innerHTML = this.data.title;
+        document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         document.querySelector("#puzzle-skip-intro").style.display = "";
         document.querySelector("#puzzle-ready").style.display = "none";
-        this.game.fadeInIntro();
+        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+            this.game.router.tutoPage.show(0.5);
+        }
+        else {
+            this.game.fadeInIntro();
+        }
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
@@ -8648,9 +8689,6 @@ class Puzzle {
     skipIntro() {
         document.querySelector("#puzzle-skip-intro").style.display = "none";
         document.querySelector("#puzzle-ready").style.display = "";
-        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
-            this.game.router.tutoPage.show(0.5);
-        }
         this.game.mode = GameMode.Play;
     }
     win() {

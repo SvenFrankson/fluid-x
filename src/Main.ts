@@ -2,13 +2,15 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var MAJOR_VERSION: number = 0;
-var MINOR_VERSION: number = 2;
-var PATCH_VERSION: number = 22;
+var MAJOR_VERSION: number = 1;
+var MINOR_VERSION: number = 0;
+var PATCH_VERSION: number = 0;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
 var observed_progress_speed_percent_second;
+var setProgressIndex;
+var GLOBAL_GAME_LOAD_CURRENT_STEP;
 var USE_POKI_SDK;
 var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
@@ -379,6 +381,7 @@ class Game {
             let datas = await fetch("./datas/meshes/vertexDatas.json");
             this.vertexDataLoader.deserialize(await datas.json());
         }
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "fetch VertexDataLoader");
         
         let rect = this.canvas.getBoundingClientRect();
         this.screenRatio = rect.width / rect.height;
@@ -427,6 +430,7 @@ class Game {
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.postInitialize();
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "router initialized");
 
         this.uiInputManager.initialize();
 
@@ -758,6 +762,7 @@ class Game {
         Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
 
         await this.loadPuzzles();
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "puzzles loaded");
 
         this.puzzle = new Puzzle(this);
         await this.puzzle.loadFromFile("./datas/levels/test.txt");
@@ -931,7 +936,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -959,8 +964,16 @@ class Game {
                 }
                 storyModePuzzles = await response.json() as IPuzzlesData;
         
+                let n = 1;
                 for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
-                    storyModePuzzles.puzzles[i].title = (i + 1).toFixed(0) + ". " + storyModePuzzles.puzzles[i].title;
+                    let title = storyModePuzzles.puzzles[i].title;
+                    if (title.startsWith("Lesson") || title.startsWith("Bonus")) {
+
+                    }
+                    else {
+                        storyModePuzzles.puzzles[i].title = n.toFixed(0) + ". " + title;
+                        n++;
+                    }
                 }
 
                 CLEAN_IPuzzlesData(storyModePuzzles);
@@ -1205,6 +1218,7 @@ class Game {
                 this.storyExpertTable = await response.json();
             }
         }
+        console.log(this.storyExpertTable);
     }
 
     public async getPuzzleDataById(id: number): Promise<IPuzzleData> {
@@ -1472,11 +1486,12 @@ class Game {
             return element.expert_id; 
         }
     }
-    public expertIdToStoryId(expertId: number): number {
-        let element = this.storyExpertTable.find(e => { return e.expert_id === expertId; });
+    public expertIdToStoryId(expertId: number): number[] {
+        let element = this.storyExpertTable.filter(e => { return e.expert_id === expertId; });
         if (element) {
-            return element.story_id; 
+            return element.map(e => { return e.story_id; }); 
         }
+        return [];
     }
 
     private _curtainOpacity: number = 0;
@@ -1498,28 +1513,31 @@ class Game {
 
     public async fadeInIntro(duration: number = 1): Promise<void> {
         //await RandomWait();
-        if (this.router.puzzleIntro) {
-            this.router.puzzleIntro.style.opacity = "0";
-            this.router.puzzleIntro.style.display = "";
-    
-            let t0 = performance.now();
-            let step = () => {
-                if (this.fadeIntroDir < 0) {
-                    return;
+        return new Promise<void>(resolve => {
+            if (this.router.puzzleIntro) {
+                this.router.puzzleIntro.style.opacity = "0";
+                this.router.puzzleIntro.style.display = "";
+        
+                let t0 = performance.now();
+                let step = () => {
+                    if (this.fadeIntroDir < 0) {
+                        return;
+                    }
+                    let f = (performance.now() - t0) / 1000 / duration;
+                    if (f < 1) {
+                        this.router.puzzleIntro.style.opacity = f.toFixed(2);
+                        requestAnimationFrame(step);
+                    }
+                    else {
+                        this.router.puzzleIntro.style.opacity = "1";
+                        this.router.puzzleIntro.style.display = "";
+                        resolve();
+                    }
                 }
-                let f = (performance.now() - t0) / 1000 / duration;
-                if (f < 1) {
-                    this.router.puzzleIntro.style.opacity = f.toFixed(2);
-                    requestAnimationFrame(step);
-                }
-                else {
-                    this.router.puzzleIntro.style.opacity = "1";
-                    this.router.puzzleIntro.style.display = "";
-                }
+                this.fadeIntroDir = 1;
+                step();
             }
-            this.fadeIntroDir = 1;
-            step();
-        }
+        });
     }
 
     public async fadeOutIntro(duration: number = 1): Promise<void> {

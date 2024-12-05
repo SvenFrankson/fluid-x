@@ -15,7 +15,7 @@ class Ball extends BABYLON.Mesh {
         this.ballState = BallState.Ready;
         this.fallTimer = 0;
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
-        this.canBoost = false;
+        this.canBoost = true;
         this._boost = false;
         this.nominalSpeed = 2.3;
         this.vZ = 1;
@@ -410,7 +410,7 @@ class Ball extends BABYLON.Mesh {
     get boostedSpeed() {
         let s = this.speed;
         if (this.canBoost) {
-            s = this.boost ? this.speed * 1.6 : this.speed;
+            s = this.boost ? this.speed * 1.5 : this.speed;
         }
         else {
             return this.speed * this.dumdumFactor;
@@ -437,7 +437,7 @@ class Ball extends BABYLON.Mesh {
                         this.leftPressed = Math.min(1, dx / -0.5);
                     }
                     let dz = point.z - this.absolutePosition.z;
-                    if (Math.abs(dz) > Math.abs(dx)) {
+                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 4) {
                         if (dz > 0) {
                             this.upPressed = 1;
                         }
@@ -749,7 +749,7 @@ class Ball extends BABYLON.Mesh {
                         clearTimeout(this._loseTimout);
                         this._loseTimout = setTimeout(() => {
                             this.puzzle.lose();
-                        }, 1000);
+                        }, 500);
                         return;
                     }
                 }
@@ -951,7 +951,7 @@ class Ball extends BABYLON.Mesh {
                     clearTimeout(this._loseTimout);
                     this._loseTimout = setTimeout(() => {
                         this.puzzle.lose();
-                    }, 1000);
+                    }, 500);
                 }
                 return;
             }
@@ -4592,6 +4592,7 @@ let onFirstPlayerInteractionClick = (ev) => {
         document.getElementById("click-anywhere-screen").style.display = "none";
     }, 300);
     Game.Instance.onResize();
+    document.body.classList.add("touchscreen");
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
@@ -4712,7 +4713,7 @@ class Game {
         this.menuCamRadius = 15;
         this.playCameraRange = 15;
         this.playCameraRadius = 20;
-        this.playCameraMinRadius = 5;
+        this.playCameraMinRadius = 8;
         this.playCameraMaxRadius = 100;
         this.cameraOrtho = false;
         this.player1Name = "";
@@ -4811,11 +4812,11 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
-            this.playCameraRange = 11;
+            this.playCameraRange = 9;
         }
         else {
             document.body.classList.remove("vertical");
-            this.playCameraRange = 13;
+            this.playCameraRange = 9;
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
@@ -5213,10 +5214,12 @@ class Game {
         };
         document.querySelector("#zoom-out-btn").onpointerup = () => {
             this.playCameraRange += 1;
+            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 6, 20);
             this.updatePlayCameraRadius();
         };
         document.querySelector("#zoom-in-btn").onpointerup = () => {
             this.playCameraRange -= 1;
+            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 6, 20);
             this.updatePlayCameraRadius();
         };
         document.querySelector("#dev-mode-activate-btn").onpointerup = () => {
@@ -5269,7 +5272,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -10871,10 +10874,28 @@ function CreateBiDiscVertexData(props) {
 function CenterPanel(panel, dx = 0, dy = 0) {
     let bodyRect = document.body.getBoundingClientRect();
     let panelRect = panel.getBoundingClientRect();
-    let left = Math.floor((bodyRect.width - panelRect.width) * 0.5 + dx / window.devicePixelRatio);
-    let top = Math.floor((bodyRect.height - panelRect.height) * 0.5 + dy / window.devicePixelRatio);
-    panel.style.left = left.toFixed(0) + "px";
-    panel.style.right = "auto";
-    panel.style.top = top.toFixed(0) + "px";
-    panel.style.bottom = "auto";
+    if (bodyRect.width * 0.95 < panelRect.width) {
+        let f = bodyRect.width / panelRect.width * 0.95;
+        panel.style.transformOrigin = "top left";
+        panel.style.transform = "scale(" + f.toFixed(3) + ", " + f.toFixed(3) + ")";
+        panel.style.left = "2.5%";
+        panel.style.right = "auto";
+    }
+    else {
+        let left = Math.floor((bodyRect.width - panelRect.width) * 0.5 + dx / window.devicePixelRatio);
+        panel.style.left = left.toFixed(0) + "px";
+        panel.style.right = "auto";
+    }
+    if (bodyRect.height * 0.95 < panelRect.height) {
+        let f = bodyRect.height / panelRect.height * 0.95;
+        panel.style.transformOrigin = "top left";
+        panel.style.transform = "scale(" + f.toFixed(3) + ", " + f.toFixed(3) + ")";
+        panel.style.top = "2.5%";
+        panel.style.bottom = "auto";
+    }
+    else {
+        let top = Math.floor((bodyRect.height - panelRect.height) * 0.5 + dy / window.devicePixelRatio);
+        panel.style.top = top.toFixed(0) + "px";
+        panel.style.bottom = "auto";
+    }
 }

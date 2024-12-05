@@ -48,7 +48,7 @@ class Ball extends BABYLON.Mesh {
     public rightBox: BABYLON.Mesh;
     public rightTop: BABYLON.Mesh;
     
-    public canBoost: boolean = false;
+    public canBoost: boolean = true;
     private _boost: boolean = false;
     public get boost(): boolean {
         return this._boost;
@@ -473,7 +473,7 @@ class Ball extends BABYLON.Mesh {
     public get boostedSpeed(): number {
         let s = this.speed;
         if (this.canBoost) {
-            s = this.boost ? this.speed * 1.6 : this.speed;
+            s = this.boost ? this.speed * 1.5 : this.speed;
         }
         else {
             return this.speed * this.dumdumFactor;
@@ -515,7 +515,7 @@ class Ball extends BABYLON.Mesh {
                         this.leftPressed = Math.min(1, dx / -0.5);
                     }
                     let dz = point.z - this.absolutePosition.z;
-                    if (Math.abs(dz) > Math.abs(dx)) {
+                    if (Math.abs(dz) > Math.abs(dx) && Math.abs(dz) > 4) {
                         if (dz > 0) {
                             this.upPressed = 1;
                         }
@@ -851,7 +851,7 @@ class Ball extends BABYLON.Mesh {
                         clearTimeout(this._loseTimout);
                         this._loseTimout = setTimeout(() => {
                             this.puzzle.lose();
-                        }, 1000);
+                        }, 500);
                         return;
                     }
                 }
@@ -1069,7 +1069,7 @@ class Ball extends BABYLON.Mesh {
                     clearTimeout(this._loseTimout);
                     this._loseTimout = setTimeout(() => {
                         this.puzzle.lose();
-                    }, 1000);
+                    }, 500);
                 }
                 return;
             }

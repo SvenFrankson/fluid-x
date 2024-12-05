@@ -117,6 +117,7 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     }, 300);
     Game.Instance.onResize();
 
+    document.body.classList.add("touchscreen");
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
@@ -261,7 +262,7 @@ class Game {
     public menuCamRadius: number = 15;
     public playCameraRange: number = 15;
     public playCameraRadius: number = 20;
-    public playCameraMinRadius: number = 5;
+    public playCameraMinRadius: number = 8;
     public playCameraMaxRadius: number = 100;
 
     public cameraOrtho: boolean = false;
@@ -387,11 +388,11 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
-            this.playCameraRange = 11;
+            this.playCameraRange = 9;
         }
         else {
             document.body.classList.remove("vertical");
-            this.playCameraRange = 13;
+            this.playCameraRange = 9;
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
@@ -863,11 +864,13 @@ class Game {
 
         (document.querySelector("#zoom-out-btn") as HTMLButtonElement).onpointerup = () => {
             this.playCameraRange += 1;
+            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 6, 20);
             this.updatePlayCameraRadius();
         }
 
         (document.querySelector("#zoom-in-btn") as HTMLButtonElement).onpointerup = () => {
             this.playCameraRange -= 1;
+            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 6, 20);
             this.updatePlayCameraRadius();
         }
 
@@ -936,7 +939,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }

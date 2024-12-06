@@ -950,8 +950,8 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "MarbleExtraPoolCodeTokyo6";
+            DEV_ACTIVATE();
         }
 	}
 

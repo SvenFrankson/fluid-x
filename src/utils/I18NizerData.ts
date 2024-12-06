@@ -1,10 +1,13 @@
-var i18nData = [];
+var i18nData = {};
 
 // Homepage
-
 i18nData["play"] = {
     "en": "PLAY",
     "fr": "JOUER"
+}
+i18nData["completed"] = {
+    "en": "completed",
+    "fr": "completé"
 }
 i18nData["home-story-mode"] = {
     "en": "story mode",
@@ -17,6 +20,54 @@ i18nData["home-expert-mode"] = {
 i18nData["home-community-mode"] = {
     "en": "community puzzles",
     "fr": "puzzles maison"
+}
+
+// Intro Screen
+i18nData["intro-to-play-keyboard"] = {
+    "en": "Click to play",
+    "fr": "Cliquez pour démarrer",
+}
+i18nData["intro-to-play-touch"] = {
+    "en": "Touch to play",
+    "fr": "Pressez pour démarrer",
+}
+i18nData["intro-tip-keyboard"] = {
+    "en": "Hold [A] and [D] or [<] and [>] to move the ball",
+    "fr": "Pressez [A] et [D] ou [<] et [>] pour diriger la balle",
+}
+i18nData["intro-tip-touch"] = {
+    "en": "Hold [<] and [>] to move the ball",
+    "fr": "Pressez [<] et [>] pour diriger la balle",
+}
+
+// Success Panel
+i18nData["success-title"] = {
+    "en": "SUCCESS !",
+    "fr": "VICTOIRE !"
+}
+i18nData["success-submit-score"] = {
+    "en": "Submit Score",
+    "fr": "Publier Score"
+}
+i18nData["success-sending-score"] = {
+    "en": "Sending...",
+    "fr": "Envoi..."
+}
+i18nData["success-well-played"] = {
+    "en": "Well Played !",
+    "fr": "Bien Joué !"
+}
+i18nData["success-continue"] = {
+    "en": "Continue",
+    "fr": "Continuer"
+}
+i18nData["success-next-level"] = {
+    "en": "Next Level",
+    "fr": "Niveau Suivant"
+}
+i18nData["success-expert-unlocked"] = {
+    "en": "puzzle unlocked",
+    "fr": "puzzle déverrouillé"
 }
 
 // Tutorial
@@ -94,3 +145,57 @@ i18nData["lesson-9-title"] = {
     "en": "Lesson 9 - Gap",
     "fr": "Leçon 9 - Passage",
 }
+
+// Translated Haikus
+i18nData["lesson-1-haiku"] = {
+    "en": "Use [A] and [D] to\nmove Left and Right.",
+    "fr": "Pressez [A] et [D] pour\naller à Gauche ou à Droite.",
+}
+
+i18nData["lesson-2-haiku"] = {
+    "en": "Hit a Drum to\nchange Color.",
+    "fr": "Touchez un disque\npour changer de Couleur.",
+}
+
+i18nData["lesson-3-haiku"] = {
+    "en": "Do not fall in a hole.",
+    "fr": "Ne tombez pas dans un trou.",
+}
+
+i18nData["lesson-4-haiku"] = {
+    "en": "Wooden Boxes\ncan be Pushed.",
+    "fr": "Les Blocs en bois\npeuvent être Poussés.",
+}
+
+i18nData["lesson-5-haiku"] = {
+    "en": "Hit a Key Tile\nto open Door Tiles.",
+    "fr": "Touchez une Clef\npour ouvrir les Portes.",
+}
+
+i18nData["lesson-6-haiku"] = {
+    "en": "Cracked Tiles can\nonly be crossed once.",
+    "fr": "Une Dalle fendue\ncède après un passage.",
+}
+
+i18nData["lesson-7-haiku"] = {
+    "en": "Water flows\nto the bottom.",
+    "fr": "L'eau s'écoule\nvers le bas.",
+}
+
+i18nData["lesson-8-haiku"] = {
+    "en": "Spikes are dangerous\navoid the Spikes.",
+    "fr": "Attention ! Piquants !\nEvitez les Piquants.",
+}
+
+i18nData["lesson-9-haiku"] = {
+    "en": "Use the Tiles to\navoid the crevass.",
+    "fr": "Utilisez les blocs\npour éviter le gouffre.",
+}
+
+let fullEnglishText = ""
+for (const key in i18nData) {
+    fullEnglishText += i18nData[key]["en"].replaceAll("\n", " ") + "\n";
+}
+console.log(fullEnglishText);
+
+console.log(JSON.stringify(i18nData));

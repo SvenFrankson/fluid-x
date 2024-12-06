@@ -847,17 +847,23 @@ class Puzzle {
             }
         }
 
-        //HaikuMaker.MakeHaiku(this);
         if (data.haiku) {
             let split = data.haiku.split("x");
             let x = parseInt(split[0]) * 0.5;
             let z = parseInt(split[1]) * 0.5;
-            split.splice(0, 2);
-            let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             let haiku = new Haiku(this.game, "", "", "", "");
             haiku.position.copyFromFloats(x, 0.02, z);
-            haiku.setText(text);
             this.haiku = haiku;
+            let translatedText = HaikuMaker.GetTranslatedHaikuText(this);
+            if (translatedText) {
+                haiku.setText(translatedText);
+            }
+            else {
+                split = data.haiku.split("x");
+                split.splice(0, 2);
+                let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+                haiku.setText(text);
+            }
         }
         this.game.updateMenuCameraRadius();
     }

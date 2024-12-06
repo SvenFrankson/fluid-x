@@ -3329,6 +3329,39 @@ class Editor {
     }
 }
 class HaikuMaker {
+    static GetTranslatedHaikuText(puzzle, locale) {
+        if (!locale) {
+            locale = LOCALE;
+        }
+        if (puzzle.data.id === 74) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-1-haiku", locale);
+        }
+        if (puzzle.data.id === 157) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-2-haiku", locale);
+        }
+        if (puzzle.data.id === 158) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-3-haiku", locale);
+        }
+        if (puzzle.data.id === 159) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-4-haiku", locale);
+        }
+        if (puzzle.data.id === 161) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-5-haiku", locale);
+        }
+        if (puzzle.data.id === 164) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-6-haiku", locale);
+        }
+        if (puzzle.data.id === 162) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-7-haiku", locale);
+        }
+        if (puzzle.data.id === 165) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-8-haiku", locale);
+        }
+        if (puzzle.data.id === 166) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-9-haiku", locale);
+        }
+        return undefined;
+    }
     static MakeHaiku(puzzle) {
         if (puzzle.data.id === 74 && puzzle.data.state === 2) {
             let tile = puzzle.tiles.filter((tile) => {
@@ -3353,7 +3386,7 @@ class HaikuMaker {
                 return tile instanceof ButtonTile;
             });
             if (buttonTile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Open / Close Doors", buttonTile[0]);
+                let tileHaiku = new HaikuTile(puzzle.game, "Open / Close", buttonTile[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
             let doorTiles = puzzle.tiles.filter((tile) => {
@@ -3425,7 +3458,8 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#e3cfb4ff";
         context.font = "90px Julee";
         for (let l = 0; l < lines.length; l++) {
-            context.fillText(lines[l], 30, 120 * (l + 1));
+            let textLength = context.measureText(lines[l]).width;
+            context.fillText(lines[l], 500 - textLength * 0.5, 120 * (l + 1));
         }
         this.dynamicTexture.update();
     }
@@ -5297,8 +5331,8 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
-            //DEV_ACTIVATE();
+            document.querySelector("#dev-pass-input").value = "MarbleExtraPoolCodeTokyo6";
+            DEV_ACTIVATE();
         }
     }
     async loadPuzzles() {
@@ -9240,17 +9274,23 @@ class Puzzle {
                 i++;
             }
         }
-        //HaikuMaker.MakeHaiku(this);
         if (data.haiku) {
             let split = data.haiku.split("x");
             let x = parseInt(split[0]) * 0.5;
             let z = parseInt(split[1]) * 0.5;
-            split.splice(0, 2);
-            let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
             let haiku = new Haiku(this.game, "", "", "", "");
             haiku.position.copyFromFloats(x, 0.02, z);
-            haiku.setText(text);
             this.haiku = haiku;
+            let translatedText = HaikuMaker.GetTranslatedHaikuText(this);
+            if (translatedText) {
+                haiku.setText(translatedText);
+            }
+            else {
+                split = data.haiku.split("x");
+                split.splice(0, 2);
+                let text = split.reduce((s1, s2) => { return s1 + "x" + s2; });
+                haiku.setText(text);
+            }
         }
         this.game.updateMenuCameraRadius();
     }
@@ -10470,7 +10510,8 @@ class PuzzleUI {
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
         this.successNextLabel.style.display = "none";
-        this.successNextButton.innerHTML = "CONTINUE";
+        this.successNextButton.innerText = I18Nizer.GetText("success-continue", LOCALE);
+        ;
         let completion = 1;
         if (this.puzzle.data.state === PuzzleState.OKAY) {
             completion = this.game.puzzleCompletion.communityPuzzleCompletion;
@@ -10498,9 +10539,9 @@ class PuzzleUI {
         if (this.puzzle.data.state === 2) {
             let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];
             if (nextPuzzle) {
-                this.successNextLabel.innerHTML = "Next - " + nextPuzzle.title;
+                this.successNextLabel.innerHTML = "Next - " + GetTranslatedTitle(nextPuzzle);
                 this.successNextLabel.style.display = "";
-                this.successNextButton.innerHTML = "NEXT LEVEL";
+                this.successNextButton.innerText = I18Nizer.GetText("success-next-level", LOCALE);
             }
         }
         if (this.game.uiInputManager.inControl) {
@@ -10556,8 +10597,8 @@ class PuzzleUI {
             let data = await this.game.getPuzzleDataById(expertId);
             if (data) {
                 let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
-                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
-                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = GetTranslatedTitle(data);
+                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "Expert Mode";
                 let existingImg = squareBtn.querySelector(".square-btn-miniature");
                 if (existingImg) {
                     squareBtn.removeChild(existingImg);
@@ -11000,11 +11041,15 @@ class I18Nizer {
         });
     }
 }
-var i18nData = [];
+var i18nData = {};
 // Homepage
 i18nData["play"] = {
     "en": "PLAY",
     "fr": "JOUER"
+};
+i18nData["completed"] = {
+    "en": "completed",
+    "fr": "completé"
 };
 i18nData["home-story-mode"] = {
     "en": "story mode",
@@ -11017,6 +11062,52 @@ i18nData["home-expert-mode"] = {
 i18nData["home-community-mode"] = {
     "en": "community puzzles",
     "fr": "puzzles maison"
+};
+// Intro Screen
+i18nData["intro-to-play-keyboard"] = {
+    "en": "Click to play",
+    "fr": "Cliquez pour démarrer",
+};
+i18nData["intro-to-play-touch"] = {
+    "en": "Touch to play",
+    "fr": "Pressez pour démarrer",
+};
+i18nData["intro-tip-keyboard"] = {
+    "en": "Hold [A] and [D] or [<] and [>] to move the ball",
+    "fr": "Pressez [A] et [D] ou [<] et [>] pour diriger la balle",
+};
+i18nData["intro-tip-touch"] = {
+    "en": "Hold [<] and [>] to move the ball",
+    "fr": "Pressez [<] et [>] pour diriger la balle",
+};
+// Success Panel
+i18nData["success-title"] = {
+    "en": "SUCCESS !",
+    "fr": "VICTOIRE !"
+};
+i18nData["success-submit-score"] = {
+    "en": "Submit Score",
+    "fr": "Publier Score"
+};
+i18nData["success-sending-score"] = {
+    "en": "Sending...",
+    "fr": "Envoi..."
+};
+i18nData["success-well-played"] = {
+    "en": "Well Played !",
+    "fr": "Bien Joué !"
+};
+i18nData["success-continue"] = {
+    "en": "Continue",
+    "fr": "Continuer"
+};
+i18nData["success-next-level"] = {
+    "en": "Next Level",
+    "fr": "Niveau Suivant"
+};
+i18nData["success-expert-unlocked"] = {
+    "en": "puzzle unlocked",
+    "fr": "puzzle déverrouillé"
 };
 // Tutorial
 i18nData["tuto-title"] = {
@@ -11092,6 +11183,49 @@ i18nData["lesson-9-title"] = {
     "en": "Lesson 9 - Gap",
     "fr": "Leçon 9 - Passage",
 };
+// Translated Haikus
+i18nData["lesson-1-haiku"] = {
+    "en": "Use [A] and [D] to\nmove Left and Right.",
+    "fr": "Pressez [A] et [D] pour\naller à Gauche ou à Droite.",
+};
+i18nData["lesson-2-haiku"] = {
+    "en": "Hit a Drum to\nchange Color.",
+    "fr": "Touchez un disque\npour changer de Couleur.",
+};
+i18nData["lesson-3-haiku"] = {
+    "en": "Do not fall in a hole.",
+    "fr": "Ne tombez pas dans un trou.",
+};
+i18nData["lesson-4-haiku"] = {
+    "en": "Wooden Boxes\ncan be Pushed.",
+    "fr": "Les Blocs en bois\npeuvent être Poussés.",
+};
+i18nData["lesson-5-haiku"] = {
+    "en": "Hit a Key Tile\nto open Door Tiles.",
+    "fr": "Touchez une Clef\npour ouvrir les Portes.",
+};
+i18nData["lesson-6-haiku"] = {
+    "en": "Cracked Tiles can\nonly be crossed once.",
+    "fr": "Une Dalle fendue\ncède après un passage.",
+};
+i18nData["lesson-7-haiku"] = {
+    "en": "Water flows\nto the bottom.",
+    "fr": "L'eau s'écoule\nvers le bas.",
+};
+i18nData["lesson-8-haiku"] = {
+    "en": "Spikes are dangerous\navoid the Spikes.",
+    "fr": "Attention ! Piquants !\nEvitez les Piquants.",
+};
+i18nData["lesson-9-haiku"] = {
+    "en": "Use the Tiles to\navoid the crevass.",
+    "fr": "Utilisez les blocs\npour éviter le gouffre.",
+};
+let fullEnglishText = "";
+for (const key in i18nData) {
+    fullEnglishText += i18nData[key]["en"].replaceAll("\n", " ") + "\n";
+}
+console.log(fullEnglishText);
+console.log(JSON.stringify(i18nData));
 function CenterPanel(panel, dx = 0, dy = 0) {
     let bodyRect = document.body.getBoundingClientRect();
     let panelRect = panel.getBoundingClientRect();

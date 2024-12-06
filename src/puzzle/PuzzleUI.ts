@@ -120,7 +120,7 @@ class PuzzleUI {
         this.gameoverPanel.style.display = "none";
         this.ingameTimer.style.display = "none";
         this.successNextLabel.style.display = "none";
-        this.successNextButton.innerHTML = "CONTINUE";
+        this.successNextButton.innerText = I18Nizer.GetText("success-continue", LOCALE);;
 
         let completion = 1;
         if (this.puzzle.data.state === PuzzleState.OKAY) {
@@ -150,9 +150,9 @@ class PuzzleUI {
         if (this.puzzle.data.state === 2) {
             let nextPuzzle = this.game.loadedStoryPuzzles.puzzles[this.puzzle.data.numLevel];
             if (nextPuzzle) {
-                this.successNextLabel.innerHTML = "Next - " + nextPuzzle.title;
+                this.successNextLabel.innerHTML = "Next - " + GetTranslatedTitle(nextPuzzle);
                 this.successNextLabel.style.display = "";
-                this.successNextButton.innerHTML = "NEXT LEVEL";
+                this.successNextButton.innerText = I18Nizer.GetText("success-next-level", LOCALE);
             }
         }
         if (this.game.uiInputManager.inControl) {
@@ -213,8 +213,8 @@ class PuzzleUI {
             let data: IPuzzleData = await this.game.getPuzzleDataById(expertId);
             if (data) {
                 let squareBtn = this.unlockContainer.querySelector(".square-btn-panel");
-                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = data.title;
-                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "by " + data.author;
+                squareBtn.querySelector(".square-btn-title stroke-text").innerHTML = GetTranslatedTitle(data);
+                squareBtn.querySelector(".square-btn-author stroke-text").innerHTML = "Expert Mode";
             
                 let existingImg = squareBtn.querySelector(".square-btn-miniature");
                 if (existingImg) {

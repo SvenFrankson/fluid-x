@@ -1,4 +1,38 @@
 class HaikuMaker {
+    
+    public static GetTranslatedHaikuText(puzzle: Puzzle, locale?: string): string {
+        if (!locale) {
+            locale = LOCALE;
+        }
+        if (puzzle.data.id === 74) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-1-haiku", locale);
+        }
+        if (puzzle.data.id === 157) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-2-haiku", locale);
+        }
+        if (puzzle.data.id === 158) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-3-haiku", locale);
+        }
+        if (puzzle.data.id === 159) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-4-haiku", locale);
+        }
+        if (puzzle.data.id === 161) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-5-haiku", locale);
+        }
+        if (puzzle.data.id === 164) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-6-haiku", locale);
+        }
+        if (puzzle.data.id === 162) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-7-haiku", locale);
+        }
+        if (puzzle.data.id === 165) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-8-haiku", locale);
+        }
+        if (puzzle.data.id === 166) {
+            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-9-haiku", locale);
+        }
+        return undefined;
+    }
 
     public static MakeHaiku(puzzle: Puzzle): void {
         if (puzzle.data.id === 74 && puzzle.data.state === 2) {
@@ -34,7 +68,7 @@ class HaikuMaker {
             if (buttonTile[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "Open / Close Doors",
+                    "Open / Close",
                     buttonTile[0]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -142,7 +176,8 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#e3cfb4ff";
         context.font = "90px Julee";
         for (let l = 0; l < lines.length; l++) {
-            context.fillText(lines[l], 30, 120 * (l + 1));
+            let textLength = context.measureText(lines[l]).width;
+            context.fillText(lines[l], 500 - textLength * 0.5, 120 * (l + 1));
         }
 
         this.dynamicTexture.update();

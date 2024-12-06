@@ -41,21 +41,21 @@
 </div>
 
 <div id="puzzle-intro" style="position: relative; padding-top: 25svh; text-align: center; opacity: 0; pointer-events: none;">
-    <h2 id="puzzle-title" class="white-stroke" style="font-size: 40px;">The Great Line</h2>
-    <h3 id="puzzle-author" class="white-stroke" style="display: none;">created by Tiaratum Games</h3>
+    <h2 id="puzzle-title" class="white-stroke" style="font-size: 40px;"></h2>
+    <h3 id="puzzle-author" class="white-stroke" style="display: none;"></h3>
     <h3 id="puzzle-skip-intro" class="white-stroke" style="margin-top: 30px; font-size: 30px;">
-        <span class="touchscreen-hide">Click to play</span>
-        <span class="touchscreen-show">Touch to play</span>
+        <span i18n-key="intro-to-play-keyboard" class="touchscreen-hide">Click to play</span>
+        <span i18n-key="intro-to-play-touch" class="touchscreen-show">Touch to play</span>
     </h3>
     <div id="puzzle-ready">
-        <h3 class="touchscreen-hide" style="margin-top: 50px; font-size: 20px;"><stroke-text>Hold [A] & [D] or [&larr;] & [&rarr;] to move the puck</stroke-text></h3>
-        <h3 class="touchscreen-show"  style="margin-top: 50px; font-size: 20px;"><stroke-text>Hold [&lt;] & [&gt;] to move the puck</stroke-text></h3>
+        <h3 i18n-key="intro-tip-keyboard" class="touchscreen-hide white-stroke" style="margin-top: 50px; font-size: 26px;">Hold [A] & [D] or [&larr;] & [&rarr;] to move the ball</h3>
+        <h3 i18n-key="intro-tip-touch" class="touchscreen-show white-stroke"  style="margin-top: 50px; font-size: 26px;">Hold [&lt;] & [&gt;] to move the puck</h3>
     </div>
 </div>
 
 <div id="play-success-panel" class="panel" style="display: none;">
     <div id="play-success-container">
-        <h2 class="white-stroke title">SUCCESS !</h2>
+        <h2 i18n-key="success-title" class="white-stroke title">SUCCESS !</h2>
         <h2 id="success-timer" class="white-stroke">00:42:00</h2>
         <div class="stamp stamp-0"></div>
         
@@ -71,9 +71,9 @@
                 <span class="editor-label">players</span><input id="score-2-players-input" class="p1-name-input" style="width: 150px;" type="text"/>
             </div>
             <div class="line">
-                <button id="success-score-submit-btn" class="medium-btn inline orange locked" style="width: 220px"><stroke-text>Submit Score</stroke-text></button>
-                <button id="success-score-pending-btn" class="medium-btn inline bluegrey" style="width: 220px"><stroke-text>Sending...</stroke-text></button>
-                <button id="success-score-done-btn" class="medium-btn inline green" style="width: 220px;"><stroke-text>Well Played !</stroke-text></button>
+                <button id="success-score-submit-btn" i18n-key="success-submit-score" class="medium-btn inline orange locked white-stroke" style="width: 220px">Submit Score</button>
+                <button id="success-score-pending-btn" i18n-key="success-sending-score" class="medium-btn inline bluegrey white-stroke" style="width: 220px">Sending...</button>
+                <button id="success-score-done-btn" i18n-key="success-well-played" class="medium-btn inline green white-stroke" style="width: 220px;">Well Played !</button>
                 <div id="success-score-fail-message" style="color: #b03a48; font-weight: 900; display: none;"><stroke-text>Error - Server not found</stroke-text></div>
             </div>
         </div>
@@ -86,8 +86,8 @@
 
     <div id="play-unlock-container" style="display: none;">
         <div class="line">
-            <stroke-text style="font-size: 22px; font-weight: 900; color: #b03a48">EXPERT </stroke-text>
-            <stroke-text style="font-size: 22px; font-weight: 900;">puzzle unlocked</stroke-text>
+            <span class="white-stroke" style="font-size: 22px; font-weight: 900; color: #b03a48;">EXPERT </span>
+            <span i18n-key="success-expert-unlocked" class="white-stroke" style="font-size: 22px; font-weight: 900;">puzzle unlocked</span>
         </div>
         <div class="line">
             <button class="square-btn-panel bluegrey" style="width: 140px; height: 140px; display: inline-block; vertical-align: top; pointer-events: none;">

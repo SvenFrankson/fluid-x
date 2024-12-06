@@ -3,7 +3,7 @@
 /// <reference path="../lib/babylon.d.ts"/>
 
 var MAJOR_VERSION: number = 1;
-var MINOR_VERSION: number = 0;
+var MINOR_VERSION: number = 1;
 var PATCH_VERSION: number = 1;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
@@ -16,7 +16,7 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK: any;
-var LOCALE = "de";
+var LOCALE = "en";
 
 var PokiSDKPlaying: boolean = false;
 function PokiGameplayStart(): void {
@@ -403,8 +403,8 @@ class Game {
             document.body.classList.remove("vertical");
             this.playCameraRange = 10;
         }
-        this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
-        this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
@@ -950,9 +950,11 @@ class Game {
         
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            (document.querySelector("#dev-pass-input") as HTMLInputElement).value = "MarbleExtraPoolCodeTokyo6";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
+            //this.performanceWatcher.showDebug();
         }
+
 	}
 
     public async loadPuzzles(): Promise<void> {
@@ -1312,9 +1314,9 @@ class Game {
         else {
             document.body.classList.remove("vertical");
         }
-        this.engine.resize();
-        this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
-        this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
+        this.engine.resize(true);
+        this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
         this.updatePlayCameraRadius();
     }
 

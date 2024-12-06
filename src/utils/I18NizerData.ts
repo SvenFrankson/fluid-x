@@ -1,3 +1,24 @@
+var supportedLocales = [
+    "en",
+    "fr",
+    "pl",
+    "de",
+    "nl",
+    "pt",
+    "it",
+    "es"
+]
+
+let languages = navigator.languages;
+for (let i = 0; i < languages.length; i++) {
+    let language = languages[i];
+    let languageRoot = language.split("-")[0];
+    if (supportedLocales.indexOf(languageRoot) != -1) {
+        LOCALE = languageRoot;
+        break;
+    }
+}
+
 var i18nData = {};
 
 // Homepage

@@ -4545,7 +4545,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 1;
-var MINOR_VERSION = 0;
+var MINOR_VERSION = 1;
 var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
@@ -4557,7 +4557,7 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK;
-var LOCALE = "de";
+var LOCALE = "en";
 var PokiSDKPlaying = false;
 function PokiGameplayStart() {
     if (!PokiSDKPlaying) {
@@ -4794,9 +4794,9 @@ class Game {
             else {
                 document.body.classList.remove("vertical");
             }
-            this.engine.resize();
-            this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
-            this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
+            this.engine.resize(true);
+            this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
+            this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
             this.updatePlayCameraRadius();
         };
         this.movieIdleDir = BABYLON.Vector3.Zero();
@@ -4880,8 +4880,8 @@ class Game {
             document.body.classList.remove("vertical");
             this.playCameraRange = 10;
         }
-        this.canvas.setAttribute("width", Math.floor(rect.width * window.devicePixelRatio).toFixed(0));
-        this.canvas.setAttribute("height", Math.floor(rect.height * window.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
         let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
@@ -5336,8 +5336,9 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
             document.getElementById("click-anywhere-screen").style.display = "none";
-            document.querySelector("#dev-pass-input").value = "MarbleExtraPoolCodeTokyo6";
-            DEV_ACTIVATE();
+            //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
+            //DEV_ACTIVATE();
+            //this.performanceWatcher.showDebug();
         }
     }
     async loadPuzzles() {
@@ -6380,11 +6381,37 @@ class PerformanceWatcher {
         this.average = 24;
         this.worst = 24;
         this.isWorstTooLow = false;
+        this.devicePixelRationess = 5;
+        this.resizeCD = 0;
+    }
+    get devicePixelRatio() {
+        let f = this.devicePixelRationess / 10;
+        return window.devicePixelRatio * f + (1 - f);
+    }
+    setDevicePixelRationess(v) {
+        if (isFinite(v)) {
+            v = Nabu.MinMax(v, 0, 10);
+            if (this.devicePixelRationess != v) {
+                this.devicePixelRationess = v;
+                let rect = this.game.canvas.getBoundingClientRect();
+                requestAnimationFrame(() => {
+                    this.game.canvas.setAttribute("width", Math.floor(rect.width * this.devicePixelRatio).toFixed(0));
+                    this.game.canvas.setAttribute("height", Math.floor(rect.height * this.devicePixelRatio).toFixed(0));
+                });
+                this.resizeCD = 1;
+            }
+        }
     }
     update(rawDt) {
+        this.resizeCD = Math.max(0, this.resizeCD - rawDt);
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
             this.average = 0.99 * this.average + 0.01 * fps;
+            if (this.resizeCD <= 0) {
+                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * 10);
+                devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
+                this.setDevicePixelRationess(devicePixelRationess);
+            }
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
             if (this.worst < 24) {
@@ -6435,7 +6462,8 @@ class PerformanceWatcher {
                 let indices = mesh.getIndices();
                 trianglesCount += indices.length / 3;
             });
-            context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 15, 5 * lineHeight);
+            //context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 15, 5 * lineHeight);
+            context.fillText(this.devicePixelRatio.toFixed(4), 15, 5 * lineHeight);
             dynamicTexture.update();
         };
         setInterval(update, 100);
@@ -11044,6 +11072,25 @@ class I18Nizer {
                 }
             }
         });
+    }
+}
+var supportedLocales = [
+    "en",
+    "fr",
+    "pl",
+    "de",
+    "nl",
+    "pt",
+    "it",
+    "es"
+];
+let languages = navigator.languages;
+for (let i = 0; i < languages.length; i++) {
+    let language = languages[i];
+    let languageRoot = language.split("-")[0];
+    if (supportedLocales.indexOf(languageRoot) != -1) {
+        LOCALE = languageRoot;
+        break;
     }
 }
 var i18nData = {};

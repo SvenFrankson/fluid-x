@@ -5,15 +5,43 @@ class PerformanceWatcher {
     public worst: number = 24;
 
     public isWorstTooLow: boolean = false;
+    public devicePixelRationess: number = 5;
+    public get devicePixelRatio(): number {
+        let f = this.devicePixelRationess / 10;
+        return window.devicePixelRatio * f + (1 - f);
+    }
+
+    public resizeCD = 0;
+    public setDevicePixelRationess(v: number): void {
+        if (isFinite(v)) {
+            v = Nabu.MinMax(v, 0, 10);
+            if (this.devicePixelRationess != v) {
+                this.devicePixelRationess = v;
+                let rect = this.game.canvas.getBoundingClientRect();
+                requestAnimationFrame(() => {
+                    this.game.canvas.setAttribute("width", Math.floor(rect.width * this.devicePixelRatio).toFixed(0));
+                    this.game.canvas.setAttribute("height", Math.floor(rect.height * this.devicePixelRatio).toFixed(0));
+                })
+                this.resizeCD = 1;
+            }
+        }
+    }
 
     constructor(public game: Game) {
         
     }
 
     public update(rawDt: number): void {
+        this.resizeCD = Math.max(0, this.resizeCD - rawDt);
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
             this.average = 0.99 * this.average + 0.01 * fps;
+
+            if (this.resizeCD <= 0) {
+                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * 10);
+                devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
+                this.setDevicePixelRationess(devicePixelRationess);
+            }
 
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
@@ -74,7 +102,8 @@ class PerformanceWatcher {
                 let indices = mesh.getIndices();
                 trianglesCount += indices.length / 3;
             })
-            context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 15, 5 * lineHeight);
+            //context.fillText(Math.floor(trianglesCount / 1000).toFixed(0) + " kt", 15, 5 * lineHeight);
+            context.fillText(this.devicePixelRatio.toFixed(4), 15, 5 * lineHeight);
     
             dynamicTexture.update();
         }

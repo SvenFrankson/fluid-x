@@ -16,6 +16,9 @@ abstract class LevelPage {
 
     public nabuPage: Nabu.DefaultPage;
     public buttons: HTMLButtonElement[] = [];
+    public container: HTMLDivElement;
+    public containerHeight: number = 500;
+    public containerLineHeight: number = 150;
     public rowCount: number = 3;
     public colCount: number = 3;
 
@@ -52,29 +55,27 @@ abstract class LevelPage {
         //await RandomWait();
         this.buttons = [];
 
-        let container = this.nabuPage.querySelector(".square-btn-container");
-        let scroll = container.scrollTop;
-        container.innerHTML = "";
+        this.container = this.nabuPage.querySelector(".square-btn-container");
+        let scroll = this.container.scrollTop;
+        this.container.innerHTML = "";
 
-        let rect = container.getBoundingClientRect();
+        let rect = this.container.getBoundingClientRect();
+        this.containerHeight = rect.height;
         this.colCount = Math.floor(rect.width / 156);
-        this.rowCount = Math.floor(rect.height / 156);
         while (this.colCount < 2) {
             this.colCount++;
-        }
-        while (this.rowCount < 3) {
-            this.rowCount++;
         }
         let size = Math.floor(rect.width / this.colCount - 16);
 
         //this.levelsPerPage = this.colCount * (this.rowCount - 1);
         let puzzleTileDatas = await this.getPuzzlesData(0, 200);
+        this.rowCount = Math.ceil(puzzleTileDatas.length / this.colCount);
 
         for (let n = 0; n < puzzleTileDatas.length; n++) {
             let squareButton = document.createElement("button");
             squareButton.style.width = size.toFixed(0) + "px";
             squareButton.style.height = size.toFixed(0) + "px";
-            container.appendChild(squareButton);
+            this.container.appendChild(squareButton);
             this.buttons.push(squareButton);
             squareButton.classList.add("square-btn-panel", "bluegrey");
             
@@ -163,11 +164,23 @@ abstract class LevelPage {
                 squareButton.style.width = size.toFixed(0) + "px";
                 squareButton.style.height = size.toFixed(0) + "px";
                 squareButton.style.opacity = "0.2";
-                container.appendChild(squareButton);
+                this.container.appendChild(squareButton);
             }
         }
 
-        container.scrollTop = scroll;
+        this.container.scrollTop = scroll;
+
+        requestAnimationFrame(() => {
+            if (this.buttons.length > this.colCount) {
+                let rect0 = this.buttons[0].getBoundingClientRect();
+                let rect1 = this.buttons[this.colCount].getBoundingClientRect();
+                this.containerLineHeight = rect1.top - rect0.top;
+            }
+            else {
+                this.containerLineHeight = 142;
+            }
+            console.log(this.containerLineHeight);
+        })
         
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
@@ -194,11 +207,18 @@ abstract class LevelPage {
         this._hoveredButtonIndex = v;
         btn = this.buttons[this._hoveredButtonIndex];
         if (!btn) {
-            return true;
+            return false;
         }
         else if ((!filter || filter(btn))) {
             if (btn) {
                 btn.classList.add("hovered");
+                let rowIndex = Math.floor(v / this.colCount);
+                let delta = (this.containerHeight - this.containerLineHeight) / 2;
+                let scrollTop = rowIndex * this.containerLineHeight - delta;
+                this.nabuPage.querySelector(".square-btn-container").scrollTo({
+                   top: scrollTop,
+                   behavior: "smooth" 
+                });
             }
             return true;
         }
@@ -246,6 +266,7 @@ abstract class LevelPage {
                 this._inputUp();
             }
         }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
     }
 
     private _inputLeft = () => {
@@ -265,6 +286,7 @@ abstract class LevelPage {
                 this._inputLeft();
             }
         }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
     }
 
     private _inputDown = () => {
@@ -284,6 +306,7 @@ abstract class LevelPage {
                 this._inputDown();
             }
         }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
     }
 
     private _inputRight = () => {
@@ -303,6 +326,7 @@ abstract class LevelPage {
                 this._inputRight();
             }
         }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
     }
 
     private _inputEnter = () => {

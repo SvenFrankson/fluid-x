@@ -126,19 +126,26 @@ class TutoPage {
 
     public async show(duration?: number): Promise<void> {
         //await RandomWait();
-        requestAnimationFrame(() => {
-            CenterPanel(this.nabuPage, 0, 0);
-        })
         this.router.game.scene.onBeforeRenderObservable.add(this.update);
         this.setTutoIndex(0, true);
         this.router.game.puzzle.puzzleUI.hideTouchInput();
-        await this.nabuPage.show(duration);
+        return new Promise<void>(resolve => {
+            requestAnimationFrame(async () => {
+                requestAnimationFrame(() => {
+                    CenterPanel(this.nabuPage, 0, 0);
+                })
+                await this.nabuPage.show(duration);
+                this._registerToInputManager();
+                resolve();
+            })
+        });
     }
 
     public async hide(duration?: number): Promise<void> {
         //await RandomWait();
         this.router.game.scene.onBeforeRenderObservable.removeCallback(this.update);
         this.router.game.puzzle.puzzleUI.showTouchInput();
+        this._unregisterFromInputManager();
         return this.nabuPage.hide(duration);
     }
 
@@ -352,5 +359,36 @@ class TutoPage {
     public async showTuto3(): Promise<void> {
         this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) Objective</i><br/>Collect all the <b>Tiles</b> to complete the <b>Puzzle</b> !";
         document.querySelector("#tutorial-panel-3").setAttribute("visibility", "visible");
+    }
+
+    private _registerToInputManager(): void {
+        this.router.game.uiInputManager.onLeftCallbacks.push(this._inputLeft);
+        this.router.game.uiInputManager.onRightCallbacks.push(this._inputRight);
+    }
+
+    private _unregisterFromInputManager(): void {
+        this.router.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
+        this.router.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
+    }
+
+    private _inputLeft = () => {
+        if (!this.shown) {
+            return;
+        }
+        this.setTutoIndex(this._tutoIndex - 1);
+    }
+
+    private _inputRight = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this._tutoIndex < 3) {
+            this.setTutoIndex(this._tutoIndex + 1);
+        }
+        else {
+            this.hide(0.5);
+            this.router.game.fadeInIntro();
+            this.router.game.puzzle.skipIntro();
+        }
     }
 }

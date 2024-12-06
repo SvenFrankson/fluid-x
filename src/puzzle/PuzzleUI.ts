@@ -289,6 +289,8 @@ class PuzzleUI {
     private _registerToInputManager(): void {
         this.game.uiInputManager.onUpCallbacks.push(this._inputUp);
         this.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.game.uiInputManager.onLeftCallbacks.push(this._inputLeft);
+        this.game.uiInputManager.onRightCallbacks.push(this._inputRight);
         this.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
         this.game.uiInputManager.onBackCallbacks.push(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
@@ -297,6 +299,8 @@ class PuzzleUI {
     private _unregisterFromInputManager(): void {
         this.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
         this.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
+        this.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
         this.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
         this.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
@@ -325,7 +329,12 @@ class PuzzleUI {
             }
         }
         else if (this.gameoverPanel.style.display === "") {
-            
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
         }
     }
 
@@ -352,7 +361,34 @@ class PuzzleUI {
             }
         }
         else if (this.gameoverPanel.style.display === "") {
-            
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
+        }
+    }
+
+    private _inputLeft = () => {
+        if (this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
+        }
+    }
+
+    private _inputRight = () => {
+        if (this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
         }
     }
 

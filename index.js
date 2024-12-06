@@ -1,5 +1,5 @@
 var USE_POKI_SDK = true;
-var OFFLINE_MODE = true;
+var OFFLINE_MODE = false;
 var NO_VERTEX_DATA_LOADER = true;
 var ADVENT_CAL = false;
 

@@ -3872,6 +3872,8 @@ class LevelPage {
         //public levelsPerPage: number = 9;
         this.levelCount = 0;
         this.buttons = [];
+        this.containerHeight = 500;
+        this.containerLineHeight = 150;
         this.rowCount = 3;
         this.colCount = 3;
         this._hoveredButtonIndex = 0;
@@ -3895,6 +3897,7 @@ class LevelPage {
                     this._inputUp();
                 }
             }
+            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
         };
         this._inputLeft = () => {
             if (!this.shown) {
@@ -3913,6 +3916,7 @@ class LevelPage {
                     this._inputLeft();
                 }
             }
+            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
         };
         this._inputDown = () => {
             if (!this.shown) {
@@ -3931,6 +3935,7 @@ class LevelPage {
                     this._inputDown();
                 }
             }
+            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
         };
         this._inputRight = () => {
             if (!this.shown) {
@@ -3949,6 +3954,7 @@ class LevelPage {
                     this._inputRight();
                 }
             }
+            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
         };
         this._inputEnter = () => {
             if (!this.shown) {
@@ -4001,26 +4007,24 @@ class LevelPage {
     async redraw() {
         //await RandomWait();
         this.buttons = [];
-        let container = this.nabuPage.querySelector(".square-btn-container");
-        let scroll = container.scrollTop;
-        container.innerHTML = "";
-        let rect = container.getBoundingClientRect();
+        this.container = this.nabuPage.querySelector(".square-btn-container");
+        let scroll = this.container.scrollTop;
+        this.container.innerHTML = "";
+        let rect = this.container.getBoundingClientRect();
+        this.containerHeight = rect.height;
         this.colCount = Math.floor(rect.width / 156);
-        this.rowCount = Math.floor(rect.height / 156);
         while (this.colCount < 2) {
             this.colCount++;
-        }
-        while (this.rowCount < 3) {
-            this.rowCount++;
         }
         let size = Math.floor(rect.width / this.colCount - 16);
         //this.levelsPerPage = this.colCount * (this.rowCount - 1);
         let puzzleTileDatas = await this.getPuzzlesData(0, 200);
+        this.rowCount = Math.ceil(puzzleTileDatas.length / this.colCount);
         for (let n = 0; n < puzzleTileDatas.length; n++) {
             let squareButton = document.createElement("button");
             squareButton.style.width = size.toFixed(0) + "px";
             squareButton.style.height = size.toFixed(0) + "px";
-            container.appendChild(squareButton);
+            this.container.appendChild(squareButton);
             this.buttons.push(squareButton);
             squareButton.classList.add("square-btn-panel", "bluegrey");
             if (puzzleTileDatas[n].locked) {
@@ -4100,10 +4104,21 @@ class LevelPage {
                 squareButton.style.width = size.toFixed(0) + "px";
                 squareButton.style.height = size.toFixed(0) + "px";
                 squareButton.style.opacity = "0.2";
-                container.appendChild(squareButton);
+                this.container.appendChild(squareButton);
             }
         }
-        container.scrollTop = scroll;
+        this.container.scrollTop = scroll;
+        requestAnimationFrame(() => {
+            if (this.buttons.length > this.colCount) {
+                let rect0 = this.buttons[0].getBoundingClientRect();
+                let rect1 = this.buttons[this.colCount].getBoundingClientRect();
+                this.containerLineHeight = rect1.top - rect0.top;
+            }
+            else {
+                this.containerLineHeight = 142;
+            }
+            console.log(this.containerLineHeight);
+        });
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
         }
@@ -4126,11 +4141,18 @@ class LevelPage {
         this._hoveredButtonIndex = v;
         btn = this.buttons[this._hoveredButtonIndex];
         if (!btn) {
-            return true;
+            return false;
         }
         else if ((!filter || filter(btn))) {
             if (btn) {
                 btn.classList.add("hovered");
+                let rowIndex = Math.floor(v / this.colCount);
+                let delta = (this.containerHeight - this.containerLineHeight) / 2;
+                let scrollTop = rowIndex * this.containerLineHeight - delta;
+                this.nabuPage.querySelector(".square-btn-container").scrollTo({
+                    top: scrollTop,
+                    behavior: "smooth"
+                });
             }
             return true;
         }
@@ -4485,7 +4507,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 1;
 var MINOR_VERSION = 0;
-var PATCH_VERSION = 0;
+var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4550,31 +4572,32 @@ let onFirstPlayerInteractionTouch = (ev) => {
     }
     console.log("onFirstPlayerInteractionTouch");
     ev.stopPropagation();
-    PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
-    //Game.Instance.showGraphicAutoUpdateAlert("Touch");
-    setTimeout(() => {
-        document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 300);
     Game.Instance.onResize();
     IsTouchScreen = 1;
     document.body.classList.add("touchscreen");
-    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-    if (IsMobile === 1) {
-        document.body.classList.add("mobile");
-    }
-    Game.Instance.soundManager.unlockEngine();
-    if (USE_POKI_SDK) {
-        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
-        }
-        else {
-            console.error("Welcome back");
-        }
-    }
     Game.Instance.camera.panningSensibility *= 0.4;
+    if (!PlayerHasInteracted) {
+        setTimeout(() => {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+            if (USE_POKI_SDK) {
+                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.error("Welcome back");
+                }
+            }
+        }, 300);
+        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+        if (IsMobile === 1) {
+            document.body.classList.add("mobile");
+        }
+        Game.Instance.soundManager.unlockEngine();
+    }
+    PlayerHasInteracted = true;
 };
 let onFirstPlayerInteractionClick = (ev) => {
     if (!Game.Instance.gameLoaded) {
@@ -4582,29 +4605,30 @@ let onFirstPlayerInteractionClick = (ev) => {
     }
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
-    PlayerHasInteracted = true;
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    //Game.Instance.showGraphicAutoUpdateAlert("Clic");
-    setTimeout(() => {
-        document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 300);
     Game.Instance.onResize();
-    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-    if (IsMobile === 1) {
-        document.body.classList.add("mobile");
-    }
     if (Game.Instance.puzzle && Game.Instance.puzzle.balls[0]) {
         Game.Instance.puzzle.balls[0].connectMouse();
     }
-    Game.Instance.soundManager.unlockEngine();
-    if (USE_POKI_SDK) {
-        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
+    if (!PlayerHasInteracted) {
+        setTimeout(() => {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+            if (USE_POKI_SDK) {
+                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.error("Welcome back");
+                }
+            }
+        }, 300);
+        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+        if (IsMobile === 1) {
+            document.body.classList.add("mobile");
         }
-        else {
-            console.error("Welcome back");
-        }
+        Game.Instance.soundManager.unlockEngine();
     }
+    PlayerHasInteracted = true;
 };
 let onFirstPlayerInteractionKeyboard = (ev) => {
     if (!ev.code) {
@@ -4615,26 +4639,28 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
     }
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
-    PlayerHasInteracted = true;
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
-    setTimeout(() => {
-        document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 300);
     Game.Instance.onResize();
-    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-    if (IsMobile === 1) {
-        document.body.classList.add("mobile");
-    }
-    Game.Instance.soundManager.unlockEngine();
-    if (USE_POKI_SDK) {
-        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
+    if (!PlayerHasInteracted) {
+        setTimeout(() => {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+            if (USE_POKI_SDK) {
+                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.error("Welcome back");
+                }
+            }
+        }, 300);
+        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+        if (IsMobile === 1) {
+            document.body.classList.add("mobile");
         }
-        else {
-            console.error("Welcome back");
-        }
+        Game.Instance.soundManager.unlockEngine();
     }
+    PlayerHasInteracted = true;
 };
 function addLine(text) {
     let e = document.createElement("div");
@@ -5268,7 +5294,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -6586,7 +6612,7 @@ class PuzzleCompletion {
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
             if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
+                //this.completedPuzzles = JSON.parse(dataString);
             }
         }
         this.recentUnlocks = new Nabu.UniqueList();
@@ -7218,6 +7244,25 @@ class TutoPage {
         };
         this._animating = false;
         this._tutoIndex = 0;
+        this._inputLeft = () => {
+            if (!this.shown) {
+                return;
+            }
+            this.setTutoIndex(this._tutoIndex - 1);
+        };
+        this._inputRight = () => {
+            if (!this.shown) {
+                return;
+            }
+            if (this._tutoIndex < 3) {
+                this.setTutoIndex(this._tutoIndex + 1);
+            }
+            else {
+                this.hide(0.5);
+                this.router.game.fadeInIntro();
+                this.router.game.puzzle.skipIntro();
+            }
+        };
         this.nabuPage = document.querySelector(queryString);
         this.tutoContainer = this.nabuPage.querySelector(".tutorial-container");
         this.tutoPrev = [...this.nabuPage.querySelectorAll(".tutorial-prev-btn")];
@@ -7291,18 +7336,25 @@ class TutoPage {
     }
     async show(duration) {
         //await RandomWait();
-        requestAnimationFrame(() => {
-            CenterPanel(this.nabuPage, 0, 0);
-        });
         this.router.game.scene.onBeforeRenderObservable.add(this.update);
         this.setTutoIndex(0, true);
         this.router.game.puzzle.puzzleUI.hideTouchInput();
-        await this.nabuPage.show(duration);
+        return new Promise(resolve => {
+            requestAnimationFrame(async () => {
+                requestAnimationFrame(() => {
+                    CenterPanel(this.nabuPage, 0, 0);
+                });
+                await this.nabuPage.show(duration);
+                this._registerToInputManager();
+                resolve();
+            });
+        });
     }
     async hide(duration) {
         //await RandomWait();
         this.router.game.scene.onBeforeRenderObservable.removeCallback(this.update);
         this.router.game.puzzle.puzzleUI.showTouchInput();
+        this._unregisterFromInputManager();
         return this.nabuPage.hide(duration);
     }
     async fadeOutBoard(duration = 1) {
@@ -7412,6 +7464,14 @@ class TutoPage {
     async showTuto3() {
         this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) Objective</i><br/>Collect all the <b>Tiles</b> to complete the <b>Puzzle</b> !";
         document.querySelector("#tutorial-panel-3").setAttribute("visibility", "visible");
+    }
+    _registerToInputManager() {
+        this.router.game.uiInputManager.onLeftCallbacks.push(this._inputLeft);
+        this.router.game.uiInputManager.onRightCallbacks.push(this._inputRight);
+    }
+    _unregisterFromInputManager() {
+        this.router.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
+        this.router.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
     }
 }
 class UserInterfaceInputManager {
@@ -8676,7 +8736,7 @@ class Puzzle {
         document.querySelector("#puzzle-skip-intro").style.display = "";
         document.querySelector("#puzzle-ready").style.display = "none";
         if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
-            this.game.router.tutoPage.show(0.5);
+            this.game.router.tutoPage.show(1);
         }
         else {
             this.game.fadeInIntro();
@@ -10242,6 +10302,12 @@ class PuzzleUI {
                 }
             }
             else if (this.gameoverPanel.style.display === "") {
+                if (this.hoveredElement === this.gameoverBackButton) {
+                    this.setHoveredElement(this.gameoverReplayButton);
+                }
+                else if (this.hoveredElement === this.gameoverReplayButton) {
+                    this.setHoveredElement(this.gameoverBackButton);
+                }
             }
         };
         this._inputDown = () => {
@@ -10267,6 +10333,32 @@ class PuzzleUI {
                 }
             }
             else if (this.gameoverPanel.style.display === "") {
+                if (this.hoveredElement === this.gameoverBackButton) {
+                    this.setHoveredElement(this.gameoverReplayButton);
+                }
+                else if (this.hoveredElement === this.gameoverReplayButton) {
+                    this.setHoveredElement(this.gameoverBackButton);
+                }
+            }
+        };
+        this._inputLeft = () => {
+            if (this.gameoverPanel.style.display === "") {
+                if (this.hoveredElement === this.gameoverBackButton) {
+                    this.setHoveredElement(this.gameoverReplayButton);
+                }
+                else if (this.hoveredElement === this.gameoverReplayButton) {
+                    this.setHoveredElement(this.gameoverBackButton);
+                }
+            }
+        };
+        this._inputRight = () => {
+            if (this.gameoverPanel.style.display === "") {
+                if (this.hoveredElement === this.gameoverBackButton) {
+                    this.setHoveredElement(this.gameoverReplayButton);
+                }
+                else if (this.hoveredElement === this.gameoverReplayButton) {
+                    this.setHoveredElement(this.gameoverBackButton);
+                }
             }
         };
         this._inputEnter = () => {
@@ -10513,6 +10605,8 @@ class PuzzleUI {
     _registerToInputManager() {
         this.game.uiInputManager.onUpCallbacks.push(this._inputUp);
         this.game.uiInputManager.onDownCallbacks.push(this._inputDown);
+        this.game.uiInputManager.onLeftCallbacks.push(this._inputLeft);
+        this.game.uiInputManager.onRightCallbacks.push(this._inputRight);
         this.game.uiInputManager.onEnterCallbacks.push(this._inputEnter);
         this.game.uiInputManager.onBackCallbacks.push(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.push(this._inputDropControl);
@@ -10520,6 +10614,8 @@ class PuzzleUI {
     _unregisterFromInputManager() {
         this.game.uiInputManager.onUpCallbacks.remove(this._inputUp);
         this.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
+        this.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
+        this.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
         this.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
         this.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);

@@ -120,7 +120,7 @@ class PuzzleCompletion {
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
             if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
+                //this.completedPuzzles = JSON.parse(dataString);
             }
         }
         this.recentUnlocks = new Nabu.UniqueList<number>();

@@ -320,7 +320,7 @@ class Puzzle {
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";
         if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
-            this.game.router.tutoPage.show(0.5);
+            this.game.router.tutoPage.show(1);
         }
         else {
             this.game.fadeInIntro()

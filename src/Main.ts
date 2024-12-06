@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 0;
-var PATCH_VERSION: number = 0;
+var PATCH_VERSION: number = 1;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -75,32 +75,35 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     }
     console.log("onFirstPlayerInteractionTouch");
     ev.stopPropagation();
-    PlayerHasInteracted = true;
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
-    //Game.Instance.showGraphicAutoUpdateAlert("Touch");
-    setTimeout(() => {
-        document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 300);
+    
     Game.Instance.onResize();
 
     IsTouchScreen = 1;
     document.body.classList.add("touchscreen");
-    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-    if (IsMobile === 1) {
-        document.body.classList.add("mobile");
-    }
-    Game.Instance.soundManager.unlockEngine();
-    if (USE_POKI_SDK) {
-        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
-        }
-        else {
-            console.error("Welcome back");
-        }
-    }
     Game.Instance.camera.panningSensibility *= 0.4;
+
+    if (!PlayerHasInteracted) {
+        setTimeout(() => {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+            if (USE_POKI_SDK) {
+                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.error("Welcome back");
+                }
+            }
+        }, 300);
+        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+        if (IsMobile === 1) {
+            document.body.classList.add("mobile");
+        }
+        Game.Instance.soundManager.unlockEngine();
+    }
+    PlayerHasInteracted = true;
 }
 
 let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
@@ -109,30 +112,33 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     }
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
-    PlayerHasInteracted = true;
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    //Game.Instance.showGraphicAutoUpdateAlert("Clic");
-    setTimeout(() => {
-        document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 300);
+    
     Game.Instance.onResize();
 
-    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-    if (IsMobile === 1) {
-        document.body.classList.add("mobile");
-    }
     if (Game.Instance.puzzle && Game.Instance.puzzle.balls[0]) {
         Game.Instance.puzzle.balls[0].connectMouse();
     }
-    Game.Instance.soundManager.unlockEngine();
-    if (USE_POKI_SDK) {
-        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
+
+    if (!PlayerHasInteracted) {
+        setTimeout(() => {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+            if (USE_POKI_SDK) {
+                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.error("Welcome back");
+                }
+            }
+        }, 300);
+        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+        if (IsMobile === 1) {
+            document.body.classList.add("mobile");
         }
-        else {
-            console.error("Welcome back");
-        }
+        Game.Instance.soundManager.unlockEngine();
     }
+    PlayerHasInteracted = true;
 }
 
 let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
@@ -144,27 +150,30 @@ let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
     }
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
-    PlayerHasInteracted = true;
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
-    setTimeout(() => {
-        document.getElementById("click-anywhere-screen").style.display = "none";
-    }, 300);
+    
     Game.Instance.onResize();
 
-    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-    if (IsMobile === 1) {
-        document.body.classList.add("mobile");
-    }
-    Game.Instance.soundManager.unlockEngine();
-    if (USE_POKI_SDK) {
-        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
+    if (!PlayerHasInteracted) {
+        setTimeout(() => {
+            document.getElementById("click-anywhere-screen").style.display = "none";
+            if (USE_POKI_SDK) {
+                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.error("Welcome back");
+                }
+            }
+        }, 300);
+        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+        if (IsMobile === 1) {
+            document.body.classList.add("mobile");
         }
-        else {
-            console.error("Welcome back");
-        }
+        Game.Instance.soundManager.unlockEngine();
     }
+    PlayerHasInteracted = true;
 }
 
 function addLine(text: string): void {
@@ -938,7 +947,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }

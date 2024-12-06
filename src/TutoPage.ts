@@ -334,17 +334,17 @@ class TutoPage {
     }
 
     public async showTuto0(): Promise<void> {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>1) Context</i><br/>This is the Ball.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>1) " + I18Nizer.GetText("tuto-0-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-0-text", LOCALE);
         document.querySelector("#tutorial-panel-0").setAttribute("visibility", "visible");
     }
 
     public async showTuto1(): Promise<void> {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>2) Rule</i><br/>The Ball <b>always</b> moves <b>up</b> and <b>down</b>.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>2) " + I18Nizer.GetText("tuto-1-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-1-text", LOCALE);
         document.querySelector("#tutorial-panel-1").setAttribute("visibility", "visible");
     }
 
     public async showTuto2(): Promise<void> {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>3) Control</i><br/>You can only steer the Ball <b>Left</b> or <b>Right</b>.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>3) " + I18Nizer.GetText("tuto-2-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-2-text", LOCALE);
         if (IsTouchScreen) {
             this.svgKeyA.querySelector("text").innerHTML = "&lt;";
             this.svgKeyD.querySelector("text").innerHTML = "&gt;";
@@ -357,7 +357,7 @@ class TutoPage {
     }
 
     public async showTuto3(): Promise<void> {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) Objective</i><br/>Collect all the <b>Tiles</b> to complete the <b>Puzzle</b> !";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) " + I18Nizer.GetText("tuto-3-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-3-text", LOCALE);
         document.querySelector("#tutorial-panel-3").setAttribute("visibility", "visible");
     }
 

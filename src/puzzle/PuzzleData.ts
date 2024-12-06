@@ -62,3 +62,17 @@ function CLEAN_IPuzzlesData(data: any): any {
         CLEAN_IPuzzleData(data.puzzles[i]);
     }
 }
+
+function GetTranslatedTitle(data: IPuzzleData, locale?: string): string {
+    if (!locale) {
+        locale = LOCALE;
+    }
+    if (data.title.startsWith("Lesson ")) {
+        let lessonIndex = parseInt(data.title.replace("Lesson ", ""));
+        console.log(lessonIndex);
+        if (isFinite(lessonIndex)) {
+            return I18Nizer.GetText("lesson-" + lessonIndex.toFixed(0) + "-title", locale);
+        }
+    }
+    return data.title;
+}

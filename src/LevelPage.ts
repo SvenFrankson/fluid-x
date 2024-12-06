@@ -91,7 +91,7 @@ abstract class LevelPage {
             let titleField = document.createElement("div");
             titleField.classList.add("square-btn-title");
             let titleText = document.createElement("stroke-text") as StrokeText;
-            titleText.setContent(puzzleTileDatas[n].data.title);
+            titleText.setContent(GetTranslatedTitle(puzzleTileDatas[n].data));
             titleField.appendChild(titleText);
             squareButton.appendChild(titleField);
 

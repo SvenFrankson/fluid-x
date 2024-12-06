@@ -16,6 +16,7 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK: any;
+var LOCALE = "fr";
 
 var PokiSDKPlaying: boolean = false;
 function PokiGameplayStart(): void {
@@ -939,6 +940,7 @@ class Game {
         }
 
         this.gameLoaded = true;
+        I18Nizer.Translate(LOCALE);
         if (USE_POKI_SDK) {
             PokiSDK.gameLoadingFinished();
         }
@@ -947,7 +949,7 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }

@@ -4037,7 +4037,7 @@ class LevelPage {
             let titleField = document.createElement("div");
             titleField.classList.add("square-btn-title");
             let titleText = document.createElement("stroke-text");
-            titleText.setContent(puzzleTileDatas[n].data.title);
+            titleText.setContent(GetTranslatedTitle(puzzleTileDatas[n].data));
             titleField.appendChild(titleText);
             squareButton.appendChild(titleField);
             let miniature = PuzzleMiniatureMaker.Generate(puzzleTileDatas[n].data.content);
@@ -4518,6 +4518,7 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK;
+var LOCALE = "fr";
 var PokiSDKPlaying = false;
 function PokiGameplayStart() {
     if (!PokiSDKPlaying) {
@@ -5287,6 +5288,7 @@ class Game {
             }
         }
         this.gameLoaded = true;
+        I18Nizer.Translate(LOCALE);
         if (USE_POKI_SDK) {
             PokiSDK.gameLoadingFinished();
         }
@@ -5294,7 +5296,7 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            //document.getElementById("click-anywhere-screen").style.display = "none";
+            document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
@@ -7442,15 +7444,15 @@ class TutoPage {
         }
     }
     async showTuto0() {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>1) Context</i><br/>This is the Ball.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>1) " + I18Nizer.GetText("tuto-0-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-0-text", LOCALE);
         document.querySelector("#tutorial-panel-0").setAttribute("visibility", "visible");
     }
     async showTuto1() {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>2) Rule</i><br/>The Ball <b>always</b> moves <b>up</b> and <b>down</b>.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>2) " + I18Nizer.GetText("tuto-1-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-1-text", LOCALE);
         document.querySelector("#tutorial-panel-1").setAttribute("visibility", "visible");
     }
     async showTuto2() {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>3) Control</i><br/>You can only steer the Ball <b>Left</b> or <b>Right</b>.";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>3) " + I18Nizer.GetText("tuto-2-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-2-text", LOCALE);
         if (IsTouchScreen) {
             this.svgKeyA.querySelector("text").innerHTML = "&lt;";
             this.svgKeyD.querySelector("text").innerHTML = "&gt;";
@@ -7462,7 +7464,7 @@ class TutoPage {
         document.querySelector("#tutorial-panel-2").setAttribute("visibility", "visible");
     }
     async showTuto3() {
-        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) Objective</i><br/>Collect all the <b>Tiles</b> to complete the <b>Puzzle</b> !";
+        this.tutoText.innerHTML = "&nbsp;&nbsp;&nbsp;<i>4) " + I18Nizer.GetText("tuto-3-label", LOCALE) + "</i><br/>" + I18Nizer.GetText("tuto-3-text", LOCALE);
         document.querySelector("#tutorial-panel-3").setAttribute("visibility", "visible");
     }
     _registerToInputManager() {
@@ -8731,7 +8733,7 @@ class Puzzle {
             this.resetFromData(this.data, replaying);
             await this.instantiate(replaying);
         }
-        document.querySelector("#puzzle-title").innerHTML = this.data.title;
+        document.querySelector("#puzzle-title").innerHTML = GetTranslatedTitle(this.data);
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         document.querySelector("#puzzle-skip-intro").style.display = "";
         document.querySelector("#puzzle-ready").style.display = "none";
@@ -9943,6 +9945,19 @@ function CLEAN_IPuzzlesData(data) {
         CLEAN_IPuzzleData(data.puzzles[i]);
     }
 }
+function GetTranslatedTitle(data, locale) {
+    if (!locale) {
+        locale = LOCALE;
+    }
+    if (data.title.startsWith("Lesson ")) {
+        let lessonIndex = parseInt(data.title.replace("Lesson ", ""));
+        console.log(lessonIndex);
+        if (isFinite(lessonIndex)) {
+            return I18Nizer.GetText("lesson-" + lessonIndex.toFixed(0) + "-title", locale);
+        }
+    }
+    return data.title;
+}
 class PuzzleMiniatureMaker {
     static Generate(content) {
         content = content.replaceAll("\r\n", "");
@@ -10963,6 +10978,120 @@ function CreateBiDiscVertexData(props) {
     Mummu.TranslateVertexDataInPlace(data, props.p1);
     return data;
 }
+class I18Nizer {
+    static GetText(key, lang) {
+        if (i18nData[key]) {
+            if (i18nData[key][lang]) {
+                return i18nData[key][lang];
+            }
+            return i18nData[key]["en"];
+        }
+        return "uknwn";
+    }
+    static Translate(lang) {
+        let elements = document.querySelectorAll("[i18n-key]");
+        elements.forEach(element => {
+            if (element instanceof HTMLElement) {
+                let key = element.getAttribute("i18n-key");
+                if (key) {
+                    element.innerText = I18Nizer.GetText(key, lang);
+                }
+            }
+        });
+    }
+}
+var i18nData = [];
+// Homepage
+i18nData["play"] = {
+    "en": "PLAY",
+    "fr": "JOUER"
+};
+i18nData["home-story-mode"] = {
+    "en": "story mode",
+    "fr": "mode histoire"
+};
+i18nData["home-expert-mode"] = {
+    "en": "expert mode",
+    "fr": "mode expert"
+};
+i18nData["home-community-mode"] = {
+    "en": "community puzzles",
+    "fr": "puzzles maison"
+};
+// Tutorial
+i18nData["tuto-title"] = {
+    "en": "Tutorial",
+    "fr": "Instructions"
+};
+i18nData["tuto-0-label"] = {
+    "en": "Context",
+    "fr": "Contexte"
+};
+i18nData["tuto-0-text"] = {
+    "en": "This is the Ball.",
+    "fr": "Ceci est la Balle."
+};
+i18nData["tuto-1-label"] = {
+    "en": "Rule",
+    "fr": "Règle"
+};
+i18nData["tuto-1-text"] = {
+    "en": "The Ball always moves up and down.",
+    "fr": "La balle se déplace toujours verticalement."
+};
+i18nData["tuto-2-label"] = {
+    "en": "Control",
+    "fr": "Contrôle"
+};
+i18nData["tuto-2-text"] = {
+    "en": "You can only steer the Ball Left or Right.",
+    "fr": "Vous pouvez contrôler la balle horizontalement."
+};
+i18nData["tuto-3-label"] = {
+    "en": "Objective",
+    "fr": "Objectif"
+};
+i18nData["tuto-3-text"] = {
+    "en": "Collect all the Tiles to complete the Puzzle !",
+    "fr": "Collectez tous les Blocs pour terminer le Puzzle !"
+};
+// Puzzle Titles
+i18nData["lesson-1-title"] = {
+    "en": "Lesson 1 - Control",
+    "fr": "Leçon 1 - Contrôle",
+};
+i18nData["lesson-2-title"] = {
+    "en": "Lesson 2 - Color",
+    "fr": "Leçon 2 - Couleur ",
+};
+i18nData["lesson-3-title"] = {
+    "en": "Lesson 3 - Hole",
+    "fr": "Leçon 3 - Trou",
+};
+i18nData["lesson-4-title"] = {
+    "en": "Lesson 4 - Push",
+    "fr": "Leçon 4 - Pousser",
+};
+i18nData["lesson-5-title"] = {
+    "en": "Lesson 5 - The Doors",
+    "fr": "Leçon 5 - Les Portes",
+};
+i18nData["lesson-6-title"] = {
+    "en": "Lesson 6 - Crack",
+    "fr": "Leçon 6 - Fissure",
+};
+i18nData["lesson-7-title"] = {
+    "en": "Lesson 7 - Water",
+    "fr": "Leçon 7 - Eau",
+};
+i18nData["lesson-8-title"] = {
+    "en": "Lesson 8 - Spikes",
+    "fr": "Leçon 8 - Piquants",
+};
+i18nData["lesson-9-title"] = {
+    "en": "Lesson 9 - Gap",
+    "fr": "Leçon 9 - Passage",
+};
 function CenterPanel(panel, dx = 0, dy = 0) {
     let bodyRect = document.body.getBoundingClientRect();
     let panelRect = panel.getBoundingClientRect();

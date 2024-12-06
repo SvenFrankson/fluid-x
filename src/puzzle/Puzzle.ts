@@ -315,7 +315,7 @@ class Puzzle {
             this.resetFromData(this.data, replaying);
             await this.instantiate(replaying);
         }
-        document.querySelector("#puzzle-title").innerHTML = this.data.title;
+        document.querySelector("#puzzle-title").innerHTML = GetTranslatedTitle(this.data);
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";

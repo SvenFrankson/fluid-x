@@ -175,9 +175,14 @@ class Haiku extends BABYLON.Mesh {
         context.fillStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";
         context.font = "90px Julee";
+        let lineHeight = 120;
+        if (LOCALE === "de") {
+            context.font = "70px Julee";
+            lineHeight = 90;
+        }
         for (let l = 0; l < lines.length; l++) {
             let textLength = context.measureText(lines[l]).width;
-            context.fillText(lines[l], 500 - textLength * 0.5, 120 * (l + 1));
+            context.fillText(lines[l], 500 - textLength * 0.5, lineHeight * (l + 1));
         }
 
         this.dynamicTexture.update();

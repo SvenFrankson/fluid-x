@@ -1219,7 +1219,7 @@ body:not(.touchscreen) .line.hovered {
 #tuto-page .tutorial-text {
     position: absolute;
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 100;
     width: 90%;
     left: 5%;

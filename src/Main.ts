@@ -16,7 +16,7 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK: any;
-var LOCALE = "fr";
+var LOCALE = "de";
 
 var PokiSDKPlaying: boolean = false;
 function PokiGameplayStart(): void {

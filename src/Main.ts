@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 1;
+var PATCH_VERSION: number = 2;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -1032,7 +1032,7 @@ class Game {
     public updatePlayCameraRadius(): void {
         let fov = this.getCameraHorizontalFOV();
         let rect = this.canvas.getBoundingClientRect();
-        let w = rect.width / (80 / Math.sqrt(window.devicePixelRatio));
+        let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         let f = Math.exp(this.playCameraRadiusFactor / 5);
         console.log(this.playCameraRadiusFactor);
         this.playCameraRadius = (0.5 * w) / Math.tan(fov / 2) * f;
@@ -1041,7 +1041,7 @@ class Game {
     public updateMenuCameraRadius(): void {
         let fov = this.getCameraHorizontalFOV();
         let rect = this.canvas.getBoundingClientRect();
-        let w = rect.width / (80 / Math.sqrt(window.devicePixelRatio));
+        let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         this.menuCamRadius = (0.5 * w) / Math.tan(fov / 2);
     }
 

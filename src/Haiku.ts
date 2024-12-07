@@ -45,7 +45,7 @@ class HaikuMaker {
             if (tile[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "Collect all Tiles",
+                    "",
                     tile[0]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -68,7 +68,7 @@ class HaikuMaker {
             if (buttonTile[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "Open / Close",
+                    "",
                     buttonTile[0]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -83,7 +83,7 @@ class HaikuMaker {
             if (doorTiles[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "Door",
+                    "",
                     doorTiles[0],
                     1
                 );
@@ -97,7 +97,7 @@ class HaikuMaker {
             if (switchTiles[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "   Drum",
+                    "",
                     switchTiles[0]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -105,7 +105,7 @@ class HaikuMaker {
             if (switchTiles[1]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "Drum   ",
+                    "",
                     switchTiles[1]
                 );
                 puzzle.tileHaikus.push(tileHaiku);
@@ -118,7 +118,7 @@ class HaikuMaker {
             if (switchTile[0]) {
                 let tileHaiku = new HaikuTile(
                     puzzle.game,
-                    "Color Switch           ",
+                    "",
                     switchTile[0]
                 );
                 puzzle.tileHaikus.push(tileHaiku);

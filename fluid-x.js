@@ -3650,7 +3650,7 @@ class HaikuMaker {
                 return (t1.i + t1.j) - (t2.i + t2.j);
             });
             if (tile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Collect all Tiles", tile[0]);
+                let tileHaiku = new HaikuTile(puzzle.game, "", tile[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
             for (let i = 1; i < tile.length; i++) {
@@ -3665,7 +3665,7 @@ class HaikuMaker {
                 return tile instanceof ButtonTile;
             });
             if (buttonTile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Open / Close", buttonTile[0]);
+                let tileHaiku = new HaikuTile(puzzle.game, "", buttonTile[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
             let doorTiles = puzzle.tiles.filter((tile) => {
@@ -3675,7 +3675,7 @@ class HaikuMaker {
                 return (t1.i + t1.j) - (t2.i + t2.j);
             });
             if (doorTiles[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Door", doorTiles[0], 1);
+                let tileHaiku = new HaikuTile(puzzle.game, "", doorTiles[0], 1);
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
@@ -3684,11 +3684,11 @@ class HaikuMaker {
                 return tile instanceof SwitchTile;
             });
             if (switchTiles[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "   Drum", switchTiles[0]);
+                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
             if (switchTiles[1]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Drum   ", switchTiles[1]);
+                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[1]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
@@ -3697,7 +3697,7 @@ class HaikuMaker {
                 return tile instanceof SwitchTile && tile.color === 3;
             });
             if (switchTile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "Color Switch           ", switchTile[0]);
+                let tileHaiku = new HaikuTile(puzzle.game, "", switchTile[0]);
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
@@ -4825,7 +4825,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 1;
 var MINOR_VERSION = 1;
-var PATCH_VERSION = 1;
+var PATCH_VERSION = 2;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5723,7 +5723,7 @@ class Game {
     updatePlayCameraRadius() {
         let fov = this.getCameraHorizontalFOV();
         let rect = this.canvas.getBoundingClientRect();
-        let w = rect.width / (80 / Math.sqrt(window.devicePixelRatio));
+        let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         let f = Math.exp(this.playCameraRadiusFactor / 5);
         console.log(this.playCameraRadiusFactor);
         this.playCameraRadius = (0.5 * w) / Math.tan(fov / 2) * f;
@@ -5731,7 +5731,7 @@ class Game {
     updateMenuCameraRadius() {
         let fov = this.getCameraHorizontalFOV();
         let rect = this.canvas.getBoundingClientRect();
-        let w = rect.width / (80 / Math.sqrt(window.devicePixelRatio));
+        let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         this.menuCamRadius = (0.5 * w) / Math.tan(fov / 2);
     }
     update() {
@@ -6449,21 +6449,23 @@ class PerformanceWatcher {
                     this.game.canvas.setAttribute("height", Math.floor(rect.height * this.devicePixelRatio).toFixed(0));
                 });
                 this.resizeCD = this.resizeCDMax;
-                if (this.resizeCDMax < 60) {
+                if (this.resizeCDMax < 15) {
                     this.resizeCDMax += 1;
                 }
             }
         }
     }
     update(rawDt) {
-        this.resizeCD = Math.max(0, this.resizeCD - rawDt);
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
-            this.average = 0.99 * this.average + 0.01 * fps;
-            if (this.resizeCD <= 0) {
-                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
-                devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
-                this.setDevicePixelRationess(devicePixelRationess);
+            this.average = 0.95 * this.average + 0.05 * fps;
+            if (window.devicePixelRatio > 1) {
+                this.resizeCD = Math.max(0, this.resizeCD - rawDt);
+                if (this.resizeCD <= 0) {
+                    let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
+                    devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
+                    this.setDevicePixelRationess(devicePixelRationess);
+                }
             }
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
@@ -8803,20 +8805,13 @@ class Puzzle {
     get floorMaterial() {
         let index = this.floorMaterialIndex % this.game.materials.floorMaterials.length;
         return this.game.materials.floorMaterials[index];
-        return this.game.materials.woodFloorMaterial;
-        if (this.data.id != null && this.data.id % 3 === 1) {
-            return this.game.materials.floorMaterial2;
-        }
-        else if (this.data.id != null && this.data.id % 3 === 2) {
-            return this.game.materials.woodFloorMaterial;
-        }
-        else {
-            return this.game.materials.floorMaterial;
-        }
     }
     get haikuColor() {
         if (this.floorMaterialIndex === 6) {
-            return "#271a0fff";
+            return "#e3d8caff";
+        }
+        if (this.floorMaterialIndex === 5) {
+            return "#e3d8caff";
         }
         return "#e3cfb4ff";
     }

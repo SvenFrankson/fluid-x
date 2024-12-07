@@ -176,21 +176,14 @@ class Puzzle {
     public get floorMaterial(): BABYLON.StandardMaterial {
         let index = this.floorMaterialIndex % this.game.materials.floorMaterials.length;
         return this.game.materials.floorMaterials[index];
-        return this.game.materials.woodFloorMaterial;
-        if (this.data.id != null && this.data.id % 3 === 1) {
-            return this.game.materials.floorMaterial2;
-        }
-        else if (this.data.id != null && this.data.id % 3 === 2) {
-            return this.game.materials.woodFloorMaterial;
-        }
-        else {
-            return this.game.materials.floorMaterial;
-        }
     }
 
     public get haikuColor(): string {
         if (this.floorMaterialIndex === 6) {
-            return "#271a0fff";
+            return "#e3d8caff";
+        }
+        if (this.floorMaterialIndex === 5) {
+            return "#e3d8caff";
         }
         return "#e3cfb4ff";
     }

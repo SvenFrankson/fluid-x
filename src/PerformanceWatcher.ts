@@ -25,7 +25,7 @@ class PerformanceWatcher {
                     this.game.canvas.setAttribute("height", Math.floor(rect.height * this.devicePixelRatio).toFixed(0));
                 })
                 this.resizeCD = this.resizeCDMax;
-                if (this.resizeCDMax < 60) {
+                if (this.resizeCDMax < 15) {
                     this.resizeCDMax += 1;
                 }
             }
@@ -37,15 +37,17 @@ class PerformanceWatcher {
     }
 
     public update(rawDt: number): void {
-        this.resizeCD = Math.max(0, this.resizeCD - rawDt);
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
-            this.average = 0.99 * this.average + 0.01 * fps;
+            this.average = 0.95 * this.average + 0.05 * fps;
 
-            if (this.resizeCD <= 0) {
-                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
-                devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
-                this.setDevicePixelRationess(devicePixelRationess);
+            if (window.devicePixelRatio > 1) {
+                this.resizeCD = Math.max(0, this.resizeCD - rawDt);
+                if (this.resizeCD <= 0) {
+                    let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
+                    devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
+                    this.setDevicePixelRationess(devicePixelRationess);
+                }
             }
 
             this.worst = Math.min(fps, this.worst);

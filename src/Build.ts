@@ -46,13 +46,13 @@ abstract class Build extends BABYLON.Mesh {
         this.floor = new BABYLON.Mesh("building-floor");
         this.floor.parent = this;
 
-        this.floor.material = this.game.woodFloorMaterial;
+        this.floor.material = this.game.materials.woodFloorMaterial;
 
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.y = 0.005;
         this.shadow.parent = this;
 
-        this.shadow.material = this.game.shadow9Material;
+        this.shadow.material = this.game.materials.shadow9Material;
 
         let index = this.game.puzzle.buildings.indexOf(this);
         if (index === -1) {
@@ -98,7 +98,7 @@ class Ramp extends Build {
     
     constructor(game: Game, props: BuildProps) {
         super(game, props);
-        this.material = this.game.brickWallMaterial;
+        this.material = this.game.materials.brickWallMaterial;
 
         if (props.size) {
             this.w = props.size;
@@ -107,7 +107,7 @@ class Ramp extends Build {
         this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
         this.builtInBorderLeft.position.x = -0.55;
         this.builtInBorderLeft.parent = this;
-        this.builtInBorderLeft.material = this.game.borderMaterial;
+        this.builtInBorderLeft.material = this.game.materials.borderMaterial;
 
         this.builtInBorderLeft.renderOutline = true;
         this.builtInBorderLeft.outlineColor = BABYLON.Color3.Black();
@@ -116,7 +116,7 @@ class Ramp extends Build {
         this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
         this.builtInBorderRight.position.x = (this.w - 0.5) * 1.1;
         this.builtInBorderRight.parent = this;
-        this.builtInBorderRight.material = this.game.borderMaterial;
+        this.builtInBorderRight.material = this.game.materials.borderMaterial;
 
         this.builtInBorderRight.renderOutline = true;
         this.builtInBorderRight.outlineColor = BABYLON.Color3.Black();
@@ -396,12 +396,12 @@ class Bridge extends Build {
     constructor(game: Game, props: BuildProps) {
         super(game, props);
         
-        this.material = this.game.brickWallMaterial;
+        this.material = this.game.materials.brickWallMaterial;
 
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
     
-        this.builtInBorder.material = this.game.blackMaterial;
+        this.builtInBorder.material = this.game.materials.blackMaterial;
     }
 
     public fillHeightmap() {

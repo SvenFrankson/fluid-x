@@ -62,7 +62,7 @@ class Creep extends BABYLON.Mesh {
         
         this.shell = new BABYLON.Mesh("shell");
         this.shell.parent = this;
-        this.shell.material = this.game.whiteMaterial;
+        this.shell.material = this.game.materials.whiteMaterial;
 
         this.shell.renderOutline = true;
         this.shell.outlineColor = BABYLON.Color3.Black();
@@ -70,7 +70,7 @@ class Creep extends BABYLON.Mesh {
         
         this.shellColored = new BABYLON.Mesh("shell-colored");
         this.shellColored.parent = this.shell;
-        this.shellColored.material = this.game.redMaterial;
+        this.shellColored.material = this.game.materials.redMaterial;
 
         this.shellColored.renderOutline = true;
         this.shellColored.outlineColor = BABYLON.Color3.Black();
@@ -78,7 +78,7 @@ class Creep extends BABYLON.Mesh {
         
         this.spikes = new BABYLON.Mesh("spikes");
         this.spikes.parent = this.shell;
-        this.spikes.material = this.game.trueWhiteMaterial;
+        this.spikes.material = this.game.materials.trueWhiteMaterial;
 
         this.spikes.renderOutline = true;
         this.spikes.outlineColor = BABYLON.Color3.Black();
@@ -87,7 +87,7 @@ class Creep extends BABYLON.Mesh {
         this.slash = new BABYLON.Mesh("slash");
         this.slash.parent = this.shell;
         this.slash.position.y = 0.1;
-        this.slash.material = this.game.creepSlashMaterial;
+        this.slash.material = this.game.materials.creepSlashMaterial;
         this.slashSize = 0.1;
 
         this.shadow = new BABYLON.Mesh("shadow");
@@ -96,7 +96,7 @@ class Creep extends BABYLON.Mesh {
         this.shadow.position.z = 0;
         this.shadow.parent = this;
 
-        this.shadow.material = this.game.shadowDiscMaterial;
+        this.shadow.material = this.game.materials.shadowDiscMaterial;
 
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }

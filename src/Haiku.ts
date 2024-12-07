@@ -173,7 +173,7 @@ class Haiku extends BABYLON.Mesh {
         context.clearRect(0, 0, 1000, 1000);
 
         context.fillStyle = "#473a2fFF";
-        context.fillStyle = "#e3cfb4ff";
+        context.fillStyle = this.game.puzzle.haikuColor;
         context.font = "90px Julee";
         let lineHeight = 120;
         if (LOCALE === "de") {

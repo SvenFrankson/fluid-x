@@ -8,7 +8,7 @@ class FishingPole {
 
     constructor(public puzzle: Puzzle) {
         this.lineMesh = new BABYLON.Mesh("tentacle");
-        this.lineMesh.material = this.puzzle.game.trueWhiteMaterial;
+        this.lineMesh.material = this.puzzle.game.materials.trueWhiteMaterial;
 
         let magnet = CreateBoxFrameVertexData({
             w: 0.2,
@@ -21,10 +21,10 @@ class FishingPole {
             topCap: true,
             flatShading: true
         });
-        Mummu.ColorizeVertexDataInPlace(magnet, this.puzzle.game.blackMaterial.diffuseColor);
+        Mummu.ColorizeVertexDataInPlace(magnet, this.puzzle.game.materials.blackMaterial.diffuseColor);
         
         let line = BABYLON.CreateCylinderVertexData({ diameter: 0.05, height: 100, tessellation: 12, cap: BABYLON.Mesh.NO_CAP });
-        Mummu.ColorizeVertexDataInPlace(line, this.puzzle.game.brownMaterial.diffuseColor.scale(1.5));
+        Mummu.ColorizeVertexDataInPlace(line, this.puzzle.game.materials.brownMaterial.diffuseColor.scale(1.5));
         Mummu.TranslateVertexDataInPlace(line, new BABYLON.Vector3(0, 50.2, 0));
         
         let data = Mummu.MergeVertexDatas(magnet, line);

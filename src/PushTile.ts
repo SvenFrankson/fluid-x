@@ -20,7 +20,7 @@ class PushTile extends Tile {
         this.animateRotZ = Mummu.AnimationFactory.CreateNumber(this, this.rotation, "z");
         this.animateWait = Mummu.AnimationFactory.CreateWait(this);
 
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -29,7 +29,7 @@ class PushTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
 
-        this.tileTop.material = this.game.pushTileTopMaterial;
+        this.tileTop.material = this.game.materials.pushTileTopMaterial;
 
         this.pushSound = this.game.soundManager.createSound("push-wood-drag", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
         this.fallImpactSound = this.game.soundManager.createSound("push-tile-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });

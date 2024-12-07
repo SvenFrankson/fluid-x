@@ -109,7 +109,7 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
     })
     let lines2 = lines3.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; })});
 
-    let ballLine = puzzle.w.toFixed(0) + "u" + puzzle.h.toFixed(0) + "u";
+    let ballLine = puzzle.w.toFixed(0) + "u" + puzzle.h.toFixed(0) + "u" + puzzle.floorMaterialIndex.toFixed(0) + "u";
     for (let i = 0; i < puzzle.ballsCount; i++) {
         ballLine += puzzle.balls[i].i.toFixed(0) + "u" + puzzle.balls[i].j.toFixed(0) + "u" + puzzle.balls[i].color.toFixed(0);
         if (i < puzzle.ballsCount - 1) {

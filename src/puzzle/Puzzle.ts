@@ -174,13 +174,25 @@ class Puzzle {
     public fpsTexture: BABYLON.DynamicTexture;
 
     public get floorMaterial(): BABYLON.StandardMaterial {
-        return this.game.floorMaterial;
-        if (this.data.id != null && this.data.id % 2 === 1) {
-            return this.game.floorMaterial2;
+        let index = this.floorMaterialIndex % this.game.materials.floorMaterials.length;
+        return this.game.materials.floorMaterials[index];
+        return this.game.materials.woodFloorMaterial;
+        if (this.data.id != null && this.data.id % 3 === 1) {
+            return this.game.materials.floorMaterial2;
+        }
+        else if (this.data.id != null && this.data.id % 3 === 2) {
+            return this.game.materials.woodFloorMaterial;
         }
         else {
-            return this.game.floorMaterial;
+            return this.game.materials.floorMaterial;
         }
+    }
+
+    public get haikuColor(): string {
+        if (this.floorMaterialIndex === 6) {
+            return "#271a0fff";
+        }
+        return "#e3cfb4ff";
     }
 
     public clicSound: MySound;
@@ -243,6 +255,7 @@ class Puzzle {
     public haiku: Haiku;
     public tileHaikus: HaikuTile[] = [];
     public playerHaikus: HaikuPlayerStart[] = [];
+    public floorMaterialIndex: number = 0;
 
     constructor(public game: Game) {
         this.balls = [
@@ -252,7 +265,7 @@ class Puzzle {
         this.fishingPole = new FishingPole(this);
 
         this.floor = new BABYLON.Mesh("floor");
-        this.floor.material = this.game.floorMaterial;
+        this.floor.material = this.game.materials.floorMaterial;
 
         this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 } );
         this.invisiFloorTM.position.x = 5 - 0.55;
@@ -261,24 +274,24 @@ class Puzzle {
         this.invisiFloorTM.isVisible = false;
 
         this.holeWall = new BABYLON.Mesh("hole-wall");
-        this.holeWall.material = this.game.holeMaterial;
+        this.holeWall.material = this.game.materials.holeMaterial;
 
         this.buildingsContainer = new BABYLON.Mesh("boxes-container");
 
         this.boxesWall = new BABYLON.Mesh("building-wall");
-        this.boxesWall.material = this.game.wallMaterial;
+        this.boxesWall.material = this.game.materials.wallMaterial;
         this.boxesWall.parent = this.buildingsContainer;
 
         this.boxesWood = new BABYLON.Mesh("building-wood");
-        this.boxesWood.material = this.game.brownMaterial;
+        this.boxesWood.material = this.game.materials.brownMaterial;
         this.boxesWood.parent = this.buildingsContainer;
 
         this.boxesFloor = new BABYLON.Mesh("building-floor");
-        this.boxesFloor.material = this.game.woodFloorMaterial;
+        this.boxesFloor.material = this.game.materials.woodFloorMaterial;
         this.boxesFloor.parent = this.buildingsContainer;
 
         this.bordersMesh = new BABYLON.Mesh("borders-mesh");
-        this.bordersMesh.material = this.game.borderMaterial;
+        this.bordersMesh.material = this.game.materials.borderMaterial;
         this.bordersMesh.parent = this.buildingsContainer;
         this.bordersMesh.renderOutline = true;
         this.bordersMesh.outlineColor = BABYLON.Color3.Black();
@@ -319,7 +332,7 @@ class Puzzle {
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";
-        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+        if (!this.editorOrEditorPreview && this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
             this.game.router.tutoPage.show(1);
         }
         else {
@@ -504,10 +517,17 @@ class Puzzle {
         let lines = content.split("x");
 
         let ballLine = lines.splice(0, 1)[0].split("u");
-        this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
+        this.ballsCount = 1;
+        if (ballLine.length === 8 || ballLine.length === 9) {
+            this.ballsCount = 2;
+        }
+        
         let bIndexZero = 0;
         if (ballLine.length === 5 || ballLine.length === 8) {
             bIndexZero = 2;
+        }
+        else if (ballLine.length === 6 || ballLine.length === 9) {
+            bIndexZero = 3;
         }
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
             this.balls[bIndex].reset();
@@ -530,11 +550,11 @@ class Puzzle {
         }
 
         if (this.ballsCount === 1) {
-            this.balls[0].material = this.game.brownMaterial;
+            this.balls[0].material = this.game.materials.brownMaterial;
         }
         else if (this.ballsCount === 2) {
-            this.balls[0].material = this.game.whiteMaterial;
-            this.balls[1].material = this.game.blackMaterial;
+            this.balls[0].material = this.game.materials.whiteMaterial;
+            this.balls[1].material = this.game.materials.blackMaterial;
 
             this.playerHaikus[0] = new HaikuPlayerStart(this.game, this.game.player1Name.toLocaleUpperCase(), this.balls[0]);
             this.playerHaikus[1] = new HaikuPlayerStart(this.game, this.game.player2Name.toLocaleUpperCase(), this.balls[1]);
@@ -560,6 +580,13 @@ class Puzzle {
         else {
             this.h = lines.length;
             this.w = lines[0].length;
+        }
+
+        if (ballLine.length === 6 || ballLine.length === 9) {
+            this.floorMaterialIndex = parseInt(ballLine[2]);
+        }
+        else {
+            this.floorMaterialIndex = 0;
         }
 
         if (!replaying) {
@@ -1223,7 +1250,7 @@ class Puzzle {
         Mummu.TranslateVertexDataInPlace(puzzleFrame, new BABYLON.Vector3(0, -5.5, 0));
 
         this.border.position.copyFromFloats((this.xMax + this.xMin) * 0.5, 0, (this.zMax + this.zMin) * 0.5)
-        this.border.material = this.game.blackMaterial;
+        this.border.material = this.game.materials.blackMaterial;
 
         Mummu.MergeVertexDatas(puzzleFrame).applyToMesh(this.border);
 
@@ -1271,7 +1298,7 @@ class Puzzle {
         this.winSlotsIndexes = [0, 0, 0, 0];
         for (let color = TileColor.North; color <= TileColor.West; color++) {
             this.winSlots[color] = new BABYLON.Mesh("winslots-south");
-            this.winSlots[color].material = this.game.blackMaterial;
+            this.winSlots[color].material = this.game.materials.blackMaterial;
             let count = slotCounts[color];
             if (count > 0) {
                 let datas: BABYLON.VertexData[] = [];

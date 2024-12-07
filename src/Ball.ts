@@ -56,7 +56,7 @@ class Ball extends BABYLON.Mesh {
     public set boost(v: boolean) {
         this._boost = v;
 
-        this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
+        this.shadow.material = this._boost ? this.game.materials.lightDiscMaterial : this.game.materials.shadowDiscMaterial;
 
         let inputBoost = document.querySelector("#input-boost") as HTMLButtonElement;
         if (inputBoost) {
@@ -94,13 +94,13 @@ class Ball extends BABYLON.Mesh {
     public setColor(color: TileColor) {
         this.color = color;
         if (this.ballTop) {
-            this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
+            this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         }
         if (this.leftTop) {
-            this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+            this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         }
         if (this.rightTop) {
-            this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+            this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         }
     }
 
@@ -144,13 +144,13 @@ class Ball extends BABYLON.Mesh {
         this.ballTop.position.y = 0.3;
         this.ballTop.parent = this;
 
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02 / (this.radius * 2);
 
-        this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
 
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = 0;
@@ -158,25 +158,25 @@ class Ball extends BABYLON.Mesh {
         this.shadow.position.z = 0;
         this.shadow.parent = this;
 
-        this.shadow.material = this.game.shadowDiscMaterial;
+        this.shadow.material = this.game.materials.shadowDiscMaterial;
         
         this.leftArrow = new BABYLON.Mesh("left-arrow");
         this.leftArrow.position.y = 0.1;
         this.leftArrow.rotation.y = Math.PI;
-        this.leftArrow.material = this.game.puckSideMaterial;
+        this.leftArrow.material = this.game.materials.puckSideMaterial;
         this.leftArrowSize = 0.5;
 
         this.rightArrow = new BABYLON.Mesh("right-arrow");
         this.rightArrow.position.y = 0.1;
-        this.rightArrow.material = this.game.puckSideMaterial;
+        this.rightArrow.material = this.game.materials.puckSideMaterial;
         this.rightArrowSize = 0.5;
 
         this.trailMesh = new BABYLON.Mesh("trailMesh");
-        this.trailMesh.material = this.game.whiteMaterial;
+        this.trailMesh.material = this.game.materials.whiteMaterial;
         
         this.leftBox = new BABYLON.Mesh("left-box");
         this.leftBox.parent = this;
-        this.leftBox.material = this.game.brownMaterial;
+        this.leftBox.material = this.game.materials.brownMaterial;
         this.leftBox.isVisible = false;
 
         this.leftBox.renderOutline = true;
@@ -186,12 +186,12 @@ class Ball extends BABYLON.Mesh {
         this.leftTop = new BABYLON.Mesh("left-top");
         this.leftTop.parent = this.leftBox;
         this.leftTop.position.y = 0.3;
-        this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         this.leftTop.isVisible = false;
         
         this.rightBox = new BABYLON.Mesh("right-box");
         this.rightBox.parent = this;
-        this.rightBox.material = this.game.brownMaterial;
+        this.rightBox.material = this.game.materials.brownMaterial;
         this.rightBox.isVisible = false;
 
         this.rightBox.renderOutline = true;
@@ -201,7 +201,7 @@ class Ball extends BABYLON.Mesh {
         this.rightTop = new BABYLON.Mesh("right-top");
         this.rightTop.parent = this.rightBox;
         this.rightTop.position.y = 0.3;
-        this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         this.rightTop.isVisible = false;
 
         this.woodChocSound = this.game.soundManager.createSound("ball-wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);

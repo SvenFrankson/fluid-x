@@ -25,7 +25,7 @@ class WaterTile extends Tile {
         super(game, props);
         this.color = props.color;
 
-        this.material = this.game.blackMaterial;
+        this.material = this.game.materials.blackMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -33,11 +33,11 @@ class WaterTile extends Tile {
 
         this.shoreMesh = new BABYLON.Mesh("shore");
         this.shoreMesh.parent = this;
-        this.shoreMesh.material = this.game.whiteMaterial;
+        this.shoreMesh.material = this.game.materials.whiteMaterial;
 
         this.waterMesh = new BABYLON.Mesh("water");
         this.waterMesh.parent = this;
-        this.waterMesh.material = this.game.waterMaterial;
+        this.waterMesh.material = this.game.materials.waterMaterial;
 
         this.floorMesh = new BABYLON.Mesh("floor");
         this.floorMesh.parent = this;
@@ -219,7 +219,7 @@ class WaterTile extends Tile {
                 if (!this.sculptMesh) {
                     this.sculptMesh = new BABYLON.Mesh("sculpt");
                     this.sculptMesh.parent = this;
-                    this.sculptMesh.material = this.game.grayMaterial;
+                    this.sculptMesh.material = this.game.materials.grayMaterial;
 
                     this.sculptMesh.renderOutline = true;
                     this.sculptMesh.outlineColor = BABYLON.Color3.Black();
@@ -305,7 +305,7 @@ class WaterTile extends Tile {
                 if (!this.sculptMesh) {
                     this.sculptMesh = new BABYLON.Mesh("sculpt");
                     this.sculptMesh.parent = this;
-                    this.sculptMesh.material = this.game.grayMaterial;
+                    this.sculptMesh.material = this.game.materials.grayMaterial;
 
                     this.sculptMesh.renderOutline = true;
                     this.sculptMesh.outlineColor = BABYLON.Color3.Black();

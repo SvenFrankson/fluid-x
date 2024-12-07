@@ -51,6 +51,7 @@ class Editor {
     public heightInput: NumValueInput;
     public heightInsert: HTMLButtonElement;
     public heightDelete: HTMLButtonElement;
+    public floorMaterialInput: NumValueInput;
 
     public switchTileNorthButton: HTMLButtonElement;
     public switchTileEastButton: HTMLButtonElement;
@@ -154,6 +155,7 @@ class Editor {
         }
         this.widthInput.setValue(this.puzzle.w);
         this.heightInput.setValue(this.puzzle.h);
+        this.floorMaterialInput.setValue(this.puzzle.floorMaterialIndex);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
         if (this.puzzle.haiku) {
@@ -239,6 +241,12 @@ class Editor {
         this.widthInput.onValueChange = (v: number) => {
             this.dropClear();
             this.puzzle.w = Math.max(v, 3);
+            this.puzzle.rebuildFloor();
+        }
+
+        this.floorMaterialInput = document.getElementById("editor-floor-material-index") as NumValueInput;
+        this.floorMaterialInput.onValueChange = (v: number) => {
+            this.puzzle.floorMaterialIndex = (v + this.game.materials.floorMaterials.length) % this.game.materials.floorMaterials.length;
             this.puzzle.rebuildFloor();
         }
 

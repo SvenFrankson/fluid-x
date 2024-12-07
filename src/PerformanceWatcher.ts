@@ -5,16 +5,18 @@ class PerformanceWatcher {
     public worst: number = 24;
 
     public isWorstTooLow: boolean = false;
-    public devicePixelRationess: number = 5;
+    public devicePixelRationess: number = 0;
+    public devicePixelRatioSteps: number = 10;
     public get devicePixelRatio(): number {
-        let f = this.devicePixelRationess / 10;
+        let f = this.devicePixelRationess / this.devicePixelRatioSteps;
         return window.devicePixelRatio * f + (1 - f);
     }
 
     public resizeCD = 0;
+    public resizeCDMax = 1;
     public setDevicePixelRationess(v: number): void {
         if (isFinite(v)) {
-            v = Nabu.MinMax(v, 0, 10);
+            v = Nabu.MinMax(v, 0, this.devicePixelRatioSteps);
             if (this.devicePixelRationess != v) {
                 this.devicePixelRationess = v;
                 let rect = this.game.canvas.getBoundingClientRect();
@@ -22,7 +24,10 @@ class PerformanceWatcher {
                     this.game.canvas.setAttribute("width", Math.floor(rect.width * this.devicePixelRatio).toFixed(0));
                     this.game.canvas.setAttribute("height", Math.floor(rect.height * this.devicePixelRatio).toFixed(0));
                 })
-                this.resizeCD = 1;
+                this.resizeCD = this.resizeCDMax;
+                if (this.resizeCDMax < 60) {
+                    this.resizeCDMax += 1;
+                }
             }
         }
     }
@@ -38,7 +43,7 @@ class PerformanceWatcher {
             this.average = 0.99 * this.average + 0.01 * fps;
 
             if (this.resizeCD <= 0) {
-                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * 10);
+                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
                 devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
                 this.setDevicePixelRationess(devicePixelRationess);
             }

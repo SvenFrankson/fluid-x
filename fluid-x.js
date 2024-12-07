@@ -71,31 +71,31 @@ class Ball extends BABYLON.Mesh {
         this.ballTop = new BABYLON.Mesh("ball-top");
         this.ballTop.position.y = 0.3;
         this.ballTop.parent = this;
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02 / (this.radius * 2);
-        this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = 0;
         this.shadow.position.y = 0.05;
         this.shadow.position.z = 0;
         this.shadow.parent = this;
-        this.shadow.material = this.game.shadowDiscMaterial;
+        this.shadow.material = this.game.materials.shadowDiscMaterial;
         this.leftArrow = new BABYLON.Mesh("left-arrow");
         this.leftArrow.position.y = 0.1;
         this.leftArrow.rotation.y = Math.PI;
-        this.leftArrow.material = this.game.puckSideMaterial;
+        this.leftArrow.material = this.game.materials.puckSideMaterial;
         this.leftArrowSize = 0.5;
         this.rightArrow = new BABYLON.Mesh("right-arrow");
         this.rightArrow.position.y = 0.1;
-        this.rightArrow.material = this.game.puckSideMaterial;
+        this.rightArrow.material = this.game.materials.puckSideMaterial;
         this.rightArrowSize = 0.5;
         this.trailMesh = new BABYLON.Mesh("trailMesh");
-        this.trailMesh.material = this.game.whiteMaterial;
+        this.trailMesh.material = this.game.materials.whiteMaterial;
         this.leftBox = new BABYLON.Mesh("left-box");
         this.leftBox.parent = this;
-        this.leftBox.material = this.game.brownMaterial;
+        this.leftBox.material = this.game.materials.brownMaterial;
         this.leftBox.isVisible = false;
         this.leftBox.renderOutline = true;
         this.leftBox.outlineColor = BABYLON.Color3.Black();
@@ -103,11 +103,11 @@ class Ball extends BABYLON.Mesh {
         this.leftTop = new BABYLON.Mesh("left-top");
         this.leftTop.parent = this.leftBox;
         this.leftTop.position.y = 0.3;
-        this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         this.leftTop.isVisible = false;
         this.rightBox = new BABYLON.Mesh("right-box");
         this.rightBox.parent = this;
-        this.rightBox.material = this.game.brownMaterial;
+        this.rightBox.material = this.game.materials.brownMaterial;
         this.rightBox.isVisible = false;
         this.rightBox.renderOutline = true;
         this.rightBox.outlineColor = BABYLON.Color3.Black();
@@ -115,7 +115,7 @@ class Ball extends BABYLON.Mesh {
         this.rightTop = new BABYLON.Mesh("right-top");
         this.rightTop.parent = this.rightBox;
         this.rightTop.position.y = 0.3;
-        this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+        this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         this.rightTop.isVisible = false;
         this.woodChocSound = this.game.soundManager.createSound("ball-wood-choc", "./datas/sounds/wood-wood-choc.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
         this.woodChocSound2 = this.game.soundManager.createSound("ball-wood-choc-2", "./datas/sounds/wood-wood-choc-2.wav", undefined, undefined, { autoplay: false, loop: false }, 2);
@@ -315,7 +315,7 @@ class Ball extends BABYLON.Mesh {
     }
     set boost(v) {
         this._boost = v;
-        this.shadow.material = this._boost ? this.game.lightDiscMaterial : this.game.shadowDiscMaterial;
+        this.shadow.material = this._boost ? this.game.materials.lightDiscMaterial : this.game.materials.shadowDiscMaterial;
         let inputBoost = document.querySelector("#input-boost");
         if (inputBoost) {
             if (this._boost) {
@@ -336,13 +336,13 @@ class Ball extends BABYLON.Mesh {
     setColor(color) {
         this.color = color;
         if (this.ballTop) {
-            this.ballTop.material = this.game.tileColorShinyMaterials[this.color];
+            this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         }
         if (this.leftTop) {
-            this.leftTop.material = this.game.tileColorShinyMaterials[this.color];
+            this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         }
         if (this.rightTop) {
-            this.rightTop.material = this.game.tileColorShinyMaterials[this.color];
+            this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
         }
     }
     get i() {
@@ -1041,7 +1041,7 @@ class Tile extends BABYLON.Mesh {
             this.shadow.position.y = 0.01;
             this.shadow.position.z = -0.015;
             this.shadow.parent = this;
-            this.shadow.material = this.game.shadow9Material;
+            this.shadow.material = this.game.materials.shadow9Material;
         }
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }
@@ -1171,14 +1171,14 @@ class Tile extends BABYLON.Mesh {
         let starTop = BABYLON.CreateGround("startop", { width: 0.9, height: 0.9 });
         starTop.position.y = 0.3;
         starTop.parent = star;
-        starTop.material = this.game.tileColorMaterials[this.color];
+        starTop.material = this.game.materials.tileColorMaterials[this.color];
         star.scaling.copyFromFloats(0.4, 0.4, 0.4);
         let tail;
         let tailPoints;
         if (this.game.performanceWatcher.worst > 24) {
             tail = new BABYLON.Mesh("tail");
             tail.visibility = 1;
-            tail.material = this.game.tileStarTailMaterial;
+            tail.material = this.game.materials.tileStarTailMaterial;
             tailPoints = [];
         }
         this.game.puzzle.wooshSound.play();
@@ -1252,7 +1252,7 @@ class Tile extends BABYLON.Mesh {
                         height: 1.2,
                         margin: 0.1
                     });
-                    flash.material = this.game.whiteShadow9Material;
+                    flash.material = this.game.materials.whiteShadow9Material;
                     flash.parent = star;
                     flash.position.y = 0.29;
                     flash.rotation.x = Math.PI * 0.5;
@@ -1271,10 +1271,10 @@ class BlockTile extends Tile {
     constructor(game, props) {
         super(game, props);
         this.color = props.color;
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.tileColorMaterials[this.color];
+        this.tileTop.material = this.game.materials.tileColorMaterials[this.color];
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
@@ -1471,11 +1471,11 @@ class Build extends BABYLON.Mesh {
         this.parent = this.game.puzzle.buildingsContainer;
         this.floor = new BABYLON.Mesh("building-floor");
         this.floor.parent = this;
-        this.floor.material = this.game.woodFloorMaterial;
+        this.floor.material = this.game.materials.woodFloorMaterial;
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.y = 0.005;
         this.shadow.parent = this;
-        this.shadow.material = this.game.shadow9Material;
+        this.shadow.material = this.game.materials.shadow9Material;
         let index = this.game.puzzle.buildings.indexOf(this);
         if (index === -1) {
             this.game.puzzle.buildings.push(this);
@@ -1524,21 +1524,21 @@ class Ramp extends Build {
     constructor(game, props) {
         super(game, props);
         this.w = 2;
-        this.material = this.game.brickWallMaterial;
+        this.material = this.game.materials.brickWallMaterial;
         if (props.size) {
             this.w = props.size;
         }
         this.builtInBorderLeft = new BABYLON.Mesh("ramp-border");
         this.builtInBorderLeft.position.x = -0.55;
         this.builtInBorderLeft.parent = this;
-        this.builtInBorderLeft.material = this.game.borderMaterial;
+        this.builtInBorderLeft.material = this.game.materials.borderMaterial;
         this.builtInBorderLeft.renderOutline = true;
         this.builtInBorderLeft.outlineColor = BABYLON.Color3.Black();
         this.builtInBorderLeft.outlineWidth = 0.01;
         this.builtInBorderRight = new BABYLON.Mesh("ramp-border");
         this.builtInBorderRight.position.x = (this.w - 0.5) * 1.1;
         this.builtInBorderRight.parent = this;
-        this.builtInBorderRight.material = this.game.borderMaterial;
+        this.builtInBorderRight.material = this.game.materials.borderMaterial;
         this.builtInBorderRight.renderOutline = true;
         this.builtInBorderRight.outlineColor = BABYLON.Color3.Black();
         this.builtInBorderRight.outlineWidth = 0.01;
@@ -1782,10 +1782,10 @@ class BuildingBlock {
 class Bridge extends Build {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.brickWallMaterial;
+        this.material = this.game.materials.brickWallMaterial;
         this.builtInBorder = new BABYLON.Mesh("ramp-border");
         this.builtInBorder.parent = this;
-        this.builtInBorder.material = this.game.blackMaterial;
+        this.builtInBorder.material = this.game.materials.blackMaterial;
     }
     fillHeightmap() {
         for (let ii = 0; ii < 4; ii++) {
@@ -1860,6 +1860,279 @@ class Bridge extends Build {
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5 * 1.1, 0, 0.5 * 1.1));
         shadowData.applyToMesh(this.shadow);
+    }
+}
+class CarillionMaterials {
+    constructor(game) {
+        this.game = game;
+        let northMaterial = new BABYLON.StandardMaterial("north-material");
+        northMaterial.specularColor.copyFromFloats(0, 0, 0);
+        northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
+        northMaterial.freeze();
+        let eastMaterial = new BABYLON.StandardMaterial("east-material");
+        eastMaterial.specularColor.copyFromFloats(0, 0, 0);
+        eastMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
+        eastMaterial.freeze();
+        let southMaterial = new BABYLON.StandardMaterial("south-material");
+        southMaterial.specularColor.copyFromFloats(0, 0, 0);
+        southMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
+        southMaterial.freeze();
+        let westMaterial = new BABYLON.StandardMaterial("west-material");
+        westMaterial.specularColor.copyFromFloats(0, 0, 0);
+        westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
+        westMaterial.freeze();
+        this.waterMaterial = new BABYLON.StandardMaterial("floor-material");
+        this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
+        this.boostMaterial = new BABYLON.StandardMaterial("boost-material");
+        this.boostMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.boostMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.boostMaterial.freeze();
+        this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
+        this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_2.png");
+        this.floorMaterial.freeze();
+        this.floorMaterial2 = new BABYLON.StandardMaterial("floor-material");
+        this.floorMaterial2.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMaterial2.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMaterial2.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_3.png");
+        this.floorMaterial2.freeze();
+        this.floorGrass = new BABYLON.StandardMaterial("floor-material");
+        this.floorGrass.specularColor.copyFromFloats(0, 0, 0);
+        this.floorGrass.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorGrass.diffuseTexture = new BABYLON.Texture("./datas/textures/ground_008.png");
+        this.floorGrass.freeze();
+        this.floorStoneRect = new BABYLON.StandardMaterial("floor-material");
+        this.floorStoneRect.specularColor.copyFromFloats(0, 0, 0);
+        this.floorStoneRect.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorStoneRect.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_02.png");
+        this.floorStoneRect.freeze();
+        this.floorLogs = new BABYLON.StandardMaterial("floor-material");
+        this.floorLogs.specularColor.copyFromFloats(0, 0, 0);
+        this.floorLogs.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorLogs.diffuseTexture = new BABYLON.Texture("./datas/textures/logs.png");
+        this.floorLogs.freeze();
+        this.floorMossLogs = new BABYLON.StandardMaterial("floor-material");
+        this.floorMossLogs.specularColor.copyFromFloats(0, 0, 0);
+        this.floorMossLogs.diffuseColor.copyFromFloats(1, 1, 1);
+        this.floorMossLogs.diffuseTexture = new BABYLON.Texture("./datas/textures/logs_mossy.png");
+        this.floorMossLogs.freeze();
+        this.woodFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
+        this.woodFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.woodFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.woodFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wood-plank.png");
+        this.woodFloorMaterial.freeze();
+        this.roofMaterial = new BABYLON.StandardMaterial("roof-material");
+        this.roofMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.roofMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
+        this.roofMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
+        this.roofMaterial.diffuseTexture.uScale = 5;
+        this.roofMaterial.diffuseTexture.vScale = 5;
+        this.roofMaterial.freeze();
+        this.woodMaterial = new BABYLON.StandardMaterial("wood-material");
+        this.woodMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.woodMaterial.specularColor.copyFromFloats(0, 0, 0);
+        //this.woodMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/roof.png");
+        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).uScale = 10;
+        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).vScale = 10;
+        this.roofMaterial.freeze();
+        this.wallMaterial = new BABYLON.StandardMaterial("wall-material");
+        this.wallMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
+        this.wallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
+        this.wallMaterial.freeze();
+        this.brickWallMaterial = new BABYLON.StandardMaterial("wall-material");
+        this.brickWallMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.brickWallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_05.png");
+        this.brickWallMaterial.freeze();
+        this.holeMaterial = new BABYLON.StandardMaterial("roof-material");
+        this.holeMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.holeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_01.png");
+        this.holeMaterial.freeze();
+        this.shadow9Material = new BABYLON.StandardMaterial("shadow-material");
+        this.shadow9Material.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.shadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.shadow9Material.diffuseTexture.hasAlpha = true;
+        this.shadow9Material.useAlphaFromDiffuseTexture = true;
+        this.shadow9Material.alpha = 0.4;
+        this.shadow9Material.specularColor.copyFromFloats(0, 0, 0);
+        this.shadow9Material.freeze();
+        this.whiteShadow9Material = new BABYLON.StandardMaterial("white-shadow9-material");
+        this.whiteShadow9Material.diffuseColor.copyFromFloats(1, 1, 1);
+        this.whiteShadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
+        this.whiteShadow9Material.diffuseTexture.hasAlpha = true;
+        this.whiteShadow9Material.useAlphaFromDiffuseTexture = true;
+        this.whiteShadow9Material.alpha = 1;
+        this.whiteShadow9Material.specularColor.copyFromFloats(0, 0, 0);
+        this.whiteShadow9Material.freeze();
+        this.shadowDiscMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.shadowDiscMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
+        this.shadowDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
+        this.shadowDiscMaterial.diffuseTexture.hasAlpha = true;
+        this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
+        this.shadowDiscMaterial.alpha = 0.4;
+        this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.shadowDiscMaterial.freeze();
+        this.lightDiscMaterial = new BABYLON.StandardMaterial("light-disc-material");
+        this.lightDiscMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.lightDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
+        this.lightDiscMaterial.diffuseTexture.hasAlpha = true;
+        this.lightDiscMaterial.useAlphaFromDiffuseTexture = true;
+        this.lightDiscMaterial.alpha = 0.4;
+        this.lightDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.lightDiscMaterial.freeze();
+        this.puckSideMaterial = new BABYLON.StandardMaterial("shadow-material");
+        this.puckSideMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.puckSideMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/puck-side-arrow.png");
+        this.puckSideMaterial.diffuseTexture.hasAlpha = true;
+        this.puckSideMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        this.puckSideMaterial.useAlphaFromDiffuseTexture = true;
+        this.puckSideMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.puckSideMaterial.freeze();
+        this.creepSlashMaterial = new BABYLON.StandardMaterial("creep-slash-material");
+        this.creepSlashMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.creepSlashMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/creep-slash.png");
+        this.creepSlashMaterial.diffuseTexture.hasAlpha = true;
+        this.creepSlashMaterial.emissiveColor.copyFromFloats(1, 1, 1);
+        this.creepSlashMaterial.useAlphaFromDiffuseTexture = true;
+        this.creepSlashMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.creepSlashMaterial.freeze();
+        this.tileStarTailMaterial = new BABYLON.StandardMaterial("tail-material");
+        this.tileStarTailMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.tileStarTailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
+        this.tileStarTailMaterial.freeze();
+        this.pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
+        this.pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
+        this.pushTileTopMaterial.freeze();
+        this.tileColorMaterials = [];
+        this.tileColorMaterials[TileColor.North] = northMaterial;
+        this.tileColorMaterials[TileColor.South] = southMaterial;
+        this.tileColorMaterials[TileColor.East] = eastMaterial;
+        this.tileColorMaterials[TileColor.West] = westMaterial;
+        /*
+        let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
+        let northTexture = new Image(256, 256);
+        northTexture.src = "./datas/textures/red-north-wind.png";
+        northTexture.onload = () => {
+            let eastTexture = new Image(256, 256);
+            eastTexture.src = "./datas/textures/yellow-east-wind.png";
+            eastTexture.onload = () => {
+                let southTexture = new Image(256, 256);
+                southTexture.src = "./datas/textures/blue-south-wind.png";
+                southTexture.onload = () => {
+                    let greenTexture = new Image(256, 256);
+                    greenTexture.src = "./datas/textures/green-west-wind.png";
+                    greenTexture.onload = () => {
+                        let context = collectedTileTexture.getContext();
+                        context.drawImage(northTexture, 0, 0, 256, 256, 0, 0, 256, 256);
+                        context.drawImage(eastTexture, 0, 0, 256, 256, 256, 0, 256, 256);
+                        context.drawImage(southTexture, 0, 0, 256, 256, 0, 256, 256, 256);
+                        context.drawImage(greenTexture, 0, 0, 256, 256, 256, 256, 256, 256);
+                        collectedTileTexture.update();
+                    }
+                }
+            }
+        }
+        this.collectedTileMaterial = new BABYLON.StandardMaterial("collected-tile-material");
+        this.collectedTileMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.collectedTileMaterial.diffuseTexture = collectedTileTexture;
+        */
+        let oneMaterial = new BABYLON.StandardMaterial("one-material");
+        //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272838");
+        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272932").scale(0.8);
+        oneMaterial.specularColor.copyFromFloats(0, 0, 0);
+        oneMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-one.png");
+        oneMaterial.freeze();
+        let twoMaterial = new BABYLON.StandardMaterial("two-material");
+        //twoMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5D536B");
+        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#828489").scale(1.2);
+        twoMaterial.specularColor.copyFromFloats(0, 0, 0);
+        twoMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-two.png");
+        twoMaterial.freeze();
+        let threeMaterial = new BABYLON.StandardMaterial("three-material");
+        //threeMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
+        //threeMaterial.diffuseColor = BABYLON.Color3.FromHexString("#7D6B91");
+        //threeMaterial.diffuseColor = BABYLON.Color3.Lerp(oneMaterial.diffuseColor, twoMaterial.diffuseColor, 0.3);
+        threeMaterial.specularColor.copyFromFloats(0, 0, 0);
+        threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
+        threeMaterial.freeze();
+        this.tileNumberMaterials = [];
+        this.tileNumberMaterials[0] = oneMaterial;
+        this.tileNumberMaterials[1] = twoMaterial;
+        this.tileNumberMaterials[2] = threeMaterial;
+        this.tileColorShinyMaterials = [];
+        this.tileColorShinyMaterials[TileColor.North] = northMaterial.clone(northMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.East] = eastMaterial.clone(eastMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.South] = southMaterial.clone(southMaterial.name + "-shiny");
+        this.tileColorShinyMaterials[TileColor.West] = westMaterial.clone(westMaterial.name + "-shiny");
+        this.tileColorShinyMaterials.forEach(shinyMat => {
+            shinyMat.freeze();
+        });
+        this.trueWhiteMaterial = new BABYLON.StandardMaterial("true-white-material");
+        this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.trueWhiteMaterial.freeze();
+        this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
+        this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
+        this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.whiteMaterial.freeze();
+        this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
+        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d6265");
+        this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.grayMaterial.freeze();
+        this.blackMaterial = new BABYLON.StandardMaterial("black-material");
+        this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
+        this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.blackMaterial.freeze();
+        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
+        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
+        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.brownMaterial.freeze();
+        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
+        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
+        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.salmonMaterial.freeze();
+        this.blueMaterial = new BABYLON.StandardMaterial("blue-material");
+        this.blueMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
+        this.blueMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.blueMaterial.freeze();
+        this.redMaterial = new BABYLON.StandardMaterial("red-material");
+        this.redMaterial.diffuseColor = BABYLON.Color3.FromHexString("#b03a48");
+        this.redMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.redMaterial.freeze();
+        this.yellowMaterial = new BABYLON.StandardMaterial("yellow-material");
+        this.yellowMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e0c872");
+        this.yellowMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.yellowMaterial.freeze();
+        this.greenMaterial = new BABYLON.StandardMaterial("green-material");
+        this.greenMaterial.diffuseColor = BABYLON.Color3.FromHexString("#3e6958");
+        this.greenMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.greenMaterial.freeze();
+        this.colorMaterials = [
+            this.redMaterial,
+            this.yellowMaterial,
+            this.blueMaterial,
+            this.greenMaterial
+        ];
+        this.floorMaterials = [
+            this.floorMaterial,
+            this.floorMaterial2,
+            this.floorGrass,
+            this.floorStoneRect,
+            this.floorLogs,
+            this.floorMossLogs,
+            this.woodFloorMaterial,
+            this.brickWallMaterial,
+            this.holeMaterial
+        ];
+    }
+    get borderMaterial() {
+        return this.brownMaterial;
     }
 }
 class CarillonRouter extends Nabu.Router {
@@ -2202,33 +2475,33 @@ class Creep extends BABYLON.Mesh {
         puzzle.creeps.push(this);
         this.shell = new BABYLON.Mesh("shell");
         this.shell.parent = this;
-        this.shell.material = this.game.whiteMaterial;
+        this.shell.material = this.game.materials.whiteMaterial;
         this.shell.renderOutline = true;
         this.shell.outlineColor = BABYLON.Color3.Black();
         this.shell.outlineWidth = 0.02;
         this.shellColored = new BABYLON.Mesh("shell-colored");
         this.shellColored.parent = this.shell;
-        this.shellColored.material = this.game.redMaterial;
+        this.shellColored.material = this.game.materials.redMaterial;
         this.shellColored.renderOutline = true;
         this.shellColored.outlineColor = BABYLON.Color3.Black();
         this.shellColored.outlineWidth = 0.02;
         this.spikes = new BABYLON.Mesh("spikes");
         this.spikes.parent = this.shell;
-        this.spikes.material = this.game.trueWhiteMaterial;
+        this.spikes.material = this.game.materials.trueWhiteMaterial;
         this.spikes.renderOutline = true;
         this.spikes.outlineColor = BABYLON.Color3.Black();
         this.spikes.outlineWidth = 0.02;
         this.slash = new BABYLON.Mesh("slash");
         this.slash.parent = this.shell;
         this.slash.position.y = 0.1;
-        this.slash.material = this.game.creepSlashMaterial;
+        this.slash.material = this.game.materials.creepSlashMaterial;
         this.slashSize = 0.1;
         this.shadow = new BABYLON.Mesh("shadow");
         this.shadow.position.x = 0;
         this.shadow.position.y = 0.05;
         this.shadow.position.z = 0;
         this.shadow.parent = this;
-        this.shadow.material = this.game.shadowDiscMaterial;
+        this.shadow.material = this.game.materials.shadowDiscMaterial;
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
     }
     get i() {
@@ -2756,6 +3029,7 @@ class Editor {
         }
         this.widthInput.setValue(this.puzzle.w);
         this.heightInput.setValue(this.puzzle.h);
+        this.floorMaterialInput.setValue(this.puzzle.floorMaterialIndex);
         document.getElementById("p2-ball").style.display = this.puzzle.ballsCount === 2 ? "block" : "none";
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
         if (this.puzzle.haiku) {
@@ -2833,6 +3107,11 @@ class Editor {
         this.widthInput.onValueChange = (v) => {
             this.dropClear();
             this.puzzle.w = Math.max(v, 3);
+            this.puzzle.rebuildFloor();
+        };
+        this.floorMaterialInput = document.getElementById("editor-floor-material-index");
+        this.floorMaterialInput.onValueChange = (v) => {
+            this.puzzle.floorMaterialIndex = (v + this.game.materials.floorMaterials.length) % this.game.materials.floorMaterials.length;
             this.puzzle.rebuildFloor();
         };
         this.widthInsert = document.getElementById("editor-width-insert");
@@ -3455,7 +3734,7 @@ class Haiku extends BABYLON.Mesh {
         let context = this.dynamicTexture.getContext();
         context.clearRect(0, 0, 1000, 1000);
         context.fillStyle = "#473a2fFF";
-        context.fillStyle = "#e3cfb4ff";
+        context.fillStyle = this.game.puzzle.haikuColor;
         context.font = "90px Julee";
         let lineHeight = 120;
         if (LOCALE === "de") {
@@ -4773,7 +5052,8 @@ class Game {
         this.menuCamAlpha = -Math.PI * 0.75;
         this.menuCamBeta = Math.PI * 0.3;
         this.menuCamRadius = 15;
-        this.playCameraRange = 15;
+        //public playCameraRange: number = 15;
+        this.playCameraRadiusFactor = 0;
         this.playCameraRadius = 20;
         this.playCameraMinRadius = 5;
         this.playCameraMaxRadius = 50;
@@ -4835,9 +5115,6 @@ class Game {
     getScene() {
         return this.scene;
     }
-    get borderMaterial() {
-        return this.brownMaterial;
-    }
     get mode() {
         return this._mode;
     }
@@ -4874,11 +5151,9 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
-            this.playCameraRange = 10;
         }
         else {
             document.body.classList.remove("vertical");
-            this.playCameraRange = 10;
         }
         this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
         this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
@@ -4909,240 +5184,7 @@ class Game {
         await this.router.postInitialize();
         setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "router initialized");
         this.uiInputManager.initialize();
-        let northMaterial = new BABYLON.StandardMaterial("north-material");
-        northMaterial.specularColor.copyFromFloats(0, 0, 0);
-        northMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/red-north-wind.png");
-        northMaterial.freeze();
-        let eastMaterial = new BABYLON.StandardMaterial("east-material");
-        eastMaterial.specularColor.copyFromFloats(0, 0, 0);
-        eastMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/yellow-east-wind.png");
-        eastMaterial.freeze();
-        let southMaterial = new BABYLON.StandardMaterial("south-material");
-        southMaterial.specularColor.copyFromFloats(0, 0, 0);
-        southMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/blue-south-wind.png");
-        southMaterial.freeze();
-        let westMaterial = new BABYLON.StandardMaterial("west-material");
-        westMaterial.specularColor.copyFromFloats(0, 0, 0);
-        westMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/green-west-wind.png");
-        westMaterial.freeze();
-        this.waterMaterial = new BABYLON.StandardMaterial("floor-material");
-        this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
-        this.boostMaterial = new BABYLON.StandardMaterial("boost-material");
-        this.boostMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        this.boostMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.boostMaterial.freeze();
-        this.floorMaterial = new BABYLON.StandardMaterial("floor-material");
-        this.floorMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.floorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.floorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_2.png");
-        this.floorMaterial.freeze();
-        this.floorMaterial2 = new BABYLON.StandardMaterial("floor-material");
-        this.floorMaterial2.specularColor.copyFromFloats(0, 0, 0);
-        this.floorMaterial2.diffuseColor.copyFromFloats(1, 1, 1);
-        this.floorMaterial2.diffuseTexture = new BABYLON.Texture("./datas/textures/floor_3.png");
-        this.floorMaterial2.freeze();
-        this.woodFloorMaterial = new BABYLON.StandardMaterial("dark-floor-material");
-        this.woodFloorMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.woodFloorMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.woodFloorMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wood-plank.png");
-        this.woodFloorMaterial.freeze();
-        this.roofMaterial = new BABYLON.StandardMaterial("roof-material");
-        this.roofMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.roofMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
-        this.roofMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
-        this.roofMaterial.diffuseTexture.uScale = 5;
-        this.roofMaterial.diffuseTexture.vScale = 5;
-        this.roofMaterial.freeze();
-        this.woodMaterial = new BABYLON.StandardMaterial("wood-material");
-        this.woodMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        this.woodMaterial.specularColor.copyFromFloats(0, 0, 0);
-        //this.woodMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/roof.png");
-        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).uScale = 10;
-        //(this.woodMaterial.diffuseTexture as BABYLON.Texture).vScale = 10;
-        this.roofMaterial.freeze();
-        this.wallMaterial = new BABYLON.StandardMaterial("wall-material");
-        this.wallMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
-        this.wallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/wall.png");
-        this.wallMaterial.freeze();
-        this.brickWallMaterial = new BABYLON.StandardMaterial("wall-material");
-        this.brickWallMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.brickWallMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_05.png");
-        this.brickWallMaterial.freeze();
-        this.holeMaterial = new BABYLON.StandardMaterial("roof-material");
-        this.holeMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.holeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/Stone_01.png");
-        this.holeMaterial.freeze();
-        this.shadow9Material = new BABYLON.StandardMaterial("shadow-material");
-        this.shadow9Material.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.shadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
-        this.shadow9Material.diffuseTexture.hasAlpha = true;
-        this.shadow9Material.useAlphaFromDiffuseTexture = true;
-        this.shadow9Material.alpha = 0.4;
-        this.shadow9Material.specularColor.copyFromFloats(0, 0, 0);
-        this.shadow9Material.freeze();
-        this.whiteShadow9Material = new BABYLON.StandardMaterial("white-shadow9-material");
-        this.whiteShadow9Material.diffuseColor.copyFromFloats(1, 1, 1);
-        this.whiteShadow9Material.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-9.png");
-        this.whiteShadow9Material.diffuseTexture.hasAlpha = true;
-        this.whiteShadow9Material.useAlphaFromDiffuseTexture = true;
-        this.whiteShadow9Material.alpha = 1;
-        this.whiteShadow9Material.specularColor.copyFromFloats(0, 0, 0);
-        this.whiteShadow9Material.freeze();
-        this.shadowDiscMaterial = new BABYLON.StandardMaterial("shadow-material");
-        this.shadowDiscMaterial.diffuseColor.copyFromFloats(0.1, 0.1, 0.1);
-        this.shadowDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
-        this.shadowDiscMaterial.diffuseTexture.hasAlpha = true;
-        this.shadowDiscMaterial.useAlphaFromDiffuseTexture = true;
-        this.shadowDiscMaterial.alpha = 0.4;
-        this.shadowDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.shadowDiscMaterial.freeze();
-        this.lightDiscMaterial = new BABYLON.StandardMaterial("light-disc-material");
-        this.lightDiscMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.lightDiscMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/shadow-disc.png");
-        this.lightDiscMaterial.diffuseTexture.hasAlpha = true;
-        this.lightDiscMaterial.useAlphaFromDiffuseTexture = true;
-        this.lightDiscMaterial.alpha = 0.4;
-        this.lightDiscMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.lightDiscMaterial.freeze();
-        this.puckSideMaterial = new BABYLON.StandardMaterial("shadow-material");
-        this.puckSideMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.puckSideMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/puck-side-arrow.png");
-        this.puckSideMaterial.diffuseTexture.hasAlpha = true;
-        this.puckSideMaterial.emissiveColor.copyFromFloats(1, 1, 1);
-        this.puckSideMaterial.useAlphaFromDiffuseTexture = true;
-        this.puckSideMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.puckSideMaterial.freeze();
-        this.creepSlashMaterial = new BABYLON.StandardMaterial("creep-slash-material");
-        this.creepSlashMaterial.diffuseColor.copyFromFloats(1, 1, 1);
-        this.creepSlashMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/creep-slash.png");
-        this.creepSlashMaterial.diffuseTexture.hasAlpha = true;
-        this.creepSlashMaterial.emissiveColor.copyFromFloats(1, 1, 1);
-        this.creepSlashMaterial.useAlphaFromDiffuseTexture = true;
-        this.creepSlashMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.creepSlashMaterial.freeze();
-        this.tileStarTailMaterial = new BABYLON.StandardMaterial("tail-material");
-        this.tileStarTailMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.tileStarTailMaterial.emissiveColor.copyFromFloats(0.5, 0.5, 0.5);
-        this.tileStarTailMaterial.freeze();
-        this.pushTileTopMaterial = new BABYLON.StandardMaterial("push-tile-material");
-        this.pushTileTopMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.pushTileTopMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/push-tile-top.png");
-        this.pushTileTopMaterial.freeze();
-        this.tileColorMaterials = [];
-        this.tileColorMaterials[TileColor.North] = northMaterial;
-        this.tileColorMaterials[TileColor.South] = southMaterial;
-        this.tileColorMaterials[TileColor.East] = eastMaterial;
-        this.tileColorMaterials[TileColor.West] = westMaterial;
-        /*
-        let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
-        let northTexture = new Image(256, 256);
-        northTexture.src = "./datas/textures/red-north-wind.png";
-        northTexture.onload = () => {
-            let eastTexture = new Image(256, 256);
-            eastTexture.src = "./datas/textures/yellow-east-wind.png";
-            eastTexture.onload = () => {
-                let southTexture = new Image(256, 256);
-                southTexture.src = "./datas/textures/blue-south-wind.png";
-                southTexture.onload = () => {
-                    let greenTexture = new Image(256, 256);
-                    greenTexture.src = "./datas/textures/green-west-wind.png";
-                    greenTexture.onload = () => {
-                        let context = collectedTileTexture.getContext();
-                        context.drawImage(northTexture, 0, 0, 256, 256, 0, 0, 256, 256);
-                        context.drawImage(eastTexture, 0, 0, 256, 256, 256, 0, 256, 256);
-                        context.drawImage(southTexture, 0, 0, 256, 256, 0, 256, 256, 256);
-                        context.drawImage(greenTexture, 0, 0, 256, 256, 256, 256, 256, 256);
-                        collectedTileTexture.update();
-                    }
-                }
-            }
-        }
-        this.collectedTileMaterial = new BABYLON.StandardMaterial("collected-tile-material");
-        this.collectedTileMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.collectedTileMaterial.diffuseTexture = collectedTileTexture;
-        */
-        let oneMaterial = new BABYLON.StandardMaterial("one-material");
-        //oneMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
-        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272838");
-        //oneMaterial.diffuseColor = BABYLON.Color3.FromHexString("#272932").scale(0.8);
-        oneMaterial.specularColor.copyFromFloats(0, 0, 0);
-        oneMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-one.png");
-        oneMaterial.freeze();
-        let twoMaterial = new BABYLON.StandardMaterial("two-material");
-        //twoMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
-        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5D536B");
-        //twoMaterial.diffuseColor = BABYLON.Color3.FromHexString("#828489").scale(1.2);
-        twoMaterial.specularColor.copyFromFloats(0, 0, 0);
-        twoMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-two.png");
-        twoMaterial.freeze();
-        let threeMaterial = new BABYLON.StandardMaterial("three-material");
-        //threeMaterial.diffuseColor.copyFromFloats(0.7, 0.7, 0.7);
-        //threeMaterial.diffuseColor = BABYLON.Color3.FromHexString("#7D6B91");
-        //threeMaterial.diffuseColor = BABYLON.Color3.Lerp(oneMaterial.diffuseColor, twoMaterial.diffuseColor, 0.3);
-        threeMaterial.specularColor.copyFromFloats(0, 0, 0);
-        threeMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/door-three.png");
-        threeMaterial.freeze();
-        this.tileNumberMaterials = [];
-        this.tileNumberMaterials[0] = oneMaterial;
-        this.tileNumberMaterials[1] = twoMaterial;
-        this.tileNumberMaterials[2] = threeMaterial;
-        this.tileColorShinyMaterials = [];
-        this.tileColorShinyMaterials[TileColor.North] = northMaterial.clone(northMaterial.name + "-shiny");
-        this.tileColorShinyMaterials[TileColor.East] = eastMaterial.clone(eastMaterial.name + "-shiny");
-        this.tileColorShinyMaterials[TileColor.South] = southMaterial.clone(southMaterial.name + "-shiny");
-        this.tileColorShinyMaterials[TileColor.West] = westMaterial.clone(westMaterial.name + "-shiny");
-        this.tileColorShinyMaterials.forEach(shinyMat => {
-            shinyMat.freeze();
-        });
-        this.trueWhiteMaterial = new BABYLON.StandardMaterial("true-white-material");
-        this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
-        this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.trueWhiteMaterial.freeze();
-        this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
-        this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
-        this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.whiteMaterial.freeze();
-        this.grayMaterial = new BABYLON.StandardMaterial("gray-material");
-        this.grayMaterial.diffuseColor = BABYLON.Color3.FromHexString("#5d6265");
-        this.grayMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.grayMaterial.freeze();
-        this.blackMaterial = new BABYLON.StandardMaterial("black-material");
-        this.blackMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2b2821");
-        this.blackMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.blackMaterial.freeze();
-        this.brownMaterial = new BABYLON.StandardMaterial("brown-material");
-        this.brownMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
-        this.brownMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.brownMaterial.freeze();
-        this.salmonMaterial = new BABYLON.StandardMaterial("salmon-material");
-        this.salmonMaterial.diffuseColor = BABYLON.Color3.FromHexString("#d9ac8b");
-        this.salmonMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.salmonMaterial.freeze();
-        this.blueMaterial = new BABYLON.StandardMaterial("blue-material");
-        this.blueMaterial.diffuseColor = BABYLON.Color3.FromHexString("#243d5c");
-        this.blueMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.blueMaterial.freeze();
-        this.redMaterial = new BABYLON.StandardMaterial("red-material");
-        this.redMaterial.diffuseColor = BABYLON.Color3.FromHexString("#b03a48");
-        this.redMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.redMaterial.freeze();
-        this.yellowMaterial = new BABYLON.StandardMaterial("yellow-material");
-        this.yellowMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e0c872");
-        this.yellowMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.yellowMaterial.freeze();
-        this.greenMaterial = new BABYLON.StandardMaterial("green-material");
-        this.greenMaterial.diffuseColor = BABYLON.Color3.FromHexString("#3e6958");
-        this.greenMaterial.specularColor.copyFromFloats(0, 0, 0);
-        this.greenMaterial.freeze();
-        this.colorMaterials = [
-            this.redMaterial,
-            this.yellowMaterial,
-            this.blueMaterial,
-            this.greenMaterial
-        ];
+        this.materials = new CarillionMaterials(this);
         if (this.engine.webGLVersion === 2) {
             try {
                 let cubicNoiseTexture = new CubicNoiseTexture(this.scene);
@@ -5186,8 +5228,8 @@ class Game {
             }
         });
         let doorDatas = await this.vertexDataLoader.get("./datas/meshes/door.babylon");
-        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.woodMaterial.diffuseColor, BABYLON.Color3.Red());
-        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.blackMaterial.diffuseColor, BABYLON.Color3.Green());
+        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.materials.woodMaterial.diffuseColor, BABYLON.Color3.Red());
+        Mummu.ColorizeVertexDataInPlace(doorDatas[1], this.materials.blackMaterial.diffuseColor, BABYLON.Color3.Green());
         await this.loadPuzzles();
         setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "puzzles loaded");
         this.puzzle = new Puzzle(this);
@@ -5275,13 +5317,13 @@ class Game {
             this.puzzle.skipIntro();
         };
         document.querySelector("#zoom-out-btn").onpointerup = () => {
-            this.playCameraRange += 1;
-            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 5, 20);
+            this.playCameraRadiusFactor += 1;
+            this.playCameraRadiusFactor = Nabu.MinMax(this.playCameraRadiusFactor, -3, 3);
             this.updatePlayCameraRadius();
         };
         document.querySelector("#zoom-in-btn").onpointerup = () => {
-            this.playCameraRange -= 1;
-            this.playCameraRange = Nabu.MinMax(this.playCameraRange, 5, 20);
+            this.playCameraRadiusFactor -= 1;
+            this.playCameraRadiusFactor = Nabu.MinMax(this.playCameraRadiusFactor, -3, 3);
             this.updatePlayCameraRadius();
         };
         document.querySelector("#dev-mode-activate-btn").onpointerup = () => {
@@ -5338,8 +5380,8 @@ class Game {
             document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
-            //this.performanceWatcher.showDebug();
         }
+        this.performanceWatcher.showDebug();
     }
     async loadPuzzles() {
         //await RandomWait();
@@ -5679,12 +5721,18 @@ class Game {
         return 2 * Math.atan(this.screenRatio * Math.tan(this.camera.fov / 2));
     }
     updatePlayCameraRadius() {
-        let minFov = Math.min(this.camera.fov * 1.1, this.getCameraHorizontalFOV());
-        this.playCameraRadius = Nabu.MinMax(this.playCameraRange / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
+        let fov = this.getCameraHorizontalFOV();
+        let rect = this.canvas.getBoundingClientRect();
+        let w = rect.width / (80 / Math.sqrt(window.devicePixelRatio));
+        let f = Math.exp(this.playCameraRadiusFactor / 5);
+        console.log(this.playCameraRadiusFactor);
+        this.playCameraRadius = (0.5 * w) / Math.tan(fov / 2) * f;
     }
     updateMenuCameraRadius() {
-        let minFov = Math.min(this.camera.fov * 1.1, this.getCameraHorizontalFOV());
-        this.menuCamRadius = Nabu.MinMax(Math.min(this.playCameraRange, Math.max(this.puzzle.w, this.puzzle.h) * 1.1) / Math.tan(minFov), this.playCameraMinRadius, this.playCameraMaxRadius);
+        let fov = this.getCameraHorizontalFOV();
+        let rect = this.canvas.getBoundingClientRect();
+        let w = rect.width / (80 / Math.sqrt(window.devicePixelRatio));
+        this.menuCamRadius = (0.5 * w) / Math.tan(fov / 2);
     }
     update() {
         let rawDT = this.scene.deltaTime / 1000;
@@ -5767,7 +5815,7 @@ class Game {
                 if (this.puzzle) {
                     this.puzzle.update(Math.min(rawDT, 0.03));
                 }
-                if (this.boostMaterial && this.brownMaterial) {
+                if (this.materials.boostMaterial && this.materials.brownMaterial) {
                     let fBoostMaterial = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI) + 1);
                     fBoostMaterial = fBoostMaterial * fBoostMaterial * fBoostMaterial * 0.1;
                     let fBoostMaterial2 = 0.5 * (Math.sin(this.globalTimer * 0.9 * 2 * Math.PI + 0.66 * Math.PI) + 1);
@@ -5781,9 +5829,9 @@ class Game {
                     */
                 }
             }
-            this.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
-            if (this.waterMaterial.diffuseTexture.vOffset > 1) {
-                this.waterMaterial.diffuseTexture.vOffset -= 1;
+            this.materials.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
+            if (this.materials.waterMaterial.diffuseTexture.vOffset > 1) {
+                this.materials.waterMaterial.diffuseTexture.vOffset -= 1;
             }
             if (this.skybox) {
                 this.skybox.rotation.y += 0.02 * rawDT;
@@ -6381,16 +6429,18 @@ class PerformanceWatcher {
         this.average = 24;
         this.worst = 24;
         this.isWorstTooLow = false;
-        this.devicePixelRationess = 5;
+        this.devicePixelRationess = 0;
+        this.devicePixelRatioSteps = 10;
         this.resizeCD = 0;
+        this.resizeCDMax = 1;
     }
     get devicePixelRatio() {
-        let f = this.devicePixelRationess / 10;
+        let f = this.devicePixelRationess / this.devicePixelRatioSteps;
         return window.devicePixelRatio * f + (1 - f);
     }
     setDevicePixelRationess(v) {
         if (isFinite(v)) {
-            v = Nabu.MinMax(v, 0, 10);
+            v = Nabu.MinMax(v, 0, this.devicePixelRatioSteps);
             if (this.devicePixelRationess != v) {
                 this.devicePixelRationess = v;
                 let rect = this.game.canvas.getBoundingClientRect();
@@ -6398,7 +6448,10 @@ class PerformanceWatcher {
                     this.game.canvas.setAttribute("width", Math.floor(rect.width * this.devicePixelRatio).toFixed(0));
                     this.game.canvas.setAttribute("height", Math.floor(rect.height * this.devicePixelRatio).toFixed(0));
                 });
-                this.resizeCD = 1;
+                this.resizeCD = this.resizeCDMax;
+                if (this.resizeCDMax < 60) {
+                    this.resizeCDMax += 1;
+                }
             }
         }
     }
@@ -6408,7 +6461,7 @@ class PerformanceWatcher {
         if (isFinite(fps)) {
             this.average = 0.99 * this.average + 0.01 * fps;
             if (this.resizeCD <= 0) {
-                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * 10);
+                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
                 devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
                 this.setDevicePixelRationess(devicePixelRationess);
             }
@@ -6483,13 +6536,13 @@ class PushTile extends Tile {
         this.animateRotX = Mummu.AnimationFactory.CreateNumber(this, this.rotation, "x");
         this.animateRotZ = Mummu.AnimationFactory.CreateNumber(this, this.rotation, "z");
         this.animateWait = Mummu.AnimationFactory.CreateWait(this);
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.pushTileTopMaterial;
+        this.tileTop.material = this.game.materials.pushTileTopMaterial;
         this.pushSound = this.game.soundManager.createSound("push-wood-drag", "./datas/sounds/wood-wood-drag.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.8 });
         this.fallImpactSound = this.game.soundManager.createSound("push-tile-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
     }
@@ -6681,7 +6734,7 @@ class PuzzleCompletion {
         if (HasLocalStorage) {
             let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
             if (dataString) {
-                //this.completedPuzzles = JSON.parse(dataString);
+                this.completedPuzzles = JSON.parse(dataString);
             }
         }
         this.recentUnlocks = new Nabu.UniqueList();
@@ -6894,22 +6947,22 @@ customElements.define("stroke-text", StrokeText);
 class SwitchTile extends Tile {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
-        this.tileFrame.material = this.game.blackMaterial;
+        this.tileFrame.material = this.game.materials.blackMaterial;
         this.tileFrame.renderOutline = true;
         this.tileFrame.outlineColor = BABYLON.Color3.Black();
         this.tileFrame.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.tileColorMaterials[this.color];
+        this.tileTop.material = this.game.materials.tileColorMaterials[this.color];
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
-        this.tileBottom.material = this.game.salmonMaterial;
+        this.tileBottom.material = this.game.materials.salmonMaterial;
     }
     async instantiate() {
         //await RandomWait();
@@ -6927,7 +6980,7 @@ class ButtonTile extends Tile {
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
@@ -6935,16 +6988,16 @@ class ButtonTile extends Tile {
         this.tileFrame.position.y = 0.25;
         this.tileFrame.rotation.y = Math.PI * 0.25;
         this.tileFrame.parent = this;
-        this.tileFrame.material = this.game.blackMaterial;
+        this.tileFrame.material = this.game.materials.blackMaterial;
         this.tileFrame.renderOutline = true;
         this.tileFrame.outlineColor = BABYLON.Color3.Black();
         this.tileFrame.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this.tileFrame;
-        this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.tileTop.material = this.game.materials.tileNumberMaterials[this.props.value - 1];
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
-        this.tileBottom.material = this.game.grayMaterial;
+        this.tileBottom.material = this.game.materials.grayMaterial;
     }
     async instantiate() {
         //await RandomWait();
@@ -6977,23 +7030,23 @@ class DoorTile extends Tile {
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
-        this.material = this.game.grayMaterial;
+        this.material = this.game.materials.grayMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
         this.tileBox = new BABYLON.Mesh("tile-frame");
         this.tileBox.position.y = -0.26;
         this.tileBox.parent = this;
-        this.tileBox.material = this.game.blackMaterial;
+        this.tileBox.material = this.game.materials.blackMaterial;
         //this.tileBox.renderOutline = true;
         //this.tileBox.outlineColor = BABYLON.Color3.Black();
         //this.tileBox.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.tileTop.material = this.game.materials.tileNumberMaterials[this.props.value - 1];
         this.tileTopFrame = new BABYLON.Mesh("tile-top-frame");
         this.tileTopFrame.parent = this.tileTop;
-        this.tileTopFrame.material = this.game.blackMaterial;
+        this.tileTopFrame.material = this.game.materials.blackMaterial;
         this.tileTopFrame.renderOutline = true;
         this.tileTopFrame.outlineColor = BABYLON.Color3.Black();
         this.tileTopFrame.outlineWidth = 0.02;
@@ -7629,7 +7682,7 @@ class WallTile extends Tile {
     constructor(game, props) {
         super(game, props);
         this.color = props.color;
-        this.material = this.game.blackMaterial;
+        this.material = this.game.materials.blackMaterial;
     }
     async instantiate() {
         //await RandomWait();
@@ -7682,25 +7735,25 @@ class WallTile extends Tile {
 class CherryTree extends Tile {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.position.y = 0.2;
-        this.tileTop.material = this.game.whiteMaterial;
+        this.tileTop.material = this.game.materials.whiteMaterial;
         this.trunk = new BABYLON.Mesh("trunk");
         this.trunk.parent = this;
         this.trunk.position.y = 0.2;
-        this.trunk.material = this.game.trueWhiteMaterial;
+        this.trunk.material = this.game.materials.trueWhiteMaterial;
         this.trunk.renderOutline = true;
         this.trunk.outlineColor = BABYLON.Color3.Black();
         this.trunk.outlineWidth = 0.02;
         this.flower = new BABYLON.Mesh("flower");
         this.flower.parent = this;
         this.flower.position.y = 0.2;
-        this.flower.material = this.game.trueWhiteMaterial;
+        this.flower.material = this.game.materials.trueWhiteMaterial;
         this.flower.renderOutline = true;
         this.flower.outlineColor = BABYLON.Color3.Black();
         this.flower.outlineWidth = 0.02;
@@ -7731,16 +7784,16 @@ class WaterTile extends Tile {
         this.path = [];
         this.distFromSource = Infinity;
         this.color = props.color;
-        this.material = this.game.blackMaterial;
+        this.material = this.game.materials.blackMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.01;
         this.shoreMesh = new BABYLON.Mesh("shore");
         this.shoreMesh.parent = this;
-        this.shoreMesh.material = this.game.whiteMaterial;
+        this.shoreMesh.material = this.game.materials.whiteMaterial;
         this.waterMesh = new BABYLON.Mesh("water");
         this.waterMesh.parent = this;
-        this.waterMesh.material = this.game.waterMaterial;
+        this.waterMesh.material = this.game.materials.waterMaterial;
         this.floorMesh = new BABYLON.Mesh("floor");
         this.floorMesh.parent = this;
         this.floorMesh.material = this.game.puzzle.floorMaterial;
@@ -7903,7 +7956,7 @@ class WaterTile extends Tile {
                 if (!this.sculptMesh) {
                     this.sculptMesh = new BABYLON.Mesh("sculpt");
                     this.sculptMesh.parent = this;
-                    this.sculptMesh.material = this.game.grayMaterial;
+                    this.sculptMesh.material = this.game.materials.grayMaterial;
                     this.sculptMesh.renderOutline = true;
                     this.sculptMesh.outlineColor = BABYLON.Color3.Black();
                     this.sculptMesh.outlineWidth = 0.01;
@@ -7955,7 +8008,7 @@ class WaterTile extends Tile {
                 if (!this.sculptMesh) {
                     this.sculptMesh = new BABYLON.Mesh("sculpt");
                     this.sculptMesh.parent = this;
-                    this.sculptMesh.material = this.game.grayMaterial;
+                    this.sculptMesh.material = this.game.materials.grayMaterial;
                     this.sculptMesh.renderOutline = true;
                     this.sculptMesh.outlineColor = BABYLON.Color3.Black();
                     this.sculptMesh.outlineWidth = 0.01;
@@ -8455,7 +8508,7 @@ class FishingPole {
         this.animateTip = Mummu.AnimationFactory.EmptyVector3Callback;
         this.stop = false;
         this.lineMesh = new BABYLON.Mesh("tentacle");
-        this.lineMesh.material = this.puzzle.game.trueWhiteMaterial;
+        this.lineMesh.material = this.puzzle.game.materials.trueWhiteMaterial;
         let magnet = CreateBoxFrameVertexData({
             w: 0.2,
             wBase: 0.25,
@@ -8467,9 +8520,9 @@ class FishingPole {
             topCap: true,
             flatShading: true
         });
-        Mummu.ColorizeVertexDataInPlace(magnet, this.puzzle.game.blackMaterial.diffuseColor);
+        Mummu.ColorizeVertexDataInPlace(magnet, this.puzzle.game.materials.blackMaterial.diffuseColor);
         let line = BABYLON.CreateCylinderVertexData({ diameter: 0.05, height: 100, tessellation: 12, cap: BABYLON.Mesh.NO_CAP });
-        Mummu.ColorizeVertexDataInPlace(line, this.puzzle.game.brownMaterial.diffuseColor.scale(1.5));
+        Mummu.ColorizeVertexDataInPlace(line, this.puzzle.game.materials.brownMaterial.diffuseColor.scale(1.5));
         Mummu.TranslateVertexDataInPlace(line, new BABYLON.Vector3(0, 50.2, 0));
         let data = Mummu.MergeVertexDatas(magnet, line);
         Mummu.TranslateVertexDataInPlace(data, new BABYLON.Vector3(0, 0.3, 0));
@@ -8578,6 +8631,7 @@ class Puzzle {
         this._pendingPublish = false;
         this.tileHaikus = [];
         this.playerHaikus = [];
+        this.floorMaterialIndex = 0;
         this.buildingUpStep = 0.1;
         this.buildingUpValue = 1;
         this._ballCollisionTimeStamp = 0;
@@ -8588,26 +8642,26 @@ class Puzzle {
         ];
         this.fishingPole = new FishingPole(this);
         this.floor = new BABYLON.Mesh("floor");
-        this.floor.material = this.game.floorMaterial;
+        this.floor.material = this.game.materials.floorMaterial;
         this.invisiFloorTM = BABYLON.MeshBuilder.CreateGround("invisifloor", { width: 10, height: 10 });
         this.invisiFloorTM.position.x = 5 - 0.55;
         this.invisiFloorTM.position.y = -0.01;
         this.invisiFloorTM.position.z = 5 - 0.55;
         this.invisiFloorTM.isVisible = false;
         this.holeWall = new BABYLON.Mesh("hole-wall");
-        this.holeWall.material = this.game.holeMaterial;
+        this.holeWall.material = this.game.materials.holeMaterial;
         this.buildingsContainer = new BABYLON.Mesh("boxes-container");
         this.boxesWall = new BABYLON.Mesh("building-wall");
-        this.boxesWall.material = this.game.wallMaterial;
+        this.boxesWall.material = this.game.materials.wallMaterial;
         this.boxesWall.parent = this.buildingsContainer;
         this.boxesWood = new BABYLON.Mesh("building-wood");
-        this.boxesWood.material = this.game.brownMaterial;
+        this.boxesWood.material = this.game.materials.brownMaterial;
         this.boxesWood.parent = this.buildingsContainer;
         this.boxesFloor = new BABYLON.Mesh("building-floor");
-        this.boxesFloor.material = this.game.woodFloorMaterial;
+        this.boxesFloor.material = this.game.materials.woodFloorMaterial;
         this.boxesFloor.parent = this.buildingsContainer;
         this.bordersMesh = new BABYLON.Mesh("borders-mesh");
-        this.bordersMesh.material = this.game.borderMaterial;
+        this.bordersMesh.material = this.game.materials.borderMaterial;
         this.bordersMesh.parent = this.buildingsContainer;
         this.bordersMesh.renderOutline = true;
         this.bordersMesh.outlineColor = BABYLON.Color3.Black();
@@ -8747,13 +8801,24 @@ class Puzzle {
         }
     }
     get floorMaterial() {
-        return this.game.floorMaterial;
-        if (this.data.id != null && this.data.id % 2 === 1) {
-            return this.game.floorMaterial2;
+        let index = this.floorMaterialIndex % this.game.materials.floorMaterials.length;
+        return this.game.materials.floorMaterials[index];
+        return this.game.materials.woodFloorMaterial;
+        if (this.data.id != null && this.data.id % 3 === 1) {
+            return this.game.materials.floorMaterial2;
+        }
+        else if (this.data.id != null && this.data.id % 3 === 2) {
+            return this.game.materials.woodFloorMaterial;
         }
         else {
-            return this.game.floorMaterial;
+            return this.game.materials.floorMaterial;
         }
+    }
+    get haikuColor() {
+        if (this.floorMaterialIndex === 6) {
+            return "#271a0fff";
+        }
+        return "#e3cfb4ff";
     }
     getScene() {
         return this.game.scene;
@@ -8804,7 +8869,7 @@ class Puzzle {
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         document.querySelector("#puzzle-skip-intro").style.display = "";
         document.querySelector("#puzzle-ready").style.display = "none";
-        if (this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+        if (!this.editorOrEditorPreview && this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
             this.game.router.tutoPage.show(1);
         }
         else {
@@ -8975,10 +9040,16 @@ class Puzzle {
         content = content.replaceAll("\n", "");
         let lines = content.split("x");
         let ballLine = lines.splice(0, 1)[0].split("u");
-        this.ballsCount = Math.max(1, Math.floor(ballLine.length / 3));
+        this.ballsCount = 1;
+        if (ballLine.length === 8 || ballLine.length === 9) {
+            this.ballsCount = 2;
+        }
         let bIndexZero = 0;
         if (ballLine.length === 5 || ballLine.length === 8) {
             bIndexZero = 2;
+        }
+        else if (ballLine.length === 6 || ballLine.length === 9) {
+            bIndexZero = 3;
         }
         for (let bIndex = 0; bIndex < this.ballsCount; bIndex++) {
             this.balls[bIndex].reset();
@@ -8999,11 +9070,11 @@ class Puzzle {
             this.balls[bIndex].setVisible(false);
         }
         if (this.ballsCount === 1) {
-            this.balls[0].material = this.game.brownMaterial;
+            this.balls[0].material = this.game.materials.brownMaterial;
         }
         else if (this.ballsCount === 2) {
-            this.balls[0].material = this.game.whiteMaterial;
-            this.balls[1].material = this.game.blackMaterial;
+            this.balls[0].material = this.game.materials.whiteMaterial;
+            this.balls[1].material = this.game.materials.blackMaterial;
             this.playerHaikus[0] = new HaikuPlayerStart(this.game, this.game.player1Name.toLocaleUpperCase(), this.balls[0]);
             this.playerHaikus[1] = new HaikuPlayerStart(this.game, this.game.player2Name.toLocaleUpperCase(), this.balls[1]);
         }
@@ -9024,6 +9095,12 @@ class Puzzle {
         else {
             this.h = lines.length;
             this.w = lines[0].length;
+        }
+        if (ballLine.length === 6 || ballLine.length === 9) {
+            this.floorMaterialIndex = parseInt(ballLine[2]);
+        }
+        else {
+            this.floorMaterialIndex = 0;
         }
         if (!replaying) {
             this.buildingBlocks = [];
@@ -9638,7 +9715,7 @@ class Puzzle {
         });
         Mummu.TranslateVertexDataInPlace(puzzleFrame, new BABYLON.Vector3(0, -5.5, 0));
         this.border.position.copyFromFloats((this.xMax + this.xMin) * 0.5, 0, (this.zMax + this.zMin) * 0.5);
-        this.border.material = this.game.blackMaterial;
+        this.border.material = this.game.materials.blackMaterial;
         Mummu.MergeVertexDatas(puzzleFrame).applyToMesh(this.border);
         /*
         let plaqueData = CreatePlaqueVertexData(2.5, 0.32, 0.03);
@@ -9680,7 +9757,7 @@ class Puzzle {
         this.winSlotsIndexes = [0, 0, 0, 0];
         for (let color = TileColor.North; color <= TileColor.West; color++) {
             this.winSlots[color] = new BABYLON.Mesh("winslots-south");
-            this.winSlots[color].material = this.game.blackMaterial;
+            this.winSlots[color].material = this.game.materials.blackMaterial;
             let count = slotCounts[color];
             if (count > 0) {
                 let datas = [];
@@ -10328,7 +10405,7 @@ function SaveAsText(puzzle, withHaiku) {
         });
     });
     let lines2 = lines3.map((l1) => { return l1.reduce((c1, c2) => { return c1 + c2; }); });
-    let ballLine = puzzle.w.toFixed(0) + "u" + puzzle.h.toFixed(0) + "u";
+    let ballLine = puzzle.w.toFixed(0) + "u" + puzzle.h.toFixed(0) + "u" + puzzle.floorMaterialIndex.toFixed(0) + "u";
     for (let i = 0; i < puzzle.ballsCount; i++) {
         ballLine += puzzle.balls[i].i.toFixed(0) + "u" + puzzle.balls[i].j.toFixed(0) + "u" + puzzle.balls[i].color.toFixed(0);
         if (i < puzzle.ballsCount - 1) {

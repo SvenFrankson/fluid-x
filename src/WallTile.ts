@@ -6,7 +6,7 @@ class WallTile extends Tile {
         super(game, props);
         this.color = props.color;
 
-        this.material = this.game.blackMaterial;
+        this.material = this.game.materials.blackMaterial;
     }
 
     public async instantiate(): Promise<void> {
@@ -74,7 +74,7 @@ class CherryTree extends Tile {
     constructor(game: Game, props: TileProps) {
         super(game, props);
 
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -83,12 +83,12 @@ class CherryTree extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         this.tileTop.position.y = 0.2;
-        this.tileTop.material = this.game.whiteMaterial;
+        this.tileTop.material = this.game.materials.whiteMaterial;
 
         this.trunk = new BABYLON.Mesh("trunk");
         this.trunk.parent = this;
         this.trunk.position.y = 0.2;
-        this.trunk.material = this.game.trueWhiteMaterial;
+        this.trunk.material = this.game.materials.trueWhiteMaterial;
         this.trunk.renderOutline = true;
         this.trunk.outlineColor = BABYLON.Color3.Black();
         this.trunk.outlineWidth = 0.02;
@@ -96,7 +96,7 @@ class CherryTree extends Tile {
         this.flower = new BABYLON.Mesh("flower");
         this.flower.parent = this;
         this.flower.position.y = 0.2;
-        this.flower.material = this.game.trueWhiteMaterial;
+        this.flower.material = this.game.materials.trueWhiteMaterial;
         this.flower.renderOutline = true;
         this.flower.outlineColor = BABYLON.Color3.Black();
         this.flower.outlineWidth = 0.02;

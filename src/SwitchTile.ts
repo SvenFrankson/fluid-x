@@ -9,7 +9,7 @@ class SwitchTile extends Tile {
     constructor(game: Game, props: TileProps) {
         super(game, props);
 
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -18,7 +18,7 @@ class SwitchTile extends Tile {
         this.tileFrame = new BABYLON.Mesh("tile-frame");
         this.tileFrame.parent = this;
 
-        this.tileFrame.material = this.game.blackMaterial;
+        this.tileFrame.material = this.game.materials.blackMaterial;
 
         this.tileFrame.renderOutline = true;
         this.tileFrame.outlineColor = BABYLON.Color3.Black();
@@ -27,12 +27,12 @@ class SwitchTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
         
-        this.tileTop.material = this.game.tileColorMaterials[this.color];
+        this.tileTop.material = this.game.materials.tileColorMaterials[this.color];
 
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
         
-        this.tileBottom.material = this.game.salmonMaterial;
+        this.tileBottom.material = this.game.materials.salmonMaterial;
     }
 
     public async instantiate(): Promise<void> {
@@ -59,7 +59,7 @@ class ButtonTile extends Tile {
             this.props.value = 0;
         }
 
-        this.material = this.game.brownMaterial;
+        this.material = this.game.materials.brownMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -70,7 +70,7 @@ class ButtonTile extends Tile {
         this.tileFrame.rotation.y = Math.PI * 0.25;
         this.tileFrame.parent = this;
 
-        this.tileFrame.material = this.game.blackMaterial;
+        this.tileFrame.material = this.game.materials.blackMaterial;
 
         this.tileFrame.renderOutline = true;
         this.tileFrame.outlineColor = BABYLON.Color3.Black();
@@ -79,12 +79,12 @@ class ButtonTile extends Tile {
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this.tileFrame;
         
-        this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.tileTop.material = this.game.materials.tileNumberMaterials[this.props.value - 1];
 
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
         
-        this.tileBottom.material = this.game.grayMaterial;
+        this.tileBottom.material = this.game.materials.grayMaterial;
     }
 
     public async instantiate(): Promise<void> {
@@ -128,7 +128,7 @@ class DoorTile extends Tile {
             this.props.value = 0;
         }
 
-        this.material = this.game.grayMaterial;
+        this.material = this.game.materials.grayMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -137,7 +137,7 @@ class DoorTile extends Tile {
         this.tileBox = new BABYLON.Mesh("tile-frame");
         this.tileBox.position.y = -0.26;
         this.tileBox.parent = this;
-        this.tileBox.material = this.game.blackMaterial;
+        this.tileBox.material = this.game.materials.blackMaterial;
 
         //this.tileBox.renderOutline = true;
         //this.tileBox.outlineColor = BABYLON.Color3.Black();
@@ -145,11 +145,11 @@ class DoorTile extends Tile {
 
         this.tileTop = new BABYLON.Mesh("tile-top");
         this.tileTop.parent = this;
-        this.tileTop.material = this.game.tileNumberMaterials[this.props.value - 1];
+        this.tileTop.material = this.game.materials.tileNumberMaterials[this.props.value - 1];
 
         this.tileTopFrame = new BABYLON.Mesh("tile-top-frame");
         this.tileTopFrame.parent = this.tileTop;
-        this.tileTopFrame.material = this.game.blackMaterial;
+        this.tileTopFrame.material = this.game.materials.blackMaterial;
 
         this.tileTopFrame.renderOutline = true;
         this.tileTopFrame.outlineColor = BABYLON.Color3.Black();

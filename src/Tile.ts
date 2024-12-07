@@ -63,7 +63,7 @@ abstract class Tile extends BABYLON.Mesh {
             this.shadow.position.z = -0.015;
             this.shadow.parent = this;
     
-            this.shadow.material = this.game.shadow9Material;
+            this.shadow.material = this.game.materials.shadow9Material;
         }
 
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
@@ -192,7 +192,7 @@ abstract class Tile extends BABYLON.Mesh {
         let starTop = BABYLON.CreateGround("startop", { width: 0.9, height: 0.9 });
         starTop.position.y = 0.3;
         starTop.parent = star;
-        starTop.material = this.game.tileColorMaterials[this.color];
+        starTop.material = this.game.materials.tileColorMaterials[this.color];
 
         star.scaling.copyFromFloats(0.4, 0.4, 0.4);
 
@@ -201,7 +201,7 @@ abstract class Tile extends BABYLON.Mesh {
         if (this.game.performanceWatcher.worst > 24) {
             tail = new BABYLON.Mesh("tail");
             tail.visibility = 1;
-            tail.material = this.game.tileStarTailMaterial;
+            tail.material = this.game.materials.tileStarTailMaterial;
             tailPoints = [];
         }
         
@@ -279,7 +279,7 @@ abstract class Tile extends BABYLON.Mesh {
                         height: 1.2,
                         margin: 0.1
                     });
-                    flash.material = this.game.whiteShadow9Material;
+                    flash.material = this.game.materials.whiteShadow9Material;
                     flash.parent = star;
                     flash.position.y = 0.29;
                     flash.rotation.x = Math.PI * 0.5;

@@ -8,7 +8,7 @@ class HaikuMaker {
             return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-1-haiku", locale);
         }
         if (puzzle.data.id === 157) {
-            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-2-haiku", locale);
+            return I18Nizer.GetText("lesson-2-haiku", locale).replaceAll("\n", " ");
         }
         if (puzzle.data.id === 158) {
             return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-3-haiku", locale);
@@ -137,15 +137,14 @@ class Haiku extends BABYLON.Mesh {
     constructor(
         public game: Game,
         text: string,
-        title?: string,
-        text2?: string,
-        text3?: string
+        public w: number = 1000,
+        public h: number = 1000,
     ) {
         super("haiku");
-        BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
+        BABYLON.CreateGroundVertexData({ width: 5 * this.w / 1000, height: 5 * this.h / 1000 }).applyToMesh(this);
 
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 1000, height: 1000 });
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: this.w, height: this.h });
         this.dynamicTexture.hasAlpha = true;
         haikuMaterial.diffuseTexture = this.dynamicTexture;
         haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -155,6 +154,7 @@ class Haiku extends BABYLON.Mesh {
         this.setText(text);
 
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+        this.visibility = 0;
     }
 
     public dispose(): void {
@@ -170,7 +170,9 @@ class Haiku extends BABYLON.Mesh {
         this.text = text;
         let lines = text.split("\n");
         let context = this.dynamicTexture.getContext();
-        context.clearRect(0, 0, 1000, 1000);
+        context.clearRect(0, 0, this.w, this.h);
+        //context.fillStyle = "#00000020";
+        //context.fillRect(0, 0, this.w, this.h);
 
         context.fillStyle = "#473a2fFF";
         context.fillStyle = this.game.puzzle.haikuColor;
@@ -182,7 +184,7 @@ class Haiku extends BABYLON.Mesh {
         }
         for (let l = 0; l < lines.length; l++) {
             let textLength = context.measureText(lines[l]).width;
-            context.fillText(lines[l], 500 - textLength * 0.5, lineHeight * (l + 1));
+            context.fillText(lines[l], this.w * 0.5 - textLength * 0.5, 120 + lineHeight * l);
         }
 
         this.dynamicTexture.update();
@@ -240,8 +242,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         this.material = haikuMaterial;
 
         let context = this.dynamicTexture.getContext();
-        context.fillStyle = "#00000000";
-        context.fillRect(0, 0, 1000, 1000);
+        context.clearRect(0, 0, 1000, 1000);
 
         context.strokeStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";

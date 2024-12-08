@@ -246,6 +246,7 @@ class Puzzle {
     public puzzleUI: PuzzleUI;
     private _pendingPublish: boolean = false;
     public haiku: Haiku;
+    public titleHaiku: Haiku;
     public tileHaikus: HaikuTile[] = [];
     public playerHaikus: HaikuPlayerStart[] = [];
     public floorMaterialIndex: number = 0;
@@ -472,6 +473,10 @@ class Puzzle {
         if (this.haiku) {
             this.haiku.dispose();
             this.haiku = undefined;
+        }
+        if (this.titleHaiku) {
+            this.titleHaiku.dispose();
+            this.titleHaiku = undefined;
         }
         while (this.tileHaikus.length > 0) {
             this.tileHaikus.pop().dispose();
@@ -871,8 +876,20 @@ class Puzzle {
             let split = data.haiku.split("x");
             let x = parseInt(split[0]) * 0.5;
             let z = parseInt(split[1]) * 0.5;
-            let haiku = new Haiku(this.game, "", "", "", "");
-            haiku.position.copyFromFloats(x, 0.02, z);
+            let haiku: Haiku;
+            console.log(z);
+            if (z < - 2) {
+                haiku = new Haiku(this.game, "", 2000, 200);
+                haiku.position.copyFromFloats((this.w - 1) * 1.1 * 0.5, 0.32, - 1);
+
+                this.titleHaiku = new Haiku(this.game, "", 2000, 200);
+                this.titleHaiku.position.copyFromFloats((this.w - 1) * 1.1 * 0.5, 0.32, this.h * 1.1 - 0.15);
+                this.titleHaiku.setText(GetTranslatedTitle(this.data));
+            }
+            else {
+                haiku = new Haiku(this.game, "");
+                haiku.position.copyFromFloats(x, 0.02, z);
+            }
             this.haiku = haiku;
             let translatedText = HaikuMaker.GetTranslatedHaikuText(this);
             if (translatedText) {
@@ -1567,6 +1584,9 @@ class Puzzle {
         }
         if (this.haiku) {
             this.haiku.update(dt);
+        }
+        if (this.titleHaiku) {
+            this.titleHaiku.update(dt);
         }
         for (let i = 0; i < this.tileHaikus.length; i++) {
             let tileHaiku = this.tileHaikus[i];

@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 2;
+var PATCH_VERSION: number = 4;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -639,11 +639,11 @@ class Game {
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
-        this.performanceWatcher.showDebug();
+        //this.performanceWatcher.showDebug();
 	}
 
     public async loadPuzzles(): Promise<void> {
@@ -671,7 +671,7 @@ class Game {
                 let n = 1;
                 for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
                     let title = storyModePuzzles.puzzles[i].title;
-                    if (title.startsWith("Lesson") || title.startsWith("Bonus")) {
+                    if (title.startsWith("lesson") || title.startsWith("Bonus")) {
 
                     }
                     else {
@@ -696,8 +696,13 @@ class Game {
         }
 
         this.loadedStoryPuzzles = storyModePuzzles;
+        let lessonIndex = 1;
         for (let i = 0; i < this.loadedStoryPuzzles.puzzles.length; i++) {
             this.loadedStoryPuzzles.puzzles[i].numLevel = (i + 1);
+            if (this.loadedStoryPuzzles.puzzles[i].title.startsWith("lesson-")) {
+                this.loadedStoryPuzzles.puzzles[i].lessonIndex = lessonIndex;
+                lessonIndex++;
+            }
         }
 
         let expertPuzzles: IPuzzlesData;
@@ -1034,7 +1039,6 @@ class Game {
         let rect = this.canvas.getBoundingClientRect();
         let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         let f = Math.exp(this.playCameraRadiusFactor / 5);
-        console.log(this.playCameraRadiusFactor);
         this.playCameraRadius = (0.5 * w) / Math.tan(fov / 2) * f;
     }
 

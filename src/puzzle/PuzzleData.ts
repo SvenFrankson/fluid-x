@@ -17,6 +17,7 @@ interface IPuzzleData {
     content: string;
     haiku?: string;
     numLevel?: number;
+    lessonIndex?: number;
     score?: number;
     player?: string;
     state?: number;
@@ -67,11 +68,13 @@ function GetTranslatedTitle(data: IPuzzleData, locale?: string): string {
     if (!locale) {
         locale = LOCALE;
     }
-    if (data.title.startsWith("Lesson ")) {
-        let lessonIndex = parseInt(data.title.replace("Lesson ", ""));
-        console.log(lessonIndex);
-        if (isFinite(lessonIndex)) {
-            return I18Nizer.GetText("lesson-" + lessonIndex.toFixed(0) + "-title", locale);
+    if (data.title.startsWith("lesson-")) {
+        console.log(data.title);
+        let translatedTitle = I18Nizer.GetText(data.title, locale);
+        if (translatedTitle) {
+            if (data.lessonIndex) {
+                return translatedTitle.replace(" - ", " " + data.lessonIndex.toFixed(0) + " - ");
+            }
         }
     }
     return data.title;

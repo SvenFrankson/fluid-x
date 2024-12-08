@@ -3331,7 +3331,7 @@ class Editor {
             }
             else {
                 if (!this.puzzle.haiku) {
-                    let haiku = new Haiku(this.game, "", "", "", "");
+                    let haiku = new Haiku(this.game, "");
                     haiku.position.y = 0.1;
                     this.puzzle.haiku = haiku;
                 }
@@ -3616,7 +3616,7 @@ class HaikuMaker {
             return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-1-haiku", locale);
         }
         if (puzzle.data.id === 157) {
-            return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-2-haiku", locale);
+            return I18Nizer.GetText("lesson-2-haiku", locale).replaceAll("\n", " ");
         }
         if (puzzle.data.id === 158) {
             return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-3-haiku", locale);
@@ -3704,14 +3704,16 @@ class HaikuMaker {
     }
 }
 class Haiku extends BABYLON.Mesh {
-    constructor(game, text, title, text2, text3) {
+    constructor(game, text, w = 1000, h = 1000) {
         super("haiku");
         this.game = game;
+        this.w = w;
+        this.h = h;
         this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
         this.inRange = false;
-        BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
+        BABYLON.CreateGroundVertexData({ width: 5 * this.w / 1000, height: 5 * this.h / 1000 }).applyToMesh(this);
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
-        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: 1000, height: 1000 });
+        this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: this.w, height: this.h });
         this.dynamicTexture.hasAlpha = true;
         haikuMaterial.diffuseTexture = this.dynamicTexture;
         haikuMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -3719,6 +3721,7 @@ class Haiku extends BABYLON.Mesh {
         this.material = haikuMaterial;
         this.setText(text);
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
+        this.visibility = 0;
     }
     dispose() {
         this.material.dispose(true, true);
@@ -3732,7 +3735,9 @@ class Haiku extends BABYLON.Mesh {
         this.text = text;
         let lines = text.split("\n");
         let context = this.dynamicTexture.getContext();
-        context.clearRect(0, 0, 1000, 1000);
+        context.clearRect(0, 0, this.w, this.h);
+        //context.fillStyle = "#00000020";
+        //context.fillRect(0, 0, this.w, this.h);
         context.fillStyle = "#473a2fFF";
         context.fillStyle = this.game.puzzle.haikuColor;
         context.font = "90px Julee";
@@ -3743,7 +3748,7 @@ class Haiku extends BABYLON.Mesh {
         }
         for (let l = 0; l < lines.length; l++) {
             let textLength = context.measureText(lines[l]).width;
-            context.fillText(lines[l], 500 - textLength * 0.5, lineHeight * (l + 1));
+            context.fillText(lines[l], this.w * 0.5 - textLength * 0.5, 120 + lineHeight * l);
         }
         this.dynamicTexture.update();
     }
@@ -3790,8 +3795,7 @@ class HaikuPlayerStart extends BABYLON.Mesh {
         haikuMaterial.useAlphaFromDiffuseTexture = true;
         this.material = haikuMaterial;
         let context = this.dynamicTexture.getContext();
-        context.fillStyle = "#00000000";
-        context.fillRect(0, 0, 1000, 1000);
+        context.clearRect(0, 0, 1000, 1000);
         context.strokeStyle = "#473a2fFF";
         context.fillStyle = "#e3cfb4ff";
         context.lineWidth = 6;
@@ -4825,7 +4829,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 1;
 var MINOR_VERSION = 1;
-var PATCH_VERSION = 2;
+var PATCH_VERSION = 4;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5377,11 +5381,11 @@ class Game {
         document.body.addEventListener("click", onFirstPlayerInteractionClick);
         document.body.addEventListener("keydown", onFirstPlayerInteractionKeyboard);
         if (location.host.startsWith("127.0.0.1")) {
-            document.getElementById("click-anywhere-screen").style.display = "none";
+            //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
-        this.performanceWatcher.showDebug();
+        //this.performanceWatcher.showDebug();
     }
     async loadPuzzles() {
         //await RandomWait();
@@ -5407,7 +5411,7 @@ class Game {
                 let n = 1;
                 for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
                     let title = storyModePuzzles.puzzles[i].title;
-                    if (title.startsWith("Lesson") || title.startsWith("Bonus")) {
+                    if (title.startsWith("lesson") || title.startsWith("Bonus")) {
                     }
                     else {
                         storyModePuzzles.puzzles[i].title = n.toFixed(0) + ". " + title;
@@ -5429,8 +5433,13 @@ class Game {
             }
         }
         this.loadedStoryPuzzles = storyModePuzzles;
+        let lessonIndex = 1;
         for (let i = 0; i < this.loadedStoryPuzzles.puzzles.length; i++) {
             this.loadedStoryPuzzles.puzzles[i].numLevel = (i + 1);
+            if (this.loadedStoryPuzzles.puzzles[i].title.startsWith("lesson-")) {
+                this.loadedStoryPuzzles.puzzles[i].lessonIndex = lessonIndex;
+                lessonIndex++;
+            }
         }
         let expertPuzzles;
         if (OFFLINE_MODE) {
@@ -5725,7 +5734,6 @@ class Game {
         let rect = this.canvas.getBoundingClientRect();
         let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         let f = Math.exp(this.playCameraRadiusFactor / 5);
-        console.log(this.playCameraRadiusFactor);
         this.playCameraRadius = (0.5 * w) / Math.tan(fov / 2) * f;
     }
     updateMenuCameraRadius() {
@@ -9002,6 +9010,10 @@ class Puzzle {
             this.haiku.dispose();
             this.haiku = undefined;
         }
+        if (this.titleHaiku) {
+            this.titleHaiku.dispose();
+            this.titleHaiku = undefined;
+        }
         while (this.tileHaikus.length > 0) {
             this.tileHaikus.pop().dispose();
         }
@@ -9383,8 +9395,19 @@ class Puzzle {
             let split = data.haiku.split("x");
             let x = parseInt(split[0]) * 0.5;
             let z = parseInt(split[1]) * 0.5;
-            let haiku = new Haiku(this.game, "", "", "", "");
-            haiku.position.copyFromFloats(x, 0.02, z);
+            let haiku;
+            console.log(z);
+            if (z < -2) {
+                haiku = new Haiku(this.game, "", 2000, 200);
+                haiku.position.copyFromFloats((this.w - 1) * 1.1 * 0.5, 0.32, -1);
+                this.titleHaiku = new Haiku(this.game, "", 2000, 200);
+                this.titleHaiku.position.copyFromFloats((this.w - 1) * 1.1 * 0.5, 0.32, this.h * 1.1 - 0.15);
+                this.titleHaiku.setText(GetTranslatedTitle(this.data));
+            }
+            else {
+                haiku = new Haiku(this.game, "");
+                haiku.position.copyFromFloats(x, 0.02, z);
+            }
             this.haiku = haiku;
             let translatedText = HaikuMaker.GetTranslatedHaikuText(this);
             if (translatedText) {
@@ -10015,6 +10038,9 @@ class Puzzle {
         if (this.haiku) {
             this.haiku.update(dt);
         }
+        if (this.titleHaiku) {
+            this.titleHaiku.update(dt);
+        }
         for (let i = 0; i < this.tileHaikus.length; i++) {
             let tileHaiku = this.tileHaikus[i];
             if (tileHaiku.shown && tileHaiku.tile.isDisposed()) {
@@ -10094,11 +10120,13 @@ function GetTranslatedTitle(data, locale) {
     if (!locale) {
         locale = LOCALE;
     }
-    if (data.title.startsWith("Lesson ")) {
-        let lessonIndex = parseInt(data.title.replace("Lesson ", ""));
-        console.log(lessonIndex);
-        if (isFinite(lessonIndex)) {
-            return I18Nizer.GetText("lesson-" + lessonIndex.toFixed(0) + "-title", locale);
+    if (data.title.startsWith("lesson-")) {
+        console.log(data.title);
+        let translatedTitle = I18Nizer.GetText(data.title, locale);
+        if (translatedTitle) {
+            if (data.lessonIndex) {
+                return translatedTitle.replace(" - ", " " + data.lessonIndex.toFixed(0) + " - ");
+            }
         }
     }
     return data.title;
@@ -11124,6 +11152,25 @@ function CreateBiDiscVertexData(props) {
     Mummu.TranslateVertexDataInPlace(data, props.p1);
     return data;
 }
+var supportedLocales = [
+    "en",
+    "fr",
+    "pl",
+    "de",
+    "nl",
+    "pt",
+    "it",
+    "es"
+];
+let languages = navigator.languages;
+for (let i = 0; i < languages.length; i++) {
+    let language = languages[i];
+    let languageRoot = language.split("-")[0];
+    if (supportedLocales.indexOf(languageRoot) != -1) {
+        LOCALE = languageRoot;
+        break;
+    }
+}
 class I18Nizer {
     static GetText(key, lang) {
         if (i18nData[key]) {
@@ -11144,25 +11191,6 @@ class I18Nizer {
                 }
             }
         });
-    }
-}
-var supportedLocales = [
-    "en",
-    "fr",
-    "pl",
-    "de",
-    "nl",
-    "pt",
-    "it",
-    "es"
-];
-let languages = navigator.languages;
-for (let i = 0; i < languages.length; i++) {
-    let language = languages[i];
-    let languageRoot = language.split("-")[0];
-    if (supportedLocales.indexOf(languageRoot) != -1) {
-        LOCALE = languageRoot;
-        break;
     }
 }
 var i18nData = {};
@@ -11271,41 +11299,41 @@ i18nData["tuto-3-text"] = {
     "fr": "Collectez tous les Blocs pour terminer le Puzzle !"
 };
 // Puzzle Titles
-i18nData["lesson-1-title"] = {
-    "en": "Lesson 1 - Control",
-    "fr": "Leçon 1 - Contrôle",
+i18nData["lesson-control"] = {
+    "en": "Lesson - Control",
+    "fr": "Leçon - Contrôle",
 };
-i18nData["lesson-2-title"] = {
-    "en": "Lesson 2 - Color",
-    "fr": "Leçon 2 - Couleur ",
+i18nData["lesson-color"] = {
+    "en": "Lesson - Color",
+    "fr": "Leçon - Couleur ",
 };
-i18nData["lesson-3-title"] = {
-    "en": "Lesson 3 - Hole",
-    "fr": "Leçon 3 - Trou",
+i18nData["lesson-hole"] = {
+    "en": "Lesson - Hole",
+    "fr": "Leçon - Trou",
 };
-i18nData["lesson-4-title"] = {
-    "en": "Lesson 4 - Push",
-    "fr": "Leçon 4 - Pousser",
+i18nData["lesson-push"] = {
+    "en": "Lesson - Push",
+    "fr": "Leçon - Pousser",
 };
-i18nData["lesson-5-title"] = {
-    "en": "Lesson 5 - The Doors",
-    "fr": "Leçon 5 - Les Portes",
+i18nData["lesson-door"] = {
+    "en": "Lesson - The Doors",
+    "fr": "Leçon - Les Portes",
 };
-i18nData["lesson-6-title"] = {
-    "en": "Lesson 6 - Crack",
-    "fr": "Leçon 6 - Fissure",
+i18nData["lesson-crack"] = {
+    "en": "Lesson - Crack",
+    "fr": "Leçon - Fissure",
 };
-i18nData["lesson-7-title"] = {
-    "en": "Lesson 7 - Water",
-    "fr": "Leçon 7 - Eau",
+i18nData["lesson-water"] = {
+    "en": "Lesson - Water",
+    "fr": "Leçon - Eau",
 };
-i18nData["lesson-8-title"] = {
-    "en": "Lesson 8 - Spikes",
-    "fr": "Leçon 8 - Piquants",
+i18nData["lesson-spikes"] = {
+    "en": "Lesson - Spikes",
+    "fr": "Leçon - Piquants",
 };
-i18nData["lesson-9-title"] = {
-    "en": "Lesson 9 - Gap",
-    "fr": "Leçon 9 - Passage",
+i18nData["lesson-gap"] = {
+    "en": "Lesson - Gap",
+    "fr": "Leçon - Passage",
 };
 // Translated Haikus
 i18nData["lesson-1-haiku"] = {
@@ -11369,15 +11397,15 @@ i18nData["tuto-2-label"]["pl"] = "Kontrola";
 i18nData["tuto-2-text"]["pl"] = "Możesz sterować piłką tylko w lewo lub w prawo.";
 i18nData["tuto-3-label"]["pl"] = "Cel";
 i18nData["tuto-3-text"]["pl"] = "Zbierz wszystkie kafelki, aby ukończyć zagadkę!";
-i18nData["lesson-1-title"]["pl"] = "Lekcja 1 - Kontrola";
-i18nData["lesson-2-title"]["pl"] = "Lekcja 2 - Kolor";
-i18nData["lesson-3-title"]["pl"] = "Lekcja 3 - Otwór";
-i18nData["lesson-4-title"]["pl"] = "Lekcja 4 - Pchnięcie";
-i18nData["lesson-5-title"]["pl"] = "Lekcja 5 - Drzwi";
-i18nData["lesson-6-title"]["pl"] = "Lekcja 6 - Pęknięcie";
-i18nData["lesson-7-title"]["pl"] = "Lekcja 7 - Woda";
-i18nData["lesson-8-title"]["pl"] = "Lekcja 8 - Kolce";
-i18nData["lesson-9-title"]["pl"] = "Lekcja 9 - Szczelina";
+i18nData["lesson-control"]["pl"] = "Lekcja - Kontrola";
+i18nData["lesson-color"]["pl"] = "Lekcja - Kolor";
+i18nData["lesson-hole"]["pl"] = "Lekcja - Otwór";
+i18nData["lesson-push"]["pl"] = "Lekcja - Pchnięcie";
+i18nData["lesson-door"]["pl"] = "Lekcja - Drzwi";
+i18nData["lesson-crack"]["pl"] = "Lekcja - Pęknięcie";
+i18nData["lesson-water"]["pl"] = "Lekcja - Woda";
+i18nData["lesson-spikes"]["pl"] = "Lekcja - Kolce";
+i18nData["lesson-gap"]["pl"] = "Lekcja - Szczelina";
 i18nData["lesson-1-haiku"]["pl"] = "Używaj [A] i [D], aby\nporuszać się w lewo i prawo.";
 i18nData["lesson-2-haiku"]["pl"] = "Uderz w bęben,\naby zmienić kolor.";
 i18nData["lesson-3-haiku"]["pl"] = "Nie wpadnij do dziury.";
@@ -11412,15 +11440,15 @@ i18nData["tuto-2-label"]["de"] = "Steuerung";
 i18nData["tuto-2-text"]["de"] = "Sie können den Ball nur nach links oder rechts lenken.";
 i18nData["tuto-3-label"]["de"] = "Ziel";
 i18nData["tuto-3-text"]["de"] = "Sammeln Sie alle Kacheln, um das Rätsel zu lösen!";
-i18nData["lesson-1-title"]["de"] = "Lektion 1 – Steuerung";
-i18nData["lesson-2-title"]["de"] = "Lektion 2 – Farbe";
-i18nData["lesson-3-title"]["de"] = "Lektion 3 – Loch";
-i18nData["lesson-4-title"]["de"] = "Lektion 4 – Stoßen";
-i18nData["lesson-5-title"]["de"] = "Lektion 5 – Die Türen";
-i18nData["lesson-6-title"]["de"] = "Lektion 6 – Riss";
-i18nData["lesson-7-title"]["de"] = "Lektion 7 – Wasser";
-i18nData["lesson-8-title"]["de"] = "Lektion 8 – Stacheln";
-i18nData["lesson-9-title"]["de"] = "Lektion 9 – Lücke";
+i18nData["lesson-control"]["de"] = "Lektion - Steuerung";
+i18nData["lesson-color"]["de"] = "Lektion - Farbe";
+i18nData["lesson-hole"]["de"] = "Lektion - Loch";
+i18nData["lesson-push"]["de"] = "Lektion - Stoßen";
+i18nData["lesson-door"]["de"] = "Lektion - Die Türen";
+i18nData["lesson-crack"]["de"] = "Lektion - Riss";
+i18nData["lesson-water"]["de"] = "Lektion - Wasser";
+i18nData["lesson-spikes"]["de"] = "Lektion - Stacheln";
+i18nData["lesson-gap"]["de"] = "Lektion - Lücke";
 i18nData["lesson-1-haiku"]["de"] = "Verwenden Sie [A] und [D],\num sich nach links\nund rechts zu bewegen.";
 i18nData["lesson-2-haiku"]["de"] = "Schlagen Sie auf eine Trommel,\num die Farbe zu ändern.";
 i18nData["lesson-3-haiku"]["de"] = "Fallen Sie nicht in ein Loch.";
@@ -11455,15 +11483,15 @@ i18nData["tuto-2-label"]["pt"] = "Controle";
 i18nData["tuto-2-text"]["pt"] = "Você só pode dirigir a bola para a esquerda ou direita.";
 i18nData["tuto-3-label"]["pt"] = "Objetivo";
 i18nData["tuto-3-text"]["pt"] = "Colete todas as peças para completar o quebra-cabeça!";
-i18nData["lesson-1-title"]["pt"] = "Lição 1 - Controle";
-i18nData["lesson-2-title"]["pt"] = "Lição 2 - Cor";
-i18nData["lesson-3-title"]["pt"] = "Lição 3 - Buraco";
-i18nData["lesson-4-title"]["pt"] = "Lição 4 - Empurrar";
-i18nData["lesson-5-title"]["pt"] = "Lição 5 - As portas";
-i18nData["lesson-6-title"]["pt"] = "Lição 6 - Rachadura";
-i18nData["lesson-7-title"]["pt"] = "Lição 7 - Água";
-i18nData["lesson-8-title"]["pt"] = "Lição 8 - Picos";
-i18nData["lesson-9-title"]["pt"] = "Lição 9 - Lacuna";
+i18nData["lesson-control"]["pt"] = "Lição - Controle";
+i18nData["lesson-color"]["pt"] = "Lição - Cor";
+i18nData["lesson-hole"]["pt"] = "Lição - Buraco";
+i18nData["lesson-push"]["pt"] = "Lição - Empurrar";
+i18nData["lesson-door"]["pt"] = "Lição - As portas";
+i18nData["lesson-crack"]["pt"] = "Lição - Rachadura";
+i18nData["lesson-water"]["pt"] = "Lição - Água";
+i18nData["lesson-spikes"]["pt"] = "Lição - Picos";
+i18nData["lesson-gap"]["pt"] = "Lição - Lacuna";
 i18nData["lesson-1-haiku"]["pt"] = "Use [A] e [D] para mover\npara a esquerda e direita.";
 i18nData["lesson-2-haiku"]["pt"] = "Bata em um tambor\npara mudar de cor.";
 i18nData["lesson-3-haiku"]["pt"] = "Não caia em um buraco.";
@@ -11498,15 +11526,15 @@ i18nData["tuto-2-label"]["it"] = "Controllo";
 i18nData["tuto-2-text"]["it"] = "Puoi solo guidare la palla a sinistra o a destra.";
 i18nData["tuto-3-label"]["it"] = "Obiettivo";
 i18nData["tuto-3-text"]["it"] = "Raccogli tutte le tessere per completare il puzzle!";
-i18nData["lesson-1-title"]["it"] = "Lezione 1 - Controllo";
-i18nData["lesson-2-title"]["it"] = "Lezione 2 - Colore";
-i18nData["lesson-3-title"]["it"] = "Lezione 3 - Buco";
-i18nData["lesson-4-title"]["it"] = "Lezione 4 - Spingi";
-i18nData["lesson-5-title"]["it"] = "Lezione 5 - Le porte";
-i18nData["lesson-6-title"]["it"] = "Lezione 6 - Crepa";
-i18nData["lesson-7-title"]["it"] = "Lezione 7 - Acqua";
-i18nData["lesson-8-title"]["it"] = "Lezione 8 - Punte";
-i18nData["lesson-9-title"]["it"] = "Lezione 9 - Spazio";
+i18nData["lesson-control"]["it"] = "Lezione - Controllo";
+i18nData["lesson-color"]["it"] = "Lezione - Colore";
+i18nData["lesson-hole"]["it"] = "Lezione - Buco";
+i18nData["lesson-push"]["it"] = "Lezione - Spingi";
+i18nData["lesson-door"]["it"] = "Lezione - Le porte";
+i18nData["lesson-crack"]["it"] = "Lezione - Crepa";
+i18nData["lesson-water"]["it"] = "Lezione - Acqua";
+i18nData["lesson-spikes"]["it"] = "Lezione - Punte";
+i18nData["lesson-gap"]["it"] = "Lezione - Spazio";
 i18nData["lesson-1-haiku"]["it"] = "Usa [A] e [D] per muoverti\na sinistra e a destra.";
 i18nData["lesson-2-haiku"]["it"] = "Colpisci un tamburo\nper cambiare colore.";
 i18nData["lesson-3-haiku"]["it"] = "Non cadere in un buco.";
@@ -11541,15 +11569,15 @@ i18nData["tuto-2-label"]["es"] = "Control";
 i18nData["tuto-2-text"]["es"] = "Solo puedes dirigir la pelota hacia la izquierda o la derecha.";
 i18nData["tuto-3-label"]["es"] = "Objetivo";
 i18nData["tuto-3-text"]["es"] = "¡Reúne todas las fichas para completar el rompecabezas!";
-i18nData["lesson-1-title"]["es"] = "Lección 1: Control";
-i18nData["lesson-2-title"]["es"] = "Lección 2: Color";
-i18nData["lesson-3-title"]["es"] = "Lección 3: Agujero";
-i18nData["lesson-4-title"]["es"] = "Lección 4: Empujar";
-i18nData["lesson-5-title"]["es"] = "Lección 5: Las puertas";
-i18nData["lesson-6-title"]["es"] = "Lección 6: Grieta";
-i18nData["lesson-7-title"]["es"] = "Lección 7: Agua";
-i18nData["lesson-8-title"]["es"] = "Lección 8: Púas";
-i18nData["lesson-9-title"]["es"] = "Lección 9: Hueco";
+i18nData["lesson-control"]["es"] = "Lección - Control";
+i18nData["lesson-color"]["es"] = "Lección - Color";
+i18nData["lesson-hole"]["es"] = "Lección - Agujero";
+i18nData["lesson-push"]["es"] = "Lección - Empujar";
+i18nData["lesson-door"]["es"] = "Lección - Las puertas";
+i18nData["lesson-crack"]["es"] = "Lección - Grieta";
+i18nData["lesson-water"]["es"] = "Lección - Agua";
+i18nData["lesson-spikes"]["es"] = "Lección - Púas";
+i18nData["lesson-gap"]["es"] = "Lección - Hueco";
 i18nData["lesson-1-haiku"]["es"] = "Usa [A] y [D] para moverte\nhacia la izquierda y la derecha.";
 i18nData["lesson-2-haiku"]["es"] = "Golpea un tambor\npara cambiar de color.";
 i18nData["lesson-3-haiku"]["es"] = "No caigas en un agujero.";
@@ -11584,15 +11612,15 @@ i18nData["tuto-2-label"]["nl"] = "Besturing";
 i18nData["tuto-2-text"]["nl"] = "Je kunt de bal alleen naar links of rechts sturen.";
 i18nData["tuto-3-label"]["nl"] = "Doel";
 i18nData["tuto-3-text"]["nl"] = "Verzamel alle tegels om de puzzel te voltooien!";
-i18nData["lesson-1-title"]["nl"] = "Les 1 - Besturing";
-i18nData["lesson-2-title"]["nl"] = "Les 2 - Kleur";
-i18nData["lesson-3-title"]["nl"] = "Les 3 - Gat";
-i18nData["lesson-4-title"]["nl"] = "Les 4 - Duwen";
-i18nData["lesson-5-title"]["nl"] = "Les 5 - De deuren";
-i18nData["lesson-6-title"]["nl"] = "Les 6 - Barst";
-i18nData["lesson-7-title"]["nl"] = "Les 7 - Water";
-i18nData["lesson-8-title"]["nl"] = "Les 8 - Spikes";
-i18nData["lesson-9-title"]["nl"] = "Les 9 - Gap";
+i18nData["lesson-control"]["nl"] = "Les - Besturing";
+i18nData["lesson-color"]["nl"] = "Les - Kleur";
+i18nData["lesson-hole"]["nl"] = "Les - Gat";
+i18nData["lesson-push"]["nl"] = "Les - Duwen";
+i18nData["lesson-door"]["nl"] = "Les - De deuren";
+i18nData["lesson-crack"]["nl"] = "Les - Barst";
+i18nData["lesson-water"]["nl"] = "Les - Water";
+i18nData["lesson-spikes"]["nl"] = "Les - Spikes";
+i18nData["lesson-gap"]["nl"] = "Les - Gap";
 i18nData["lesson-1-haiku"]["nl"] = "Gebruik [A] en [D] om naar\nlinks en rechts te bewegen.";
 i18nData["lesson-2-haiku"]["nl"] = "Sla op een trommel om\nvan kleur te veranderen.";
 i18nData["lesson-3-haiku"]["nl"] = "Val niet in een gat.";
@@ -11606,7 +11634,6 @@ let fullEnglishText = "";
 for (const key in i18nData) {
     fullEnglishText += i18nData[key]["en"].replaceAll("\n", " ") + "\n";
 }
-console.log(fullEnglishText);
 function AddTranslation(locale, text) {
     let lines = text.split("\n");
     let n = 0;

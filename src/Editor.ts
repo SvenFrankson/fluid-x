@@ -500,7 +500,7 @@ class Editor {
             }
             else {
                 if (!this.puzzle.haiku) {
-                    let haiku = new Haiku(this.game, "", "", "", "");
+                    let haiku = new Haiku(this.game, "");
                     haiku.position.y = 0.1;
                     this.puzzle.haiku = haiku;
                 }

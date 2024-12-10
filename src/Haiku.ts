@@ -31,6 +31,12 @@ class HaikuMaker {
         if (puzzle.data.id === 166) {
             return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-9-haiku", locale);
         }
+        if (puzzle.data.id === 174) {
+            return I18Nizer.GetText("challenge-bridge-haiku", locale);
+        }
+        if (puzzle.data.id === 175) {
+            return I18Nizer.GetText("challenge-gates-haiku", locale);
+        }
         return undefined;
     }
 

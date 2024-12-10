@@ -171,12 +171,21 @@ class PuzzleUI {
             CenterPanel(this.successPanel, panelDX, panelDY);
         })
 
-        let currentHash = location.hash;
-        setTimeout(() => {
-            if (location.hash === currentHash) {
-                this.successNextButton.click();
-            }
-        }, 3000);
+        let autoNextBar = document.querySelector("#success-next-auto-bar") as CompletionBar;
+        if (this.puzzle.data.state === PuzzleDataState.STORY && USE_POKI_SDK) {
+            let currentHash = location.hash;
+            autoNextBar.showText = false;
+            autoNextBar.setValue(0);
+            autoNextBar.animateValueTo(1, 5);
+            setTimeout(() => {
+                if (location.hash === currentHash) {
+                    this.successNextButton.click();
+                }
+            }, 5000);
+        }
+        else {
+            autoNextBar.style.display = "none";
+        }
         console.log("PuzzleUI win");
     }
 

@@ -3,14 +3,19 @@ class CompletionBar extends HTMLElement {
     public value: number = 0;
     public valueText: HTMLSpanElement
     public completedBar: HTMLDivElement;
+    public showText: boolean = true;
 
     public static get observedAttributes() {
-        return ["value"];
+        return ["value", "show-text"];
     }
 
     public attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "value") {
             this.setValue(parseFloat(newValue));
+        }
+        if (name === "show-text") {
+            this.showText = newValue === "true" ? true : false;
+            this.setValue(this.value);
         }
     }
 
@@ -86,14 +91,14 @@ class CompletionBar extends HTMLElement {
             if (percent > 50) {
                 this.completedBar.appendChild(this.valueText);
                 this.style.textAlign = "left";
-                this.valueText.style.display = "block";
+                this.valueText.style.display = this.showText ? "block" : "none";
                 this.valueText.style.color = "black";
                 this.valueText.style.fontWeight = "900";
             }
             else {
                 this.appendChild(this.valueText);
                 this.style.textAlign = "right";
-                this.valueText.style.display = "block";
+                this.valueText.style.display = this.showText ? "block" : "none";
                 this.valueText.style.color = "white";
                 this.valueText.style.fontWeight = "500";
             }

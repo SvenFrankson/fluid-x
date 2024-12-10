@@ -47,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -55,33 +55,21 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <circle
-       style="fill:none;fill-opacity:1;stroke:#2b2821;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
-       id="path1414-9"
-       cx="50"
-       cy="50"
-       r="37.082371" />
-    <circle
-       style="fill:none;fill-opacity:1;stroke:#e3cfb4;stroke-width:2.99999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
-       id="path1414"
-       cx="50"
-       cy="50"
-       r="37.082371" />
     <path
        sodipodi:type="star"
-       style="fill:#e3cfb4;fill-opacity:1;stroke:#2b2821;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#e3cfb4;fill-opacity:1;stroke:#2b2821;stroke-width:2.45779;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:markers fill stroke"
        id="path2589"
        sodipodi:sides="3"
        sodipodi:cx="49.753998"
        sodipodi:cy="50"
-       sodipodi:r1="19.123514"
-       sodipodi:r2="9.561758"
+       sodipodi:r1="33.233688"
+       sodipodi:r2="16.616846"
        sodipodi:arg1="3.1415927"
        sodipodi:arg2="4.1887902"
        inkscape:flatsided="true"
        inkscape:rounded="-3.46945e-18"
        inkscape:randomized="0"
-       d="m 30.630484,49.999999 28.685272,-16.561448 -2e-6,33.122899 z"
-       inkscape:transform-center-x="4.7808791" />
+       d="m 16.520309,49.999998 49.850534,-28.781216 -2e-6,57.562437 z"
+       inkscape:transform-center-x="8.3084224" />
   </g>
 </svg>

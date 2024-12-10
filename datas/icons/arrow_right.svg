@@ -55,35 +55,22 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <circle
-       style="fill:none;fill-opacity:1;stroke:#e3cfb4;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
-       id="path1414-9"
-       cx="-50"
-       cy="-50"
-       r="37.082371"
-       transform="scale(-1)" />
-    <circle
-       style="fill:none;fill-opacity:1;stroke:#2b2821;stroke-width:2.99999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:normal"
-       id="path1414"
-       cx="50"
-       cy="50"
-       r="37.082371" />
     <path
        sodipodi:type="star"
-       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:markers fill stroke"
        id="path2589"
        sodipodi:sides="3"
        sodipodi:cx="-50.246002"
        sodipodi:cy="-49.999996"
-       sodipodi:r1="19.161572"
-       sodipodi:r2="9.5807867"
+       sodipodi:r1="33.239902"
+       sodipodi:r2="16.619953"
        sodipodi:arg1="3.1415927"
        sodipodi:arg2="4.1887902"
        inkscape:flatsided="true"
        inkscape:rounded="-3.46945e-18"
        inkscape:randomized="0"
-       d="m -69.407574,-49.999997 28.742358,-16.594406 -10e-7,33.188815 z"
-       inkscape:transform-center-x="-4.7903933"
+       d="m -83.485905,-49.999998 49.859855,-28.786597 -2e-6,57.5732 z"
+       inkscape:transform-center-x="-8.3099758"
        transform="scale(-1)" />
   </g>
 </svg>

@@ -983,6 +983,16 @@ body.vertical #play-timer {
     font-size: 18px;
 }
 
+#play-success-panel #success-next-auto-bar {
+    width: 220px;
+    height: 6px;
+}
+
+#play-success-panel #success-next-auto-bar .completed-text {
+    display: none;
+    opacity: 0;
+}
+
 @keyframes completion-bar-highlight {
     from {
         border: 1px solid #624c3c;

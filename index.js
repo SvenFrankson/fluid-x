@@ -1,7 +1,7 @@
-var USE_POKI_SDK = false;
-var OFFLINE_MODE = false;
+var USE_POKI_SDK = true;
+var OFFLINE_MODE = true;
 var NO_VERTEX_DATA_LOADER = true;
-var ADVENT_CAL = false;
+var ADVENT_CAL = true;
 
 var THE_ORIGIN_OF_TIME_ms = 0;
 var GLOBAL_GAME_LOAD_CURRENT_STEP = 0;

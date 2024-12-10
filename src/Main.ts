@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 7;
+var PATCH_VERSION: number = 8;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -47,7 +47,7 @@ function PokiGameplayStop(): void {
 }
 
 var PlayerHasInteracted = false;
-var IsTouchScreen = 0;
+var IsTouchScreen = 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
@@ -70,6 +70,28 @@ async function WaitPlayerInteraction(): Promise<void> {
     })
 }
 
+function firstPlayerInteraction(): void {
+    Game.Instance.onResize();
+
+    setTimeout(() => {
+        document.getElementById("click-anywhere-screen").style.display = "none";
+        if (USE_POKI_SDK) {
+            if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+                location.hash = "#level-1";
+            }
+            else {
+                console.error("Welcome back");
+            }
+        }
+    }, 300);
+    IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
+    if (IsMobile === 1) {
+        document.body.classList.add("mobile");
+    }
+    Game.Instance.soundManager.unlockEngine();
+    PlayerHasInteracted = true;
+}
+
 let onFirstPlayerInteractionTouch = (ev: Event) => {
     if (!Game.Instance.gameLoaded) {
         return;
@@ -77,34 +99,14 @@ let onFirstPlayerInteractionTouch = (ev: Event) => {
     console.log("onFirstPlayerInteractionTouch");
     ev.stopPropagation();
     document.body.removeEventListener("touchstart", onFirstPlayerInteractionTouch);
-    document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
-    
-    Game.Instance.onResize();
 
     IsTouchScreen = 1;
     document.body.classList.add("touchscreen");
     Game.Instance.camera.panningSensibility *= 0.4;
 
     if (!PlayerHasInteracted) {
-        setTimeout(() => {
-            document.getElementById("click-anywhere-screen").style.display = "none";
-            if (USE_POKI_SDK) {
-                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-                    location.hash = "#level-1";
-                }
-                else {
-                    console.error("Welcome back");
-                }
-            }
-        }, 300);
-        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-        if (IsMobile === 1) {
-            document.body.classList.add("mobile");
-        }
-        Game.Instance.soundManager.unlockEngine();
+        firstPlayerInteraction();
     }
-    PlayerHasInteracted = true;
 }
 
 let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
@@ -114,28 +116,10 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
-    
-    Game.Instance.onResize();
 
     if (!PlayerHasInteracted) {
-        setTimeout(() => {
-            document.getElementById("click-anywhere-screen").style.display = "none";
-            if (USE_POKI_SDK) {
-                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-                    location.hash = "#level-1";
-                }
-                else {
-                    console.error("Welcome back");
-                }
-            }
-        }, 300);
-        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-        if (IsMobile === 1) {
-            document.body.classList.add("mobile");
-        }
-        Game.Instance.soundManager.unlockEngine();
+        firstPlayerInteraction();
     }
-    PlayerHasInteracted = true;
 }
 
 let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
@@ -148,29 +132,13 @@ let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
-    //Game.Instance.showGraphicAutoUpdateAlert("Keyboard");
     
-    Game.Instance.onResize();
+    IsTouchScreen = 0;
+    document.body.classList.remove("touchscreen");
 
     if (!PlayerHasInteracted) {
-        setTimeout(() => {
-            document.getElementById("click-anywhere-screen").style.display = "none";
-            if (USE_POKI_SDK) {
-                if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-                    location.hash = "#level-1";
-                }
-                else {
-                    console.error("Welcome back");
-                }
-            }
-        }, 300);
-        IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
-        if (IsMobile === 1) {
-            document.body.classList.add("mobile");
-        }
-        Game.Instance.soundManager.unlockEngine();
+        firstPlayerInteraction();
     }
-    PlayerHasInteracted = true;
 }
 
 function addLine(text: string): void {
@@ -268,7 +236,7 @@ class Game {
     //public playCameraRange: number = 15;
     public playCameraRadiusFactor: number = 0;
     public playCameraRadius: number = 20;
-    public playCameraMinRadius: number = 5;
+    public playCameraMinRadius: number = 10;
     public playCameraMaxRadius: number = 50;
 
     public cameraOrtho: boolean = false;
@@ -361,6 +329,7 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
+            this.playCameraMinRadius = 20;
         }
         else {
             document.body.classList.remove("vertical");
@@ -1009,6 +978,7 @@ class Game {
         this.screenRatio = rect.width / rect.height;
         if (this.screenRatio < 1) {
             document.body.classList.add("vertical");
+            this.playCameraMinRadius = 20;
         }
         else {
             document.body.classList.remove("vertical");
@@ -1044,7 +1014,7 @@ class Game {
         let rect = this.canvas.getBoundingClientRect();
         let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         let f = Math.exp(this.playCameraRadiusFactor / 5);
-        this.playCameraRadius = (0.5 * w) / Math.tan(fov / 2) * f;
+        this.playCameraRadius = Nabu.MinMax((0.5 * w) / Math.tan(fov / 2), this.playCameraMinRadius, this.playCameraMaxRadius) * f;
     }
 
     public updateMenuCameraRadius(): void {

@@ -131,8 +131,8 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
 
     if (withHaiku && puzzle.haiku) {
         let haikuLine = "[HAIKU]";
-        haikuLine += (puzzle.haiku.position.x * 2).toFixed(0) + "x";
-        haikuLine += (puzzle.haiku.position.z * 2).toFixed(0) + "x";
+        haikuLine += (puzzle.haiku.position.x / 0.55).toFixed(0) + "x";
+        haikuLine += (puzzle.haiku.position.z / 0.55).toFixed(0) + "x";
         haikuLine += (puzzle.haiku.text.replaceAll("\n", "\\n"));
         content += haikuLine;
     }

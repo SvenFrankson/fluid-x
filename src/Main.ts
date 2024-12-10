@@ -1021,7 +1021,7 @@ class Game {
         let fov = this.getCameraHorizontalFOV();
         let rect = this.canvas.getBoundingClientRect();
         let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
-        this.menuCamRadius = (0.5 * w) / Math.tan(fov / 2);
+        this.menuCamRadius = Nabu.MinMax((0.5 * w) / Math.tan(fov / 2), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
 
     public movieIdleDir: BABYLON.Vector3 = BABYLON.Vector3.Zero();

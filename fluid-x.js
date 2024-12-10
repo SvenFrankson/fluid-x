@@ -5959,7 +5959,7 @@ class Game {
         let fov = this.getCameraHorizontalFOV();
         let rect = this.canvas.getBoundingClientRect();
         let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
-        this.menuCamRadius = (0.5 * w) / Math.tan(fov / 2);
+        this.menuCamRadius = Nabu.MinMax((0.5 * w) / Math.tan(fov / 2), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
     update() {
         let rawDT = this.scene.deltaTime / 1000;

@@ -9317,6 +9317,7 @@ class Puzzle {
         this.ballsCount = 1;
         if (ballLine.length === 8 || ballLine.length === 9) {
             this.ballsCount = 2;
+            this.ballsCount = 1;
         }
         let bIndexZero = 0;
         if (ballLine.length === 5 || ballLine.length === 8) {

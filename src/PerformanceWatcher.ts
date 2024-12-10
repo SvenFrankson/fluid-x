@@ -6,6 +6,7 @@ class PerformanceWatcher {
 
     public isWorstTooLow: boolean = false;
     public devicePixelRationess: number = 5;
+    public targetDevicePixelRationess: number = this.devicePixelRationess;
     public devicePixelRatioSteps: number = 10;
     public get devicePixelRatio(): number {
         let f = this.devicePixelRationess / this.devicePixelRatioSteps;
@@ -13,7 +14,6 @@ class PerformanceWatcher {
     }
 
     public resizeCD = 0;
-    public resizeCDMax = 1;
     public setDevicePixelRationess(v: number): void {
         if (isFinite(v)) {
             v = Nabu.MinMax(v, 0, this.devicePixelRatioSteps);
@@ -27,10 +27,7 @@ class PerformanceWatcher {
                     this.game.canvas.setAttribute("height", h);
                     console.log("update canvas resolution to " + w + " " + h);
                 })
-                this.resizeCD = this.resizeCDMax;
-                if (this.resizeCDMax < 15) {
-                    this.resizeCDMax *= 1.1;
-                }
+                this.resizeCD = 1;
             }
         }
     }
@@ -44,13 +41,19 @@ class PerformanceWatcher {
         if (isFinite(fps)) {
             this.average = 0.95 * this.average + 0.05 * fps;
 
-            this.resizeCD = Math.max(0, this.resizeCD - rawDt);
-            if (this.resizeCD <= 0) {
-                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
-                devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
-                this.setDevicePixelRationess(devicePixelRationess);
+            let devicePixelRationess = Math.round((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
+            devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
+            if (devicePixelRationess != this.targetDevicePixelRationess) {
+                this.resizeCD = 1;
+                this.targetDevicePixelRationess = devicePixelRationess;
             }
 
+            this.resizeCD = Math.max(0, this.resizeCD - rawDt);
+            if (this.resizeCD <= 0 && this.targetDevicePixelRationess != this.devicePixelRationess) {
+                this.setDevicePixelRationess(this.targetDevicePixelRationess);
+            }
+
+            /*
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
 
@@ -60,6 +63,7 @@ class PerformanceWatcher {
             else if (this.worst > 26) {
                 this.isWorstTooLow = false;
             }
+            */
         }
     }
 

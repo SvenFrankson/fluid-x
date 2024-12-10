@@ -154,7 +154,8 @@ a:active {
 
     #home-menu h1 {
         position: absolute;
-        right: 51%;
+        top: 3%;
+        right: 55%;
     }
 
     #home-menu .spacer {
@@ -198,8 +199,8 @@ h1 {
 #title-version {
     position: absolute;
     font-size: 18px;
-    top: 42px;
-    right: calc(50% - 150px);
+    top: 45px;
+    right: calc(50% - 120px);
     font-family: monospace;
     font-weight: 500;
     color: white;
@@ -1244,7 +1245,7 @@ body:not(.touchscreen) .line.hovered {
 
 @media (min-width: 400px) {
     #tuto-page {
-        width: 360px;
+        width: fit-content;
     }
 
     #tuto-page .tutorial-container {
@@ -1259,8 +1260,18 @@ body:not(.touchscreen) .line.hovered {
         display: inline-block;
         vertical-align: middle;
         height: 100px;
-        width: 40px;
-        font-size: 40px;
+        width: 50px;
+        font-size: 60px;
+    }
+
+    #tuto-page .landscape-show.tutorial-next-btn {
+        border-top-right-radius: 20px;
+        border-bottom-right-radius: 20px;
+    }
+
+    #tuto-page .landscape-show.tutorial-prev-btn {
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
     }
 }
 

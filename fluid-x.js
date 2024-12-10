@@ -5075,7 +5075,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 1;
 var MINOR_VERSION = 1;
-var PATCH_VERSION = 8;
+var PATCH_VERSION = 9;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5604,7 +5604,7 @@ class Game {
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
-        //this.performanceWatcher.showDebug();
+        this.performanceWatcher.showDebug();
     }
     async loadPuzzles() {
         //await RandomWait();
@@ -6676,9 +6676,9 @@ class PerformanceWatcher {
         this.worst = 24;
         this.isWorstTooLow = false;
         this.devicePixelRationess = 5;
+        this.targetDevicePixelRationess = this.devicePixelRationess;
         this.devicePixelRatioSteps = 10;
         this.resizeCD = 0;
-        this.resizeCDMax = 1;
     }
     get devicePixelRatio() {
         let f = this.devicePixelRationess / this.devicePixelRatioSteps;
@@ -6697,10 +6697,7 @@ class PerformanceWatcher {
                     this.game.canvas.setAttribute("height", h);
                     console.log("update canvas resolution to " + w + " " + h);
                 });
-                this.resizeCD = this.resizeCDMax;
-                if (this.resizeCDMax < 15) {
-                    this.resizeCDMax *= 1.1;
-                }
+                this.resizeCD = 1;
             }
         }
     }
@@ -6708,20 +6705,27 @@ class PerformanceWatcher {
         let fps = 1 / rawDt;
         if (isFinite(fps)) {
             this.average = 0.95 * this.average + 0.05 * fps;
-            this.resizeCD = Math.max(0, this.resizeCD - rawDt);
-            if (this.resizeCD <= 0) {
-                let devicePixelRationess = Math.floor((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
-                devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
-                this.setDevicePixelRationess(devicePixelRationess);
+            let devicePixelRationess = Math.round((this.average - 24) / (60 - 24) * this.devicePixelRatioSteps);
+            devicePixelRationess = Nabu.MinMax(devicePixelRationess, this.devicePixelRationess - 1, this.devicePixelRationess + 1);
+            if (devicePixelRationess != this.targetDevicePixelRationess) {
+                this.resizeCD = 1;
+                this.targetDevicePixelRationess = devicePixelRationess;
             }
+            this.resizeCD = Math.max(0, this.resizeCD - rawDt);
+            if (this.resizeCD <= 0 && this.targetDevicePixelRationess != this.devicePixelRationess) {
+                this.setDevicePixelRationess(this.targetDevicePixelRationess);
+            }
+            /*
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
+
             if (this.worst < 24) {
                 this.isWorstTooLow = true;
             }
             else if (this.worst > 26) {
                 this.isWorstTooLow = false;
             }
+            */
         }
     }
     showDebug() {

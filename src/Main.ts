@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 8;
+var PATCH_VERSION: number = 9;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -617,7 +617,7 @@ class Game {
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
-        //this.performanceWatcher.showDebug();
+        this.performanceWatcher.showDebug();
 	}
 
     public async loadPuzzles(): Promise<void> {

@@ -160,8 +160,8 @@ class Editor {
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
         if (this.puzzle.haiku) {
             this.puzzle.haiku.visibility = 1;
-            this.haikuIInput.setValue(Math.round(this.puzzle.haiku.position.x * 2));
-            this.haikuJInput.setValue(Math.round(this.puzzle.haiku.position.z * 2));
+            this.haikuIInput.setValue(Math.round(this.puzzle.haiku.position.x / 0.55));
+            this.haikuJInput.setValue(Math.round(this.puzzle.haiku.position.z / 0.55));
             this.haikuContent.value = this.puzzle.haiku.text;
         }
     }
@@ -477,20 +477,19 @@ class Editor {
         this.haikuIInput = document.getElementById("haiku-i") as NumValueInput;
         this.haikuIInput.onValueChange = (v) => {
             if (this.puzzle.haiku) {
-                this.puzzle.haiku.position.x = v / 2;
+                this.puzzle.haiku.position.x = v * 0.55;
             }
         }
         this.haikuJInput = document.getElementById("haiku-j") as NumValueInput;
         this.haikuJInput.onValueChange = (v) => {
             if (this.puzzle.haiku) {
-                this.puzzle.haiku.position.z = v / 2;
+                this.puzzle.haiku.position.z = v * 0.55;
             }
         }
         this.haikuContent = document.getElementById("haiku-content") as HTMLTextAreaElement;
         this.haikuUpdateButton = document.getElementById("haiku-update") as HTMLButtonElement;
         this.haikuUpdateButton.onpointerup = () => {
             let content = this.haikuContent.value;
-            console.log(content);
             if (content === "") {
                 this.puzzle.data.haiku = undefined;
                 if (this.puzzle.haiku) {

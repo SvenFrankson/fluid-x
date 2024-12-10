@@ -8,6 +8,7 @@ enum BallState {
     Fall,
     Split,
     Flybacking,
+    Wining,
     Done
 }
 
@@ -135,6 +136,13 @@ class Ball extends BABYLON.Mesh {
         super("ball");
 
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.animContainer = new BABYLON.Mesh("anim-container");
+        //this.animContainer = Mummu.DrawDebugPoint(BABYLON.Vector3.Zero(), Infinity, BABYLON.Color3.Red(), 1);
+        this.animPos = Mummu.AnimationFactory.CreateVector3(this.animContainer, this.animContainer, "position");
+        this.animWinTrailRadius = Mummu.AnimationFactory.CreateNumber(this, this, "winTrailRadius");
+        this.animRotX = Mummu.AnimationFactory.CreateNumber(this.animContainer, this.animContainer.rotation, "x");
+        this.animRotY = Mummu.AnimationFactory.CreateNumber(this.animContainer, this.animContainer.rotation, "y");
+        this.animRotZ = Mummu.AnimationFactory.CreateNumber(this.animContainer, this.animContainer.rotation, "z");
 
         this.color = props.color;
 
@@ -211,6 +219,8 @@ class Ball extends BABYLON.Mesh {
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
 
         if (this.ballIndex === 0) {
+            this.connectMouse();
+            
             let inputLeft = document.querySelector("#input-left");
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
@@ -412,7 +422,7 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
     public get mouseCanControl(): boolean {
-        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
+        return (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
     public mouseInControl: boolean = false;
     private _pointerDown: boolean = false;
@@ -565,11 +575,12 @@ class Ball extends BABYLON.Mesh {
 
         vX = Nabu.MinMax(vX, -1, 1);
 
-        if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
+        if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking && this.ballState != BallState.Wining) {
             this.trailTimer += dt;
 
             if (this.game.performanceWatcher.worst > 1) {
                 let p = BABYLON.Vector3.Zero();
+                let f = 0.6;
                 p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
                 p.y += 0.15;
                 BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
@@ -577,7 +588,7 @@ class Ball extends BABYLON.Mesh {
                     this.trailTimer = 0;
                     let last = this.trailPoints[this.trailPoints.length - 1]
                     if (last) {
-                        p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+                        p.scaleInPlace(f).addInPlace(last.scale(1 - f));
                     }
 
                     this.trailPoints.push(p);
@@ -1111,6 +1122,7 @@ class Ball extends BABYLON.Mesh {
     }
 
     public reset(): void {
+        this.killWinAnim();
         clearTimeout(this._loseTimout);
         this.parent = undefined;
         this.boost = false;
@@ -1135,5 +1147,291 @@ class Ball extends BABYLON.Mesh {
         this.rightArrow.isVisible = true;
         
         this.setVisible(true);
+    }
+
+    public animContainer: BABYLON.Mesh;
+    public animPos = Mummu.AnimationFactory.EmptyVector3Callback;
+    public animWinTrailRadius = Mummu.AnimationFactory.EmptyNumberCallback;
+    public animRotX = Mummu.AnimationFactory.EmptyNumberCallback;
+    public animRotY = Mummu.AnimationFactory.EmptyNumberCallback;
+    public animRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
+
+    public winTrailPos0: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public winTrailPos1: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public winTrailPoints0: BABYLON.Vector3[] = [];
+    public winTrailPoints1: BABYLON.Vector3[] = [];
+    public winTrailMesh0: BABYLON.Mesh;
+    public winTrailMesh1: BABYLON.Mesh;
+
+    public async animStand(duration: number): Promise<void> {
+        let standingP = this.animContainer.position.clone();
+        standingP.y += 0.1;
+        standingP.z -= 0.3;
+
+        let r = this.animContainer.rotation.x - Math.PI * 0.5;
+
+        this.animRotX(r, duration, Nabu.Easing.easeInSine);
+        await this.animPos(standingP, duration, Nabu.Easing.easeInSine);
+        //this.sparkle();
+    }
+
+    public async animSit(duration: number): Promise<void> {
+        let sitP = this.animContainer.position.clone();
+        sitP.y -= 0.1;
+        sitP.z += 0.3;
+
+        let r = this.animContainer.rotation.x + Math.PI * 0.5;
+
+        this.animRotX(r, duration, Nabu.Easing.easeInSine);
+        await this.animPos(sitP, duration, Nabu.Easing.easeInSine);
+        //this.sparkle();
+    }
+
+    public async backFlip(turns: number, duration: number): Promise<void> {
+        let r = this.animContainer.rotation.x + turns * 2 * Math.PI;
+        setTimeout(() => {
+            this.puzzle.wiishSound.play()
+        }, duration * 100);
+        await this.animRotX(r, duration, Nabu.Easing.easeInOutSine);
+    }
+
+    public async frontFlip(turns: number, duration: number): Promise<void> {
+        let r = this.animContainer.rotation.x - turns * 2 * Math.PI;
+        setTimeout(() => {
+            this.puzzle.wiishSound.play()
+        }, duration * 100);
+        await this.animRotX(r, duration, Nabu.Easing.easeInOutSine);
+    }
+
+    public async spin(turns: number, duration: number): Promise<void> {
+        let r = this.animContainer.rotation.y + turns * 2 * Math.PI;
+        setTimeout(() => {
+            this.puzzle.wiishSound.play()
+        }, duration * 100);
+        await this.animRotY(r, duration, Nabu.Easing.easeInOutSine);
+    }
+
+    public async jump(h: number, duration: number): Promise<void> {
+        let baseP = this.animContainer.position.clone();
+
+        let stretchP = baseP.clone();
+        stretchP.y -= 0.1;
+
+        let jumpP = baseP.clone();
+        jumpP.y += h;
+
+        await this.animPos(stretchP, duration * 0.2, Nabu.Easing.easeOutCubic);
+        await this.animPos(jumpP, duration * 0.4, Nabu.Easing.easeOutCubic);
+        await this.animPos(baseP, duration * 0.4, Nabu.Easing.easeInCubic);
+        this.woodChocSound.play();
+    }
+
+    public sparkle(): void {
+        let explosionFire = new Explosion(this.game);
+        explosionFire.origin.copyFrom(this.absolutePosition);
+        explosionFire.setRadius(0.4);
+        explosionFire.color = BABYLON.Color3.FromHexString("#e0c872");
+        explosionFire.color = BABYLON.Color3.FromHexString("#ffffff");
+        explosionFire.lifespan = 1;
+        explosionFire.tZero = 1.1;
+        explosionFire.boom();
+    }
+
+    private _shadowGroundY: number = 0;
+    public winTrailRadius: number = 0.5;
+    private _winTrailTimer: number = 0;
+
+    private _updateWin = () => {
+        let dt = this.game.scene.deltaTime / 1000;
+
+        this.shadow.position.x = this.animContainer.position.x;
+        this.shadow.position.y = this._shadowGroundY;
+        this.shadow.position.z = this.animContainer.position.z;
+        
+        this._winTrailTimer -= dt;
+        if (this._winTrailTimer <= 0) {
+            this._winTrailTimer = 0.01;
+
+            let pt0 = new BABYLON.Vector3(1, 0, -1).normalize();
+            pt0.scaleInPlace(this.winTrailRadius);
+            BABYLON.Vector3.TransformCoordinatesToRef(pt0, this.getWorldMatrix(), pt0);
+            this.winTrailPoints0.push(pt0);
+            if (this.winTrailPoints0.length > 40) {
+                this.winTrailPoints0.splice(0, 1);
+            }
+
+            let pt1 = new BABYLON.Vector3(- 1, 0, -1).normalize();
+            pt1.scaleInPlace(this.winTrailRadius);
+            BABYLON.Vector3.TransformCoordinatesToRef(pt1, this.getWorldMatrix(), pt1);
+            this.winTrailPoints1.push(pt1);
+            if (this.winTrailPoints1.length > 40) {
+                this.winTrailPoints1.splice(0, 1);
+            }
+
+            if (this.winTrailPoints0.length > 2) {
+                let data = CreateTrailVertexData({
+                    path: this.winTrailPoints0,
+                    radiusFunc: (f) => {
+                        return 0.05 * f;
+                        //return 0.01;
+                    },
+                    color: new BABYLON.Color4(1, 1, 1, 1)
+                });
+                data.applyToMesh(this.winTrailMesh0);
+                this.winTrailMesh0.isVisible = true;
+            }
+
+            if (this.winTrailPoints1.length > 2) {
+                let data = CreateTrailVertexData({
+                    path: this.winTrailPoints1,
+                    radiusFunc: (f) => {
+                        return 0.05 * f;
+                        //return 0.01;
+                    },
+                    color: new BABYLON.Color4(1, 1, 1, 1)
+                });
+                data.applyToMesh(this.winTrailMesh1);
+                this.winTrailMesh1.isVisible = true;
+            }
+        }
+    }
+
+    public winIndex = 0;
+
+    public async popWinTrailRadius(duration: number): Promise<void> {
+        this.winTrailRadius = 0.4;
+        await this.animWinTrailRadius(0.8, duration * 0.5, Nabu.Easing.easeOutCubic);
+        await this.animWinTrailRadius(0.4, duration * 0.5, Nabu.Easing.easeInCubic);
+    }
+
+    public async winAnimation(): Promise<void> {
+        this.trailMesh.isVisible = false;
+
+        this.winTrailRadius = 0.5;
+
+        this.winTrailMesh0 = new BABYLON.Mesh("winTrailMesh0");
+        this.winTrailMesh0.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailPoints0 = [];
+
+        this.winTrailMesh1 = new BABYLON.Mesh("winTrailMesh1");
+        this.winTrailMesh1.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailPoints1 = [];
+
+        this.animContainer.position.copyFrom(this.position);
+        this.animContainer.position.y += 0.2 * this.radius * 2;
+        this.setParent(this.animContainer);
+        
+        this.ballState = BallState.Wining;
+        this.speed = 0;
+
+        this._shadowGroundY = this.shadow.absolutePosition.y;
+        this.shadow.scaling.copyFrom(this.scaling).scaleInPlace(0.8);
+        this.shadow.parent = undefined;
+        this.game.scene.onBeforeRenderObservable.add(this._updateWin);
+
+        this.game.spotlight.position = this.absolutePosition.add(new BABYLON.Vector3(0, 5, 0));
+        this.game.animLightIntensity(0.5, 0.3);
+        this.game.animSpotlightIntensity(1, 0.3);
+
+        this.winIndex = (this.winIndex + 1) % 3;
+        if (this.winIndex === 0) {
+            await this.win1();
+        }
+        else if (this.winIndex === 1) {
+            await this.win2();
+        }
+        else if (this.winIndex === 2) {
+            await this.win3();
+        }
+
+        this.killWinAnim();
+    }
+
+    public killWinAnim(): void {
+        this.game.scene.onBeforeRenderObservable.removeCallback(this._updateWin);
+        this.shadow.position.x = 0;
+        this.shadow.position.y = 0.05;
+        this.shadow.position.z = 0;
+        this.shadow.scaling.copyFromFloats(1, 1, 1);
+        this.shadow.parent = this;
+        this.setParent(undefined);
+
+        this.ballState = BallState.Done;
+
+        if (this.winTrailMesh0) {
+            this.winTrailMesh0.dispose();
+        }
+        if (this.winTrailMesh1) {
+            this.winTrailMesh1.dispose();
+        }
+        
+        this.game.animLightIntensity(1, 1);
+        this.game.animSpotlightIntensity(0, 1);
+    }
+
+    public async win1(): Promise<void> {
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+
+        this.popWinTrailRadius(3.5);
+
+        await this.animStand(0.5);
+        this.popWinTrailRadius(2);
+
+        let d = 1.2;
+        this.jump(2.5, d);
+        await wait(0.2 * d);
+        await this.backFlip(2, 0.8 * d);
+        this.sparkle();
+
+        d = 0.8;
+        this.jump(1.5, d);
+        await wait(0.2 * d);
+        await this.frontFlip(1, 0.8 * d);
+        this.sparkle();
+
+        await this.animSit(0.5);
+    }
+
+    public async win2(): Promise<void> {
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+
+        await this.animStand(0.5);
+        this.popWinTrailRadius(2);
+
+        let d = 1.2;
+        this.jump(2.5, d);
+        await wait(0.2 * d);
+        await this.spin(2, 0.8 * d);
+        this.sparkle();
+        
+        d = 0.8;
+        this.jump(1.5, d);
+        await wait(0.2 * d);
+        await this.spin(1, 0.8 * d);
+        this.sparkle();
+
+        await this.animSit(0.5);
+    }
+
+    public async win3(): Promise<void> {
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+
+
+        await wait(0.5);
+        this.popWinTrailRadius(2);
+
+        let d = 1.2;
+        this.jump(2.5, d);
+        await wait(0.2 * d);
+        await this.backFlip(2, 0.8 * d);
+        this.sparkle();
+
+        d = 0.8;
+        this.jump(1.5, d);
+        await wait(0.2 * d);
+        await this.frontFlip(1, 0.8 * d);
+        this.sparkle();
+
+        await wait(0.5);
     }
 }

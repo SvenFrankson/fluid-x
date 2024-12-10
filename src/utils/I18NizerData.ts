@@ -145,51 +145,59 @@ i18nData["lesson-gap"] = {
     "en": "Lesson - Gap",
     "fr": "Leçon - Passage",
 }
+i18nData["challenge-bridge"] = {
+    "en": "Challenge 1 - Bridge",
+    "fr": "Challenge 1 - Pont",
+}
+i18nData["challenge-gates"] = {
+    "en": "Challenge 2 - Gates",
+    "fr": "Challenge 2 - Portes",
+}
 
 // Translated Haikus
 i18nData["lesson-1-haiku"] = {
     "en": "Use [A] and [D] to\nmove Left and Right.",
     "fr": "Pressez [A] et [D] pour\naller à Gauche ou à Droite.",
 }
-
 i18nData["lesson-2-haiku"] = {
     "en": "Hit a Drum to\nchange Color.",
     "fr": "Touchez un disque\npour changer de Couleur.",
 }
-
 i18nData["lesson-3-haiku"] = {
     "en": "Do not fall in a hole.",
     "fr": "Ne tombez pas dans un trou.",
 }
-
 i18nData["lesson-4-haiku"] = {
     "en": "Wooden Boxes\ncan be Pushed.",
     "fr": "Les Blocs en bois\npeuvent être Poussés.",
 }
-
 i18nData["lesson-5-haiku"] = {
     "en": "Hit a Key Tile\nto open Door Tiles.",
     "fr": "Touchez une Clef\npour ouvrir les Portes.",
 }
-
 i18nData["lesson-6-haiku"] = {
     "en": "Cracked Tiles can\nonly be crossed once.",
     "fr": "Une Dalle fendue\ncède après un passage.",
 }
-
 i18nData["lesson-7-haiku"] = {
     "en": "Water flows\nto the bottom.",
     "fr": "L'eau s'écoule\nvers le bas.",
 }
-
 i18nData["lesson-8-haiku"] = {
     "en": "Spikes are dangerous\navoid the Spikes.",
     "fr": "Attention ! Piquants !\nEvitez les Piquants.",
 }
-
 i18nData["lesson-9-haiku"] = {
     "en": "Use the Tiles to\navoid the crevass.",
     "fr": "Utilisez les blocs\npour éviter le gouffre.",
+}
+i18nData["challenge-bridge-haiku"] = {
+    "en": "Challenge - 1\nOver the Bridge",
+    "fr": "Challenge - 1\nPar le Pont",
+}
+i18nData["challenge-gates-haiku"] = {
+    "en": "Challenge - 2\nWater & Gates",
+    "fr": "Challenge - 2\nEau & Portes",
 }
 
 i18nData["play"]["pl"] = "GRAJ";

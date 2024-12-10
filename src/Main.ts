@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 1;
 var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 4;
+var PATCH_VERSION: number = 7;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -116,10 +116,6 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     
     Game.Instance.onResize();
-
-    if (Game.Instance.puzzle && Game.Instance.puzzle.balls[0]) {
-        Game.Instance.puzzle.balls[0].connectMouse();
-    }
 
     if (!PlayerHasInteracted) {
         setTimeout(() => {
@@ -278,6 +274,9 @@ class Game {
     public cameraOrtho: boolean = false;
 
     public light: BABYLON.HemisphericLight;
+    public spotlight: BABYLON.SpotLight;
+    public animLightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
+    public animSpotlightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
     public shadowGenerator: BABYLON.ShadowGenerator;
     public skybox: BABYLON.Mesh;
 
@@ -371,6 +370,12 @@ class Game {
 
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
+
+        this.spotlight = new BABYLON.SpotLight("spotlight", BABYLON.Vector3.Zero(), BABYLON.Vector3.Down(), Math.PI / 6, 10, this.scene);
+        this.spotlight.intensity = 0;
+
+        this.animLightIntensity = Mummu.AnimationFactory.CreateNumber(this.light, this.light, "intensity");
+        this.animSpotlightIntensity = Mummu.AnimationFactory.CreateNumber(this.spotlight, this.spotlight, "intensity");
 
         let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
         skyBoxHolder.rotation.x = Math.PI * 0.3;
@@ -671,7 +676,7 @@ class Game {
                 let n = 1;
                 for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
                     let title = storyModePuzzles.puzzles[i].title;
-                    if (title.startsWith("lesson") || title.startsWith("Bonus")) {
+                    if (title.startsWith("lesson") || title.startsWith("challenge") || title.startsWith("Bonus")) {
 
                     }
                     else {
@@ -1088,6 +1093,10 @@ class Game {
                 rawDT = Math.min(rawDT, 1);
                 targetCameraPos.y = Math.max(targetCameraPos.y, - 2.5);
                 let margin = 3;
+                if (this.puzzle.puzzleState === PuzzleState.Wining) {
+                    margin = 0;
+                }
+
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -1102,16 +1111,37 @@ class Game {
                 }
 
                 let relZPos = (targetCameraPos.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let targetCamAlpha = - 0.5 * Math.PI;
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
+
+                if (this.puzzle.puzzleState === PuzzleState.Wining) {
+                    targetCamAlpha = 0.2 * Math.PI;
+                    targetCamBeta = 0.2 * Math.PI;
+
+                    let f3 = Nabu.Easing.smoothNSec(1 / rawDT, this.puzzle.winAnimationTime);
+    
+                    this.camera.alpha = this.camera.alpha * f3 + targetCamAlpha * (1 - f3);
+                    this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
+                }
+                else {
+                    let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.5, 3 - this.globalTimer));
+    
+                    this.camera.alpha = this.camera.alpha * f3 + targetCamAlpha * (1 - f3);
+                    this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
+                }
                 
                 let f = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 3 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(2, 4 - this.globalTimer));
-                this.camera.alpha = this.camera.alpha * f3 + (- Math.PI * 0.5) * (1 - f3);
-                this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
-                let f4 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.25, 2.25 - this.globalTimer));
-                this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
+
+                if (this.puzzle.puzzleState === PuzzleState.Wining) {
+                    let f4 = Nabu.Easing.smoothNSec(1 / rawDT, this.puzzle.winAnimationTime);
+                    this.camera.radius = this.camera.radius * f4 + 5 * (1 - f4);
+                }
+                else {
+                    let f4 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.25, 2.25 - this.globalTimer));
+                    this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
+                }
             }
             else if (this.mode === GameMode.Menu || this.mode === GameMode.Preplay) {
                 while (this.camera.alpha > Math.PI / 2) {
@@ -1129,7 +1159,7 @@ class Game {
                     0.4 * (this.puzzle.zMin + this.puzzle.zMax) + 0.2 * d * Math.sin(this.globalTimer / 30 * 2 * Math.PI)
                 )
                 
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 4 - this.globalTimer));
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 8 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
                 this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);

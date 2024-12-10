@@ -2,6 +2,7 @@ enum PuzzleState {
     Loading,
     Ready,
     Playing,
+    Wining,
     Done
 }
 
@@ -250,6 +251,7 @@ class Puzzle {
     public tileHaikus: HaikuTile[] = [];
     public playerHaikus: HaikuPlayerStart[] = [];
     public floorMaterialIndex: number = 0;
+    public winAnimationTime: number = 4;
 
     constructor(public game: Game) {
         this.balls = [
@@ -326,7 +328,7 @@ class Puzzle {
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";
-        if (!this.editorOrEditorPreview && this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+        if (!this.editorOrEditorPreview && this.data.state === PuzzleDataState.STORY && this.data.numLevel === 1) {
             this.game.router.tutoPage.show(1);
         }
         else {
@@ -345,22 +347,22 @@ class Puzzle {
 
     public win(): void {
         if (USE_POKI_SDK) {
-            PokiGameplayStop();
+            //PokiGameplayStop();
         }
-        this.puzzleState = PuzzleState.Done;
+        this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
         
         let previousCompletion = 0;
-        if (this.data.state === PuzzleState.OKAY) {
+        if (this.data.state === PuzzleDataState.OKAY) {
             previousCompletion = this.game.puzzleCompletion.communityPuzzleCompletion;
         }
-        else if (this.data.state === PuzzleState.STORY) {
+        else if (this.data.state === PuzzleDataState.STORY) {
             previousCompletion = this.game.puzzleCompletion.storyPuzzleCompletion;
         }
-        else if (this.data.state === PuzzleState.XPERT) {
+        else if (this.data.state === PuzzleDataState.XPERT) {
             previousCompletion = this.game.puzzleCompletion.expertPuzzleCompletion;
         }
-        else if (this.data.state === PuzzleState.XMAS) {
+        else if (this.data.state === PuzzleDataState.XMAS) {
             previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
@@ -368,6 +370,12 @@ class Puzzle {
         (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score);
 
         clearTimeout(this._winloseTimout);
+        setTimeout(() => {
+            this.balls[0].winAnimation()
+        }, 500);
+        setTimeout(() => {
+            this.puzzleUI.winSound.play();
+        }, 1000);
         this._winloseTimout = setTimeout(() => {
             this.puzzleUI.win(firstTimeCompleted, previousCompletion);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
@@ -376,12 +384,14 @@ class Puzzle {
             else {
                 this.puzzleUI.setHighscoreState(0);
             }
-        }, 1000);
+            this.puzzleState = PuzzleState.Done;
+            this.game.mode = GameMode.Menu;
+        }, this.winAnimationTime * 1000);
     }
 
     public lose(): void {
         if (USE_POKI_SDK) {
-            PokiGameplayStop();
+            //PokiGameplayStop();
         }
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
@@ -874,10 +884,9 @@ class Puzzle {
 
         if (data.haiku) {
             let split = data.haiku.split("x");
-            let x = parseInt(split[0]) * 0.5;
-            let z = parseInt(split[1]) * 0.5;
+            let x = parseInt(split[0]) * 0.55;
+            let z = parseInt(split[1]) * 0.55;
             let haiku: Haiku;
-            console.log(z);
             if (z < - 2) {
                 haiku = new Haiku(this.game, "", 2000, 200);
                 haiku.position.copyFromFloats((this.w - 1) * 1.1 * 0.5, 0.32, - 1);
@@ -1562,18 +1571,28 @@ class Puzzle {
             for (let i = 0; i < this.creeps.length; i++) {
                 this.creeps[i].update(dt);
             }
-            if (this.blockTiles.length === 0) {
-                let ballNotDone = false;
-                for (let i = 0; i < this.ballsCount; i++) {
-                    if (this.balls[i].ballState != BallState.Done) {
-                        ballNotDone = true;
+
+            if (this.puzzleState === PuzzleState.Playing) {
+                let noBlockTile = true;
+                for (let i = 0; i < this.blockTiles.length; i++) {
+                    if (this.blockTiles[i].tileState === TileState.Active) {
+                        noBlockTile = false;
+                        break;
                     }
                 }
-                if (ballNotDone) {
+                if (noBlockTile) {
+                    let ballNotDone = false;
                     for (let i = 0; i < this.ballsCount; i++) {
-                        this.balls[i].ballState = BallState.Done;
+                        if (this.balls[i].ballState != BallState.Done) {
+                            ballNotDone = true;
+                        }
                     }
-                    this.win();
+                    if (ballNotDone) {
+                        for (let i = 0; i < this.ballsCount; i++) {
+                            this.balls[i].ballState = BallState.Done;
+                        }
+                        this.win();
+                    }
                 }
             }
 

@@ -179,7 +179,6 @@ abstract class LevelPage {
             else {
                 this.containerLineHeight = 142;
             }
-            console.log(this.containerLineHeight);
         })
         
         if (this.router.game.uiInputManager.inControl) {

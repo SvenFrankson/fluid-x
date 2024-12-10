@@ -123,19 +123,19 @@ class PuzzleUI {
         this.successNextButton.innerText = I18Nizer.GetText("success-continue", LOCALE);;
 
         let completion = 1;
-        if (this.puzzle.data.state === PuzzleState.OKAY) {
+        if (this.puzzle.data.state === PuzzleDataState.OKAY) {
             completion = this.game.puzzleCompletion.communityPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Community";
         }
-        else if (this.puzzle.data.state === PuzzleState.STORY) {
+        else if (this.puzzle.data.state === PuzzleDataState.STORY) {
             completion = this.game.puzzleCompletion.storyPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Story";
         }
-        else if (this.puzzle.data.state === PuzzleState.XPERT) {
+        else if (this.puzzle.data.state === PuzzleDataState.XPERT) {
             completion = this.game.puzzleCompletion.expertPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Expert";
         }
-        else if (this.puzzle.data.state === PuzzleState.XMAS) {
+        else if (this.puzzle.data.state === PuzzleDataState.XMAS) {
             completion = this.game.puzzleCompletion.xmasPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Christmas";
         }
@@ -162,15 +162,21 @@ class PuzzleUI {
         let starCount = this.game.puzzleCompletion.getStarCount(this.puzzle.data.id);
         stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
         stamp.classList.add("stamp-" + starCount);
-        this.winSound.play();
         setTimeout(() => {
             this.game.stamp.play(this.successPanel.querySelector(".stamp"));
-        }, this.winSound.duration * 1000 - 1000);
+        }, 500);
 
         CenterPanel(this.successPanel, panelDX, panelDY);
         requestAnimationFrame(() => {
             CenterPanel(this.successPanel, panelDX, panelDY);
         })
+
+        let currentHash = location.hash;
+        setTimeout(() => {
+            if (location.hash === currentHash) {
+                this.successNextButton.click();
+            }
+        }, 3000);
         console.log("PuzzleUI win");
     }
 

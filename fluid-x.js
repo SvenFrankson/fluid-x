@@ -5,7 +5,8 @@ var BallState;
     BallState[BallState["Fall"] = 2] = "Fall";
     BallState[BallState["Split"] = 3] = "Split";
     BallState[BallState["Flybacking"] = 4] = "Flybacking";
-    BallState[BallState["Done"] = 5] = "Done";
+    BallState[BallState["Wining"] = 5] = "Wining";
+    BallState[BallState["Done"] = 6] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
     constructor(puzzle, props, ballIndex = 0) {
@@ -65,7 +66,75 @@ class Ball extends BABYLON.Mesh {
         this.trailTimer = 0;
         this.trailPoints = [];
         this.trailPointColors = [];
+        this.animPos = Mummu.AnimationFactory.EmptyVector3Callback;
+        this.animWinTrailRadius = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.animRotX = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.animRotY = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.animRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.winTrailPos0 = BABYLON.Vector3.Zero();
+        this.winTrailPos1 = BABYLON.Vector3.Zero();
+        this.winTrailPoints0 = [];
+        this.winTrailPoints1 = [];
+        this._shadowGroundY = 0;
+        this.winTrailRadius = 0.5;
+        this._winTrailTimer = 0;
+        this._updateWin = () => {
+            let dt = this.game.scene.deltaTime / 1000;
+            this.shadow.position.x = this.animContainer.position.x;
+            this.shadow.position.y = this._shadowGroundY;
+            this.shadow.position.z = this.animContainer.position.z;
+            this._winTrailTimer -= dt;
+            if (this._winTrailTimer <= 0) {
+                this._winTrailTimer = 0.01;
+                let pt0 = new BABYLON.Vector3(1, 0, -1).normalize();
+                pt0.scaleInPlace(this.winTrailRadius);
+                BABYLON.Vector3.TransformCoordinatesToRef(pt0, this.getWorldMatrix(), pt0);
+                this.winTrailPoints0.push(pt0);
+                if (this.winTrailPoints0.length > 40) {
+                    this.winTrailPoints0.splice(0, 1);
+                }
+                let pt1 = new BABYLON.Vector3(-1, 0, -1).normalize();
+                pt1.scaleInPlace(this.winTrailRadius);
+                BABYLON.Vector3.TransformCoordinatesToRef(pt1, this.getWorldMatrix(), pt1);
+                this.winTrailPoints1.push(pt1);
+                if (this.winTrailPoints1.length > 40) {
+                    this.winTrailPoints1.splice(0, 1);
+                }
+                if (this.winTrailPoints0.length > 2) {
+                    let data = CreateTrailVertexData({
+                        path: this.winTrailPoints0,
+                        radiusFunc: (f) => {
+                            return 0.05 * f;
+                            //return 0.01;
+                        },
+                        color: new BABYLON.Color4(1, 1, 1, 1)
+                    });
+                    data.applyToMesh(this.winTrailMesh0);
+                    this.winTrailMesh0.isVisible = true;
+                }
+                if (this.winTrailPoints1.length > 2) {
+                    let data = CreateTrailVertexData({
+                        path: this.winTrailPoints1,
+                        radiusFunc: (f) => {
+                            return 0.05 * f;
+                            //return 0.01;
+                        },
+                        color: new BABYLON.Color4(1, 1, 1, 1)
+                    });
+                    data.applyToMesh(this.winTrailMesh1);
+                    this.winTrailMesh1.isVisible = true;
+                }
+            }
+        };
+        this.winIndex = 0;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
+        this.animContainer = new BABYLON.Mesh("anim-container");
+        //this.animContainer = Mummu.DrawDebugPoint(BABYLON.Vector3.Zero(), Infinity, BABYLON.Color3.Red(), 1);
+        this.animPos = Mummu.AnimationFactory.CreateVector3(this.animContainer, this.animContainer, "position");
+        this.animWinTrailRadius = Mummu.AnimationFactory.CreateNumber(this, this, "winTrailRadius");
+        this.animRotX = Mummu.AnimationFactory.CreateNumber(this.animContainer, this.animContainer.rotation, "x");
+        this.animRotY = Mummu.AnimationFactory.CreateNumber(this.animContainer, this.animContainer.rotation, "y");
+        this.animRotZ = Mummu.AnimationFactory.CreateNumber(this.animContainer, this.animContainer.rotation, "z");
         this.color = props.color;
         this.scaling.copyFromFloats(this.radius * 2, this.radius * 2, this.radius * 2);
         this.ballTop = new BABYLON.Mesh("ball-top");
@@ -122,6 +191,7 @@ class Ball extends BABYLON.Mesh {
         this.fallImpactSound = this.game.soundManager.createSound("ball-fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false });
         this.animateSpeed = Mummu.AnimationFactory.CreateNumber(this, this, "speed");
         if (this.ballIndex === 0) {
+            this.connectMouse();
             let inputLeft = document.querySelector("#input-left");
             if (inputLeft) {
                 inputLeft.addEventListener("pointerdown", () => {
@@ -381,7 +451,7 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
     get mouseCanControl() {
-        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
+        return (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
     async instantiate() {
         //await RandomWait();
@@ -483,10 +553,11 @@ class Ball extends BABYLON.Mesh {
             this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
         }
         vX = Nabu.MinMax(vX, -1, 1);
-        if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking) {
+        if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking && this.ballState != BallState.Wining) {
             this.trailTimer += dt;
             if (this.game.performanceWatcher.worst > 1) {
                 let p = BABYLON.Vector3.Zero();
+                let f = 0.6;
                 p.copyFrom(this.smoothedMoveDir).scaleInPlace(-0.3);
                 p.y += 0.15;
                 BABYLON.Vector3.TransformCoordinatesToRef(p, this.getWorldMatrix(), p);
@@ -494,7 +565,7 @@ class Ball extends BABYLON.Mesh {
                     this.trailTimer = 0;
                     let last = this.trailPoints[this.trailPoints.length - 1];
                     if (last) {
-                        p.scaleInPlace(0.6).addInPlace(last.scale(0.4));
+                        p.scaleInPlace(f).addInPlace(last.scale(1 - f));
                     }
                     this.trailPoints.push(p);
                     let col = 0.2;
@@ -987,6 +1058,7 @@ class Ball extends BABYLON.Mesh {
         this.ballState = BallState.Split;
     }
     reset() {
+        this.killWinAnim();
         clearTimeout(this._loseTimout);
         this.parent = undefined;
         this.boost = false;
@@ -1008,6 +1080,171 @@ class Ball extends BABYLON.Mesh {
         this.leftArrow.isVisible = true;
         this.rightArrow.isVisible = true;
         this.setVisible(true);
+    }
+    async animStand(duration) {
+        let standingP = this.animContainer.position.clone();
+        standingP.y += 0.1;
+        standingP.z -= 0.3;
+        let r = this.animContainer.rotation.x - Math.PI * 0.5;
+        this.animRotX(r, duration, Nabu.Easing.easeInSine);
+        await this.animPos(standingP, duration, Nabu.Easing.easeInSine);
+        //this.sparkle();
+    }
+    async animSit(duration) {
+        let sitP = this.animContainer.position.clone();
+        sitP.y -= 0.1;
+        sitP.z += 0.3;
+        let r = this.animContainer.rotation.x + Math.PI * 0.5;
+        this.animRotX(r, duration, Nabu.Easing.easeInSine);
+        await this.animPos(sitP, duration, Nabu.Easing.easeInSine);
+        //this.sparkle();
+    }
+    async backFlip(turns, duration) {
+        let r = this.animContainer.rotation.x + turns * 2 * Math.PI;
+        setTimeout(() => {
+            this.puzzle.wiishSound.play();
+        }, duration * 100);
+        await this.animRotX(r, duration, Nabu.Easing.easeInOutSine);
+    }
+    async frontFlip(turns, duration) {
+        let r = this.animContainer.rotation.x - turns * 2 * Math.PI;
+        setTimeout(() => {
+            this.puzzle.wiishSound.play();
+        }, duration * 100);
+        await this.animRotX(r, duration, Nabu.Easing.easeInOutSine);
+    }
+    async spin(turns, duration) {
+        let r = this.animContainer.rotation.y + turns * 2 * Math.PI;
+        setTimeout(() => {
+            this.puzzle.wiishSound.play();
+        }, duration * 100);
+        await this.animRotY(r, duration, Nabu.Easing.easeInOutSine);
+    }
+    async jump(h, duration) {
+        let baseP = this.animContainer.position.clone();
+        let stretchP = baseP.clone();
+        stretchP.y -= 0.1;
+        let jumpP = baseP.clone();
+        jumpP.y += h;
+        await this.animPos(stretchP, duration * 0.2, Nabu.Easing.easeOutCubic);
+        await this.animPos(jumpP, duration * 0.4, Nabu.Easing.easeOutCubic);
+        await this.animPos(baseP, duration * 0.4, Nabu.Easing.easeInCubic);
+        this.woodChocSound.play();
+    }
+    sparkle() {
+        let explosionFire = new Explosion(this.game);
+        explosionFire.origin.copyFrom(this.absolutePosition);
+        explosionFire.setRadius(0.4);
+        explosionFire.color = BABYLON.Color3.FromHexString("#e0c872");
+        explosionFire.color = BABYLON.Color3.FromHexString("#ffffff");
+        explosionFire.lifespan = 1;
+        explosionFire.tZero = 1.1;
+        explosionFire.boom();
+    }
+    async popWinTrailRadius(duration) {
+        this.winTrailRadius = 0.4;
+        await this.animWinTrailRadius(0.8, duration * 0.5, Nabu.Easing.easeOutCubic);
+        await this.animWinTrailRadius(0.4, duration * 0.5, Nabu.Easing.easeInCubic);
+    }
+    async winAnimation() {
+        this.trailMesh.isVisible = false;
+        this.winTrailRadius = 0.5;
+        this.winTrailMesh0 = new BABYLON.Mesh("winTrailMesh0");
+        this.winTrailMesh0.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailPoints0 = [];
+        this.winTrailMesh1 = new BABYLON.Mesh("winTrailMesh1");
+        this.winTrailMesh1.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailPoints1 = [];
+        this.animContainer.position.copyFrom(this.position);
+        this.animContainer.position.y += 0.2 * this.radius * 2;
+        this.setParent(this.animContainer);
+        this.ballState = BallState.Wining;
+        this.speed = 0;
+        this._shadowGroundY = this.shadow.absolutePosition.y;
+        this.shadow.scaling.copyFrom(this.scaling).scaleInPlace(0.8);
+        this.shadow.parent = undefined;
+        this.game.scene.onBeforeRenderObservable.add(this._updateWin);
+        this.game.spotlight.position = this.absolutePosition.add(new BABYLON.Vector3(0, 5, 0));
+        this.game.animLightIntensity(0.5, 0.3);
+        this.game.animSpotlightIntensity(1, 0.3);
+        this.winIndex = (this.winIndex + 1) % 3;
+        if (this.winIndex === 0) {
+            await this.win1();
+        }
+        else if (this.winIndex === 1) {
+            await this.win2();
+        }
+        else if (this.winIndex === 2) {
+            await this.win3();
+        }
+        this.killWinAnim();
+    }
+    killWinAnim() {
+        this.game.scene.onBeforeRenderObservable.removeCallback(this._updateWin);
+        this.shadow.position.x = 0;
+        this.shadow.position.y = 0.05;
+        this.shadow.position.z = 0;
+        this.shadow.scaling.copyFromFloats(1, 1, 1);
+        this.shadow.parent = this;
+        this.setParent(undefined);
+        this.ballState = BallState.Done;
+        if (this.winTrailMesh0) {
+            this.winTrailMesh0.dispose();
+        }
+        if (this.winTrailMesh1) {
+            this.winTrailMesh1.dispose();
+        }
+        this.game.animLightIntensity(1, 1);
+        this.game.animSpotlightIntensity(0, 1);
+    }
+    async win1() {
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+        this.popWinTrailRadius(3.5);
+        await this.animStand(0.5);
+        this.popWinTrailRadius(2);
+        let d = 1.2;
+        this.jump(2.5, d);
+        await wait(0.2 * d);
+        await this.backFlip(2, 0.8 * d);
+        this.sparkle();
+        d = 0.8;
+        this.jump(1.5, d);
+        await wait(0.2 * d);
+        await this.frontFlip(1, 0.8 * d);
+        this.sparkle();
+        await this.animSit(0.5);
+    }
+    async win2() {
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+        await this.animStand(0.5);
+        this.popWinTrailRadius(2);
+        let d = 1.2;
+        this.jump(2.5, d);
+        await wait(0.2 * d);
+        await this.spin(2, 0.8 * d);
+        this.sparkle();
+        d = 0.8;
+        this.jump(1.5, d);
+        await wait(0.2 * d);
+        await this.spin(1, 0.8 * d);
+        this.sparkle();
+        await this.animSit(0.5);
+    }
+    async win3() {
+        let wait = Mummu.AnimationFactory.CreateWait(this);
+        await wait(0.5);
+        this.popWinTrailRadius(2);
+        let d = 1.2;
+        this.jump(2.5, d);
+        await wait(0.2 * d);
+        await this.backFlip(2, 0.8 * d);
+        this.sparkle();
+        d = 0.8;
+        this.jump(1.5, d);
+        await wait(0.2 * d);
+        await this.frontFlip(1, 0.8 * d);
+        this.sparkle();
+        await wait(0.5);
     }
 }
 var TileState;
@@ -3034,8 +3271,8 @@ class Editor {
         this.ballCountButton.querySelector("stroke-text").innerHTML = this.puzzle.ballsCount === 2 ? "2 PLAYERS" : "1 PLAYER";
         if (this.puzzle.haiku) {
             this.puzzle.haiku.visibility = 1;
-            this.haikuIInput.setValue(Math.round(this.puzzle.haiku.position.x * 2));
-            this.haikuJInput.setValue(Math.round(this.puzzle.haiku.position.z * 2));
+            this.haikuIInput.setValue(Math.round(this.puzzle.haiku.position.x / 0.55));
+            this.haikuJInput.setValue(Math.round(this.puzzle.haiku.position.z / 0.55));
             this.haikuContent.value = this.puzzle.haiku.text;
         }
     }
@@ -3308,20 +3545,19 @@ class Editor {
         this.haikuIInput = document.getElementById("haiku-i");
         this.haikuIInput.onValueChange = (v) => {
             if (this.puzzle.haiku) {
-                this.puzzle.haiku.position.x = v / 2;
+                this.puzzle.haiku.position.x = v * 0.55;
             }
         };
         this.haikuJInput = document.getElementById("haiku-j");
         this.haikuJInput.onValueChange = (v) => {
             if (this.puzzle.haiku) {
-                this.puzzle.haiku.position.z = v / 2;
+                this.puzzle.haiku.position.z = v * 0.55;
             }
         };
         this.haikuContent = document.getElementById("haiku-content");
         this.haikuUpdateButton = document.getElementById("haiku-update");
         this.haikuUpdateButton.onpointerup = () => {
             let content = this.haikuContent.value;
-            console.log(content);
             if (content === "") {
                 this.puzzle.data.haiku = undefined;
                 if (this.puzzle.haiku) {
@@ -4439,7 +4675,6 @@ class LevelPage {
             else {
                 this.containerLineHeight = 142;
             }
-            console.log(this.containerLineHeight);
         });
         if (this.router.game.uiInputManager.inControl) {
             this.setHoveredButtonIndex(this.hoveredButtonIndex);
@@ -4829,7 +5064,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 1;
 var MINOR_VERSION = 1;
-var PATCH_VERSION = 4;
+var PATCH_VERSION = 7;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -4930,9 +5165,6 @@ let onFirstPlayerInteractionClick = (ev) => {
     ev.stopPropagation();
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
     Game.Instance.onResize();
-    if (Game.Instance.puzzle && Game.Instance.puzzle.balls[0]) {
-        Game.Instance.puzzle.balls[0].connectMouse();
-    }
     if (!PlayerHasInteracted) {
         setTimeout(() => {
             document.getElementById("click-anywhere-screen").style.display = "none";
@@ -5062,6 +5294,8 @@ class Game {
         this.playCameraMinRadius = 5;
         this.playCameraMaxRadius = 50;
         this.cameraOrtho = false;
+        this.animLightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
+        this.animSpotlightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
         this.player1Name = "";
         this.player2Name = "";
         this.dayOfXMasCal = 1;
@@ -5163,6 +5397,10 @@ class Game {
         this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
         this.light = new BABYLON.HemisphericLight("light", (new BABYLON.Vector3(2, 4, 3)).normalize(), this.scene);
         this.light.groundColor.copyFromFloats(0.3, 0.3, 0.3);
+        this.spotlight = new BABYLON.SpotLight("spotlight", BABYLON.Vector3.Zero(), BABYLON.Vector3.Down(), Math.PI / 6, 10, this.scene);
+        this.spotlight.intensity = 0;
+        this.animLightIntensity = Mummu.AnimationFactory.CreateNumber(this.light, this.light, "intensity");
+        this.animSpotlightIntensity = Mummu.AnimationFactory.CreateNumber(this.spotlight, this.spotlight, "intensity");
         let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
         skyBoxHolder.rotation.x = Math.PI * 0.3;
         this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
@@ -5411,7 +5649,7 @@ class Game {
                 let n = 1;
                 for (let i = 0; i < storyModePuzzles.puzzles.length; i++) {
                     let title = storyModePuzzles.puzzles[i].title;
-                    if (title.startsWith("lesson") || title.startsWith("Bonus")) {
+                    if (title.startsWith("lesson") || title.startsWith("challenge") || title.startsWith("Bonus")) {
                     }
                     else {
                         storyModePuzzles.puzzles[i].title = n.toFixed(0) + ". " + title;
@@ -5773,6 +6011,9 @@ class Game {
                 rawDT = Math.min(rawDT, 1);
                 targetCameraPos.y = Math.max(targetCameraPos.y, -2.5);
                 let margin = 3;
+                if (this.puzzle.puzzleState === PuzzleState.Wining) {
+                    margin = 0;
+                }
                 if (this.puzzle.xMax - this.puzzle.xMin > 2 * margin) {
                     targetCameraPos.x = Nabu.MinMax(targetCameraPos.x, this.puzzle.xMin + margin, this.puzzle.xMax - margin);
                 }
@@ -5786,15 +6027,31 @@ class Game {
                     targetCameraPos.z = (this.puzzle.zMin * 0.85 + this.puzzle.zMax * 1.15) * 0.5;
                 }
                 let relZPos = (targetCameraPos.z - this.puzzle.zMin) / (this.puzzle.zMax - this.puzzle.zMin);
+                let targetCamAlpha = -0.5 * Math.PI;
                 let targetCamBeta = Math.PI * 0.01 * relZPos + Math.PI * 0.15 * (1 - relZPos);
                 targetCamBeta = 0.1 * Math.PI;
+                if (this.puzzle.puzzleState === PuzzleState.Wining) {
+                    targetCamAlpha = 0.2 * Math.PI;
+                    targetCamBeta = 0.2 * Math.PI;
+                    let f3 = Nabu.Easing.smoothNSec(1 / rawDT, this.puzzle.winAnimationTime);
+                    this.camera.alpha = this.camera.alpha * f3 + targetCamAlpha * (1 - f3);
+                    this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
+                }
+                else {
+                    let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.5, 3 - this.globalTimer));
+                    this.camera.alpha = this.camera.alpha * f3 + targetCamAlpha * (1 - f3);
+                    this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
+                }
                 let f = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 3 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f), this.camera.target);
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(2, 4 - this.globalTimer));
-                this.camera.alpha = this.camera.alpha * f3 + (-Math.PI * 0.5) * (1 - f3);
-                this.camera.beta = this.camera.beta * f3 + targetCamBeta * (1 - f3);
-                let f4 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.25, 2.25 - this.globalTimer));
-                this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
+                if (this.puzzle.puzzleState === PuzzleState.Wining) {
+                    let f4 = Nabu.Easing.smoothNSec(1 / rawDT, this.puzzle.winAnimationTime);
+                    this.camera.radius = this.camera.radius * f4 + 5 * (1 - f4);
+                }
+                else {
+                    let f4 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(0.25, 2.25 - this.globalTimer));
+                    this.camera.radius = this.camera.radius * f4 + (this.playCameraRadius) * (1 - f4);
+                }
             }
             else if (this.mode === GameMode.Menu || this.mode === GameMode.Preplay) {
                 while (this.camera.alpha > Math.PI / 2) {
@@ -5807,7 +6064,7 @@ class Game {
                 let w = this.puzzle.xMax - this.puzzle.xMin;
                 let d = this.puzzle.zMax - this.puzzle.zMin;
                 let targetCameraPos = new BABYLON.Vector3(0.5 * (this.puzzle.xMin + this.puzzle.xMax) + 0.2 * w * Math.cos(this.globalTimer / 30 * 2 * Math.PI), 0, 0.4 * (this.puzzle.zMin + this.puzzle.zMax) + 0.2 * d * Math.sin(this.globalTimer / 30 * 2 * Math.PI));
-                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 4 - this.globalTimer));
+                let f3 = Nabu.Easing.smoothNSec(1 / rawDT, Math.max(1, 8 - this.globalTimer));
                 BABYLON.Vector3.LerpToRef(this.camera.target, targetCameraPos, (1 - f3), this.camera.target);
                 this.camera.alpha = this.camera.alpha * f3 + this.menuCamAlpha * (1 - f3);
                 this.camera.beta = this.camera.beta * f3 + this.menuCamBeta * (1 - f3);
@@ -8602,7 +8859,8 @@ var PuzzleState;
     PuzzleState[PuzzleState["Loading"] = 0] = "Loading";
     PuzzleState[PuzzleState["Ready"] = 1] = "Ready";
     PuzzleState[PuzzleState["Playing"] = 2] = "Playing";
-    PuzzleState[PuzzleState["Done"] = 3] = "Done";
+    PuzzleState[PuzzleState["Wining"] = 3] = "Wining";
+    PuzzleState[PuzzleState["Done"] = 4] = "Done";
 })(PuzzleState || (PuzzleState = {}));
 class Puzzle {
     constructor(game) {
@@ -8642,6 +8900,7 @@ class Puzzle {
         this.tileHaikus = [];
         this.playerHaikus = [];
         this.floorMaterialIndex = 0;
+        this.winAnimationTime = 4;
         this.buildingUpStep = 0.1;
         this.buildingUpValue = 1;
         this._ballCollisionTimeStamp = 0;
@@ -8872,7 +9131,7 @@ class Puzzle {
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         document.querySelector("#puzzle-skip-intro").style.display = "";
         document.querySelector("#puzzle-ready").style.display = "none";
-        if (!this.editorOrEditorPreview && this.data.state === PuzzleState.STORY && this.data.numLevel === 1) {
+        if (!this.editorOrEditorPreview && this.data.state === PuzzleDataState.STORY && this.data.numLevel === 1) {
             this.game.router.tutoPage.show(1);
         }
         else {
@@ -8889,27 +9148,33 @@ class Puzzle {
     }
     win() {
         if (USE_POKI_SDK) {
-            PokiGameplayStop();
+            //PokiGameplayStop();
         }
-        this.puzzleState = PuzzleState.Done;
+        this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
         let previousCompletion = 0;
-        if (this.data.state === PuzzleState.OKAY) {
+        if (this.data.state === PuzzleDataState.OKAY) {
             previousCompletion = this.game.puzzleCompletion.communityPuzzleCompletion;
         }
-        else if (this.data.state === PuzzleState.STORY) {
+        else if (this.data.state === PuzzleDataState.STORY) {
             previousCompletion = this.game.puzzleCompletion.storyPuzzleCompletion;
         }
-        else if (this.data.state === PuzzleState.XPERT) {
+        else if (this.data.state === PuzzleDataState.XPERT) {
             previousCompletion = this.game.puzzleCompletion.expertPuzzleCompletion;
         }
-        else if (this.data.state === PuzzleState.XMAS) {
+        else if (this.data.state === PuzzleDataState.XMAS) {
             previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score);
         this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
         clearTimeout(this._winloseTimout);
+        setTimeout(() => {
+            this.balls[0].winAnimation();
+        }, 500);
+        setTimeout(() => {
+            this.puzzleUI.winSound.play();
+        }, 1000);
         this._winloseTimout = setTimeout(() => {
             this.puzzleUI.win(firstTimeCompleted, previousCompletion);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
@@ -8918,11 +9183,13 @@ class Puzzle {
             else {
                 this.puzzleUI.setHighscoreState(0);
             }
-        }, 1000);
+            this.puzzleState = PuzzleState.Done;
+            this.game.mode = GameMode.Menu;
+        }, this.winAnimationTime * 1000);
     }
     lose() {
         if (USE_POKI_SDK) {
-            PokiGameplayStop();
+            //PokiGameplayStop();
         }
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
@@ -9393,10 +9660,9 @@ class Puzzle {
         }
         if (data.haiku) {
             let split = data.haiku.split("x");
-            let x = parseInt(split[0]) * 0.5;
-            let z = parseInt(split[1]) * 0.5;
+            let x = parseInt(split[0]) * 0.55;
+            let z = parseInt(split[1]) * 0.55;
             let haiku;
-            console.log(z);
             if (z < -2) {
                 haiku = new Haiku(this.game, "", 2000, 200);
                 haiku.position.copyFromFloats((this.w - 1) * 1.1 * 0.5, 0.32, -1);
@@ -10016,18 +10282,27 @@ class Puzzle {
             for (let i = 0; i < this.creeps.length; i++) {
                 this.creeps[i].update(dt);
             }
-            if (this.blockTiles.length === 0) {
-                let ballNotDone = false;
-                for (let i = 0; i < this.ballsCount; i++) {
-                    if (this.balls[i].ballState != BallState.Done) {
-                        ballNotDone = true;
+            if (this.puzzleState === PuzzleState.Playing) {
+                let noBlockTile = true;
+                for (let i = 0; i < this.blockTiles.length; i++) {
+                    if (this.blockTiles[i].tileState === TileState.Active) {
+                        noBlockTile = false;
+                        break;
                     }
                 }
-                if (ballNotDone) {
+                if (noBlockTile) {
+                    let ballNotDone = false;
                     for (let i = 0; i < this.ballsCount; i++) {
-                        this.balls[i].ballState = BallState.Done;
+                        if (this.balls[i].ballState != BallState.Done) {
+                            ballNotDone = true;
+                        }
                     }
-                    this.win();
+                    if (ballNotDone) {
+                        for (let i = 0; i < this.ballsCount; i++) {
+                            this.balls[i].ballState = BallState.Done;
+                        }
+                        this.win();
+                    }
                 }
             }
             if (this.balls[0].ballState === BallState.Move || this.balls[0].ballState === BallState.Fall || this.balls[0].ballState === BallState.Flybacking) {
@@ -10072,18 +10347,18 @@ class Puzzle {
         }
     }
 }
-var PuzzleState;
-(function (PuzzleState) {
-    PuzzleState[PuzzleState["TBD"] = 0] = "TBD";
-    PuzzleState[PuzzleState["OKAY"] = 1] = "OKAY";
-    PuzzleState[PuzzleState["STORY"] = 2] = "STORY";
-    PuzzleState[PuzzleState["XPERT"] = 3] = "XPERT";
-    PuzzleState[PuzzleState["MULTI"] = 4] = "MULTI";
-    PuzzleState[PuzzleState["TRASH"] = 5] = "TRASH";
-    PuzzleState[PuzzleState["PRBLM"] = 6] = "PRBLM";
-    PuzzleState[PuzzleState["INFO"] = 7] = "INFO";
-    PuzzleState[PuzzleState["XMAS"] = 8] = "XMAS";
-})(PuzzleState || (PuzzleState = {}));
+var PuzzleDataState;
+(function (PuzzleDataState) {
+    PuzzleDataState[PuzzleDataState["TBD"] = 0] = "TBD";
+    PuzzleDataState[PuzzleDataState["OKAY"] = 1] = "OKAY";
+    PuzzleDataState[PuzzleDataState["STORY"] = 2] = "STORY";
+    PuzzleDataState[PuzzleDataState["XPERT"] = 3] = "XPERT";
+    PuzzleDataState[PuzzleDataState["MULTI"] = 4] = "MULTI";
+    PuzzleDataState[PuzzleDataState["TRASH"] = 5] = "TRASH";
+    PuzzleDataState[PuzzleDataState["PRBLM"] = 6] = "PRBLM";
+    PuzzleDataState[PuzzleDataState["INFO"] = 7] = "INFO";
+    PuzzleDataState[PuzzleDataState["XMAS"] = 8] = "XMAS";
+})(PuzzleDataState || (PuzzleDataState = {}));
 function CLEAN_IPuzzleData(data) {
     if (data.id != null && typeof (data.id) === "string") {
         data.id = parseInt(data.id);
@@ -10120,12 +10395,14 @@ function GetTranslatedTitle(data, locale) {
     if (!locale) {
         locale = LOCALE;
     }
-    if (data.title.startsWith("lesson-")) {
-        console.log(data.title);
+    if (data.title.startsWith("lesson-") || data.title.startsWith("challenge-")) {
         let translatedTitle = I18Nizer.GetText(data.title, locale);
         if (translatedTitle) {
-            if (data.lessonIndex) {
+            if (isFinite(data.lessonIndex)) {
                 return translatedTitle.replace(" - ", " " + data.lessonIndex.toFixed(0) + " - ");
+            }
+            else {
+                return translatedTitle;
             }
         }
     }
@@ -10646,19 +10923,19 @@ class PuzzleUI {
         this.successNextButton.innerText = I18Nizer.GetText("success-continue", LOCALE);
         ;
         let completion = 1;
-        if (this.puzzle.data.state === PuzzleState.OKAY) {
+        if (this.puzzle.data.state === PuzzleDataState.OKAY) {
             completion = this.game.puzzleCompletion.communityPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Community";
         }
-        else if (this.puzzle.data.state === PuzzleState.STORY) {
+        else if (this.puzzle.data.state === PuzzleDataState.STORY) {
             completion = this.game.puzzleCompletion.storyPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Story";
         }
-        else if (this.puzzle.data.state === PuzzleState.XPERT) {
+        else if (this.puzzle.data.state === PuzzleDataState.XPERT) {
             completion = this.game.puzzleCompletion.expertPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Expert";
         }
-        else if (this.puzzle.data.state === PuzzleState.XMAS) {
+        else if (this.puzzle.data.state === PuzzleDataState.XMAS) {
             completion = this.game.puzzleCompletion.xmasPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Christmas";
         }
@@ -10683,14 +10960,19 @@ class PuzzleUI {
         let starCount = this.game.puzzleCompletion.getStarCount(this.puzzle.data.id);
         stamp.classList.remove("stamp-0", "stamp-1", "stamp-2", "stamp-3");
         stamp.classList.add("stamp-" + starCount);
-        this.winSound.play();
         setTimeout(() => {
             this.game.stamp.play(this.successPanel.querySelector(".stamp"));
-        }, this.winSound.duration * 1000 - 1000);
+        }, 500);
         CenterPanel(this.successPanel, panelDX, panelDY);
         requestAnimationFrame(() => {
             CenterPanel(this.successPanel, panelDX, panelDY);
         });
+        let currentHash = location.hash;
+        setTimeout(() => {
+            if (location.hash === currentHash) {
+                this.successNextButton.click();
+            }
+        }, 3000);
         console.log("PuzzleUI win");
     }
     lose() {
@@ -11335,6 +11617,14 @@ i18nData["lesson-gap"] = {
     "en": "Lesson - Gap",
     "fr": "Leçon - Passage",
 };
+i18nData["challenge-bridge"] = {
+    "en": "Challenge 1 - Bridge",
+    "fr": "Challenge 1 - Pont",
+};
+i18nData["challenge-gates"] = {
+    "en": "Challenge 2 - Gates",
+    "fr": "Challenge 2 - Portes",
+};
 // Translated Haikus
 i18nData["lesson-1-haiku"] = {
     "en": "Use [A] and [D] to\nmove Left and Right.",
@@ -11371,6 +11661,14 @@ i18nData["lesson-8-haiku"] = {
 i18nData["lesson-9-haiku"] = {
     "en": "Use the Tiles to\navoid the crevass.",
     "fr": "Utilisez les blocs\npour éviter le gouffre.",
+};
+i18nData["challenge-bridge-haiku"] = {
+    "en": "Challenge - 1\nOver the Bridge",
+    "fr": "Challenge - 1\nPar le Pont",
+};
+i18nData["challenge-gates-haiku"] = {
+    "en": "Challenge - 2\nWater & Gates",
+    "fr": "Challenge - 2\nEau & Portes",
 };
 i18nData["play"]["pl"] = "GRAJ";
 i18nData["completed"]["pl"] = "ukończone";

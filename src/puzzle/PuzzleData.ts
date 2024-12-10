@@ -1,4 +1,4 @@
-enum PuzzleState {
+enum PuzzleDataState {
     TBD = 0,
     OKAY,
     STORY,
@@ -68,12 +68,14 @@ function GetTranslatedTitle(data: IPuzzleData, locale?: string): string {
     if (!locale) {
         locale = LOCALE;
     }
-    if (data.title.startsWith("lesson-")) {
-        console.log(data.title);
+    if (data.title.startsWith("lesson-") || data.title.startsWith("challenge-")) {
         let translatedTitle = I18Nizer.GetText(data.title, locale);
         if (translatedTitle) {
-            if (data.lessonIndex) {
+            if (isFinite(data.lessonIndex)) {
                 return translatedTitle.replace(" - ", " " + data.lessonIndex.toFixed(0) + " - ");
+            }
+            else {
+                return translatedTitle;
             }
         }
     }

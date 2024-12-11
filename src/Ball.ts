@@ -253,6 +253,7 @@ class Ball extends BABYLON.Mesh {
                 else {
                     this.boost = true;
                 }
+                this.puzzle.puzzleUI.boostLabel.style.opacity = "0";
             })
     
             this.game.canvas.addEventListener("pointerdown", this.pointerDown);
@@ -326,6 +327,7 @@ class Ball extends BABYLON.Mesh {
                 }
                 if (ev.code === "Space") {
                     if (this.wasdCanControl && this.canBoost) {
+                        this.puzzle.puzzleUI.boostLabel.style.opacity = "0";
                         this.boost = true;
                     }
                 }
@@ -400,6 +402,7 @@ class Ball extends BABYLON.Mesh {
                 }
                 if (ev.code === "Space") {
                     if (this.wasdCanControl && this.canBoost) {
+                        this.puzzle.puzzleUI.boostLabel.style.opacity = "0";
                         this.boost = false;
                     }
                 }

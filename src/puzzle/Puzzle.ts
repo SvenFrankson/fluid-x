@@ -332,8 +332,9 @@ class Puzzle {
             this.game.router.tutoPage.show(1);
         }
         else {
-            this.game.fadeInIntro()
+            this.game.fadeInIntro();
         }
+        this.puzzleUI.hideTouchInput();
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
@@ -343,6 +344,7 @@ class Puzzle {
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "none";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "";
         this.game.mode = GameMode.Play;
+        this.puzzleUI.showTouchInput();
     }
 
     public win(): void {
@@ -371,6 +373,7 @@ class Puzzle {
 
         clearTimeout(this._winloseTimout);
         setTimeout(() => {
+            this.puzzleUI.hideTouchInput();
             this.balls[0].winAnimation()
         }, 500);
         setTimeout(() => {
@@ -395,6 +398,7 @@ class Puzzle {
         }
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
+            this.puzzleUI.hideTouchInput();
             this.puzzleState = PuzzleState.Done;
             this.puzzleUI.lose();
         }, 1000);

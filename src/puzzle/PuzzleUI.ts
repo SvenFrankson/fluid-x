@@ -24,6 +24,7 @@ class PuzzleUI {
     public gameoverReplayButton: HTMLButtonElement;
 
     public touchInput: HTMLDivElement;
+    public boostLabel: HTMLDivElement;
 
     private _hoveredElement: HTMLElement;
     public get hoveredElement(): HTMLElement {
@@ -74,6 +75,7 @@ class PuzzleUI {
         this.unlockContainer = document.querySelector("#play-unlock-container");
 
         this.touchInput = document.querySelector("#touch-input");
+        this.boostLabel = document.querySelector("#input-boost-label");
 
         this.winSound = this.game.soundManager.createSound(
             "ambient",
@@ -220,6 +222,7 @@ class PuzzleUI {
         if (this.ingameTimer) {
             this.ingameTimer.style.display = "";
         }
+        this.boostLabel.style.opacity = "inherit";
     }
 
     public async tryShowUnlockPanel(): Promise<void> {
@@ -295,11 +298,11 @@ class PuzzleUI {
     }
 
     public showTouchInput(): void {
-        this.touchInput.style.display = "";
+        this.touchInput.style.opacity = "1";
     }
 
     public hideTouchInput(): void {
-        this.touchInput.style.display = "none";
+        this.touchInput.style.opacity = "0";
     }
 
     private _registerToInputManager(): void {

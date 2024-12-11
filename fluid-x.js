@@ -222,6 +222,7 @@ class Ball extends BABYLON.Mesh {
                 else {
                     this.boost = true;
                 }
+                this.puzzle.puzzleUI.boostLabel.style.opacity = "0";
             });
             this.game.canvas.addEventListener("pointerdown", this.pointerDown);
             document.addEventListener("keydown", (ev) => {
@@ -291,6 +292,7 @@ class Ball extends BABYLON.Mesh {
                 }
                 if (ev.code === "Space") {
                     if (this.wasdCanControl && this.canBoost) {
+                        this.puzzle.puzzleUI.boostLabel.style.opacity = "0";
                         this.boost = true;
                     }
                 }
@@ -362,6 +364,7 @@ class Ball extends BABYLON.Mesh {
                 }
                 if (ev.code === "Space") {
                     if (this.wasdCanControl && this.canBoost) {
+                        this.puzzle.puzzleUI.boostLabel.style.opacity = "0";
                         this.boost = false;
                     }
                 }
@@ -5098,7 +5101,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 2;
 var MINOR_VERSION = 0;
-var PATCH_VERSION = 0;
+var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -9166,6 +9169,7 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
+        this.puzzleUI.hideTouchInput();
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
@@ -9174,6 +9178,7 @@ class Puzzle {
         document.querySelector("#puzzle-skip-intro").style.display = "none";
         document.querySelector("#puzzle-ready").style.display = "";
         this.game.mode = GameMode.Play;
+        this.puzzleUI.showTouchInput();
     }
     win() {
         if (USE_POKI_SDK) {
@@ -9199,6 +9204,7 @@ class Puzzle {
         this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
         clearTimeout(this._winloseTimout);
         setTimeout(() => {
+            this.puzzleUI.hideTouchInput();
             this.balls[0].winAnimation();
         }, 500);
         setTimeout(() => {
@@ -9222,6 +9228,7 @@ class Puzzle {
         }
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
+            this.puzzleUI.hideTouchInput();
             this.puzzleState = PuzzleState.Done;
             this.puzzleUI.lose();
         }, 1000);
@@ -10905,6 +10912,7 @@ class PuzzleUI {
         this.gameoverPanel = document.querySelector("#play-gameover-panel");
         this.unlockContainer = document.querySelector("#play-unlock-container");
         this.touchInput = document.querySelector("#touch-input");
+        this.boostLabel = document.querySelector("#input-boost-label");
         this.winSound = this.game.soundManager.createSound("ambient", "./datas/sounds/marimba-win-e-2-209686.mp3", this.game.scene, undefined, {
             autoplay: false,
             volume: 0.3
@@ -11044,6 +11052,7 @@ class PuzzleUI {
         if (this.ingameTimer) {
             this.ingameTimer.style.display = "";
         }
+        this.boostLabel.style.opacity = "inherit";
     }
     async tryShowUnlockPanel() {
         //await RandomWait();
@@ -11108,10 +11117,10 @@ class PuzzleUI {
         }
     }
     showTouchInput() {
-        this.touchInput.style.display = "";
+        this.touchInput.style.opacity = "1";
     }
     hideTouchInput() {
-        this.touchInput.style.display = "none";
+        this.touchInput.style.opacity = "0";
     }
     _registerToInputManager() {
         this.game.uiInputManager.onUpCallbacks.push(this._inputUp);

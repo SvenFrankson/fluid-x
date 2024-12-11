@@ -483,6 +483,10 @@ body:not(.touchscreen) button:hover, .hovered {
     height: 25px;
 }
 
+#touch-input {
+    transition: opacity 1s;
+}
+
 .input-button {
     position: fixed;
     display: block;
@@ -552,20 +556,20 @@ body:not(.touchscreen) button:hover, .hovered {
     background-position: center;
     pointer-events: all;
     box-shadow: 2px 2px 2px #2b2821ff;
-    opacity: 0.9;
 }
 
 #input-boost-label {
     position: fixed;
-    width: 100px;
-    bottom: 0px;
-    left: calc(50vw - 50px);
+    width: 200px;
+    bottom: 100px;
+    left: calc(50vw - 100px);
     z-index: 1;
     text-align: left;
     font-family: Julee;
     font-size: 18px;
     font-weight: 900;
     text-align: center;
+    transition: opacity 1s;
 }
 
 body:not(.vertical) #input-boost {
@@ -578,7 +582,7 @@ body:not(.vertical) #input-boost {
 }
 
 body:not(.vertical) #input-boost-label {
-    bottom: 38px;
+    bottom: 45px;
 }
 
 @keyframes flash {
@@ -595,7 +599,6 @@ body:not(.vertical) #input-boost-label {
     outline: 1px solid white;
     animation: 1s ease-in-out 0s infinite alternate flash;
     transform-origin: 75% 50%;
-    opacity: 1;
 }
 
 #input-boost img {

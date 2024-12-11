@@ -264,7 +264,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 1;
+                        this.boost = true;
                     }
                 }
                 if (ev.code === "ArrowUp") {
@@ -272,7 +272,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 1;
+                        this.boost = true;
                     }
                 }
 
@@ -297,7 +297,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 1;
+                        this.boost = true;
                     }
                 }
                 if (ev.code === "ArrowDown") {
@@ -305,7 +305,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 1;
+                        this.boost = true;
                     }
                 }
                 
@@ -339,7 +339,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 0;
+                        this.boost = false;
                     }
                 }
                 if (ev.code === "ArrowUp") {
@@ -347,7 +347,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 0;
+                        this.boost = false;
                     }
                 }
 
@@ -372,7 +372,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 0;
+                        this.boost = false;
                     }
                 }
                 if (ev.code === "ArrowDown") {
@@ -380,7 +380,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 0;
+                        this.boost = false;
                     }
                 }
                 

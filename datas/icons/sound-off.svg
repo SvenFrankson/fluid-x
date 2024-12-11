@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="sound-off.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\icons\sound-off.png"
+   inkscape:export-xdpi="32.512001"
+   inkscape:export-ydpi="32.512001">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="301.18693"
+     inkscape:cy="218.9983"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path1426"
+       style="fill:#575142;fill-opacity:1;stroke:#e3cfb4;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       inkscape:transform-center-x="6.7111604"
+       inkscape:transform-center-y="1.6355102e-06"
+       d="m 72.151242,20.890197 c -2.513637,0.01157 -15.097813,8.345004 -25.479581,16.146818 H 30.188946 c -2.481869,0 -4.480347,1.997445 -4.480347,4.479314 v 16.966922 c 0,2.481871 1.998478,4.480348 4.480347,4.480348 h 16.482715 c 10.970207,8.244017 24.400176,17.080949 25.807728,16.066201 2.416016,-1.741787 2.416016,-56.3172 0,-58.058987 -0.0755,-0.05443 -0.185674,-0.08127 -0.328147,-0.08062 z"
+       sodipodi:nodetypes="ccsssscssc" />
+    <rect
+       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect1471"
+       width="81.784477"
+       height="4.8108511"
+       x="-109.1935"
+       y="-20.706699"
+       ry="2.4054255"
+       transform="rotate(-150)" />
+  </g>
+</svg>

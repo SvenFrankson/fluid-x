@@ -231,7 +231,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 1;
+                        this.boost = true;
                     }
                 }
                 if (ev.code === "ArrowUp") {
@@ -239,7 +239,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 1;
+                        this.boost = true;
                     }
                 }
                 if (ev.code === "KeyA") {
@@ -263,7 +263,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 1;
+                        this.boost = true;
                     }
                 }
                 if (ev.code === "ArrowDown") {
@@ -271,7 +271,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 1;
+                        this.boost = true;
                     }
                 }
                 if (ev.code === "KeyD") {
@@ -303,7 +303,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 0;
+                        this.boost = false;
                     }
                 }
                 if (ev.code === "ArrowUp") {
@@ -311,7 +311,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.upPressed = 0;
+                        this.boost = false;
                     }
                 }
                 if (ev.code === "KeyA") {
@@ -335,7 +335,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 0;
+                        this.boost = false;
                     }
                 }
                 if (ev.code === "ArrowDown") {
@@ -343,7 +343,7 @@ class Ball extends BABYLON.Mesh {
                         if (this.mouseCanControl) {
                             this.mouseInControl = false;
                         }
-                        this.downPressed = 0;
+                        this.boost = false;
                     }
                 }
                 if (ev.code === "KeyD") {
@@ -9169,7 +9169,6 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        this.puzzleUI.hideTouchInput();
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }
@@ -11052,6 +11051,7 @@ class PuzzleUI {
         if (this.ingameTimer) {
             this.ingameTimer.style.display = "";
         }
+        this.hideTouchInput();
         this.boostLabel.style.opacity = "inherit";
     }
     async tryShowUnlockPanel() {

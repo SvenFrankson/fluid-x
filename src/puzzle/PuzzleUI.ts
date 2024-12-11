@@ -222,6 +222,7 @@ class PuzzleUI {
         if (this.ingameTimer) {
             this.ingameTimer.style.display = "";
         }
+        this.hideTouchInput();
         this.boostLabel.style.opacity = "inherit";
     }
 

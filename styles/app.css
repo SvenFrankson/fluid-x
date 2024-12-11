@@ -871,11 +871,22 @@ input[type="text"] {
     right: 5px;
 }
 
+
+body:not(.vertical) .back-btn {
+    width: 90px;
+}
+
 #reset-btn {
     display: block;
     position: fixed;
     top: 50px;
     right: 5px;
+}
+
+body:not(.vertical) #reset-btn {
+    top: 5px;
+    right: 100px;
+    width: 90px;
 }
 
 #sound-btn {
@@ -918,6 +929,18 @@ input[type="text"] {
     background-repeat: no-repeat;
 }
 
+body:not(.vertical) #sound-btn {
+    top: 50px;
+}
+
+body:not(.vertical) #zoom-out-btn {
+    top: 50px;
+}
+
+body:not(.vertical) #zoom-in-btn {
+    top: 50px;
+}
+
 #editor-btn {
     display: block;
     position: fixed;
@@ -945,7 +968,7 @@ input[type="text"] {
     display: block;
     position: fixed;
     top: 8px;
-    right: 130px;
+    left: calc(50vw - 70px);
     font-size: 30px;
     font-family: Julee;
     font-weight: 900;
@@ -956,7 +979,8 @@ input[type="text"] {
 }
 
 body.vertical #play-timer {
-    top: 52px;
+    top: 98px;
+    left: 30px;
 }
 
 #play-timer stroke-text {

@@ -334,7 +334,6 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        this.puzzleUI.hideTouchInput();
         if (USE_POKI_SDK) {
             PokiGameplayStart();
         }

@@ -2,9 +2,9 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
-var MAJOR_VERSION: number = 1;
-var MINOR_VERSION: number = 1;
-var PATCH_VERSION: number = 9;
+var MAJOR_VERSION: number = 2;
+var MINOR_VERSION: number = 0;
+var PATCH_VERSION: number = 0;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -617,7 +617,7 @@ class Game {
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
-        this.performanceWatcher.showDebug();
+        //this.performanceWatcher.showDebug();
 	}
 
     public async loadPuzzles(): Promise<void> {
@@ -626,7 +626,6 @@ class Game {
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
                 method: "GET",
-                mode: "cors"
             });
             storyModePuzzles = await response.json() as IPuzzlesData;
             CLEAN_IPuzzlesData(storyModePuzzles);
@@ -635,7 +634,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -661,8 +661,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 storyModePuzzles = await response.json() as IPuzzlesData;
                 CLEAN_IPuzzlesData(storyModePuzzles);
@@ -682,8 +681,7 @@ class Game {
         let expertPuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             expertPuzzles = await response.json() as IPuzzlesData;
             CLEAN_IPuzzlesData(expertPuzzles);
@@ -692,7 +690,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -710,8 +709,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 expertPuzzles = await response.json() as IPuzzlesData;
                 CLEAN_IPuzzlesData(expertPuzzles);
@@ -723,8 +721,7 @@ class Game {
         let xMasPuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             xMasPuzzles = await response.json() as IPuzzlesData;
             CLEAN_IPuzzlesData(xMasPuzzles);
@@ -733,7 +730,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/8", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -750,8 +748,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 xMasPuzzles = await response.json() as IPuzzlesData;
                 CLEAN_IPuzzlesData(xMasPuzzles);
@@ -799,8 +796,7 @@ class Game {
         let communityPuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             communityPuzzles = await response.json() as IPuzzlesData;
             CLEAN_IPuzzlesData(communityPuzzles);
@@ -809,7 +805,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -821,8 +818,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 communityPuzzles = await response.json() as IPuzzlesData;
                 CLEAN_IPuzzlesData(communityPuzzles);
@@ -834,8 +830,7 @@ class Game {
         let multiplayerPuzzles: IPuzzlesData;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_multiplayer_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             multiplayerPuzzles = await response.json() as IPuzzlesData;
             CLEAN_IPuzzlesData(multiplayerPuzzles);
@@ -844,7 +839,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/4", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -856,8 +852,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_multiplayer_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 multiplayerPuzzles = await response.json() as IPuzzlesData;
                 CLEAN_IPuzzlesData(multiplayerPuzzles);
@@ -868,8 +863,7 @@ class Game {
 
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/story_expert_table.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             this.storyExpertTable = await response.json();
         }
@@ -877,7 +871,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -897,8 +892,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/story_expert_table.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 this.storyExpertTable = await response.json();
             }

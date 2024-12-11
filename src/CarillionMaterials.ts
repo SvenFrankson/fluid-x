@@ -6,6 +6,7 @@ class CarillionMaterials {
     public tileNumberMaterials: BABYLON.StandardMaterial[];
     public colorMaterials: BABYLON.Material[];
     public trueWhiteMaterial: BABYLON.StandardMaterial;
+    public fullAutolitWhiteMaterial: BABYLON.StandardMaterial;
     public whiteMaterial: BABYLON.StandardMaterial;
     public grayMaterial: BABYLON.StandardMaterial;
     public blackMaterial: BABYLON.StandardMaterial;
@@ -290,6 +291,12 @@ class CarillionMaterials {
         this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
         this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.trueWhiteMaterial.freeze();
+
+        this.fullAutolitWhiteMaterial = new BABYLON.StandardMaterial("full-autolit-white-material");
+        this.fullAutolitWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.fullAutolitWhiteMaterial.emissiveColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.fullAutolitWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.fullAutolitWhiteMaterial.freeze();
 
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");

@@ -1310,11 +1310,11 @@ class Ball extends BABYLON.Mesh {
         this.winTrailRadius = 0.5;
 
         this.winTrailMesh0 = new BABYLON.Mesh("winTrailMesh0");
-        this.winTrailMesh0.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailMesh0.material = this.game.materials.fullAutolitWhiteMaterial;
         this.winTrailPoints0 = [];
 
         this.winTrailMesh1 = new BABYLON.Mesh("winTrailMesh1");
-        this.winTrailMesh1.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailMesh1.material = this.game.materials.fullAutolitWhiteMaterial;
         this.winTrailPoints1 = [];
 
         this.animContainer.position.copyFrom(this.position);

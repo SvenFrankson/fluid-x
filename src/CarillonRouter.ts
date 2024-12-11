@@ -83,7 +83,10 @@ class CarillonRouter extends Nabu.Router {
             await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#editor-preview")) {
-            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#editor";
+            this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false;
+                location.hash = "#editor"
+            };
             this.show(this.playUI, false, showTime);
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = "";
             this.game.mode = GameMode.Preplay;
@@ -101,7 +104,10 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
-            (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#level-" + (numLevel + 1).toFixed(0);
+            this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false;
+                location.hash = "#level-" + (numLevel + 1).toFixed(0)
+            };
             (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;
@@ -132,19 +138,31 @@ class CarillonRouter extends Nabu.Router {
                 this.game.puzzle.resetFromData(data);
             }
             if (this.game.puzzle.data.state === 8) {
-                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#xmas-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false
+                location.hash = "#xmas-puzzles"
+            };
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#xmas-puzzles";
             }
             else if (this.game.puzzle.data.state === 4) {
-                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#multiplayer-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false
+                location.hash = "#multiplayer-puzzles"
+            };
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#multiplayer-puzzles";
             }
             else if (this.game.puzzle.data.state === 3) {
-                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#expert-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false
+                location.hash = "#expert-puzzles"
+            };
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#expert-puzzles";
             }
             else {
-                (this.game.puzzle.puzzleUI.successNextButton.parentElement as HTMLAnchorElement).href = "#community-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false
+                location.hash = "#community-puzzles"
+            };
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#community-puzzles";
             }
             this.show(this.playUI, false, showTime);

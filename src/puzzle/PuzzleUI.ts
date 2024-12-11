@@ -18,6 +18,7 @@ class PuzzleUI {
     public scorePendingBtn: HTMLButtonElement;
     public scoreDoneBtn: HTMLButtonElement;
     public successNextButton: HTMLButtonElement;
+    public autoNext: boolean = true;
 
     public gameoverBackButton: HTMLButtonElement;
     public gameoverReplayButton: HTMLButtonElement;
@@ -172,7 +173,7 @@ class PuzzleUI {
         })
 
         let autoNextBar = document.querySelector("#success-next-auto-bar") as CompletionBar;
-        if (this.puzzle.data.state === PuzzleDataState.STORY && USE_POKI_SDK) {
+        if (this.puzzle.data.state === PuzzleDataState.STORY && this.autoNext) {
             let currentHash = location.hash;
             autoNextBar.showText = false;
             autoNextBar.setValue(0);

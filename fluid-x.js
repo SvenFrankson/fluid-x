@@ -1150,10 +1150,10 @@ class Ball extends BABYLON.Mesh {
         this.trailMesh.isVisible = false;
         this.winTrailRadius = 0.5;
         this.winTrailMesh0 = new BABYLON.Mesh("winTrailMesh0");
-        this.winTrailMesh0.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailMesh0.material = this.game.materials.fullAutolitWhiteMaterial;
         this.winTrailPoints0 = [];
         this.winTrailMesh1 = new BABYLON.Mesh("winTrailMesh1");
-        this.winTrailMesh1.material = this.game.materials.trueWhiteMaterial;
+        this.winTrailMesh1.material = this.game.materials.fullAutolitWhiteMaterial;
         this.winTrailPoints1 = [];
         this.animContainer.position.copyFrom(this.position);
         this.animContainer.position.y += 0.2 * this.radius * 2;
@@ -2314,6 +2314,11 @@ class CarillionMaterials {
         this.trueWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
         this.trueWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.trueWhiteMaterial.freeze();
+        this.fullAutolitWhiteMaterial = new BABYLON.StandardMaterial("full-autolit-white-material");
+        this.fullAutolitWhiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.fullAutolitWhiteMaterial.emissiveColor = BABYLON.Color3.FromHexString("#ffffff");
+        this.fullAutolitWhiteMaterial.specularColor.copyFromFloats(0, 0, 0);
+        this.fullAutolitWhiteMaterial.freeze();
         this.whiteMaterial = new BABYLON.StandardMaterial("white-material");
         this.whiteMaterial.diffuseColor = BABYLON.Color3.FromHexString("#e3cfb4");
         this.whiteMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -2430,7 +2435,10 @@ class CarillonRouter extends Nabu.Router {
             await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#editor-preview")) {
-            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#editor";
+            this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false;
+                location.hash = "#editor";
+            };
             this.show(this.playUI, false, showTime);
             document.querySelector("#editor-btn").style.display = "";
             this.game.mode = GameMode.Preplay;
@@ -2448,7 +2456,10 @@ class CarillonRouter extends Nabu.Router {
         }
         else if (page.startsWith("#level-")) {
             let numLevel = parseInt(page.replace("#level-", ""));
-            this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#level-" + (numLevel + 1).toFixed(0);
+            this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false;
+                location.hash = "#level-" + (numLevel + 1).toFixed(0);
+            };
             this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#levels";
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;
@@ -2479,19 +2490,31 @@ class CarillonRouter extends Nabu.Router {
                 this.game.puzzle.resetFromData(data);
             }
             if (this.game.puzzle.data.state === 8) {
-                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#xmas-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                    this.game.puzzle.puzzleUI.autoNext = false;
+                    location.hash = "#xmas-puzzles";
+                };
                 this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#xmas-puzzles";
             }
             else if (this.game.puzzle.data.state === 4) {
-                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#multiplayer-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                    this.game.puzzle.puzzleUI.autoNext = false;
+                    location.hash = "#multiplayer-puzzles";
+                };
                 this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#multiplayer-puzzles";
             }
             else if (this.game.puzzle.data.state === 3) {
-                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#expert-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                    this.game.puzzle.puzzleUI.autoNext = false;
+                    location.hash = "#expert-puzzles";
+                };
                 this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#expert-puzzles";
             }
             else {
-                this.game.puzzle.puzzleUI.successNextButton.parentElement.href = "#community-puzzles";
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                    this.game.puzzle.puzzleUI.autoNext = false;
+                    location.hash = "#community-puzzles";
+                };
                 this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#community-puzzles";
             }
             this.show(this.playUI, false, showTime);
@@ -5073,9 +5096,9 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
-var MAJOR_VERSION = 1;
-var MINOR_VERSION = 1;
-var PATCH_VERSION = 9;
+var MAJOR_VERSION = 2;
+var MINOR_VERSION = 0;
+var PATCH_VERSION = 0;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5604,7 +5627,7 @@ class Game {
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
         }
-        this.performanceWatcher.showDebug();
+        //this.performanceWatcher.showDebug();
     }
     async loadPuzzles() {
         //await RandomWait();
@@ -5612,7 +5635,6 @@ class Game {
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
                 method: "GET",
-                mode: "cors"
             });
             storyModePuzzles = await response.json();
             CLEAN_IPuzzlesData(storyModePuzzles);
@@ -5621,7 +5643,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/2", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -5644,8 +5667,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_story_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 storyModePuzzles = await response.json();
                 CLEAN_IPuzzlesData(storyModePuzzles);
@@ -5663,8 +5685,7 @@ class Game {
         let expertPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             expertPuzzles = await response.json();
             CLEAN_IPuzzlesData(expertPuzzles);
@@ -5673,7 +5694,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/3", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -5689,8 +5711,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_expert_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 expertPuzzles = await response.json();
                 CLEAN_IPuzzlesData(expertPuzzles);
@@ -5700,8 +5721,7 @@ class Game {
         let xMasPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             xMasPuzzles = await response.json();
             CLEAN_IPuzzlesData(xMasPuzzles);
@@ -5710,7 +5730,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/8", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -5725,8 +5746,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_xmas_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 xMasPuzzles = await response.json();
                 CLEAN_IPuzzlesData(xMasPuzzles);
@@ -5770,8 +5790,7 @@ class Game {
         let communityPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             communityPuzzles = await response.json();
             CLEAN_IPuzzlesData(communityPuzzles);
@@ -5780,7 +5799,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/1", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -5792,8 +5812,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_community_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 communityPuzzles = await response.json();
                 CLEAN_IPuzzlesData(communityPuzzles);
@@ -5803,8 +5822,7 @@ class Game {
         let multiplayerPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/tiaratum_multiplayer_levels.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             multiplayerPuzzles = await response.json();
             CLEAN_IPuzzlesData(multiplayerPuzzles);
@@ -5813,7 +5831,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/4", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -5825,8 +5844,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/tiaratum_multiplayer_levels.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 multiplayerPuzzles = await response.json();
                 CLEAN_IPuzzlesData(multiplayerPuzzles);
@@ -5835,8 +5853,7 @@ class Game {
         this.loadedMultiplayerPuzzles = multiplayerPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/story_expert_table.json", {
-                method: "GET",
-                mode: "cors"
+                method: "GET"
             });
             this.storyExpertTable = await response.json();
         }
@@ -5844,7 +5861,8 @@ class Game {
             try {
                 const response = await fetch(SHARE_SERVICE_PATH + "get_story_expert_table", {
                     method: "GET",
-                    mode: "cors"
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
                 });
                 if (!response.ok) {
                     throw new Error("Response status: " + response.status);
@@ -5864,8 +5882,7 @@ class Game {
                 console.error(e);
                 OFFLINE_MODE = true;
                 const response = await fetch("./datas/levels/story_expert_table.json", {
-                    method: "GET",
-                    mode: "cors"
+                    method: "GET"
                 });
                 this.storyExpertTable = await response.json();
             }
@@ -9083,8 +9100,8 @@ class Puzzle {
         return 0;
     }
     hMapSet(v, i, j) {
-        if (i < this.heightMap.length) {
-            if (j < this.heightMap[i].length) {
+        if (i >= 0 && i < this.heightMap.length) {
+            if (j >= 0 && j < this.heightMap[i].length) {
                 if (!this.heightMap[i]) {
                     this.heightMap[i] = [];
                 }
@@ -10731,6 +10748,7 @@ function SerializeBuildingBlocks(buildingBlocks) {
 class PuzzleUI {
     constructor(puzzle) {
         this.puzzle = puzzle;
+        this.autoNext = true;
         this._inputUp = () => {
             if (this.successPanel.style.display === "") {
                 if (this.hoveredElement === undefined) {
@@ -10955,7 +10973,7 @@ class PuzzleUI {
             CenterPanel(this.successPanel, panelDX, panelDY);
         });
         let autoNextBar = document.querySelector("#success-next-auto-bar");
-        if (this.puzzle.data.state === PuzzleDataState.STORY && USE_POKI_SDK) {
+        if (this.puzzle.data.state === PuzzleDataState.STORY && this.autoNext) {
             let currentHash = location.hash;
             autoNextBar.showText = false;
             autoNextBar.setValue(0);

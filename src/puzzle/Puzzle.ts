@@ -218,8 +218,8 @@ class Puzzle {
         return 0;
     }
     public hMapSet(v: number, i: number, j: number): void {
-        if (i < this.heightMap.length) {
-            if (j < this.heightMap[i].length) {
+        if (i >= 0 && i < this.heightMap.length) {
+            if (j >= 0 && j < this.heightMap[i].length) {
                 if (!this.heightMap[i]) {
                     this.heightMap[i] = [];
                 }

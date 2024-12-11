@@ -13,7 +13,10 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="zoom-in.svg">
+   sodipodi:docname="sound-off.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\icons\sound-off.png"
+   inkscape:export-xdpi="32.512001"
+   inkscape:export-ydpi="32.512001">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -24,8 +27,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="219.9093"
-     inkscape:cy="205.50763"
+     inkscape:cx="301.18693"
+     inkscape:cy="218.9983"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -52,13 +55,20 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       id="path833"
-       style="fill:#2b2821;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dashoffset:34.0158;paint-order:stroke fill markers;fill-opacity:1;stroke:#e3cfb4;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="m 84.771171,14.676697 a 35.346393,35.346393 0 0 0 -49.987753,0 35.346393,35.346393 0 0 0 -4.437143,44.568395 L 4.8762729,84.715095 15.837403,95.676225 41.555882,69.957746 a 35.346393,35.346393 0 0 0 43.214924,-5.293661 35.346393,35.346393 0 0 0 3.65e-4,-49.987388 z m -6.061015,6.061015 a 26.77491,26.77491 0 0 1 10e-7,37.865724 26.77491,26.77491 0 0 1 -37.865725,0 26.77491,26.77491 0 0 1 1e-6,-37.865724 26.77491,26.77491 0 0 1 37.865723,0 z" />
-    <path
-       id="rect857"
-       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:26.45669324;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
-       d="M 209.17969 93.71875 L 209.17969 132.91211 L 169.98633 132.91211 L 169.98633 169.2793 L 209.17969 169.2793 L 209.17969 208.4707 L 245.54492 208.4707 L 245.54492 169.2793 L 284.73828 169.2793 L 284.73828 132.91211 L 245.54492 132.91211 L 245.54492 93.71875 L 209.17969 93.71875 z "
-       transform="scale(0.26458333)" />
+       id="path1426"
+       style="fill:#575142;fill-opacity:1;stroke:#e3cfb4;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       inkscape:transform-center-x="6.7111604"
+       inkscape:transform-center-y="1.6355102e-06"
+       d="m 72.151242,20.890197 c -2.513637,0.01157 -15.097813,8.345004 -25.479581,16.146818 H 30.188946 c -2.481869,0 -4.480347,1.997445 -4.480347,4.479314 v 16.966922 c 0,2.481871 1.998478,4.480348 4.480347,4.480348 h 16.482715 c 10.970207,8.244017 24.400176,17.080949 25.807728,16.066201 2.416016,-1.741787 2.416016,-56.3172 0,-58.058987 -0.0755,-0.05443 -0.185674,-0.08127 -0.328147,-0.08062 z"
+       sodipodi:nodetypes="ccsssscssc" />
+    <rect
+       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect1471"
+       width="81.784477"
+       height="4.8108511"
+       x="-109.1935"
+       y="-20.706699"
+       ry="2.4054255"
+       transform="rotate(-150)" />
   </g>
 </svg>

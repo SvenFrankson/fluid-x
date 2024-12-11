@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="sound.svg"
+   inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\icons\sound.png"
+   inkscape:export-xdpi="32.512001"
+   inkscape:export-ydpi="32.512001">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="287.57053"
+     inkscape:cy="227.73266"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path1426"
+       style="fill:#2b2821;fill-opacity:1;stroke:#e3cfb4;stroke-width:26.4567;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+       inkscape:transform-center-x="6.7111604"
+       inkscape:transform-center-y="1.6355102e-06"
+       d="m 214.14453,78.955078 c -9.50036,0.04373 -57.0626,31.540172 -96.30078,61.027342 H 55.546875 c -9.380292,0 -16.933594,7.5494 -16.933594,16.92969 v 64.12695 c 0,9.3803 7.553302,16.9336 16.933594,16.9336 h 62.296875 c 41.4622,31.15849 92.22114,64.55792 97.54102,60.72265 9.1314,-6.58313 9.1314,-212.852412 0,-219.435544 -0.28536,-0.20572 -0.70176,-0.307182 -1.24024,-0.304688 z m 117.54688,22.867252 c -2.58781,0.009 -8.15075,2.02554 -15.55469,5.36226 5.94623,25.66822 5.94565,137.99628 -0.002,163.64447 8.92614,4.02506 15.1101,6.08236 16.76171,5.11228 8.8813,-5.21637 8.8813,-168.66246 0,-173.87883 -0.27753,-0.16301 -0.68134,-0.24217 -1.20507,-0.24018 z m -57.02539,40.17572 c -2.65059,0.005 -8.35001,1.09056 -15.9336,2.88867 6.0905,13.83218 6.08996,74.36416 -0.002,88.18555 9.14272,2.16903 15.47823,3.27666 17.16992,2.7539 9.09678,-2.81101 9.09678,-90.8882 0,-93.69922 -0.2843,-0.0878 -0.69793,-0.12992 -1.23437,-0.1289 z"
+       transform="scale(0.26458333)"
+       sodipodi:nodetypes="ccsssscssccccssccccssc" />
+  </g>
+</svg>

@@ -5175,7 +5175,7 @@ function firstPlayerInteraction() {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    Game.Instance.soundManager.unlockEngine();
+    Game.Instance.soundManager.soundOn();
     PlayerHasInteracted = true;
 }
 let onFirstPlayerInteractionTouch = (ev) => {
@@ -5572,6 +5572,20 @@ class Game {
             this.playCameraRadiusFactor = Nabu.MinMax(this.playCameraRadiusFactor, -3, 3);
             this.updatePlayCameraRadius();
         };
+        document.querySelector("#sound-btn").onpointerup = () => {
+            if (this.soundManager.isSoundOn()) {
+                this.soundManager.soundOff();
+            }
+            else {
+                this.soundManager.soundOn();
+            }
+        };
+        if (this.soundManager.isSoundOn()) {
+            document.querySelector("#sound-btn").classList.remove("mute");
+        }
+        else {
+            document.querySelector("#sound-btn").classList.add("mute");
+        }
         document.querySelector("#dev-mode-activate-btn").onpointerup = () => {
             DEV_ACTIVATE();
         };
@@ -7194,11 +7208,23 @@ class SoundManager {
         this.managedSounds.push(mySound);
         return mySound;
     }
-    unlockEngine() {
+    isSoundOn() {
+        if (BABYLON.Engine.audioEngine.unlocked && BABYLON.Engine.audioEngine.getGlobalVolume() > 0) {
+            return true;
+        }
+        return false;
+    }
+    soundOn() {
         BABYLON.Engine.audioEngine.unlock();
+        BABYLON.Engine.audioEngine.setGlobalVolume(1);
         for (let i = 0; i < this.managedSounds.length; i++) {
             this.managedSounds[i].load();
         }
+        document.querySelector("#sound-btn").classList.remove("mute");
+    }
+    soundOff() {
+        BABYLON.Engine.audioEngine.setGlobalVolume(0);
+        document.querySelector("#sound-btn").classList.add("mute");
     }
 }
 class StrokeText extends HTMLElement {
@@ -10980,7 +11006,7 @@ class PuzzleUI {
             autoNextBar.animateValueTo(1, 5);
             setTimeout(() => {
                 if (location.hash === currentHash) {
-                    this.successNextButton.click();
+                    this.successNextButton.onpointerup(undefined);
                 }
             }, 5000);
         }

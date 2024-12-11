@@ -180,7 +180,7 @@ class PuzzleUI {
             autoNextBar.animateValueTo(1, 5);
             setTimeout(() => {
                 if (location.hash === currentHash) {
-                    this.successNextButton.click();
+                    this.successNextButton.onpointerup(undefined);
                 }
             }, 5000);
         }

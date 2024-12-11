@@ -78,10 +78,24 @@ class SoundManager {
         return mySound;
     }
 
-    public unlockEngine(): void {
+    public isSoundOn(): boolean {
+        if (BABYLON.Engine.audioEngine.unlocked && BABYLON.Engine.audioEngine.getGlobalVolume() > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    public soundOn(): void {
         BABYLON.Engine.audioEngine.unlock();
+        BABYLON.Engine.audioEngine.setGlobalVolume(1);
         for (let i = 0; i < this.managedSounds.length; i++) {
             this.managedSounds[i].load();
         }
+        (document.querySelector("#sound-btn") as HTMLButtonElement).classList.remove("mute");
+    }
+
+    public soundOff(): void {
+        BABYLON.Engine.audioEngine.setGlobalVolume(0);
+        (document.querySelector("#sound-btn") as HTMLButtonElement).classList.add("mute");
     }
 }

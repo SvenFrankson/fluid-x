@@ -88,7 +88,7 @@ function firstPlayerInteraction(): void {
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    Game.Instance.soundManager.unlockEngine();
+    Game.Instance.soundManager.soundOn();
     PlayerHasInteracted = true;
 }
 
@@ -545,6 +545,21 @@ class Game {
             this.playCameraRadiusFactor -= 1;
             this.playCameraRadiusFactor = Nabu.MinMax(this.playCameraRadiusFactor, -3, 3);
             this.updatePlayCameraRadius();
+        }
+
+        (document.querySelector("#sound-btn") as HTMLButtonElement).onpointerup = () => {
+            if (this.soundManager.isSoundOn()) {
+                this.soundManager.soundOff();
+            }
+            else {
+                this.soundManager.soundOn();
+            }
+        }
+        if (this.soundManager.isSoundOn()) {
+            (document.querySelector("#sound-btn") as HTMLButtonElement).classList.remove("mute");
+        }
+        else {
+            (document.querySelector("#sound-btn") as HTMLButtonElement).classList.add("mute");
         }
 
         (document.querySelector("#dev-mode-activate-btn") as HTMLButtonElement).onpointerup = () => {

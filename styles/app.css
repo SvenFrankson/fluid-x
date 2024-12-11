@@ -875,20 +875,44 @@ input[type="text"] {
     right: 5px;
 }
 
+#sound-btn {
+    display: block;
+    position: fixed;
+    width: 40px;
+    top: 95px;
+    right: 5px;
+    background-image: url("../datas/icons/sound.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#sound-btn.mute {
+    background-image: url("../datas/icons/sound-off.png");
+}
+
 #zoom-out-btn {
     display: block;
     position: fixed;
-    width: 48px;
+    width: 40px;
     top: 95px;
-    right: 57px;
+    right: 95px;
+    background-image: url("../datas/icons/zoom-out.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 #zoom-in-btn {
     display: block;
     position: fixed;
-    width: 48px;
+    width: 40px;
     top: 95px;
-    right: 5px;
+    right: 50px;
+    background-image: url("../datas/icons/zoom-in.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 #editor-btn {

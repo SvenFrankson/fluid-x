@@ -1,7 +1,12 @@
 var USE_POKI_SDK = false;
+var USE_CG_SDK = false;
 var OFFLINE_MODE = false;
 var NO_VERTEX_DATA_LOADER = true;
 var ADVENT_CAL = false;
+
+if (USE_POKI_SDK) {
+    USE_CG_SDK = false;
+}
 
 var THE_ORIGIN_OF_TIME_ms = 0;
 var GLOBAL_GAME_LOAD_CURRENT_STEP = 0;
@@ -146,6 +151,9 @@ async function doLoad() {
     if (USE_POKI_SDK) {
         stepsCount++;
     }
+    if (USE_CG_SDK) {
+        stepsCount++;
+    }
     if (!NO_VERTEX_DATA_LOADER) {
         stepsCount++;
     }
@@ -164,6 +172,10 @@ async function doLoad() {
 
     if (USE_POKI_SDK) {
         await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+    }
+    if (USE_CG_SDK) {
+        await loadScript("https://sdk.crazygames.com/crazygames-sdk-v3.js");
         setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
     }
 

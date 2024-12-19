@@ -425,7 +425,7 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
     public get mouseCanControl(): boolean {
-        return (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
+        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
     public mouseInControl: boolean = false;
     private _pointerDown: boolean = false;
@@ -1347,6 +1347,7 @@ class Ball extends BABYLON.Mesh {
             await this.win3();
         }
 
+        if (this.ballState != BallState.Wining) { return; }
         this.killWinAnim();
     }
 
@@ -1378,39 +1379,50 @@ class Ball extends BABYLON.Mesh {
         this.popWinTrailRadius(3.5);
 
         await this.animStand(0.5);
+        if (this.ballState != BallState.Wining) { return; }
         this.popWinTrailRadius(2);
 
         let d = 1.2;
         this.jump(2.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) { return; }
         await this.backFlip(2, 0.8 * d);
+        if (this.ballState != BallState.Wining) { return; }
         this.sparkle();
 
         d = 0.8;
         this.jump(1.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) { return; }
         await this.frontFlip(1, 0.8 * d);
+        if (this.ballState != BallState.Wining) { return; }
         this.sparkle();
 
         await this.animSit(0.5);
+        if (this.ballState != BallState.Wining) { return; }
     }
 
     public async win2(): Promise<void> {
         let wait = Mummu.AnimationFactory.CreateWait(this);
 
         await this.animStand(0.5);
+        if (this.ballState != BallState.Wining) { return; }
         this.popWinTrailRadius(2);
 
         let d = 1.2;
         this.jump(2.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) { return; }
         await this.spin(2, 0.8 * d);
+        if (this.ballState != BallState.Wining) { return; }
         this.sparkle();
         
         d = 0.8;
         this.jump(1.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) { return; }
         await this.spin(1, 0.8 * d);
+        if (this.ballState != BallState.Wining) { return; }
         this.sparkle();
 
         await this.animSit(0.5);
@@ -1421,20 +1433,26 @@ class Ball extends BABYLON.Mesh {
 
 
         await wait(0.5);
+        if (this.ballState != BallState.Wining) { return; }
         this.popWinTrailRadius(2);
 
         let d = 1.2;
         this.jump(2.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) { return; }
         await this.backFlip(2, 0.8 * d);
+        if (this.ballState != BallState.Wining) { return; }
         this.sparkle();
 
         d = 0.8;
         this.jump(1.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) { return; }
         await this.frontFlip(1, 0.8 * d);
+        if (this.ballState != BallState.Wining) { return; }
         this.sparkle();
 
         await wait(0.5);
+        if (this.ballState != BallState.Wining) { return; }
     }
 }

@@ -2,12 +2,18 @@ Write-Debug "Make Build for Carillion"
 
 $build_name = "carillion-build"
 
-$containsString = Select-String -Path "./index.js" -Pattern "USE_POKI_SDK = true" -Quiet
-if ($containsString) {
+$isPokiVersion = Select-String -Path "./index.js" -Pattern "USE_POKI_SDK = true" -Quiet
+if ($isPokiVersion) {
     $build_name = $build_name + "_poki";
 }
 else {
-    $build_name = $build_name + "_common";
+    $isCrazyGamesVersion = Select-String -Path "./index.js" -Pattern "USE_CG_SDK = true" -Quiet
+    if ($isCrazyGamesVersion) {
+        $build_name = $build_name + "_crazygames";
+    }
+    else {
+        $build_name = $build_name + "_common";
+    }
 }
 
 $containsString = Select-String -Path "./index.js" -Pattern "OFFLINE_MODE = true" -Quiet

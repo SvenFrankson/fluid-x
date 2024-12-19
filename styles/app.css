@@ -198,8 +198,8 @@ h1 {
 
 #title-version {
     position: absolute;
-    font-size: 18px;
-    top: 45px;
+    font-size: 16px;
+    top: 50px;
     right: calc(50% - 120px);
     font-family: monospace;
     font-weight: 500;

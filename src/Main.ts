@@ -4,7 +4,7 @@
 
 var MAJOR_VERSION: number = 2;
 var MINOR_VERSION: number = 0;
-var PATCH_VERSION: number = 1;
+var PATCH_VERSION: number = 3;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -12,10 +12,12 @@ var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
 var USE_POKI_SDK;
+var USE_CG_SDK;
 var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK: any;
+var CGSDK: any;
 var LOCALE = "en";
 
 var PokiSDKPlaying: boolean = false;
@@ -75,20 +77,17 @@ function firstPlayerInteraction(): void {
 
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
-        if (USE_POKI_SDK) {
-            if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-                location.hash = "#level-1";
-            }
-            else {
-                console.error("Welcome back");
-            }
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
         }
     }, 300);
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    Game.Instance.soundManager.soundOn();
     PlayerHasInteracted = true;
 }
 
@@ -309,6 +308,7 @@ class Game {
 		this.engine = new BABYLON.Engine(this.canvas, true, undefined, false);
 		BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+        BABYLON.Engine.audioEngine.lock();
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
         this.performanceWatcher = new PerformanceWatcher(this);
@@ -570,7 +570,7 @@ class Game {
             this.router.eulaPage.hide(0);
         }
 
-        (document.querySelector("#title-version") as HTMLDivElement).innerHTML = "version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
+        (document.querySelector("#title-version") as HTMLDivElement).innerHTML = (OFFLINE_MODE ? "offline" : "online") + " version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
 
         let devSecret = 0;
         let devSecretTimout: number = 0;
@@ -1567,11 +1567,16 @@ let createAndInit = async () => {
     });
 }
 
-requestAnimationFrame(() => {
+requestAnimationFrame(async () => {
     if (USE_POKI_SDK) {
         PokiSDK.init().then(() => {
             createAndInit();
         })
+    }
+    else if (USE_CG_SDK) {
+        CGSDK = (window as any).CrazyGames.SDK;
+        await CGSDK.init();
+        createAndInit();
     }
     else {
         createAndInit();

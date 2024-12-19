@@ -454,7 +454,7 @@ class Ball extends BABYLON.Mesh {
         return this.puzzle.ballsCount === 1 || this.ballIndex === 1;
     }
     get mouseCanControl() {
-        return (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
+        return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
     async instantiate() {
         //await RandomWait();
@@ -1180,6 +1180,9 @@ class Ball extends BABYLON.Mesh {
         else if (this.winIndex === 2) {
             await this.win3();
         }
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.killWinAnim();
     }
     killWinAnim() {
@@ -1204,50 +1207,101 @@ class Ball extends BABYLON.Mesh {
         let wait = Mummu.AnimationFactory.CreateWait(this);
         this.popWinTrailRadius(3.5);
         await this.animStand(0.5);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.popWinTrailRadius(2);
         let d = 1.2;
         this.jump(2.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         await this.backFlip(2, 0.8 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.sparkle();
         d = 0.8;
         this.jump(1.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         await this.frontFlip(1, 0.8 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.sparkle();
         await this.animSit(0.5);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
     }
     async win2() {
         let wait = Mummu.AnimationFactory.CreateWait(this);
         await this.animStand(0.5);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.popWinTrailRadius(2);
         let d = 1.2;
         this.jump(2.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         await this.spin(2, 0.8 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.sparkle();
         d = 0.8;
         this.jump(1.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         await this.spin(1, 0.8 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.sparkle();
         await this.animSit(0.5);
     }
     async win3() {
         let wait = Mummu.AnimationFactory.CreateWait(this);
         await wait(0.5);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.popWinTrailRadius(2);
         let d = 1.2;
         this.jump(2.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         await this.backFlip(2, 0.8 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.sparkle();
         d = 0.8;
         this.jump(1.5, d);
         await wait(0.2 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         await this.frontFlip(1, 0.8 * d);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
         this.sparkle();
         await wait(0.5);
+        if (this.ballState != BallState.Wining) {
+            return;
+        }
     }
 }
 var TileState;
@@ -5101,17 +5155,19 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 var MAJOR_VERSION = 2;
 var MINOR_VERSION = 0;
-var PATCH_VERSION = 1;
+var PATCH_VERSION = 3;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
 var USE_POKI_SDK;
+var USE_CG_SDK;
 var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK;
+var CGSDK;
 var LOCALE = "en";
 var PokiSDKPlaying = false;
 function PokiGameplayStart() {
@@ -5165,20 +5221,17 @@ function firstPlayerInteraction() {
     Game.Instance.onResize();
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
-        if (USE_POKI_SDK) {
-            if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-                location.hash = "#level-1";
-            }
-            else {
-                console.error("Welcome back");
-            }
+        if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
+            location.hash = "#level-1";
+        }
+        else {
+            console.error("Welcome back");
         }
     }, 300);
     IsMobile = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera\smini|avantgo|mobilesafari|docomo)/i.test(navigator.userAgent) ? 1 : 0;
     if (IsMobile === 1) {
         document.body.classList.add("mobile");
     }
-    Game.Instance.soundManager.soundOn();
     PlayerHasInteracted = true;
 }
 let onFirstPlayerInteractionTouch = (ev) => {
@@ -5352,6 +5405,7 @@ class Game {
         this.engine = new BABYLON.Engine(this.canvas, true, undefined, false);
         BABYLON.Engine.ShadersRepository = "./shaders/";
         BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+        BABYLON.Engine.audioEngine.lock();
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
         this.performanceWatcher = new PerformanceWatcher(this);
@@ -5595,7 +5649,7 @@ class Game {
         document.querySelector("#eula-back-btn").onpointerup = () => {
             this.router.eulaPage.hide(0);
         };
-        document.querySelector("#title-version").innerHTML = "version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
+        document.querySelector("#title-version").innerHTML = (OFFLINE_MODE ? "offline" : "online") + " version " + MAJOR_VERSION + "." + MINOR_VERSION + "." + PATCH_VERSION;
         let devSecret = 0;
         let devSecretTimout = 0;
         document.querySelector("#home-menu h1").style.pointerEvents = "auto";
@@ -6453,11 +6507,16 @@ let createAndInit = async () => {
         main.animate();
     });
 };
-requestAnimationFrame(() => {
+requestAnimationFrame(async () => {
     if (USE_POKI_SDK) {
         PokiSDK.init().then(() => {
             createAndInit();
         });
+    }
+    else if (USE_CG_SDK) {
+        CGSDK = window.CrazyGames.SDK;
+        await CGSDK.init();
+        createAndInit();
     }
     else {
         createAndInit();
@@ -10802,6 +10861,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.highscorePlayerLine) {
                     this.setHoveredElement(this.successNextButton);
                 }
+                this.disableAutoNext();
             }
             else if (this.gameoverPanel.style.display === "") {
                 if (this.hoveredElement === this.gameoverBackButton) {
@@ -10810,6 +10870,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.gameoverReplayButton) {
                     this.setHoveredElement(this.gameoverBackButton);
                 }
+                this.disableAutoNext();
             }
         };
         this._inputDown = () => {
@@ -10833,6 +10894,7 @@ class PuzzleUI {
                         this.setHoveredElement(this.highscorePlayerLine);
                     }
                 }
+                this.disableAutoNext();
             }
             else if (this.gameoverPanel.style.display === "") {
                 if (this.hoveredElement === this.gameoverBackButton) {
@@ -10841,6 +10903,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.gameoverReplayButton) {
                     this.setHoveredElement(this.gameoverBackButton);
                 }
+                this.disableAutoNext();
             }
         };
         this._inputLeft = () => {
@@ -10851,6 +10914,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.gameoverReplayButton) {
                     this.setHoveredElement(this.gameoverBackButton);
                 }
+                this.disableAutoNext();
             }
         };
         this._inputRight = () => {
@@ -10861,6 +10925,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.gameoverReplayButton) {
                     this.setHoveredElement(this.gameoverBackButton);
                 }
+                this.disableAutoNext();
             }
         };
         this._inputEnter = () => {
@@ -10876,6 +10941,7 @@ class PuzzleUI {
                 else if (this.hoveredElement === this.highscorePlayerLine) {
                     document.querySelector("#score-player-input").focus();
                 }
+                this.disableAutoNext();
             }
         };
         this._inputBack = () => {
@@ -10894,6 +10960,9 @@ class PuzzleUI {
         this.completionBar = document.querySelector("#play-success-panel-completion-container completion-bar");
         this.highscoreContainer = document.querySelector("#success-highscore-container");
         this.highscorePlayerLine = document.querySelector("#score-player-input").parentElement;
+        document.querySelector("#score-player-input").addEventListener("pointerup", () => {
+            this.disableAutoNext();
+        });
         this.highscoreTwoPlayersLine = document.querySelector("#score-2-players-input").parentElement;
         this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
@@ -10922,6 +10991,11 @@ class PuzzleUI {
         });
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
+    }
+    disableAutoNext() {
+        this.autoNext = false;
+        let autoNextBar = document.querySelector("#success-next-auto-bar");
+        autoNextBar.style.display = "none";
     }
     get hoveredElement() {
         return this._hoveredElement;
@@ -11012,8 +11086,10 @@ class PuzzleUI {
             autoNextBar.setValue(0);
             autoNextBar.animateValueTo(1, 5);
             setTimeout(() => {
-                if (location.hash === currentHash) {
-                    this.successNextButton.onpointerup(undefined);
+                if (this.autoNext) {
+                    if (location.hash === currentHash) {
+                        this.successNextButton.onpointerup(undefined);
+                    }
                 }
             }, 5000);
         }

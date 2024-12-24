@@ -334,9 +334,7 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        if (USE_POKI_SDK) {
-            PokiGameplayStart();
-        }
+        SDKGameplayStart();
     }
 
     public skipIntro(): void {
@@ -347,9 +345,7 @@ class Puzzle {
     }
 
     public win(): void {
-        if (USE_POKI_SDK) {
-            //PokiGameplayStop();
-        }
+        SDKGameplayStop();
         this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
         
@@ -392,9 +388,7 @@ class Puzzle {
     }
 
     public lose(): void {
-        if (USE_POKI_SDK) {
-            //PokiGameplayStop();
-        }
+        SDKGameplayStop();
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
             this.puzzleUI.hideTouchInput();

@@ -66,20 +66,14 @@ class CarillonRouter extends Nabu.Router {
         this.game.editor.deactivate();
 
         if (page.startsWith("#options")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
         }
         else if (page.startsWith("#credits")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             await this.show(this.creditsPage, false, showTime);
         }
         else if (page === "#dev") {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#editor-preview")) {
@@ -173,60 +167,46 @@ class CarillonRouter extends Nabu.Router {
             this.game.globalTimer = 0;
         }
         else if (page.startsWith("#levels")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.storyPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.storyPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#expert-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.expertPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.expertPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#xmas-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.xmasPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.xmasPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#community-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.communityPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.communityPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#multiplayer-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.multiplayerPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.multiplayerPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#multiplayer")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             await this.show(this.multiplayerPage.nabuPage, false, showTime);
         }
         else if (page.startsWith("#dev-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             if (!DEV_MODE_ACTIVATED) {
                 location.hash = "#dev";
                 return;
@@ -247,9 +227,7 @@ class CarillonRouter extends Nabu.Router {
             if (ADVENT_CAL) {
                 location.hash = "#xmas-puzzles";
             }
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.homeMenu.updateCompletionBars();
             await this.show(this.homeMenu.nabuPage, false, showTime);
         }

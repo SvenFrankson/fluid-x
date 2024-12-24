@@ -2,6 +2,8 @@
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 
+//mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
+
 var MAJOR_VERSION: number = 2;
 var MINOR_VERSION: number = 0;
 var PATCH_VERSION: number = 3;
@@ -17,15 +19,19 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK: any;
-var CGSDK: any;
+var CrazySDK: any;
 var LOCALE = "en";
 
-var PokiSDKPlaying: boolean = false;
-function PokiGameplayStart(): void {
-    if (!PokiSDKPlaying) {
-        console.log("PokiSDK.gameplayStart");
-        PokiSDK.gameplayStart();
-        PokiSDKPlaying = true;
+var SDKPlaying: boolean = false;
+function SDKGameplayStart(): void {
+    if (SDKPlaying) {
+        if (USE_POKI_SDK) {
+            PokiSDK.gameplayStart();
+        }
+        else if (USE_CG_SDK) {
+            CrazySDK.Game.gameplayStart();
+        }
+        SDKPlaying = true;
     }
 }
 var CanStartCommercialBreak: boolean = false;
@@ -41,10 +47,15 @@ async function PokiCommercialBreak(): Promise<void> {
     await PokiSDK.commercialBreak();
     BABYLON.Engine.audioEngine.setGlobalVolume(prevMainVolume);
 }
-function PokiGameplayStop(): void {
-    if (PokiSDKPlaying) {
-        PokiSDK.gameplayStop();
-        PokiSDKPlaying = false;
+function SDKGameplayStop(): void {
+    if (SDKPlaying) {
+        if (USE_POKI_SDK) {
+            PokiSDK.gameplayStop();
+        }
+        else if (USE_CG_SDK) {
+            CrazySDK.Game.gameplayStop();
+        }
+        SDKPlaying = false;
     }
 }
 
@@ -52,6 +63,24 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = 1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
+
+function StorageGetItem(key: string): string {
+    if (USE_CG_SDK) {
+        return CrazySDK.data.getItem(key);
+    }
+    else {
+        return localStorage.getItem(key);
+    }
+}
+
+function StorageSetItem(key: string, value: string): void {
+    if (USE_CG_SDK) {
+        CrazySDK.data.setItem(key, value);
+    }
+    else {
+        localStorage.setItem(key, value);
+    }
+}
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
@@ -78,7 +107,9 @@ function firstPlayerInteraction(): void {
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
         if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
+            if (location.hash != "#level-1") {
+                location.hash = "#level-1";
+            }
         }
         else {
             console.error("Welcome back");
@@ -474,6 +505,22 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
+
+        
+        if (USE_CG_SDK) {
+            console.log("Use CrazyGames SDK");
+            if (this.puzzleCompletion.completedPuzzles.length === 0) {
+                console.log("CGStep 0");
+                if (location.hash != "#level-1") {
+                    console.log("CGStep 1");
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.log(location.hash);
+                }
+            }
+        }
+
         this.router.start();
 
         document.querySelectorAll(".p1-name-input").forEach(e => {
@@ -631,6 +678,9 @@ class Game {
             //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
+        }
+        if (USE_CG_SDK) {
+            document.getElementById("click-anywhere-screen").style.display = "none";
         }
         //this.performanceWatcher.showDebug();
 	}
@@ -1574,8 +1624,8 @@ requestAnimationFrame(async () => {
         })
     }
     else if (USE_CG_SDK) {
-        CGSDK = (window as any).CrazyGames.SDK;
-        await CGSDK.init();
+        CrazySDK = (window as any).CrazyGames.SDK;
+        await CrazySDK.init();
         createAndInit();
     }
     else {

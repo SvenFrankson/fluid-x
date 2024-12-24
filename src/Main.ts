@@ -24,12 +24,13 @@ var LOCALE = "en";
 
 var SDKPlaying: boolean = false;
 function SDKGameplayStart(): void {
-    if (SDKPlaying) {
+    if (!SDKPlaying) {
+        console.log("SDK Gameplay Start");
         if (USE_POKI_SDK) {
             PokiSDK.gameplayStart();
         }
         else if (USE_CG_SDK) {
-            CrazySDK.Game.gameplayStart();
+            CrazySDK.game.gameplayStart();
         }
         SDKPlaying = true;
     }
@@ -49,11 +50,12 @@ async function PokiCommercialBreak(): Promise<void> {
 }
 function SDKGameplayStop(): void {
     if (SDKPlaying) {
+        console.log("SDK Gameplay Stop");
         if (USE_POKI_SDK) {
             PokiSDK.gameplayStop();
         }
         else if (USE_CG_SDK) {
-            CrazySDK.Game.gameplayStop();
+            CrazySDK.game.gameplayStop();
         }
         SDKPlaying = false;
     }

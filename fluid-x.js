@@ -5335,12 +5335,13 @@ var CrazySDK;
 var LOCALE = "en";
 var SDKPlaying = false;
 function SDKGameplayStart() {
-    if (SDKPlaying) {
+    if (!SDKPlaying) {
+        console.log("SDK Gameplay Start");
         if (USE_POKI_SDK) {
             PokiSDK.gameplayStart();
         }
         else if (USE_CG_SDK) {
-            CrazySDK.Game.gameplayStart();
+            CrazySDK.game.gameplayStart();
         }
         SDKPlaying = true;
     }
@@ -5360,11 +5361,12 @@ async function PokiCommercialBreak() {
 }
 function SDKGameplayStop() {
     if (SDKPlaying) {
+        console.log("SDK Gameplay Stop");
         if (USE_POKI_SDK) {
             PokiSDK.gameplayStop();
         }
         else if (USE_CG_SDK) {
-            CrazySDK.Game.gameplayStop();
+            CrazySDK.game.gameplayStop();
         }
         SDKPlaying = false;
     }
@@ -9554,12 +9556,12 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        SDKGameplayStart();
     }
     skipIntro() {
         document.querySelector("#puzzle-skip-intro").style.display = "none";
         document.querySelector("#puzzle-ready").style.display = "";
         this.game.mode = GameMode.Play;
+        SDKGameplayStart();
         this.puzzleUI.showTouchInput();
     }
     win() {

@@ -334,13 +334,13 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        SDKGameplayStart();
     }
 
     public skipIntro(): void {
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "none";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "";
         this.game.mode = GameMode.Play;
+        SDKGameplayStart();
         this.puzzleUI.showTouchInput();
     }
 

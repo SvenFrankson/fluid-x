@@ -9,7 +9,7 @@ class SwitchTile extends Tile {
     constructor(game: Game, props: TileProps) {
         super(game, props);
 
-        this.material = this.game.materials.brownMaterial;
+        this.material = this.game.materials.blackMaterial;
 
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -32,7 +32,7 @@ class SwitchTile extends Tile {
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
         
-        this.tileBottom.material = this.game.materials.salmonMaterial;
+        this.tileBottom.material = this.game.materials.brownMaterial;
     }
 
     public async instantiate(): Promise<void> {

@@ -7305,7 +7305,7 @@ customElements.define("stroke-text", StrokeText);
 class SwitchTile extends Tile {
     constructor(game, props) {
         super(game, props);
-        this.material = this.game.materials.brownMaterial;
+        this.material = this.game.materials.blackMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
         this.outlineWidth = 0.02;
@@ -7320,7 +7320,7 @@ class SwitchTile extends Tile {
         this.tileTop.material = this.game.materials.tileColorMaterials[this.color];
         this.tileBottom = new BABYLON.Mesh("tile-bottom");
         this.tileBottom.parent = this;
-        this.tileBottom.material = this.game.materials.salmonMaterial;
+        this.tileBottom.material = this.game.materials.brownMaterial;
     }
     async instantiate() {
         //await RandomWait();

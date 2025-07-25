@@ -334,22 +334,18 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        if (USE_POKI_SDK) {
-            PokiGameplayStart();
-        }
     }
 
     public skipIntro(): void {
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "none";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "";
         this.game.mode = GameMode.Play;
+        SDKGameplayStart();
         this.puzzleUI.showTouchInput();
     }
 
     public win(): void {
-        if (USE_POKI_SDK) {
-            //PokiGameplayStop();
-        }
+        SDKGameplayStop();
         this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
         
@@ -392,9 +388,7 @@ class Puzzle {
     }
 
     public lose(): void {
-        if (USE_POKI_SDK) {
-            //PokiGameplayStop();
-        }
+        SDKGameplayStop();
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
             this.puzzleUI.hideTouchInput();

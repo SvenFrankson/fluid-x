@@ -9,124 +9,118 @@ var BallState;
     BallState[BallState["Done"] = 6] = "Done";
 })(BallState || (BallState = {}));
 class Ball extends BABYLON.Mesh {
+    puzzle;
+    ballIndex;
+    woodChocSound;
+    woodChocSound2;
+    fallImpactSound;
+    leftArrow;
+    get leftArrowSize() {
+        return this.leftArrow.scaling.x;
+    }
+    set leftArrowSize(v) {
+        this.leftArrow.scaling.copyFromFloats(v, v, v);
+    }
+    rightArrow;
+    get rightArrowSize() {
+        return this.rightArrow.scaling.x;
+    }
+    set rightArrowSize(v) {
+        this.rightArrow.scaling.copyFromFloats(v, v, v);
+    }
+    ballState = BallState.Ready;
+    fallOriginPos;
+    fallRotAxis;
+    fallTimer = 0;
+    hole;
+    water;
+    color;
+    ballTop;
+    shadow;
+    trailMesh;
+    trailColor = new BABYLON.Color4(0, 0, 0, 0);
+    leftBox;
+    leftTop;
+    rightBox;
+    rightTop;
+    canBoost = true;
+    _boost = false;
+    get boost() {
+        return this._boost;
+    }
+    set boost(v) {
+        this._boost = v;
+        this.shadow.material = this._boost ? this.game.materials.lightDiscMaterial : this.game.materials.shadowDiscMaterial;
+        let inputBoost = document.querySelector("#input-boost");
+        if (inputBoost) {
+            if (this._boost) {
+                inputBoost.classList.add("active");
+            }
+            else {
+                inputBoost.classList.remove("active");
+            }
+        }
+    }
+    nominalSpeed = 2.3;
+    vZ = 1;
+    radius = 0.25;
+    bounceXDelay = 0.93;
+    bounceXDelayWall = 0.7;
+    xForceAccelDelay = 0.8 * this.bounceXDelay;
+    _loseTimout = 0;
+    isControlLocked = false;
+    _lockControlTimout = 0;
+    lockControl(duration = 0.2) {
+        clearTimeout(this._lockControlTimout);
+        this.isControlLocked = true;
+        this._lockControlTimout = setTimeout(() => {
+            this.isControlLocked = false;
+        }, duration * 1000);
+    }
+    leftPressed = 0;
+    rightPressed = 0;
+    upPressed = 0;
+    downPressed = 0;
+    animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
+    setColor(color) {
+        this.color = color;
+        if (this.ballTop) {
+            this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+        }
+        if (this.leftTop) {
+            this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+        }
+        if (this.rightTop) {
+            this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+        }
+    }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.1;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
+        this.rightArrow.position.copyFrom(this.position);
+        this.rightArrow.position.y += 0.1;
+        this.leftArrow.position.copyFrom(this.position);
+        this.leftArrow.position.y += 0.1;
+    }
+    get game() {
+        return this.puzzle.game;
+    }
     constructor(puzzle, props, ballIndex = 0) {
         super("ball");
         this.puzzle = puzzle;
         this.ballIndex = ballIndex;
-        this.ballState = BallState.Ready;
-        this.fallTimer = 0;
-        this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
-        this.canBoost = true;
-        this._boost = false;
-        this.nominalSpeed = 2.3;
-        this.vZ = 1;
-        this.radius = 0.25;
-        this.bounceXDelay = 0.93;
-        this.bounceXDelayWall = 0.7;
-        this.xForceAccelDelay = 0.8 * this.bounceXDelay;
-        this._loseTimout = 0;
-        this.isControlLocked = false;
-        this._lockControlTimout = 0;
-        this.leftPressed = 0;
-        this.rightPressed = 0;
-        this.upPressed = 0;
-        this.downPressed = 0;
-        this.animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.mouseInControl = false;
-        this._pointerDown = false;
-        this.pointerDown = (ev) => {
-            if (this.game.mode === GameMode.Preplay) {
-                if (!this.game.router.tutoPage.shown) {
-                    this.puzzle.skipIntro();
-                    this.lockControl(0.2);
-                }
-            }
-        };
-        this.mouseDown = (ev) => {
-            if (this.mouseCanControl) {
-                this.mouseInControl = true;
-                this._pointerDown = true;
-            }
-        };
-        this.mouseUp = (ev) => {
-            if (this.mouseCanControl) {
-                this.mouseInControl = true;
-                this._pointerDown = false;
-            }
-        };
-        this.xForce = 1;
-        this.speed = this.nominalSpeed;
-        this.dumdumFactor = 1;
-        this.dumdumFactorTarget = 1;
-        this.moveDir = BABYLON.Vector3.Forward();
-        this.smoothedMoveDir = BABYLON.Vector3.Forward();
-        this.inputSpeed = 1000;
-        this.bounceXValue = 0;
-        this.bounceXTimer = 0;
-        this.trailTimer = 0;
-        this.trailPoints = [];
-        this.trailPointColors = [];
-        this.animPos = Mummu.AnimationFactory.EmptyVector3Callback;
-        this.animWinTrailRadius = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animRotX = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animRotY = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.winTrailPos0 = BABYLON.Vector3.Zero();
-        this.winTrailPos1 = BABYLON.Vector3.Zero();
-        this.winTrailPoints0 = [];
-        this.winTrailPoints1 = [];
-        this._shadowGroundY = 0;
-        this.winTrailRadius = 0.5;
-        this._winTrailTimer = 0;
-        this._updateWin = () => {
-            let dt = this.game.scene.deltaTime / 1000;
-            this.shadow.position.x = this.animContainer.position.x;
-            this.shadow.position.y = this._shadowGroundY;
-            this.shadow.position.z = this.animContainer.position.z;
-            this._winTrailTimer -= dt;
-            if (this._winTrailTimer <= 0) {
-                this._winTrailTimer = 0.01;
-                let pt0 = new BABYLON.Vector3(1, 0, -1).normalize();
-                pt0.scaleInPlace(this.winTrailRadius);
-                BABYLON.Vector3.TransformCoordinatesToRef(pt0, this.getWorldMatrix(), pt0);
-                this.winTrailPoints0.push(pt0);
-                if (this.winTrailPoints0.length > 40) {
-                    this.winTrailPoints0.splice(0, 1);
-                }
-                let pt1 = new BABYLON.Vector3(-1, 0, -1).normalize();
-                pt1.scaleInPlace(this.winTrailRadius);
-                BABYLON.Vector3.TransformCoordinatesToRef(pt1, this.getWorldMatrix(), pt1);
-                this.winTrailPoints1.push(pt1);
-                if (this.winTrailPoints1.length > 40) {
-                    this.winTrailPoints1.splice(0, 1);
-                }
-                if (this.winTrailPoints0.length > 2) {
-                    let data = CreateTrailVertexData({
-                        path: this.winTrailPoints0,
-                        radiusFunc: (f) => {
-                            return 0.05 * f;
-                            //return 0.01;
-                        },
-                        color: new BABYLON.Color4(1, 1, 1, 1)
-                    });
-                    data.applyToMesh(this.winTrailMesh0);
-                    this.winTrailMesh0.isVisible = true;
-                }
-                if (this.winTrailPoints1.length > 2) {
-                    let data = CreateTrailVertexData({
-                        path: this.winTrailPoints1,
-                        radiusFunc: (f) => {
-                            return 0.05 * f;
-                            //return 0.01;
-                        },
-                        color: new BABYLON.Color4(1, 1, 1, 1)
-                    });
-                    data.applyToMesh(this.winTrailMesh1);
-                    this.winTrailMesh1.isVisible = true;
-                }
-            }
-        };
-        this.winIndex = 0;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.animContainer = new BABYLON.Mesh("anim-container");
         //this.animContainer = Mummu.DrawDebugPoint(BABYLON.Vector3.Zero(), Infinity, BABYLON.Color3.Red(), 1);
@@ -371,76 +365,6 @@ class Ball extends BABYLON.Mesh {
             });
         }
     }
-    get leftArrowSize() {
-        return this.leftArrow.scaling.x;
-    }
-    set leftArrowSize(v) {
-        this.leftArrow.scaling.copyFromFloats(v, v, v);
-    }
-    get rightArrowSize() {
-        return this.rightArrow.scaling.x;
-    }
-    set rightArrowSize(v) {
-        this.rightArrow.scaling.copyFromFloats(v, v, v);
-    }
-    get boost() {
-        return this._boost;
-    }
-    set boost(v) {
-        this._boost = v;
-        this.shadow.material = this._boost ? this.game.materials.lightDiscMaterial : this.game.materials.shadowDiscMaterial;
-        let inputBoost = document.querySelector("#input-boost");
-        if (inputBoost) {
-            if (this._boost) {
-                inputBoost.classList.add("active");
-            }
-            else {
-                inputBoost.classList.remove("active");
-            }
-        }
-    }
-    lockControl(duration = 0.2) {
-        clearTimeout(this._lockControlTimout);
-        this.isControlLocked = true;
-        this._lockControlTimout = setTimeout(() => {
-            this.isControlLocked = false;
-        }, duration * 1000);
-    }
-    setColor(color) {
-        this.color = color;
-        if (this.ballTop) {
-            this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
-        }
-        if (this.leftTop) {
-            this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
-        }
-        if (this.rightTop) {
-            this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
-        }
-    }
-    get i() {
-        return Math.round(this.position.x / 1.1);
-    }
-    set i(v) {
-        this.position.x = v * 1.1;
-        this.rightArrow.position.copyFrom(this.position);
-        this.rightArrow.position.y += 0.1;
-        this.leftArrow.position.copyFrom(this.position);
-        this.leftArrow.position.y += 0.1;
-    }
-    get j() {
-        return Math.round(this.position.z / 1.1);
-    }
-    set j(v) {
-        this.position.z = v * 1.1;
-        this.rightArrow.position.copyFrom(this.position);
-        this.rightArrow.position.y += 0.1;
-        this.leftArrow.position.copyFrom(this.position);
-        this.leftArrow.position.y += 0.1;
-    }
-    get game() {
-        return this.puzzle.game;
-    }
     connectMouse() {
         this.game.canvas.addEventListener("pointerdown", this.mouseDown);
         this.game.canvas.addEventListener("pointerup", this.mouseUp);
@@ -456,6 +380,28 @@ class Ball extends BABYLON.Mesh {
     get mouseCanControl() {
         return (IsTouchScreen === 0) && (this.puzzle.ballsCount === 1 || this.ballIndex === 0);
     }
+    mouseInControl = false;
+    _pointerDown = false;
+    pointerDown = (ev) => {
+        if (this.game.mode === GameMode.Preplay) {
+            if (!this.game.router.tutoPage.shown) {
+                this.puzzle.skipIntro();
+                this.lockControl(0.2);
+            }
+        }
+    };
+    mouseDown = (ev) => {
+        if (this.mouseCanControl) {
+            this.mouseInControl = true;
+            this._pointerDown = true;
+        }
+    };
+    mouseUp = (ev) => {
+        if (this.mouseCanControl) {
+            this.mouseInControl = true;
+            this._pointerDown = false;
+        }
+    };
     async instantiate() {
         //await RandomWait();
         let ballDatas;
@@ -480,9 +426,21 @@ class Ball extends BABYLON.Mesh {
             this.trailMesh.isVisible = false;
         }
     }
+    xForce = 1;
+    speed = this.nominalSpeed;
+    dumdumFactor = 1;
+    dumdumFactorTarget = 1;
     get boostedSpeed() {
         return this.speed * this.dumdumFactor;
     }
+    moveDir = BABYLON.Vector3.Forward();
+    smoothedMoveDir = BABYLON.Vector3.Forward();
+    inputSpeed = 1000;
+    bounceXValue = 0;
+    bounceXTimer = 0;
+    trailTimer = 0;
+    trailPoints = [];
+    trailPointColors = [];
     update(dt) {
         if (this.mouseCanControl && this.mouseInControl) {
             this.rightPressed = 0;
@@ -1084,6 +1042,18 @@ class Ball extends BABYLON.Mesh {
         this.rightArrow.isVisible = true;
         this.setVisible(true);
     }
+    animContainer;
+    animPos = Mummu.AnimationFactory.EmptyVector3Callback;
+    animWinTrailRadius = Mummu.AnimationFactory.EmptyNumberCallback;
+    animRotX = Mummu.AnimationFactory.EmptyNumberCallback;
+    animRotY = Mummu.AnimationFactory.EmptyNumberCallback;
+    animRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
+    winTrailPos0 = BABYLON.Vector3.Zero();
+    winTrailPos1 = BABYLON.Vector3.Zero();
+    winTrailPoints0 = [];
+    winTrailPoints1 = [];
+    winTrailMesh0;
+    winTrailMesh1;
     async animStand(duration) {
         let standingP = this.animContainer.position.clone();
         standingP.y += 0.1;
@@ -1144,6 +1114,58 @@ class Ball extends BABYLON.Mesh {
         explosionFire.tZero = 1.1;
         explosionFire.boom();
     }
+    _shadowGroundY = 0;
+    winTrailRadius = 0.5;
+    _winTrailTimer = 0;
+    _updateWin = () => {
+        let dt = this.game.scene.deltaTime / 1000;
+        this.shadow.position.x = this.animContainer.position.x;
+        this.shadow.position.y = this._shadowGroundY;
+        this.shadow.position.z = this.animContainer.position.z;
+        this._winTrailTimer -= dt;
+        if (this._winTrailTimer <= 0) {
+            this._winTrailTimer = 0.01;
+            let pt0 = new BABYLON.Vector3(1, 0, -1).normalize();
+            pt0.scaleInPlace(this.winTrailRadius);
+            BABYLON.Vector3.TransformCoordinatesToRef(pt0, this.getWorldMatrix(), pt0);
+            this.winTrailPoints0.push(pt0);
+            if (this.winTrailPoints0.length > 40) {
+                this.winTrailPoints0.splice(0, 1);
+            }
+            let pt1 = new BABYLON.Vector3(-1, 0, -1).normalize();
+            pt1.scaleInPlace(this.winTrailRadius);
+            BABYLON.Vector3.TransformCoordinatesToRef(pt1, this.getWorldMatrix(), pt1);
+            this.winTrailPoints1.push(pt1);
+            if (this.winTrailPoints1.length > 40) {
+                this.winTrailPoints1.splice(0, 1);
+            }
+            if (this.winTrailPoints0.length > 2) {
+                let data = CreateTrailVertexData({
+                    path: this.winTrailPoints0,
+                    radiusFunc: (f) => {
+                        return 0.05 * f;
+                        //return 0.01;
+                    },
+                    color: new BABYLON.Color4(1, 1, 1, 1)
+                });
+                data.applyToMesh(this.winTrailMesh0);
+                this.winTrailMesh0.isVisible = true;
+            }
+            if (this.winTrailPoints1.length > 2) {
+                let data = CreateTrailVertexData({
+                    path: this.winTrailPoints1,
+                    radiusFunc: (f) => {
+                        return 0.05 * f;
+                        //return 0.01;
+                    },
+                    color: new BABYLON.Color4(1, 1, 1, 1)
+                });
+                data.applyToMesh(this.winTrailMesh1);
+                this.winTrailMesh1.isVisible = true;
+            }
+        }
+    };
+    winIndex = 0;
     async popWinTrailRadius(duration) {
         this.winTrailRadius = 0.4;
         await this.animWinTrailRadius(0.8, duration * 0.5, Nabu.Easing.easeOutCubic);
@@ -1311,12 +1333,34 @@ var TileState;
     TileState[TileState["Moving"] = 2] = "Moving";
 })(TileState || (TileState = {}));
 class Tile extends BABYLON.Mesh {
+    game;
+    props;
+    tileState = TileState.Active;
+    shadow;
+    animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
+    color;
+    get size() {
+        return this.scaling.x;
+    }
+    set size(s) {
+        this.scaling.copyFromFloats(s, s, s);
+    }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
+    }
     constructor(game, props) {
         super("tile");
         this.game = game;
         this.props = props;
-        this.tileState = TileState.Active;
-        this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
         this.color = props.color;
         if (isFinite(props.i)) {
             this.i = props.i;
@@ -1338,24 +1382,6 @@ class Tile extends BABYLON.Mesh {
             this.shadow.material = this.game.materials.shadow9Material;
         }
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
-    }
-    get size() {
-        return this.scaling.x;
-    }
-    set size(s) {
-        this.scaling.copyFromFloats(s, s, s);
-    }
-    get i() {
-        return Math.round(this.position.x / 1.1);
-    }
-    set i(v) {
-        this.position.x = v * 1.1;
-    }
-    get j() {
-        return Math.round(this.position.z / 1.1);
-    }
-    set j(v) {
-        this.position.z = v * 1.1;
     }
     async instantiate() {
         //await RandomWait();
@@ -1562,6 +1588,7 @@ class Tile extends BABYLON.Mesh {
 }
 /// <reference path="./Tile.ts"/>
 class BlockTile extends Tile {
+    tileTop;
     constructor(game, props) {
         super(game, props);
         this.color = props.color;
@@ -1599,14 +1626,10 @@ class BlockTile extends Tile {
     }
 }
 class Border {
-    constructor(game, ghost = false) {
-        this.game = game;
-        this.ghost = ghost;
-        this.position = BABYLON.Vector3.Zero();
-        this.rotationY = 0;
-        this.w = 0;
-        this.d = 1;
-    }
+    game;
+    ghost;
+    position = BABYLON.Vector3.Zero();
+    rotationY = 0;
     get vertical() {
         return this.rotationY === 0;
     }
@@ -1615,6 +1638,8 @@ class Border {
         this.w = v ? 0 : 1;
         this.d = v ? 1 : 0;
     }
+    w = 0;
+    d = 1;
     get i() {
         if (this.vertical) {
             return Math.floor(this.position.x / 1.1);
@@ -1676,6 +1701,10 @@ class Border {
         //haikuDebug.position.copyFrom(border.position);
         //haikuDebug.position.y += 0.5;
         return border;
+    }
+    constructor(game, ghost = false) {
+        this.game = game;
+        this.ghost = ghost;
     }
     async getVertexData() {
         //await RandomWait();
@@ -1751,11 +1780,32 @@ class Border {
     }
 }
 class Build extends BABYLON.Mesh {
+    game;
+    props;
+    floor;
+    shadow;
+    borders = [];
+    get puzzle() {
+        return this.game.puzzle;
+    }
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+        this.freeze();
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
+        this.freeze();
+    }
     constructor(game, props) {
         super("tile");
         this.game = game;
         this.props = props;
-        this.borders = [];
         if (isFinite(props.i)) {
             this.position.x = props.i * 1.1;
         }
@@ -1774,23 +1824,6 @@ class Build extends BABYLON.Mesh {
         if (index === -1) {
             this.game.puzzle.buildings.push(this);
         }
-    }
-    get puzzle() {
-        return this.game.puzzle;
-    }
-    get i() {
-        return Math.round(this.position.x / 1.1);
-    }
-    set i(v) {
-        this.position.x = v * 1.1;
-        this.freeze();
-    }
-    get j() {
-        return Math.round(this.position.z / 1.1);
-    }
-    set j(v) {
-        this.position.z = v * 1.1;
-        this.freeze();
     }
     async instantiate() { }
     async bump() {
@@ -1815,9 +1848,11 @@ class Build extends BABYLON.Mesh {
     }
 }
 class Ramp extends Build {
+    builtInBorderLeft;
+    builtInBorderRight;
+    w = 2;
     constructor(game, props) {
         super(game, props);
-        this.w = 2;
         this.material = this.game.materials.brickWallMaterial;
         if (props.size) {
             this.w = props.size;
@@ -2074,6 +2109,7 @@ class BuildingBlock {
     }
 }
 class Bridge extends Build {
+    builtInBorder;
     constructor(game, props) {
         super(game, props);
         this.material = this.game.materials.brickWallMaterial;
@@ -2157,6 +2193,49 @@ class Bridge extends Build {
     }
 }
 class CarillionMaterials {
+    game;
+    tileColorMaterials;
+    collectedTileMaterial;
+    tileColorShinyMaterials;
+    tileNumberMaterials;
+    colorMaterials;
+    trueWhiteMaterial;
+    fullAutolitWhiteMaterial;
+    whiteMaterial;
+    grayMaterial;
+    blackMaterial;
+    brownMaterial;
+    salmonMaterial;
+    blueMaterial;
+    redMaterial;
+    yellowMaterial;
+    greenMaterial;
+    waterMaterial;
+    boostMaterial;
+    floorMaterials;
+    floorMaterial;
+    floorMaterial2;
+    floorGrass;
+    floorStoneRect;
+    floorLogs;
+    floorMossLogs;
+    woodFloorMaterial;
+    roofMaterial;
+    woodMaterial;
+    wallMaterial;
+    brickWallMaterial;
+    holeMaterial;
+    shadow9Material;
+    whiteShadow9Material;
+    shadowDiscMaterial;
+    lightDiscMaterial;
+    puckSideMaterial;
+    creepSlashMaterial;
+    tileStarTailMaterial;
+    pushTileTopMaterial;
+    get borderMaterial() {
+        return this.brownMaterial;
+    }
     constructor(game) {
         this.game = game;
         let northMaterial = new BABYLON.StandardMaterial("north-material");
@@ -2430,11 +2509,26 @@ class CarillionMaterials {
             this.holeMaterial
         ];
     }
-    get borderMaterial() {
-        return this.brownMaterial;
-    }
 }
 class CarillonRouter extends Nabu.Router {
+    game;
+    homeMenu;
+    storyPuzzlesPage;
+    expertPuzzlesPage;
+    xmasPuzzlesPage;
+    communityPuzzlesPage;
+    devPuzzlesPage;
+    multiplayerPuzzlesPage;
+    playUI;
+    editorUI;
+    creditsPage;
+    multiplayerPage;
+    devPage;
+    tutoPage;
+    eulaPage;
+    timerText;
+    puzzleIntro;
+    playBackButton;
     constructor(game) {
         super();
         this.game = game;
@@ -2475,20 +2569,14 @@ class CarillonRouter extends Nabu.Router {
         this.game.globalTimer = 0;
         this.game.editor.deactivate();
         if (page.startsWith("#options")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
         }
         else if (page.startsWith("#credits")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             await this.show(this.creditsPage, false, showTime);
         }
         else if (page === "#dev") {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             await this.show(this.devPage, false, showTime);
         }
         else if (page.startsWith("#editor-preview")) {
@@ -2582,60 +2670,46 @@ class CarillonRouter extends Nabu.Router {
             this.game.globalTimer = 0;
         }
         else if (page.startsWith("#levels")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.storyPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.storyPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#expert-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.expertPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.expertPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#xmas-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.xmasPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.xmasPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#community-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.communityPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.communityPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#multiplayer-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.show(this.multiplayerPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.multiplayerPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#multiplayer")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             await this.show(this.multiplayerPage.nabuPage, false, showTime);
         }
         else if (page.startsWith("#dev-puzzles")) {
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             if (!DEV_MODE_ACTIVATED) {
                 location.hash = "#dev";
                 return;
@@ -2656,9 +2730,7 @@ class CarillonRouter extends Nabu.Router {
             if (ADVENT_CAL) {
                 location.hash = "#xmas-puzzles";
             }
-            if (USE_POKI_SDK) {
-                PokiGameplayStop();
-            }
+            SDKGameplayStop();
             this.homeMenu.updateCompletionBars();
             await this.show(this.homeMenu.nabuPage, false, showTime);
         }
@@ -2669,11 +2741,10 @@ class CarillonRouter extends Nabu.Router {
     }
 }
 class CompletionBar extends HTMLElement {
-    constructor() {
-        super(...arguments);
-        this.value = 0;
-        this.showText = true;
-    }
+    value = 0;
+    valueText;
+    completedBar;
+    showText = true;
     static get observedAttributes() {
         return ["value", "show-text"];
     }
@@ -2776,15 +2847,50 @@ class CompletionBar extends HTMLElement {
 }
 customElements.define("completion-bar", CompletionBar);
 class Creep extends BABYLON.Mesh {
+    puzzle;
+    props;
+    radius = 0.4;
+    shell;
+    shellColored;
+    spikes;
+    slash;
+    shadow;
+    dir = new BABYLON.Vector2(1, 0);
+    destI;
+    destJ;
+    get i() {
+        return Math.round(this.position.x / 1.1);
+    }
+    set i(v) {
+        this.position.x = v * 1.1;
+    }
+    get j() {
+        return Math.round(this.position.z / 1.1);
+    }
+    set j(v) {
+        this.position.z = v * 1.1;
+    }
+    animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
+    get size() {
+        return this.shell.scaling.x;
+    }
+    set size(s) {
+        this.shell.scaling.copyFromFloats(s, s, s);
+        this.shadow.scaling.copyFromFloats(s * 1.2, s * 1.2, s * 1.2);
+    }
+    get slashSize() {
+        return this.slash.scaling.x;
+    }
+    set slashSize(s) {
+        this.slash.scaling.copyFromFloats(s, s, s);
+    }
+    get game() {
+        return this.puzzle.game;
+    }
     constructor(puzzle, props) {
         super("creep");
         this.puzzle = puzzle;
         this.props = props;
-        this.radius = 0.4;
-        this.dir = new BABYLON.Vector2(1, 0);
-        this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.stopMove = false;
-        this._moving = false;
         if (isFinite(props.i)) {
             this.i = props.i;
         }
@@ -2825,34 +2931,6 @@ class Creep extends BABYLON.Mesh {
         this.shadow.parent = this;
         this.shadow.material = this.game.materials.shadowDiscMaterial;
         this.animateSize = Mummu.AnimationFactory.CreateNumber(this, this, "size");
-    }
-    get i() {
-        return Math.round(this.position.x / 1.1);
-    }
-    set i(v) {
-        this.position.x = v * 1.1;
-    }
-    get j() {
-        return Math.round(this.position.z / 1.1);
-    }
-    set j(v) {
-        this.position.z = v * 1.1;
-    }
-    get size() {
-        return this.shell.scaling.x;
-    }
-    set size(s) {
-        this.shell.scaling.copyFromFloats(s, s, s);
-        this.shadow.scaling.copyFromFloats(s * 1.2, s * 1.2, s * 1.2);
-    }
-    get slashSize() {
-        return this.slash.scaling.x;
-    }
-    set slashSize(s) {
-        this.slash.scaling.copyFromFloats(s, s, s);
-    }
-    get game() {
-        return this.puzzle.game;
     }
     async instantiate() {
         //await RandomWait();
@@ -2975,6 +3053,7 @@ class Creep extends BABYLON.Mesh {
             return;
         }
     }
+    stopMove = false;
     moveTo(destination, duration = 1) {
         return new Promise(resolve => {
             let t0 = performance.now();
@@ -3057,6 +3136,7 @@ class Creep extends BABYLON.Mesh {
             step();
         });
     }
+    _moving = false;
     update(rawDT) {
         if (this.puzzle.puzzleState === PuzzleState.Playing) {
             if (!this._moving) {
@@ -3089,245 +3169,92 @@ var EditorBrush;
     EditorBrush[EditorBrush["Tree"] = 14] = "Tree";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
-    constructor(game) {
-        this.game = game;
-        this.active = false;
-        this.cursorOffset = BABYLON.Vector3.Zero();
-        this.cursorI = 0;
-        this.cursorJ = 0;
-        this.cursorH = 0;
-        this.brush = EditorBrush.None;
-        this.brushColor = TileColor.North;
-        this.selectableButtons = [];
-        this._pendingPublish = false;
-        this.updatePublishBtn = () => {
-            if (this.title.length > 2 && this.author.length > 2 && this.eulaAccepted) {
-                document.getElementById("publish-confirm-btn").classList.add("lightblue");
-                document.getElementById("publish-confirm-btn").classList.remove("locked");
-            }
-            else {
-                document.getElementById("publish-confirm-btn").classList.remove("lightblue");
-                document.getElementById("publish-confirm-btn").classList.add("locked");
-            }
-        };
-        this._pointerX = 0;
-        this._pointerY = 0;
-        this.update = (dt) => {
-            if (this.active) {
-                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
-                });
-                if (pick.hit) {
-                    this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
-                    this.cursorI = Nabu.MinMax(this.cursorI, 0, this.puzzle.w - this.cursorW);
-                    this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
-                    this.cursorJ = Nabu.MinMax(this.cursorJ, 0, this.puzzle.h - this.cursorD);
-                    this.cursorH = this.puzzle.hMapGet(this.cursorI, this.cursorJ);
-                    this.cursor.isVisible = true;
-                    this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
-                    this.cursor.position.addInPlace(this.cursorOffset);
-                }
-                else {
-                    this.cursor.isVisible = false;
-                }
-            }
-        };
-        this.pointerDown = (ev) => {
-            this._pointerX = ev.clientX;
-            this._pointerY = ev.clientY;
-        };
-        this.pointerUp = (ev) => {
-            let dx = ev.clientX - this._pointerX;
-            let dy = ev.clientY - this._pointerY;
-            let dd = dx * dx + dy * dy;
-            if (dd < 9) {
-                let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
-                    return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
-                });
-                if (pick.hit) {
-                    if (ev.button === 2 || this.brush === EditorBrush.Delete) {
-                        let tile = this.puzzle.tiles.find(tile => {
-                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
-                        });
-                        if (tile instanceof DoorTile && !tile.closed) {
-                            tile.close(0);
-                        }
-                        else if (tile instanceof HoleTile && !tile.covered) {
-                            tile.covered = true;
-                            tile.instantiate();
-                        }
-                        else if (tile) {
-                            tile.dispose();
-                            this.puzzle.rebuildFloor();
-                        }
-                        else if (this.puzzle.buildingBlockGet(this.cursorI, this.cursorJ) === 1) {
-                            this.puzzle.buildingBlockSet(0, this.cursorI, this.cursorJ);
-                            this.puzzle.editorRegenerateBuildings();
-                        }
-                        else {
-                            let building = this.puzzle.buildings.find(build => {
-                                return build.i === this.cursorI && build.j === this.cursorJ;
-                            });
-                            if (building) {
-                                building.dispose();
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else {
-                                let creep = this.puzzle.creeps.find(creep => {
-                                    return creep.i === this.cursorI && creep.j === this.cursorJ;
-                                });
-                                if (creep) {
-                                    creep.dispose();
-                                }
-                            }
-                        }
-                    }
-                    else if (ev.button === 0) {
-                        let tile = this.puzzle.tiles.find(tile => {
-                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
-                        });
-                        if (!tile) {
-                            if (this.brush === EditorBrush.Tile) {
-                                tile = new BlockTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Switch) {
-                                tile = new SwitchTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Button) {
-                                tile = new ButtonTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor,
-                                    value: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Door) {
-                                tile = new DoorTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor,
-                                    value: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Push) {
-                                tile = new PushTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Hole) {
-                                tile = new HoleTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Wall) {
-                                tile = new WallTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Water) {
-                                tile = new WaterTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Box) {
-                                this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else if (this.brush === EditorBrush.Ramp) {
-                                let box = new Ramp(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    size: this.brushColor
-                                });
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else if (this.brush === EditorBrush.Bridge) {
-                                let box = new Bridge(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ
-                                });
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else if (this.brush === EditorBrush.Creep) {
-                                let creep = new Creep(this.puzzle, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH
-                                });
-                                creep.instantiate();
-                            }
-                            else if (this.brush === EditorBrush.Tree) {
-                                tile = new CherryTree(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            if (tile) {
-                                if (tile instanceof WaterTile) {
-                                    this.puzzle.editorRegenerateWaterTiles();
-                                }
-                                else {
-                                    tile.instantiate();
-                                }
-                                this.puzzle.rebuildFloor();
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        this.cursor = Mummu.CreateLineBox("cursor", {
-            width: 1,
-            height: 1,
-            depth: 1,
-            color: new BABYLON.Color4(0, 1, 0, 1)
-        });
-        this.setCursorSize({ w: 1, h: 0, d: 1 });
-    }
+    game;
+    active = false;
+    cursor;
+    cursorOffset = BABYLON.Vector3.Zero();
+    cursorI = 0;
+    cursorJ = 0;
+    cursorH = 0;
     get cursorW() {
         return Math.round(this.cursor.scaling.x / 1.1);
     }
     get cursorD() {
         return Math.round(this.cursor.scaling.z / 1.1);
     }
+    brush = EditorBrush.None;
+    brushColor = TileColor.North;
+    ballCountButton;
+    p1OriginColorInput;
+    p1OriginIInput;
+    p1OriginJInput;
+    p2OriginColorInput;
+    p2OriginIInput;
+    p2OriginJInput;
+    widthInput;
+    widthInsert;
+    widthDelete;
+    heightInput;
+    heightInsert;
+    heightDelete;
+    floorMaterialInput;
+    switchTileNorthButton;
+    switchTileEastButton;
+    switchTileSouthButton;
+    switchTileWestButton;
+    blockTileNorthButton;
+    blockTileEastButton;
+    blockTileSouthButton;
+    blockTileWestButton;
+    buttonTileOneButton;
+    buttonTileTwoButton;
+    buttonTileThreeButton;
+    doorTileOneButton;
+    doorTileTwoButton;
+    doorTileThreeButton;
+    pushTileButton;
+    holeButton;
+    wallButton;
+    waterButton;
+    boxButton;
+    ramp1Button;
+    ramp2Button;
+    ramp3Button;
+    ramp4Button;
+    bridgeButton;
+    creepButton;
+    treeButton;
+    deleteButton;
+    selectableButtons = [];
+    haikuIInput;
+    haikuJInput;
+    haikuContent;
+    haikuUpdateButton;
+    doClearButton;
+    clearButton;
+    publishForm;
+    publishFormEdit;
+    publishFormSuccess;
+    publishFormFailure;
+    publishCancelButton;
+    publishConfirmButton;
+    publishPendingButton;
+    titleInput;
     get title() {
         if (this.titleInput) {
             return this.titleInput.value;
         }
         return "";
     }
+    authorInput;
     get author() {
         if (this.authorInput) {
             return this.authorInput.value;
         }
         return "";
     }
+    puzzleIdInput;
+    eulaCheckbox;
     get eulaAccepted() {
         if (this.eulaCheckbox) {
             return this.eulaCheckbox.checked;
@@ -3337,8 +3264,19 @@ class Editor {
     getScene() {
         return this.game.scene;
     }
+    _pendingPublish = false;
     get puzzle() {
         return this.game.puzzle;
+    }
+    constructor(game) {
+        this.game = game;
+        this.cursor = Mummu.CreateLineBox("cursor", {
+            width: 1,
+            height: 1,
+            depth: 1,
+            color: new BABYLON.Color4(0, 1, 0, 1)
+        });
+        this.setCursorSize({ w: 1, h: 0, d: 1 });
     }
     initValues() {
         this.p1OriginColorInput.setValue(this.puzzle.balls[0].color);
@@ -3869,6 +3807,16 @@ class Editor {
             this.puzzleIdInput.parentElement.style.display = "none";
         }
     }
+    updatePublishBtn = () => {
+        if (this.title.length > 2 && this.author.length > 2 && this.eulaAccepted) {
+            document.getElementById("publish-confirm-btn").classList.add("lightblue");
+            document.getElementById("publish-confirm-btn").classList.remove("locked");
+        }
+        else {
+            document.getElementById("publish-confirm-btn").classList.remove("lightblue");
+            document.getElementById("publish-confirm-btn").classList.add("locked");
+        }
+    };
     setPublishState(state) {
         this.publishForm.style.display = "";
         this.publishCancelButton.style.display = "inline-block";
@@ -3914,6 +3862,198 @@ class Editor {
         this.cursor.scaling.z = size.d * 1.1;
         this.cursorOffset.z = 0 + (size.d - 1) * 1.1 * 0.5;
     }
+    _pointerX = 0;
+    _pointerY = 0;
+    update = (dt) => {
+        if (this.active) {
+            let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
+                return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
+            });
+            if (pick.hit) {
+                this.cursorI = Math.round(pick.pickedPoint.x / 1.1);
+                this.cursorI = Nabu.MinMax(this.cursorI, 0, this.puzzle.w - this.cursorW);
+                this.cursorJ = Math.round(pick.pickedPoint.z / 1.1);
+                this.cursorJ = Nabu.MinMax(this.cursorJ, 0, this.puzzle.h - this.cursorD);
+                this.cursorH = this.puzzle.hMapGet(this.cursorI, this.cursorJ);
+                this.cursor.isVisible = true;
+                this.cursor.position.copyFromFloats(this.cursorI * 1.1, this.cursorH, this.cursorJ * 1.1);
+                this.cursor.position.addInPlace(this.cursorOffset);
+            }
+            else {
+                this.cursor.isVisible = false;
+            }
+        }
+    };
+    pointerDown = (ev) => {
+        this._pointerX = ev.clientX;
+        this._pointerY = ev.clientY;
+    };
+    pointerUp = (ev) => {
+        let dx = ev.clientX - this._pointerX;
+        let dy = ev.clientY - this._pointerY;
+        let dd = dx * dx + dy * dy;
+        if (dd < 9) {
+            let pick = this.game.scene.pick(this.game.scene.pointerX * window.devicePixelRatio, this.game.scene.pointerY * window.devicePixelRatio, (mesh) => {
+                return mesh.name === "floor" || mesh.name === "building-floor" || mesh === this.puzzle.invisiFloorTM;
+            });
+            if (pick.hit) {
+                if (ev.button === 2 || this.brush === EditorBrush.Delete) {
+                    let tile = this.puzzle.tiles.find(tile => {
+                        return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                    });
+                    if (tile instanceof DoorTile && !tile.closed) {
+                        tile.close(0);
+                    }
+                    else if (tile instanceof HoleTile && !tile.covered) {
+                        tile.covered = true;
+                        tile.instantiate();
+                    }
+                    else if (tile) {
+                        tile.dispose();
+                        this.puzzle.rebuildFloor();
+                    }
+                    else if (this.puzzle.buildingBlockGet(this.cursorI, this.cursorJ) === 1) {
+                        this.puzzle.buildingBlockSet(0, this.cursorI, this.cursorJ);
+                        this.puzzle.editorRegenerateBuildings();
+                    }
+                    else {
+                        let building = this.puzzle.buildings.find(build => {
+                            return build.i === this.cursorI && build.j === this.cursorJ;
+                        });
+                        if (building) {
+                            building.dispose();
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else {
+                            let creep = this.puzzle.creeps.find(creep => {
+                                return creep.i === this.cursorI && creep.j === this.cursorJ;
+                            });
+                            if (creep) {
+                                creep.dispose();
+                            }
+                        }
+                    }
+                }
+                else if (ev.button === 0) {
+                    let tile = this.puzzle.tiles.find(tile => {
+                        return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                    });
+                    if (!tile) {
+                        if (this.brush === EditorBrush.Tile) {
+                            tile = new BlockTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Switch) {
+                            tile = new SwitchTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Button) {
+                            tile = new ButtonTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor,
+                                value: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Door) {
+                            tile = new DoorTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor,
+                                value: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Push) {
+                            tile = new PushTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Hole) {
+                            tile = new HoleTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Wall) {
+                            tile = new WallTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Water) {
+                            tile = new WaterTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Box) {
+                            this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Ramp) {
+                            let box = new Ramp(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                size: this.brushColor
+                            });
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Bridge) {
+                            let box = new Bridge(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ
+                            });
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Creep) {
+                            let creep = new Creep(this.puzzle, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH
+                            });
+                            creep.instantiate();
+                        }
+                        else if (this.brush === EditorBrush.Tree) {
+                            tile = new CherryTree(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        if (tile) {
+                            if (tile instanceof WaterTile) {
+                                this.puzzle.editorRegenerateWaterTiles();
+                            }
+                            else {
+                                tile.instantiate();
+                            }
+                            this.puzzle.rebuildFloor();
+                        }
+                    }
+                }
+            }
+        }
+    };
     SwitchToMiniatureCamera() {
         let cam = this.game.camera;
         cam.mode = 1;
@@ -4031,13 +4171,18 @@ class HaikuMaker {
     }
 }
 class Haiku extends BABYLON.Mesh {
+    game;
+    w;
+    h;
+    dynamicTexture;
+    animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+    inRange = false;
+    text;
     constructor(game, text, w = 1000, h = 1000) {
         super("haiku");
         this.game = game;
         this.w = w;
         this.h = h;
-        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.inRange = false;
         BABYLON.CreateGroundVertexData({ width: 5 * this.w / 1000, height: 5 * this.h / 1000 }).applyToMesh(this);
         let haikuMaterial = new BABYLON.StandardMaterial("test-haiku-material");
         this.dynamicTexture = new BABYLON.DynamicTexture("haiku-texture", { width: this.w, height: this.h });
@@ -4104,13 +4249,17 @@ class Haiku extends BABYLON.Mesh {
     }
 }
 class HaikuPlayerStart extends BABYLON.Mesh {
+    game;
+    playerName;
+    ball;
+    dynamicTexture;
+    animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+    inRange = false;
     constructor(game, playerName, ball) {
         super("haiku");
         this.game = game;
         this.playerName = playerName;
         this.ball = ball;
-        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.inRange = false;
         BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
         this.position.copyFrom(this.ball.position);
         this.position.y += 0.01;
@@ -4153,14 +4302,19 @@ class HaikuPlayerStart extends BABYLON.Mesh {
     }
 }
 class HaikuTile extends BABYLON.Mesh {
+    game;
+    text;
+    tile;
+    align;
+    dynamicTexture;
+    animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
+    shown = false;
     constructor(game, text, tile, align = 0) {
         super("haiku");
         this.game = game;
         this.text = text;
         this.tile = tile;
         this.align = align;
-        this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.shown = false;
         BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
         this.position.copyFrom(this.tile.position);
         this.position.y += 0.01;
@@ -4210,6 +4364,9 @@ class HaikuTile extends BABYLON.Mesh {
     }
 }
 class HaikuDebug extends BABYLON.Mesh {
+    game;
+    text;
+    dynamicTexture;
     constructor(game, text) {
         super("haiku");
         this.game = game;
@@ -4238,11 +4395,12 @@ class HaikuDebug extends BABYLON.Mesh {
 }
 /// <reference path="./Tile.ts"/>
 class HoleTile extends Tile {
+    covered = false;
+    rumbling = false;
+    cracking = false;
+    covers;
     constructor(game, props) {
         super(game, props);
-        this.covered = false;
-        this.rumbling = false;
-        this.cracking = false;
         this.color = props.color;
     }
     async instantiate() {
@@ -4386,73 +4544,12 @@ class HoleTile extends Tile {
     }
 }
 class HomePage {
+    router;
+    nabuPage;
+    buttons = [];
+    rowCount = 3;
     constructor(queryString, router) {
         this.router = router;
-        this.buttons = [];
-        this.rowCount = 3;
-        this._hoveredButtonIndex = 0;
-        this._filter = (btn) => {
-            return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
-        };
-        this._inputUp = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonIndex === 0) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + (this.rowCount - 1), this._filter)) {
-                    this._inputUp();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
-                    this._inputUp();
-                }
-            }
-        };
-        this._inputDown = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonIndex === this.rowCount - 1) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - (this.rowCount - 1), this._filter)) {
-                    this._inputDown();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
-                    this._inputDown();
-                }
-            }
-        };
-        this._inputEnter = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            let btn = this.buttons[this._hoveredButtonIndex];
-            if (btn && btn.onpointerup) {
-                btn.onpointerup(undefined);
-            }
-        };
-        this._inputDropControl = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            this.buttons.forEach(btn => {
-                btn.classList.remove("hovered");
-            });
-        };
         this.nabuPage = document.querySelector(queryString);
         this.buttons = [...this.nabuPage.querySelectorAll("button")];
         this.rowCount = this.buttons.length;
@@ -4479,6 +4576,7 @@ class HomePage {
             document.querySelector("#home-community-btn completion-bar").setAttribute("value", communityCompletion.toFixed(2));
         }
     }
+    _hoveredButtonIndex = 0;
     get hoveredButtonIndex() {
         return this._hoveredButtonIndex;
     }
@@ -4512,129 +4610,84 @@ class HomePage {
         this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
         this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
+    _filter = (btn) => {
+        return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+    };
+    _inputUp = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonIndex === 0) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + (this.rowCount - 1), this._filter)) {
+                this._inputUp();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                this._inputUp();
+            }
+        }
+    };
+    _inputDown = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonIndex === this.rowCount - 1) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - (this.rowCount - 1), this._filter)) {
+                this._inputDown();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                this._inputDown();
+            }
+        }
+    };
+    _inputEnter = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn && btn.onpointerup) {
+            btn.onpointerup(undefined);
+        }
+    };
+    _inputDropControl = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        this.buttons.forEach(btn => {
+            btn.classList.remove("hovered");
+        });
+    };
 }
 class LevelPage {
+    router;
+    className = "LevelPage";
+    //public page: number = 0;
+    //public levelsPerPage: number = 9;
+    levelCount = 0;
+    nabuPage;
+    buttons = [];
+    container;
+    containerHeight = 500;
+    containerLineHeight = 150;
+    rowCount = 3;
+    colCount = 3;
     constructor(queryString, router) {
         this.router = router;
-        this.className = "LevelPage";
-        //public page: number = 0;
-        //public levelsPerPage: number = 9;
-        this.levelCount = 0;
-        this.buttons = [];
-        this.containerHeight = 500;
-        this.containerLineHeight = 150;
-        this.rowCount = 3;
-        this.colCount = 3;
-        this._hoveredButtonIndex = 0;
-        this._filter = (btn) => {
-            return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
-        };
-        this._inputUp = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonRowIndex === 0) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount * (this.rowCount - 1), this._filter)) {
-                    this._inputUp();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount, this._filter)) {
-                    this._inputUp();
-                }
-            }
-            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
-        };
-        this._inputLeft = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonColIndex === 0) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount - 1, this._filter)) {
-                    this._inputLeft();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
-                    this._inputLeft();
-                }
-            }
-            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
-        };
-        this._inputDown = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonRowIndex === this.rowCount - 1) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount * (this.rowCount - 1), this._filter)) {
-                    this._inputDown();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount, this._filter)) {
-                    this._inputDown();
-                }
-            }
-            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
-        };
-        this._inputRight = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonColIndex === this.colCount - 1) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount + 1, this._filter)) {
-                    this._inputRight();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
-                    this._inputRight();
-                }
-            }
-            console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
-        };
-        this._inputEnter = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            let btn = this.buttons[this._hoveredButtonIndex];
-            if (btn && btn.onclick) {
-                btn.onclick(undefined);
-                return;
-            }
-        };
-        this._inputBack = () => {
-            if (!this.shown) {
-                return;
-            }
-            location.hash = "#home";
-        };
-        this._inputDropControl = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this.buttons.length === 0) {
-                return;
-            }
-            this.buttons.forEach(btn => {
-                btn.classList.remove("hovered");
-            });
-        };
         this.nabuPage = document.querySelector(queryString);
         this._registerToInputManager();
     }
@@ -4772,6 +4825,7 @@ class LevelPage {
         }
         this.onPageRedrawn();
     }
+    _hoveredButtonIndex = 0;
     get hoveredButtonIndex() {
         return this._hoveredButtonIndex;
     }
@@ -4824,6 +4878,115 @@ class LevelPage {
         this.router.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
         this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
+    _filter = (btn) => {
+        return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+    };
+    _inputUp = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonRowIndex === 0) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount * (this.rowCount - 1), this._filter)) {
+                this._inputUp();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount, this._filter)) {
+                this._inputUp();
+            }
+        }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
+    };
+    _inputLeft = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonColIndex === 0) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount - 1, this._filter)) {
+                this._inputLeft();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                this._inputLeft();
+            }
+        }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
+    };
+    _inputDown = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonRowIndex === this.rowCount - 1) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount * (this.rowCount - 1), this._filter)) {
+                this._inputDown();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + this.colCount, this._filter)) {
+                this._inputDown();
+            }
+        }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
+    };
+    _inputRight = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonColIndex === this.colCount - 1) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - this.colCount + 1, this._filter)) {
+                this._inputRight();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                this._inputRight();
+            }
+        }
+        console.log(this.nabuPage.querySelector(".square-btn-container").scrollTop);
+    };
+    _inputEnter = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn && btn.onclick) {
+            btn.onclick(undefined);
+            return;
+        }
+    };
+    _inputBack = () => {
+        if (!this.shown) {
+            return;
+        }
+        location.hash = "#home";
+    };
+    _inputDropControl = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this.buttons.length === 0) {
+            return;
+        }
+        this.buttons.forEach(btn => {
+            btn.classList.remove("hovered");
+        });
+    };
 }
 class StoryPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
@@ -5082,10 +5245,10 @@ class CommunityPuzzlesPage extends LevelPage {
 class DevPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.levelStateToFetch = 0;
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Dev Puzzles";
         this.className = "DevLevelPage";
     }
+    levelStateToFetch = 0;
     onPageRedrawn() {
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "DevMode : " + DEV_MODES_NAMES[this.levelStateToFetch] + " Puzzles";
     }
@@ -5126,10 +5289,10 @@ class DevPuzzlesPage extends LevelPage {
 class MultiplayerPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.levelStateToFetch = 0;
         this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Multiplayer Mode";
         this.className = "MultiplayerLevelPage";
     }
+    levelStateToFetch = 0;
     async getPuzzlesData(page, levelsPerPage) {
         //await RandomWait();
         let puzzleData = [];
@@ -5153,6 +5316,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/nabu/nabu.d.ts"/>
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
+//mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 var MAJOR_VERSION = 2;
 var MINOR_VERSION = 0;
 var PATCH_VERSION = 3;
@@ -5167,14 +5331,19 @@ var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
 var PokiSDK;
-var CGSDK;
+var CrazySDK;
 var LOCALE = "en";
-var PokiSDKPlaying = false;
-function PokiGameplayStart() {
-    if (!PokiSDKPlaying) {
-        console.log("PokiSDK.gameplayStart");
-        PokiSDK.gameplayStart();
-        PokiSDKPlaying = true;
+var SDKPlaying = false;
+function SDKGameplayStart() {
+    if (!SDKPlaying) {
+        console.log("SDK Gameplay Start");
+        if (USE_POKI_SDK) {
+            PokiSDK.gameplayStart();
+        }
+        else if (USE_CG_SDK) {
+            CrazySDK.game.gameplayStart();
+        }
+        SDKPlaying = true;
     }
 }
 var CanStartCommercialBreak = false;
@@ -5190,16 +5359,38 @@ async function PokiCommercialBreak() {
     await PokiSDK.commercialBreak();
     BABYLON.Engine.audioEngine.setGlobalVolume(prevMainVolume);
 }
-function PokiGameplayStop() {
-    if (PokiSDKPlaying) {
-        PokiSDK.gameplayStop();
-        PokiSDKPlaying = false;
+function SDKGameplayStop() {
+    if (SDKPlaying) {
+        console.log("SDK Gameplay Stop");
+        if (USE_POKI_SDK) {
+            PokiSDK.gameplayStop();
+        }
+        else if (USE_CG_SDK) {
+            CrazySDK.game.gameplayStop();
+        }
+        SDKPlaying = false;
     }
 }
 var PlayerHasInteracted = false;
 var IsTouchScreen = 1;
 var IsMobile = -1;
 var HasLocalStorage = false;
+function StorageGetItem(key) {
+    if (USE_CG_SDK) {
+        return CrazySDK.data.getItem(key);
+    }
+    else {
+        return localStorage.getItem(key);
+    }
+}
+function StorageSetItem(key, value) {
+    if (USE_CG_SDK) {
+        CrazySDK.data.setItem(key, value);
+    }
+    else {
+        localStorage.setItem(key, value);
+    }
+}
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
     //SHARE_SERVICE_PATH = "http://localhost/index.php/";
@@ -5222,7 +5413,9 @@ function firstPlayerInteraction() {
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
         if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
-            location.hash = "#level-1";
+            if (location.hash != "#level-1") {
+                location.hash = "#level-1";
+            }
         }
         else {
             console.error("Welcome back");
@@ -5339,65 +5532,80 @@ var cssPatterns = [
     "rainbow-pattern"
 ];
 class Game {
+    static Instance;
+    DEBUG_MODE = true;
+    DEBUG_USE_LOCAL_STORAGE = true;
+    canvas;
+    canvasCurtain;
+    engine;
+    scene;
+    getScene() {
+        return this.scene;
+    }
+    soundManager;
+    uiInputManager;
+    screenRatio = 1;
+    performanceWatcher;
+    camera;
+    menuCamAlpha = -Math.PI * 0.75;
+    menuCamBeta = Math.PI * 0.3;
+    menuCamRadius = 15;
+    //public playCameraRange: number = 15;
+    playCameraRadiusFactor = 0;
+    playCameraRadius = 20;
+    playCameraMinRadius = 10;
+    playCameraMaxRadius = 50;
+    cameraOrtho = false;
+    light;
+    spotlight;
+    animLightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
+    animSpotlightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
+    shadowGenerator;
+    skybox;
+    noiseTexture;
+    vertexDataLoader;
+    materials;
+    puzzle;
+    stamp;
+    player1Name = "";
+    player2Name = "";
+    loadedStoryPuzzles;
+    loadedExpertPuzzles;
+    loadedXMasPuzzles;
+    dayOfXMasCal = 1;
+    loadedCommunityPuzzles;
+    loadedMultiplayerPuzzles;
+    puzzleCompletion;
+    router;
+    editor;
+    _mode = GameMode.Menu;
+    get mode() {
+        return this._mode;
+    }
+    set mode(m) {
+        if (m != this._mode) {
+            this._mode = m;
+            this.globalTimer = 0;
+        }
+    }
+    gameLoaded = false;
+    _bodyColorIndex = 0;
+    get bodyColorIndex() {
+        return this._bodyColorIndex;
+    }
+    set bodyColorIndex(v) {
+        this._bodyColorIndex = v;
+        this.scene.clearColor = BABYLON.Color4.FromHexString(hexColors[5] + "FF");
+        this.scene.clearColor.a = 1;
+    }
+    _bodyPatternIndex = 0;
+    get bodyPatternIndex() {
+        return this._bodyPatternIndex;
+    }
+    set bodyPatternIndex(v) {
+        this._bodyPatternIndex = v;
+    }
     constructor(canvasElement) {
-        this.DEBUG_MODE = true;
-        this.DEBUG_USE_LOCAL_STORAGE = true;
-        this.screenRatio = 1;
-        this.menuCamAlpha = -Math.PI * 0.75;
-        this.menuCamBeta = Math.PI * 0.3;
-        this.menuCamRadius = 15;
-        //public playCameraRange: number = 15;
-        this.playCameraRadiusFactor = 0;
-        this.playCameraRadius = 20;
-        this.playCameraMinRadius = 10;
-        this.playCameraMaxRadius = 50;
-        this.cameraOrtho = false;
-        this.animLightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animSpotlightIntensity = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.player1Name = "";
-        this.player2Name = "";
-        this.dayOfXMasCal = 1;
-        this._mode = GameMode.Menu;
-        this.gameLoaded = false;
-        this._bodyColorIndex = 0;
-        this._bodyPatternIndex = 0;
-        this.onResize = () => {
-            let rect = this.canvas.getBoundingClientRect();
-            this.screenRatio = rect.width / rect.height;
-            if (this.screenRatio < 1) {
-                document.body.classList.add("vertical");
-                this.playCameraMinRadius = 20;
-            }
-            else {
-                document.body.classList.remove("vertical");
-            }
-            this.engine.resize(true);
-            this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
-            this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
-            this.updatePlayCameraRadius();
-        };
-        this.movieIdleDir = BABYLON.Vector3.Zero();
-        this.factoredTimeSinceGameStart = 0;
-        this.averagedFPS = 0;
-        this.updateConfigTimeout = -1;
-        this.globalTimer = 0;
-        this.machineEditorContainerIsDisplayed = false;
-        this.machineEditorContainerHeight = -1;
-        this.machineEditorContainerWidth = -1;
-        this.canvasLeft = 0;
-        this._pointerDownX = 0;
-        this._pointerDownY = 0;
-        this.onPointerDown = (event) => {
-            this._pointerDownX = this.scene.pointerX;
-            this._pointerDownY = this.scene.pointerY;
-        };
-        this.onPointerUp = (event) => {
-        };
-        this.onWheelEvent = (event) => {
-        };
-        this.storyExpertTable = [];
-        this._curtainOpacity = 0;
-        this.fadeIntroDir = 0;
         Game.Instance = this;
         this.canvas = document.getElementById(canvasElement);
         this.canvas.requestPointerLock = this.canvas.requestPointerLock || this.canvas.msRequestPointerLock || this.canvas.mozRequestPointerLock || this.canvas.webkitRequestPointerLock;
@@ -5409,32 +5617,6 @@ class Game {
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
         this.performanceWatcher = new PerformanceWatcher(this);
-    }
-    getScene() {
-        return this.scene;
-    }
-    get mode() {
-        return this._mode;
-    }
-    set mode(m) {
-        if (m != this._mode) {
-            this._mode = m;
-            this.globalTimer = 0;
-        }
-    }
-    get bodyColorIndex() {
-        return this._bodyColorIndex;
-    }
-    set bodyColorIndex(v) {
-        this._bodyColorIndex = v;
-        this.scene.clearColor = BABYLON.Color4.FromHexString(hexColors[5] + "FF");
-        this.scene.clearColor.a = 1;
-    }
-    get bodyPatternIndex() {
-        return this._bodyPatternIndex;
-    }
-    set bodyPatternIndex(v) {
-        this._bodyPatternIndex = v;
     }
     async createScene() {
         this.scene = new BABYLON.Scene(this.engine);
@@ -5567,6 +5749,19 @@ class Game {
         this.canvas.addEventListener("pointerdown", this.onPointerDown);
         this.canvas.addEventListener("pointerup", this.onPointerUp);
         this.canvas.addEventListener("wheel", this.onWheelEvent);
+        if (USE_CG_SDK) {
+            console.log("Use CrazyGames SDK");
+            if (this.puzzleCompletion.completedPuzzles.length === 0) {
+                console.log("CGStep 0");
+                if (location.hash != "#level-1") {
+                    console.log("CGStep 1");
+                    location.hash = "#level-1";
+                }
+                else {
+                    console.log(location.hash);
+                }
+            }
+        }
         this.router.start();
         document.querySelectorAll(".p1-name-input").forEach(e => {
             if (e instanceof HTMLInputElement) {
@@ -5697,6 +5892,9 @@ class Game {
             //document.getElementById("click-anywhere-screen").style.display = "none";
             //(document.querySelector("#dev-pass-input") as HTMLInputElement).value = "Crillion";
             //DEV_ACTIVATE();
+        }
+        if (USE_CG_SDK) {
+            document.getElementById("click-anywhere-screen").style.display = "none";
         }
         //this.performanceWatcher.showDebug();
     }
@@ -6021,6 +6219,21 @@ class Game {
             strokes[2].setContent(centi.toFixed(0).padStart(2, "0"));
         }
     }
+    onResize = () => {
+        let rect = this.canvas.getBoundingClientRect();
+        this.screenRatio = rect.width / rect.height;
+        if (this.screenRatio < 1) {
+            document.body.classList.add("vertical");
+            this.playCameraMinRadius = 20;
+        }
+        else {
+            document.body.classList.remove("vertical");
+        }
+        this.engine.resize(true);
+        this.canvas.setAttribute("width", Math.floor(rect.width * this.performanceWatcher.devicePixelRatio).toFixed(0));
+        this.canvas.setAttribute("height", Math.floor(rect.height * this.performanceWatcher.devicePixelRatio).toFixed(0));
+        this.updatePlayCameraRadius();
+    };
     animate() {
         this.engine.runRenderLoop(() => {
             this.scene.render();
@@ -6049,6 +6262,11 @@ class Game {
         let w = rect.width / (70 / Math.sqrt(window.devicePixelRatio));
         this.menuCamRadius = Nabu.MinMax((0.5 * w) / Math.tan(fov / 2), this.playCameraMinRadius, this.playCameraMaxRadius);
     }
+    movieIdleDir = BABYLON.Vector3.Zero();
+    factoredTimeSinceGameStart = 0;
+    averagedFPS = 0;
+    updateConfigTimeout = -1;
+    globalTimer = 0;
     update() {
         let rawDT = this.scene.deltaTime / 1000;
         this.performanceWatcher.update(rawDT);
@@ -6172,6 +6390,21 @@ class Game {
             }
         }
     }
+    machineEditorContainerIsDisplayed = false;
+    machineEditorContainerHeight = -1;
+    machineEditorContainerWidth = -1;
+    canvasLeft = 0;
+    _pointerDownX = 0;
+    _pointerDownY = 0;
+    onPointerDown = (event) => {
+        this._pointerDownX = this.scene.pointerX;
+        this._pointerDownY = this.scene.pointerY;
+    };
+    onPointerUp = (event) => {
+    };
+    onWheelEvent = (event) => {
+    };
+    storyExpertTable = [];
     storyIdToExpertId(storyId) {
         let element = this.storyExpertTable.find(e => { return e.story_id === storyId; });
         if (element) {
@@ -6185,6 +6418,7 @@ class Game {
         }
         return [];
     }
+    _curtainOpacity = 0;
     get curtainOpacity() {
         return this._curtainOpacity;
     }
@@ -6198,6 +6432,7 @@ class Game {
             this.canvasCurtain.style.backgroundColor = "#000000" + Math.round(this._curtainOpacity * 255).toString(16).padStart(2, "0");
         }
     }
+    fadeIntroDir = 0;
     async fadeInIntro(duration = 1) {
         //await RandomWait();
         return new Promise(resolve => {
@@ -6514,8 +6749,8 @@ requestAnimationFrame(async () => {
         });
     }
     else if (USE_CG_SDK) {
-        CGSDK = window.CrazyGames.SDK;
-        await CGSDK.init();
+        CrazySDK = window.CrazyGames.SDK;
+        await CrazySDK.init();
         createAndInit();
     }
     else {
@@ -6528,81 +6763,16 @@ var MultiplayerPagePanel;
     MultiplayerPagePanel[MultiplayerPagePanel["Local"] = 1] = "Local";
 })(MultiplayerPagePanel || (MultiplayerPagePanel = {}));
 class MultiplayerPage {
+    router;
+    nabuPage;
+    currentPanel = MultiplayerPagePanel.Selection;
+    panels = [];
+    selectLocalBtn;
+    selectPublicBtn;
+    selectPrivateBtn;
+    localPlayBtn;
     constructor(queryString, router) {
         this.router = router;
-        this.currentPanel = MultiplayerPagePanel.Selection;
-        this.panels = [];
-        this._hoveredButtonIndex = 0;
-        this._filter = (btn) => {
-            return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
-        };
-        this._inputUp = () => {
-            if (!this.shown) {
-                return;
-            }
-            /*
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonIndex === 0) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + (this.rowCount - 1), this._filter)) {
-                    this._inputUp();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
-                    this._inputUp();
-                }
-            }
-            */
-        };
-        this._inputDown = () => {
-            if (!this.shown) {
-                return;
-            }
-            /*
-            if (this.buttons.length === 0) {
-                return;
-            }
-            if (this.hoveredButtonIndex === this.rowCount - 1) {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - (this.rowCount - 1), this._filter)) {
-                    this._inputDown();
-                }
-            }
-            else {
-                if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
-                    this._inputDown();
-                }
-            }
-            */
-        };
-        this._inputEnter = () => {
-            if (!this.shown) {
-                return;
-            }
-            /*
-            if (this.buttons.length === 0) {
-                return;
-            }
-            let btn = this.buttons[this._hoveredButtonIndex];
-            if (btn && btn.onpointerup) {
-                btn.onpointerup(undefined);
-            }
-            */
-        };
-        this._inputDropControl = () => {
-            if (!this.shown) {
-                return;
-            }
-            /*
-            if (this.buttons.length === 0) {
-                return;
-            }
-            this.buttons.forEach(btn => {
-                btn.classList.remove("hovered");
-            });
-            */
-        };
         this.nabuPage = document.querySelector(queryString);
         this.panels = [
             document.querySelector("#multiplayer-panel-selection"),
@@ -6634,6 +6804,7 @@ class MultiplayerPage {
     async hide(duration) {
         return this.nabuPage.hide(duration);
     }
+    _hoveredButtonIndex = 0;
     get hoveredButtonIndex() {
         return this._hoveredButtonIndex;
     }
@@ -6669,15 +6840,86 @@ class MultiplayerPage {
         this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
         this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
+    _filter = (btn) => {
+        return !btn.classList.contains("locked") && btn.style.visibility != "hidden";
+    };
+    _inputUp = () => {
+        if (!this.shown) {
+            return;
+        }
+        /*
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonIndex === 0) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + (this.rowCount - 1), this._filter)) {
+                this._inputUp();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - 1, this._filter)) {
+                this._inputUp();
+            }
+        }
+        */
+    };
+    _inputDown = () => {
+        if (!this.shown) {
+            return;
+        }
+        /*
+        if (this.buttons.length === 0) {
+            return;
+        }
+        if (this.hoveredButtonIndex === this.rowCount - 1) {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex - (this.rowCount - 1), this._filter)) {
+                this._inputDown();
+            }
+        }
+        else {
+            if (!this.setHoveredButtonIndex(this.hoveredButtonIndex + 1, this._filter)) {
+                this._inputDown();
+            }
+        }
+        */
+    };
+    _inputEnter = () => {
+        if (!this.shown) {
+            return;
+        }
+        /*
+        if (this.buttons.length === 0) {
+            return;
+        }
+        let btn = this.buttons[this._hoveredButtonIndex];
+        if (btn && btn.onpointerup) {
+            btn.onpointerup(undefined);
+        }
+        */
+    };
+    _inputDropControl = () => {
+        if (!this.shown) {
+            return;
+        }
+        /*
+        if (this.buttons.length === 0) {
+            return;
+        }
+        this.buttons.forEach(btn => {
+            btn.classList.remove("hovered");
+        });
+        */
+    };
 }
 class NumValueInput extends HTMLElement {
-    constructor() {
-        super(...arguments);
-        this.value = 0;
-        this.valueToString = (v) => {
-            return v.toFixed(0);
-        };
-    }
+    value = 0;
+    min;
+    max;
+    wrap;
+    buttonMinus;
+    buttonPlus;
+    valueDisplay;
+    valueDisplayText;
     static get observedAttributes() {
         return ["value-width", "min", "max", "wrap"];
     }
@@ -6759,24 +7001,26 @@ class NumValueInput extends HTMLElement {
         }
         this._updateValueDisplay();
     }
+    onValueChange;
+    valueToString = (v) => {
+        return v.toFixed(0);
+    };
 }
 customElements.define("num-value-input", NumValueInput);
 class PerformanceWatcher {
-    constructor(game) {
-        this.game = game;
-        this.supportTexture3D = false;
-        this.average = 24;
-        this.worst = 24;
-        this.isWorstTooLow = false;
-        this.devicePixelRationess = 5;
-        this.targetDevicePixelRationess = this.devicePixelRationess;
-        this.devicePixelRatioSteps = 10;
-        this.resizeCD = 0;
-    }
+    game;
+    supportTexture3D = false;
+    average = 24;
+    worst = 24;
+    isWorstTooLow = false;
+    devicePixelRationess = 5;
+    targetDevicePixelRationess = this.devicePixelRationess;
+    devicePixelRatioSteps = 10;
     get devicePixelRatio() {
         let f = this.devicePixelRationess / this.devicePixelRatioSteps;
         return window.devicePixelRatio * f + 0.5 * (1 - f);
     }
+    resizeCD = 0;
     setDevicePixelRationess(v) {
         if (isFinite(v)) {
             v = Nabu.MinMax(v, 0, this.devicePixelRatioSteps);
@@ -6793,6 +7037,9 @@ class PerformanceWatcher {
                 this.resizeCD = 1;
             }
         }
+    }
+    constructor(game) {
+        this.game = game;
     }
     update(rawDt) {
         let fps = 1 / rawDt;
@@ -6870,13 +7117,15 @@ class PerformanceWatcher {
 }
 /// <reference path="./Tile.ts"/>
 class PushTile extends Tile {
+    pushSound;
+    fallImpactSound;
+    tileTop;
+    animatePosition = Mummu.AnimationFactory.EmptyVector3Callback;
+    animateRotX = Mummu.AnimationFactory.EmptyNumberCallback;
+    animateRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
+    animateWait = Mummu.AnimationFactory.EmptyVoidCallback;
     constructor(game, props) {
         super(game, props);
-        this.animatePosition = Mummu.AnimationFactory.EmptyVector3Callback;
-        this.animateRotX = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animateRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animateWait = Mummu.AnimationFactory.EmptyVoidCallback;
-        this._pushCallback = () => { };
         this.color = props.color;
         this.animatePosition = Mummu.AnimationFactory.CreateVector3(this, this, "position");
         this.animateRotX = Mummu.AnimationFactory.CreateNumber(this, this.rotation, "x");
@@ -6908,6 +7157,7 @@ class PushTile extends Tile {
         this.tileTop.position.y = 0.3;
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
     }
+    _pushCallback = () => { };
     async push(dir) {
         //await RandomWait();
         if (this.tileState === TileState.Moving) {
@@ -7045,6 +7295,9 @@ class PushTile extends Tile {
     }
 }
 class PuzzleCompletionElement {
+    puzzleId;
+    score;
+    highscore;
     constructor(puzzleId, score = Infinity, highscore = null) {
         this.puzzleId = puzzleId;
         this.score = score;
@@ -7066,25 +7319,17 @@ class PuzzleCompletionElement {
     }
 }
 class PuzzleCompletion {
-    constructor(game) {
-        this.game = game;
-        this.completedPuzzles = [];
-        this.storyPuzzleCompletion = 0;
-        this.expertPuzzleCompletion = 0;
-        this.xmasPuzzleCompletion = 0;
-        this.communityPuzzleCompletion = 0;
-        this.storyPuzzles = [];
-        this.expertPuzzles = [];
-        this.xmasPuzzles = [];
-        this.communityPuzzles = [];
-        if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
-            if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
-            }
-        }
-        this.recentUnlocks = new Nabu.UniqueList();
-    }
+    game;
+    completedPuzzles = [];
+    storyPuzzleCompletion = 0;
+    expertPuzzleCompletion = 0;
+    xmasPuzzleCompletion = 0;
+    communityPuzzleCompletion = 0;
+    storyPuzzles = [];
+    expertPuzzles = [];
+    xmasPuzzles = [];
+    communityPuzzles = [];
+    recentUnlocks;
     getPuzzleCompletionElementById(id) {
         let storyElement = this.storyPuzzles.find(e => { return e.puzzleId === id; });
         if (storyElement) {
@@ -7154,6 +7399,16 @@ class PuzzleCompletion {
         });
         this.communityPuzzleCompletion = totalStarsCount / max;
     }
+    constructor(game) {
+        this.game = game;
+        if (HasLocalStorage) {
+            let dataString = StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
+            if (dataString) {
+                this.completedPuzzles = JSON.parse(dataString);
+            }
+        }
+        this.recentUnlocks = new Nabu.UniqueList();
+    }
     async initialize() {
         //await RandomWait();
         this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
@@ -7197,7 +7452,7 @@ class PuzzleCompletion {
             this._updateXmasPuzzleCompletion();
             this._updateCommunityPuzzleCompletion();
             if (HasLocalStorage) {
-                window.localStorage.setItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+                StorageSetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
             }
         }
     }
@@ -7213,6 +7468,21 @@ class PuzzleCompletion {
     }
 }
 class MySound {
+    soundManager;
+    _name;
+    _urlOrArrayBuffer;
+    _scene;
+    _readyToPlayCallback;
+    _options;
+    instancesCount;
+    _loaded = false;
+    _sounds = [];
+    get duration() {
+        if (this._sounds[0]) {
+            return this._sounds[0].getAudioBuffer().duration;
+        }
+        return 0;
+    }
     constructor(soundManager, _name, _urlOrArrayBuffer, _scene, _readyToPlayCallback, _options, instancesCount = 1) {
         this.soundManager = soundManager;
         this._name = _name;
@@ -7221,14 +7491,6 @@ class MySound {
         this._readyToPlayCallback = _readyToPlayCallback;
         this._options = _options;
         this.instancesCount = instancesCount;
-        this._loaded = false;
-        this._sounds = [];
-    }
-    get duration() {
-        if (this._sounds[0]) {
-            return this._sounds[0].getAudioBuffer().duration;
-        }
-        return 0;
     }
     load() {
         if (this._loaded) {
@@ -7259,9 +7521,7 @@ class MySound {
     }
 }
 class SoundManager {
-    constructor() {
-        this.managedSounds = [];
-    }
+    managedSounds = [];
     createSound(name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount = 1) {
         let mySound = new MySound(this, name, urlOrArrayBuffer, scene, readyToPlayCallback, options, instancesCount);
         if (BABYLON.Engine.audioEngine.unlocked) {
@@ -7290,6 +7550,10 @@ class SoundManager {
     }
 }
 class StrokeText extends HTMLElement {
+    base;
+    fill;
+    stroke;
+    content;
     connectedCallback() {
         this.style.position = "relative";
         let o = (1 / window.devicePixelRatio).toFixed(1) + "px";
@@ -7303,6 +7567,9 @@ class StrokeText extends HTMLElement {
 customElements.define("stroke-text", StrokeText);
 /// <reference path="./Tile.ts"/>
 class SwitchTile extends Tile {
+    tileTop;
+    tileBottom;
+    tileFrame;
     constructor(game, props) {
         super(game, props);
         this.material = this.game.materials.blackMaterial;
@@ -7333,6 +7600,9 @@ class SwitchTile extends Tile {
     }
 }
 class ButtonTile extends Tile {
+    tileTop;
+    tileBottom;
+    tileFrame;
     constructor(game, props) {
         super(game, props);
         if (isNaN(this.props.value)) {
@@ -7379,12 +7649,15 @@ class ButtonTile extends Tile {
     }
 }
 class DoorTile extends Tile {
+    closed = false;
+    tileTop;
+    tileTopFrame;
+    tileBox;
+    animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
+    animateTopRotY = Mummu.AnimationFactory.EmptyNumberCallback;
+    animateBoxPosY = Mummu.AnimationFactory.EmptyNumberCallback;
     constructor(game, props) {
         super(game, props);
-        this.closed = false;
-        this.animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animateTopRotY = Mummu.AnimationFactory.EmptyNumberCallback;
-        this.animateBoxPosY = Mummu.AnimationFactory.EmptyNumberCallback;
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
@@ -7628,121 +7901,48 @@ class ToonSoundManager {
 }
 */ 
 class TutoPage {
+    router;
+    nabuPage;
+    tutoContainer;
+    tutoPrev;
+    tutoNext;
+    svgElement;
+    tutoText;
+    svgBall;
+    svgBallArrowRight;
+    svgBallArrowLeft;
+    svgKeyA;
+    svgKeyD;
+    _tuto2Path = [
+        new BABYLON.Vector2(50, 130),
+        new BABYLON.Vector2(50, 90),
+        new BABYLON.Vector2(70, 70),
+        new BABYLON.Vector2(110, 110),
+        new BABYLON.Vector2(110, 130)
+    ];
+    _tuto2SumNormalizedDist = [0];
+    _tuto3Path = [
+        new BABYLON.Vector2(50, 130),
+        new BABYLON.Vector2(50, 90),
+        new BABYLON.Vector2(70, 70),
+        new BABYLON.Vector2(110, 110),
+        new BABYLON.Vector2(110, 130)
+    ];
+    _tuto3SumNormalizedDist = [0];
+    _evaluatePath(f, path, sumDist) {
+        let n = 0;
+        while (n + 1 < sumDist.length &&
+            n + 1 < path.length &&
+            f > sumDist[n + 1]) {
+            n++;
+        }
+        let d1 = sumDist[n];
+        let d2 = sumDist[n + 1];
+        let ff = (f - d1) / (d2 - d1);
+        return BABYLON.Vector2.Lerp(path[n], path[n + 1], ff);
+    }
     constructor(queryString, router) {
         this.router = router;
-        this._tuto2Path = [
-            new BABYLON.Vector2(50, 130),
-            new BABYLON.Vector2(50, 90),
-            new BABYLON.Vector2(70, 70),
-            new BABYLON.Vector2(110, 110),
-            new BABYLON.Vector2(110, 130)
-        ];
-        this._tuto2SumNormalizedDist = [0];
-        this._tuto3Path = [
-            new BABYLON.Vector2(50, 130),
-            new BABYLON.Vector2(50, 90),
-            new BABYLON.Vector2(70, 70),
-            new BABYLON.Vector2(110, 110),
-            new BABYLON.Vector2(110, 130)
-        ];
-        this._tuto3SumNormalizedDist = [0];
-        this._timer = 0;
-        this.update = () => {
-            let dt = this.router.game.scene.deltaTime / 1000;
-            this._timer += dt;
-            if (this._tutoIndex === 0) {
-                this.svgBall.setAttribute("transform", "translate(80 105)");
-            }
-            else if (this._tutoIndex === 1) {
-                let P = 3;
-                let t = this._timer - Math.floor(this._timer / P) * P;
-                if (t > P / 2) {
-                    t = P - t;
-                }
-                t = t / (P / 2);
-                let y = 75 + 60 * t;
-                this.svgBall.setAttribute("transform", "translate(80 " + y.toFixed(1) + ")");
-            }
-            else if (this._tutoIndex === 2) {
-                let P = 6;
-                let t = this._timer - Math.floor(this._timer / P) * P;
-                let tBase = t;
-                if (t > P / 2) {
-                    t = P - t;
-                }
-                t = t / (P / 2);
-                if (tBase > this._tuto2SumNormalizedDist[1] * P / 2 && tBase < this._tuto2SumNormalizedDist[2] * P / 2) {
-                    this.svgKeyD.setAttribute("transform", "translate(0 5)");
-                    this.svgKeyD.querySelector("rect").setAttribute("fill", "white");
-                    this.svgElement.querySelector("#tutorial-key-d-base").setAttribute("stroke-width", "4");
-                    this.svgBallArrowRight.setAttribute("opacity", "1");
-                }
-                else {
-                    this.svgKeyD.setAttribute("transform", "translate(0 0)");
-                    this.svgKeyD.querySelector("rect").setAttribute("fill", "#808080");
-                    this.svgElement.querySelector("#tutorial-key-d-base").setAttribute("stroke-width", "2");
-                    this.svgBallArrowRight.setAttribute("opacity", "0");
-                }
-                if (tBase > (P - this._tuto2SumNormalizedDist[2] * P / 2) &&
-                    tBase < (P - this._tuto2SumNormalizedDist[1] * P / 2)) {
-                    this.svgKeyA.setAttribute("transform", "translate(0 5)");
-                    this.svgKeyA.querySelector("rect").setAttribute("fill", "white");
-                    this.svgElement.querySelector("#tutorial-key-a-base").setAttribute("stroke-width", "4");
-                    this.svgBallArrowLeft.setAttribute("opacity", "1");
-                }
-                else {
-                    this.svgKeyA.setAttribute("transform", "translate(0 0)");
-                    this.svgKeyA.querySelector("rect").setAttribute("fill", "#808080");
-                    this.svgElement.querySelector("#tutorial-key-a-base").setAttribute("stroke-width", "2");
-                    this.svgBallArrowLeft.setAttribute("opacity", "0");
-                }
-                let p = this._evaluatePath(t, this._tuto2Path, this._tuto2SumNormalizedDist);
-                this.svgBall.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
-                this.svgBallArrowRight.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
-                this.svgBallArrowLeft.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
-            }
-            else if (this._tutoIndex === 3) {
-                let P = 4;
-                let t = this._timer - Math.floor(this._timer / P) * P;
-                let tBase = t;
-                t = t / P;
-                if (tBase > this._tuto3SumNormalizedDist[2] * P && tBase < this._tuto3SumNormalizedDist[5] * P) {
-                    this.svgElement.querySelector("#tutorial-tile-2").setAttribute("opacity", "0");
-                }
-                else {
-                    this.svgElement.querySelector("#tutorial-tile-2").setAttribute("opacity", "1");
-                }
-                if (tBase > this._tuto3SumNormalizedDist[4] * P && tBase < this._tuto3SumNormalizedDist[5] * P) {
-                    this.svgElement.querySelector("#tutorial-tile-1").setAttribute("opacity", "0");
-                }
-                else {
-                    this.svgElement.querySelector("#tutorial-tile-1").setAttribute("opacity", "1");
-                }
-                let p = this._evaluatePath(t, this._tuto3Path, this._tuto3SumNormalizedDist);
-                this.svgBall.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
-            }
-        };
-        this._animating = false;
-        this._tutoIndex = 0;
-        this._inputLeft = () => {
-            if (!this.shown) {
-                return;
-            }
-            this.setTutoIndex(this._tutoIndex - 1);
-        };
-        this._inputRight = () => {
-            if (!this.shown) {
-                return;
-            }
-            if (this._tutoIndex < 3) {
-                this.setTutoIndex(this._tutoIndex + 1);
-            }
-            else {
-                this.hide(0.5);
-                this.router.game.fadeInIntro();
-                this.router.game.puzzle.skipIntro();
-            }
-        };
         this.nabuPage = document.querySelector(queryString);
         this.tutoContainer = this.nabuPage.querySelector(".tutorial-container");
         this.tutoPrev = [...this.nabuPage.querySelectorAll(".tutorial-prev-btn")];
@@ -7799,18 +7999,6 @@ class TutoPage {
             this._tuto3SumNormalizedDist[i] = this._tuto3SumNormalizedDist[i] / l3;
         }
     }
-    _evaluatePath(f, path, sumDist) {
-        let n = 0;
-        while (n + 1 < sumDist.length &&
-            n + 1 < path.length &&
-            f > sumDist[n + 1]) {
-            n++;
-        }
-        let d1 = sumDist[n];
-        let d2 = sumDist[n + 1];
-        let ff = (f - d1) / (d2 - d1);
-        return BABYLON.Vector2.Lerp(path[n], path[n + 1], ff);
-    }
     get shown() {
         return this.nabuPage.shown;
     }
@@ -7837,6 +8025,82 @@ class TutoPage {
         this._unregisterFromInputManager();
         return this.nabuPage.hide(duration);
     }
+    _timer = 0;
+    update = () => {
+        let dt = this.router.game.scene.deltaTime / 1000;
+        this._timer += dt;
+        if (this._tutoIndex === 0) {
+            this.svgBall.setAttribute("transform", "translate(80 105)");
+        }
+        else if (this._tutoIndex === 1) {
+            let P = 3;
+            let t = this._timer - Math.floor(this._timer / P) * P;
+            if (t > P / 2) {
+                t = P - t;
+            }
+            t = t / (P / 2);
+            let y = 75 + 60 * t;
+            this.svgBall.setAttribute("transform", "translate(80 " + y.toFixed(1) + ")");
+        }
+        else if (this._tutoIndex === 2) {
+            let P = 6;
+            let t = this._timer - Math.floor(this._timer / P) * P;
+            let tBase = t;
+            if (t > P / 2) {
+                t = P - t;
+            }
+            t = t / (P / 2);
+            if (tBase > this._tuto2SumNormalizedDist[1] * P / 2 && tBase < this._tuto2SumNormalizedDist[2] * P / 2) {
+                this.svgKeyD.setAttribute("transform", "translate(0 5)");
+                this.svgKeyD.querySelector("rect").setAttribute("fill", "white");
+                this.svgElement.querySelector("#tutorial-key-d-base").setAttribute("stroke-width", "4");
+                this.svgBallArrowRight.setAttribute("opacity", "1");
+            }
+            else {
+                this.svgKeyD.setAttribute("transform", "translate(0 0)");
+                this.svgKeyD.querySelector("rect").setAttribute("fill", "#808080");
+                this.svgElement.querySelector("#tutorial-key-d-base").setAttribute("stroke-width", "2");
+                this.svgBallArrowRight.setAttribute("opacity", "0");
+            }
+            if (tBase > (P - this._tuto2SumNormalizedDist[2] * P / 2) &&
+                tBase < (P - this._tuto2SumNormalizedDist[1] * P / 2)) {
+                this.svgKeyA.setAttribute("transform", "translate(0 5)");
+                this.svgKeyA.querySelector("rect").setAttribute("fill", "white");
+                this.svgElement.querySelector("#tutorial-key-a-base").setAttribute("stroke-width", "4");
+                this.svgBallArrowLeft.setAttribute("opacity", "1");
+            }
+            else {
+                this.svgKeyA.setAttribute("transform", "translate(0 0)");
+                this.svgKeyA.querySelector("rect").setAttribute("fill", "#808080");
+                this.svgElement.querySelector("#tutorial-key-a-base").setAttribute("stroke-width", "2");
+                this.svgBallArrowLeft.setAttribute("opacity", "0");
+            }
+            let p = this._evaluatePath(t, this._tuto2Path, this._tuto2SumNormalizedDist);
+            this.svgBall.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+            this.svgBallArrowRight.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+            this.svgBallArrowLeft.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+        }
+        else if (this._tutoIndex === 3) {
+            let P = 4;
+            let t = this._timer - Math.floor(this._timer / P) * P;
+            let tBase = t;
+            t = t / P;
+            if (tBase > this._tuto3SumNormalizedDist[2] * P && tBase < this._tuto3SumNormalizedDist[5] * P) {
+                this.svgElement.querySelector("#tutorial-tile-2").setAttribute("opacity", "0");
+            }
+            else {
+                this.svgElement.querySelector("#tutorial-tile-2").setAttribute("opacity", "1");
+            }
+            if (tBase > this._tuto3SumNormalizedDist[4] * P && tBase < this._tuto3SumNormalizedDist[5] * P) {
+                this.svgElement.querySelector("#tutorial-tile-1").setAttribute("opacity", "0");
+            }
+            else {
+                this.svgElement.querySelector("#tutorial-tile-1").setAttribute("opacity", "1");
+            }
+            let p = this._evaluatePath(t, this._tuto3Path, this._tuto3SumNormalizedDist);
+            this.svgBall.setAttribute("transform", "translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")");
+        }
+    };
     async fadeOutBoard(duration = 1) {
         if (this.svgElement) {
             return new Promise(resolve => {
@@ -7885,6 +8149,8 @@ class TutoPage {
             });
         }
     }
+    _animating = false;
+    _tutoIndex = 0;
     async setTutoIndex(v, force) {
         if (this._animating) {
             return;
@@ -7953,20 +8219,40 @@ class TutoPage {
         this.router.game.uiInputManager.onLeftCallbacks.remove(this._inputLeft);
         this.router.game.uiInputManager.onRightCallbacks.remove(this._inputRight);
     }
+    _inputLeft = () => {
+        if (!this.shown) {
+            return;
+        }
+        this.setTutoIndex(this._tutoIndex - 1);
+    };
+    _inputRight = () => {
+        if (!this.shown) {
+            return;
+        }
+        if (this._tutoIndex < 3) {
+            this.setTutoIndex(this._tutoIndex + 1);
+        }
+        else {
+            this.hide(0.5);
+            this.router.game.fadeInIntro();
+            this.router.game.puzzle.skipIntro();
+        }
+    };
 }
 class UserInterfaceInputManager {
+    game;
+    inControl = false;
+    onUpCallbacks = new Nabu.UniqueList();
+    onLeftCallbacks = new Nabu.UniqueList();
+    onDownCallbacks = new Nabu.UniqueList();
+    onRightCallbacks = new Nabu.UniqueList();
+    onEnterCallbacks = new Nabu.UniqueList();
+    onBackCallbacks = new Nabu.UniqueList();
+    onPrevCallbacks = new Nabu.UniqueList();
+    onNextCallbacks = new Nabu.UniqueList();
+    onDropControlCallbacks = new Nabu.UniqueList();
     constructor(game) {
         this.game = game;
-        this.inControl = false;
-        this.onUpCallbacks = new Nabu.UniqueList();
-        this.onLeftCallbacks = new Nabu.UniqueList();
-        this.onDownCallbacks = new Nabu.UniqueList();
-        this.onRightCallbacks = new Nabu.UniqueList();
-        this.onEnterCallbacks = new Nabu.UniqueList();
-        this.onBackCallbacks = new Nabu.UniqueList();
-        this.onPrevCallbacks = new Nabu.UniqueList();
-        this.onNextCallbacks = new Nabu.UniqueList();
-        this.onDropControlCallbacks = new Nabu.UniqueList();
     }
     initialize() {
         window.addEventListener("pointerdown", () => {
@@ -8091,6 +8377,9 @@ class WallTile extends Tile {
     }
 }
 class CherryTree extends Tile {
+    tileTop;
+    trunk;
+    flower;
     constructor(game, props) {
         super(game, props);
         this.material = this.game.materials.brownMaterial;
@@ -8137,10 +8426,24 @@ class CherryTree extends Tile {
 }
 /// <reference path="./Tile.ts"/>
 class WaterTile extends Tile {
+    get size() {
+        return this.scaling.y;
+    }
+    set size(s) {
+        this.scaling.copyFromFloats(1, s, 1);
+    }
+    path = [];
+    distFromSource = Infinity;
+    iMinusWater;
+    iPlusWater;
+    jMinusWater;
+    jPlusWater;
+    shoreMesh;
+    waterMesh;
+    floorMesh;
+    sculptMesh;
     constructor(game, props) {
         super(game, props);
-        this.path = [];
-        this.distFromSource = Infinity;
         this.color = props.color;
         this.material = this.game.materials.blackMaterial;
         this.renderOutline = true;
@@ -8161,12 +8464,6 @@ class WaterTile extends Tile {
             floorData.uvs[2 * i + 1] = 0.5 * (floorData.positions[3 * i + 2] + this.position.z) - 0.5;
         }
         floorData.applyToMesh(this.floorMesh);
-    }
-    get size() {
-        return this.scaling.y;
-    }
-    set size(s) {
-        this.scaling.copyFromFloats(1, s, 1);
     }
     disconnect() {
         this.distFromSource = Infinity;
@@ -8391,11 +8688,9 @@ class WaterTile extends Tile {
     }
 }
 class CubicNoiseTexture {
-    constructor(scene) {
-        this.scene = scene;
-        this.size = 1;
-        this._data = [[[0.5]]];
-    }
+    scene;
+    _data;
+    size = 1;
     getData(i, j, k) {
         while (i < 0) {
             i += this.size;
@@ -8425,6 +8720,10 @@ class CubicNoiseTexture {
         j = j % this.size;
         k = k % this.size;
         return this._data[i][j][k];
+    }
+    constructor(scene) {
+        this.scene = scene;
+        this._data = [[[0.5]]];
     }
     double() {
         let newSize = this.size * 2;
@@ -8520,74 +8819,24 @@ class CubicNoiseTexture {
     }
 }
 class Explosion {
-    constructor(game) {
-        this.game = game;
-        this.origin = BABYLON.Vector3.Zero();
-        this.lifespan = 2;
-        this.tZero = 0;
-        this.particles = [];
-        this.particulesCount = 10;
-        this.particuleRadius = 1;
-        this.targetPositions = [];
-        this.delays = [];
-        this.radiusXZ = 1;
-        this.radiusY = 1;
-        this.maxOffset = BABYLON.Vector3.Zero();
-        this.keepAlive = false;
-        this._timer = 0;
-        this.update = () => {
-            if (!this.game.performanceWatcher.supportTexture3D) {
-                return;
-            }
-            this._timer += this.game.scene.deltaTime / 1000;
-            let globalF = 1;
-            let done = true;
-            for (let i = 0; i < this.particles.length; i++) {
-                let bubble = this.particles[i];
-                let f = (this._timer - this.delays[i]) / this.lifespan;
-                if (f < 1) {
-                    done = false;
-                }
-                globalF = Math.min(globalF, f);
-                f = Nabu.MinMax(f, 0, 1);
-                let fScale = 0;
-                let fPos = 0;
-                if (this.sizeEasing) {
-                    fScale = this.sizeEasing(f);
-                    fPos = this.sizeEasing(f);
-                }
-                else {
-                    fScale = Nabu.Easing.easeOutCubic(Nabu.Easing.easeOutCubic(f));
-                    fPos = Nabu.Easing.easeOutCubic(Nabu.Easing.easeOutCubic(f));
-                }
-                BABYLON.Vector3.LerpToRef(this.origin, this.targetPositions[i], fPos, bubble.position);
-                bubble.rotate(BABYLON.Axis.Y, 0.01, BABYLON.Space.LOCAL);
-                bubble.scaling.copyFromFloats(fScale, fScale, fScale);
-            }
-            this.bubbleMaterial.setFloat("time", 2 * globalF + this.tZero);
-            if (done) {
-                if (this.keepAlive) {
-                    for (let i = 0; i < this.particles.length; i++) {
-                        this.particles[i].isVisible = false;
-                    }
-                    this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
-                }
-                else {
-                    this.dispose();
-                }
-            }
-        };
-        if (this.game.performanceWatcher.supportTexture3D) {
-            this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
-            this.bubbleMaterial.setUseLightFromPOV(true);
-            this.bubbleMaterial.setAutoLight(0.8);
-        }
-    }
+    game;
+    origin = BABYLON.Vector3.Zero();
+    lifespan = 2;
+    tZero = 0;
+    particles = [];
+    particulesCount = 10;
+    particuleRadius = 1;
+    targetPositions = [];
+    delays = [];
+    radiusXZ = 1;
+    radiusY = 1;
     setRadius(v) {
         this.radiusXZ = v;
         this.radiusY = v;
         this.particuleRadius = v;
     }
+    maxOffset = BABYLON.Vector3.Zero();
+    bubbleMaterial;
     get color() {
         if (this.bubbleMaterial) {
             return this.bubbleMaterial.diffuse;
@@ -8597,6 +8846,16 @@ class Explosion {
     set color(c) {
         if (this.bubbleMaterial) {
             this.bubbleMaterial.setDiffuse(c);
+        }
+    }
+    keepAlive = false;
+    sizeEasing;
+    constructor(game) {
+        this.game = game;
+        if (this.game.performanceWatcher.supportTexture3D) {
+            this.bubbleMaterial = new ExplosionMaterial("explosion-material", this.game.scene);
+            this.bubbleMaterial.setUseLightFromPOV(true);
+            this.bubbleMaterial.setAutoLight(0.8);
         }
     }
     static RandomInSphere() {
@@ -8663,6 +8922,49 @@ class Explosion {
         }
         this.game.scene.onBeforeRenderObservable.add(this.update);
     }
+    _timer = 0;
+    update = () => {
+        if (!this.game.performanceWatcher.supportTexture3D) {
+            return;
+        }
+        this._timer += this.game.scene.deltaTime / 1000;
+        let globalF = 1;
+        let done = true;
+        for (let i = 0; i < this.particles.length; i++) {
+            let bubble = this.particles[i];
+            let f = (this._timer - this.delays[i]) / this.lifespan;
+            if (f < 1) {
+                done = false;
+            }
+            globalF = Math.min(globalF, f);
+            f = Nabu.MinMax(f, 0, 1);
+            let fScale = 0;
+            let fPos = 0;
+            if (this.sizeEasing) {
+                fScale = this.sizeEasing(f);
+                fPos = this.sizeEasing(f);
+            }
+            else {
+                fScale = Nabu.Easing.easeOutCubic(Nabu.Easing.easeOutCubic(f));
+                fPos = Nabu.Easing.easeOutCubic(Nabu.Easing.easeOutCubic(f));
+            }
+            BABYLON.Vector3.LerpToRef(this.origin, this.targetPositions[i], fPos, bubble.position);
+            bubble.rotate(BABYLON.Axis.Y, 0.01, BABYLON.Space.LOCAL);
+            bubble.scaling.copyFromFloats(fScale, fScale, fScale);
+        }
+        this.bubbleMaterial.setFloat("time", 2 * globalF + this.tZero);
+        if (done) {
+            if (this.keepAlive) {
+                for (let i = 0; i < this.particles.length; i++) {
+                    this.particles[i].isVisible = false;
+                }
+                this.game.scene.onBeforeRenderObservable.removeCallback(this.update);
+            }
+            else {
+                this.dispose();
+            }
+        }
+    };
 }
 class ExplosionMaterial extends BABYLON.ShaderMaterial {
     constructor(name, scene) {
@@ -8693,29 +8995,6 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
             needAlphaBlending: true,
             needAlphaTesting: true
         });
-        this._update = () => {
-            let camera = this.getScene().activeCamera;
-            let direction = camera.getForwardRay().direction;
-            this.setVector3("viewPositionW", camera.globalPosition);
-            this.setVector3("viewDirectionW", direction);
-            let lights = this.getScene().lights;
-            for (let i = 0; i < lights.length; i++) {
-                let light = lights[i];
-                if (light instanceof BABYLON.HemisphericLight) {
-                    this.setVector3("lightInvDirW", light.direction);
-                }
-            }
-        };
-        this._useVertexColor = false;
-        this._useLightFromPOV = false;
-        this._autoLight = 0;
-        this._diffuseSharpness = 0;
-        this._diffuse = BABYLON.Color3.White();
-        this._useFlatSpecular = false;
-        this._specularIntensity = 0;
-        this._specular = BABYLON.Color3.White();
-        this._specularCount = 1;
-        this._specularPower = 4;
         this.updateUseVertexColor();
         this.updateUseLightFromPOV();
         this.updateAutoLight();
@@ -8735,6 +9014,20 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
         super.dispose(forceDisposeEffect, forceDisposeTextures, notBoundToMesh);
         this.getScene().onBeforeRenderObservable.removeCallback(this._update);
     }
+    _update = () => {
+        let camera = this.getScene().activeCamera;
+        let direction = camera.getForwardRay().direction;
+        this.setVector3("viewPositionW", camera.globalPosition);
+        this.setVector3("viewDirectionW", direction);
+        let lights = this.getScene().lights;
+        for (let i = 0; i < lights.length; i++) {
+            let light = lights[i];
+            if (light instanceof BABYLON.HemisphericLight) {
+                this.setVector3("lightInvDirW", light.direction);
+            }
+        }
+    };
+    _useVertexColor = false;
     get useVertexColor() {
         return this._useVertexColor;
     }
@@ -8745,6 +9038,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateUseVertexColor() {
         this.setInt("useVertexColor", this._useVertexColor ? 1 : 0);
     }
+    _useLightFromPOV = false;
     get useLightFromPOV() {
         return this._useLightFromPOV;
     }
@@ -8755,6 +9049,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateUseLightFromPOV() {
         this.setInt("useLightFromPOV", this._useLightFromPOV ? 1 : 0);
     }
+    _autoLight = 0;
     get autoLight() {
         return this._autoLight;
     }
@@ -8765,6 +9060,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateAutoLight() {
         this.setFloat("autoLight", this._autoLight);
     }
+    _diffuseSharpness = 0;
     get diffuseSharpness() {
         return this._diffuseSharpness;
     }
@@ -8775,6 +9071,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateDiffuseSharpness() {
         this.setFloat("diffuseSharpness", this._diffuseSharpness);
     }
+    _diffuse = BABYLON.Color3.White();
     get diffuse() {
         return this._diffuse;
     }
@@ -8785,6 +9082,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateDiffuse() {
         this.setColor3("diffuse", this._diffuse);
     }
+    _useFlatSpecular = false;
     get useFlatSpecular() {
         return this._useFlatSpecular;
     }
@@ -8795,6 +9093,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateUseFlatSpecular() {
         this.setInt("useFlatSpecular", this._useFlatSpecular ? 1 : 0);
     }
+    _specularIntensity = 0;
     get specularIntensity() {
         return this._specularIntensity;
     }
@@ -8805,6 +9104,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateSpecularIntensity() {
         this.setFloat("specularIntensity", this._specularIntensity);
     }
+    _specular = BABYLON.Color3.White();
     get specular() {
         return this._specular;
     }
@@ -8815,6 +9115,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateSpecular() {
         this.setColor3("specular", this._specular);
     }
+    _specularCount = 1;
     get specularCount() {
         return this._specularCount;
     }
@@ -8825,6 +9126,7 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     updateSpecularCount() {
         this.setFloat("specularCount", this._specularCount);
     }
+    _specularPower = 4;
     get specularPower() {
         return this._specularPower;
     }
@@ -8837,12 +9139,14 @@ class ExplosionMaterial extends BABYLON.ShaderMaterial {
     }
 }
 class StampEffect {
+    game;
+    sound;
+    getScene() {
+        return this.game.scene;
+    }
     constructor(game) {
         this.game = game;
         this.sound = game.soundManager.createSound("stamp-sound", "./datas/sounds/stamp.mp3");
-    }
-    getScene() {
-        return this.game.scene;
     }
     async play(div) {
         //await RandomWait();
@@ -8860,11 +9164,13 @@ class StampEffect {
     }
 }
 class FishingPole {
+    puzzle;
+    origin = new BABYLON.Vector3(0, 20, 5);
+    lineMesh;
+    animateTip = Mummu.AnimationFactory.EmptyVector3Callback;
+    stop = false;
     constructor(puzzle) {
         this.puzzle = puzzle;
-        this.origin = new BABYLON.Vector3(0, 20, 5);
-        this.animateTip = Mummu.AnimationFactory.EmptyVector3Callback;
-        this.stop = false;
         this.lineMesh = new BABYLON.Mesh("tentacle");
         this.lineMesh.material = this.puzzle.game.materials.trueWhiteMaterial;
         let magnet = CreateBoxFrameVertexData({
@@ -8954,49 +9260,235 @@ var PuzzleState;
     PuzzleState[PuzzleState["Done"] = 4] = "Done";
 })(PuzzleState || (PuzzleState = {}));
 class Puzzle {
+    game;
+    editorOrEditorPreview = false;
+    data = {
+        id: null,
+        title: "No Title",
+        author: "No Author",
+        content: ""
+    };
+    winSlotRows = 1;
+    winSlots = [];
+    winSlotsIndexes = [0, 0, 0, 0];
+    stars = [];
+    ballsCount = 1;
+    ballsPositionZero = [BABYLON.Vector3.Zero(), BABYLON.Vector3.Zero()];
+    balls = [];
+    ballCollision = BABYLON.Vector3.Zero();
+    ballCollisionDone = [true, true];
+    _winloseTimout = 0;
+    puzzleState = PuzzleState.Done;
+    playTimer = 0;
+    fishingPolesCount = 0;
+    fishingPole;
+    border;
+    floor;
+    holeOutline;
+    invisiFloorTM;
+    holeWall;
+    creeps = [];
+    tiles = [];
+    blockTiles = [];
+    griddedTiles = [];
+    _getOrCreateGriddedStack(i, j) {
+        if (!this.griddedTiles[i]) {
+            this.griddedTiles[i] = [];
+        }
+        if (!this.griddedTiles[i][j]) {
+            this.griddedTiles[i][j] = new Nabu.UniqueList();
+        }
+        return this.griddedTiles[i][j];
+    }
+    getGriddedStack(i, j) {
+        if (this.griddedTiles[i]) {
+            return this.griddedTiles[i][j];
+        }
+    }
+    updateGriddedStack(t, skipSafetyCheck) {
+        if (!skipSafetyCheck) {
+            this.griddedTiles.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+        this._getOrCreateGriddedStack(t.i, t.j).push(t);
+    }
+    removeFromGriddedStack(t) {
+        let expected = this.getGriddedStack(t.i, t.j);
+        if (expected && expected.contains(t)) {
+            expected.remove(t);
+        }
+        else {
+            console.warn("Removing a Tile that is not in its expected stack.");
+            this.griddedTiles.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+    }
+    griddedBorders = [];
+    _getOrCreateGriddedBorderStack(i, j) {
+        if (!this.griddedBorders[i]) {
+            this.griddedBorders[i] = [];
+        }
+        if (!this.griddedBorders[i][j]) {
+            this.griddedBorders[i][j] = new Nabu.UniqueList();
+        }
+        return this.griddedBorders[i][j];
+    }
+    getGriddedBorderStack(i, j) {
+        if (this.griddedBorders[i]) {
+            return this.griddedBorders[i][j];
+        }
+    }
+    updateGriddedBorderStack(b, skipSafetyCheck) {
+        if (!skipSafetyCheck) {
+            this.griddedBorders.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(b)) {
+                        stack.remove(b);
+                    }
+                });
+            });
+        }
+        this._getOrCreateGriddedBorderStack(b.i, b.j).push(b);
+    }
+    removeFromGriddedBorderStack(t) {
+        let expected = this.getGriddedBorderStack(t.i, t.j);
+        if (expected && expected.contains(t)) {
+            expected.remove(t);
+        }
+        else {
+            console.warn("Removing a Border that is not in its expected stack.");
+            this.griddedBorders.forEach(line => {
+                line.forEach(stack => {
+                    if (stack.contains(t)) {
+                        console.warn("It's been found elsewhere.");
+                        stack.remove(t);
+                    }
+                });
+            });
+        }
+    }
+    buildings = [];
+    buildingBlocks = [];
+    buildingBlockGet(i, j) {
+        if (i >= 0 && i < this.buildingBlocks.length) {
+            if (!this.buildingBlocks[i]) {
+                return 0;
+            }
+            if (j >= 0 && j < this.buildingBlocks[i].length) {
+                if (isFinite(this.buildingBlocks[i][j])) {
+                    return this.buildingBlocks[i][j];
+                }
+            }
+        }
+        return 0;
+    }
+    buildingBlockSet(v, i, j) {
+        if (i >= 0 && i < this.w) {
+            if (j >= 0 && j < this.h) {
+                if (!this.buildingBlocks[i]) {
+                    this.buildingBlocks[i] = [];
+                }
+                this.buildingBlocks[i][j] = v;
+            }
+        }
+    }
+    forceFullBuildingBlockGrid() {
+        for (let i = 0; i < this.w; i++) {
+            for (let j = 0; j < this.h; j++) {
+                this.buildingBlockSet(this.buildingBlockGet(i, j), i, j);
+            }
+        }
+    }
+    buildingsContainer;
+    buildingBlocksBorders = [];
+    boxesWall;
+    boxesWood;
+    boxesFloor;
+    bordersMesh;
+    showFPS = false;
+    fpsMaterial;
+    fpsTexture;
+    get floorMaterial() {
+        let index = this.floorMaterialIndex % this.game.materials.floorMaterials.length;
+        return this.game.materials.floorMaterials[index];
+    }
+    get haikuColor() {
+        if (this.floorMaterialIndex === 6) {
+            return "#e3d8caff";
+        }
+        if (this.floorMaterialIndex === 5) {
+            return "#e3d8caff";
+        }
+        return "#e3cfb4ff";
+    }
+    clicSound;
+    cricSound;
+    cracSound;
+    wiishSound;
+    wooshSound;
+    longCrackSound;
+    fallImpactSound;
+    slashSound;
+    snapBassSound;
+    getScene() {
+        return this.game.scene;
+    }
+    w = 10;
+    h = 10;
+    heightMap;
+    hMapGet(i, j) {
+        if (i >= 0 && i < this.heightMap.length) {
+            if (!this.heightMap[i]) {
+                return 0;
+            }
+            if (j >= 0 && j < this.heightMap[i].length) {
+                return this.heightMap[i][j];
+            }
+        }
+        return 0;
+    }
+    hMapSet(v, i, j) {
+        if (i >= 0 && i < this.heightMap.length) {
+            if (j >= 0 && j < this.heightMap[i].length) {
+                if (!this.heightMap[i]) {
+                    this.heightMap[i] = [];
+                }
+                this.heightMap[i][j] = v;
+            }
+        }
+    }
+    get xMin() {
+        return -0.55 - 0.05;
+    }
+    get xMax() {
+        return this.w * 1.1 - 0.55 + 0.05;
+    }
+    get zMin() {
+        return -0.55 - 0.05;
+    }
+    get zMax() {
+        return this.h * 1.1 - 0.55 + 0.05;
+    }
+    puzzleUI;
+    _pendingPublish = false;
+    haiku;
+    titleHaiku;
+    tileHaikus = [];
+    playerHaikus = [];
+    floorMaterialIndex = 0;
+    winAnimationTime = 4;
     constructor(game) {
         this.game = game;
-        this.editorOrEditorPreview = false;
-        this.data = {
-            id: null,
-            title: "No Title",
-            author: "No Author",
-            content: ""
-        };
-        this.winSlotRows = 1;
-        this.winSlots = [];
-        this.winSlotsIndexes = [0, 0, 0, 0];
-        this.stars = [];
-        this.ballsCount = 1;
-        this.ballsPositionZero = [BABYLON.Vector3.Zero(), BABYLON.Vector3.Zero()];
-        this.balls = [];
-        this.ballCollision = BABYLON.Vector3.Zero();
-        this.ballCollisionDone = [true, true];
-        this._winloseTimout = 0;
-        this.puzzleState = PuzzleState.Done;
-        this.playTimer = 0;
-        this.fishingPolesCount = 0;
-        this.creeps = [];
-        this.tiles = [];
-        this.blockTiles = [];
-        this.griddedTiles = [];
-        this.griddedBorders = [];
-        this.buildings = [];
-        this.buildingBlocks = [];
-        this.buildingBlocksBorders = [];
-        this.showFPS = false;
-        this.w = 10;
-        this.h = 10;
-        this._pendingPublish = false;
-        this.tileHaikus = [];
-        this.playerHaikus = [];
-        this.floorMaterialIndex = 0;
-        this.winAnimationTime = 4;
-        this.buildingUpStep = 0.1;
-        this.buildingUpValue = 1;
-        this._ballCollisionTimeStamp = 0;
-        this._timer = 0;
-        this._globalTime = 0;
         this.balls = [
             new Ball(this, { color: TileColor.North }, 0),
         ];
@@ -9045,170 +9537,6 @@ class Puzzle {
         this.slashSound = this.game.soundManager.createSound("slash", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
         this.snapBassSound = this.game.soundManager.createSound("snap-bass", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
     }
-    _getOrCreateGriddedStack(i, j) {
-        if (!this.griddedTiles[i]) {
-            this.griddedTiles[i] = [];
-        }
-        if (!this.griddedTiles[i][j]) {
-            this.griddedTiles[i][j] = new Nabu.UniqueList();
-        }
-        return this.griddedTiles[i][j];
-    }
-    getGriddedStack(i, j) {
-        if (this.griddedTiles[i]) {
-            return this.griddedTiles[i][j];
-        }
-    }
-    updateGriddedStack(t, skipSafetyCheck) {
-        if (!skipSafetyCheck) {
-            this.griddedTiles.forEach(line => {
-                line.forEach(stack => {
-                    if (stack.contains(t)) {
-                        stack.remove(t);
-                    }
-                });
-            });
-        }
-        this._getOrCreateGriddedStack(t.i, t.j).push(t);
-    }
-    removeFromGriddedStack(t) {
-        let expected = this.getGriddedStack(t.i, t.j);
-        if (expected && expected.contains(t)) {
-            expected.remove(t);
-        }
-        else {
-            console.warn("Removing a Tile that is not in its expected stack.");
-            this.griddedTiles.forEach(line => {
-                line.forEach(stack => {
-                    if (stack.contains(t)) {
-                        stack.remove(t);
-                    }
-                });
-            });
-        }
-    }
-    _getOrCreateGriddedBorderStack(i, j) {
-        if (!this.griddedBorders[i]) {
-            this.griddedBorders[i] = [];
-        }
-        if (!this.griddedBorders[i][j]) {
-            this.griddedBorders[i][j] = new Nabu.UniqueList();
-        }
-        return this.griddedBorders[i][j];
-    }
-    getGriddedBorderStack(i, j) {
-        if (this.griddedBorders[i]) {
-            return this.griddedBorders[i][j];
-        }
-    }
-    updateGriddedBorderStack(b, skipSafetyCheck) {
-        if (!skipSafetyCheck) {
-            this.griddedBorders.forEach(line => {
-                line.forEach(stack => {
-                    if (stack.contains(b)) {
-                        stack.remove(b);
-                    }
-                });
-            });
-        }
-        this._getOrCreateGriddedBorderStack(b.i, b.j).push(b);
-    }
-    removeFromGriddedBorderStack(t) {
-        let expected = this.getGriddedBorderStack(t.i, t.j);
-        if (expected && expected.contains(t)) {
-            expected.remove(t);
-        }
-        else {
-            console.warn("Removing a Border that is not in its expected stack.");
-            this.griddedBorders.forEach(line => {
-                line.forEach(stack => {
-                    if (stack.contains(t)) {
-                        console.warn("It's been found elsewhere.");
-                        stack.remove(t);
-                    }
-                });
-            });
-        }
-    }
-    buildingBlockGet(i, j) {
-        if (i >= 0 && i < this.buildingBlocks.length) {
-            if (!this.buildingBlocks[i]) {
-                return 0;
-            }
-            if (j >= 0 && j < this.buildingBlocks[i].length) {
-                if (isFinite(this.buildingBlocks[i][j])) {
-                    return this.buildingBlocks[i][j];
-                }
-            }
-        }
-        return 0;
-    }
-    buildingBlockSet(v, i, j) {
-        if (i >= 0 && i < this.w) {
-            if (j >= 0 && j < this.h) {
-                if (!this.buildingBlocks[i]) {
-                    this.buildingBlocks[i] = [];
-                }
-                this.buildingBlocks[i][j] = v;
-            }
-        }
-    }
-    forceFullBuildingBlockGrid() {
-        for (let i = 0; i < this.w; i++) {
-            for (let j = 0; j < this.h; j++) {
-                this.buildingBlockSet(this.buildingBlockGet(i, j), i, j);
-            }
-        }
-    }
-    get floorMaterial() {
-        let index = this.floorMaterialIndex % this.game.materials.floorMaterials.length;
-        return this.game.materials.floorMaterials[index];
-    }
-    get haikuColor() {
-        if (this.floorMaterialIndex === 6) {
-            return "#e3d8caff";
-        }
-        if (this.floorMaterialIndex === 5) {
-            return "#e3d8caff";
-        }
-        return "#e3cfb4ff";
-    }
-    getScene() {
-        return this.game.scene;
-    }
-    hMapGet(i, j) {
-        if (i >= 0 && i < this.heightMap.length) {
-            if (!this.heightMap[i]) {
-                return 0;
-            }
-            if (j >= 0 && j < this.heightMap[i].length) {
-                return this.heightMap[i][j];
-            }
-        }
-        return 0;
-    }
-    hMapSet(v, i, j) {
-        if (i >= 0 && i < this.heightMap.length) {
-            if (j >= 0 && j < this.heightMap[i].length) {
-                if (!this.heightMap[i]) {
-                    this.heightMap[i] = [];
-                }
-                this.heightMap[i][j] = v;
-            }
-        }
-    }
-    get xMin() {
-        return -0.55 - 0.05;
-    }
-    get xMax() {
-        return this.w * 1.1 - 0.55 + 0.05;
-    }
-    get zMin() {
-        return -0.55 - 0.05;
-    }
-    get zMax() {
-        return this.h * 1.1 - 0.55 + 0.05;
-    }
     async reset(replaying) {
         //await RandomWait();
         this.game.fadeOutIntro(0);
@@ -9228,20 +9556,16 @@ class Puzzle {
         else {
             this.game.fadeInIntro();
         }
-        if (USE_POKI_SDK) {
-            PokiGameplayStart();
-        }
     }
     skipIntro() {
         document.querySelector("#puzzle-skip-intro").style.display = "none";
         document.querySelector("#puzzle-ready").style.display = "";
         this.game.mode = GameMode.Play;
+        SDKGameplayStart();
         this.puzzleUI.showTouchInput();
     }
     win() {
-        if (USE_POKI_SDK) {
-            //PokiGameplayStop();
-        }
+        SDKGameplayStop();
         this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
         let previousCompletion = 0;
@@ -9281,9 +9605,7 @@ class Puzzle {
         }, this.winAnimationTime * 1000);
     }
     lose() {
-        if (USE_POKI_SDK) {
-            //PokiGameplayStop();
-        }
+        SDKGameplayStop();
         clearTimeout(this._winloseTimout);
         this._winloseTimout = setTimeout(() => {
             this.puzzleUI.hideTouchInput();
@@ -9801,6 +10123,8 @@ class Puzzle {
             waterTiles = this.tiles.filter(t => { return t instanceof WaterTile && t.distFromSource === Infinity; });
         }
     }
+    buildingUpStep = 0.1;
+    buildingUpValue = 1;
     async NextFrame() {
         return new Promise(resolve => {
             requestAnimationFrame(() => {
@@ -10362,6 +10686,7 @@ class Puzzle {
         this.playTimer = 0;
         this.game.setPlayTimer(this.playTimer);
     }
+    _ballCollisionTimeStamp = 0;
     addBallCollision(v) {
         if (Math.abs(this._globalTime - this._ballCollisionTimeStamp) > 0.1) {
             this.ballCollisionDone = [false, false];
@@ -10369,6 +10694,8 @@ class Puzzle {
             this._ballCollisionTimeStamp = this._globalTime;
         }
     }
+    _timer = 0;
+    _globalTime = 0;
     update(dt) {
         if (this.puzzleState != PuzzleState.Loading) {
             for (let i = 0; i < this.ballsCount; i++) {
@@ -10837,122 +11164,52 @@ function SerializeBuildingBlocks(buildingBlocks) {
     return buildingBlocksLine;
 }
 class PuzzleUI {
+    puzzle;
+    ingameTimer;
+    successPanel;
+    successNextLabel;
+    gameoverPanel;
+    unlockContainer;
+    failMessage;
+    completionBarLabel;
+    completionBar;
+    highscoreContainer;
+    highscorePlayerLine;
+    highscoreTwoPlayersLine;
+    scoreSubmitBtn;
+    scorePendingBtn;
+    scoreDoneBtn;
+    successNextButton;
+    autoNext = true;
+    disableAutoNext() {
+        this.autoNext = false;
+        let autoNextBar = document.querySelector("#success-next-auto-bar");
+        autoNextBar.style.display = "none";
+    }
+    gameoverBackButton;
+    gameoverReplayButton;
+    touchInput;
+    boostLabel;
+    _hoveredElement;
+    get hoveredElement() {
+        return this._hoveredElement;
+    }
+    setHoveredElement(e) {
+        if (this.hoveredElement) {
+            this.hoveredElement.classList.remove("hovered");
+        }
+        this._hoveredElement = e;
+        if (this.hoveredElement) {
+            this.hoveredElement.classList.add("hovered");
+        }
+    }
+    get game() {
+        return this.puzzle.game;
+    }
+    winSound;
+    loseSound;
     constructor(puzzle) {
         this.puzzle = puzzle;
-        this.autoNext = true;
-        this._inputUp = () => {
-            if (this.successPanel.style.display === "") {
-                if (this.hoveredElement === undefined) {
-                    this.setHoveredElement(this.successNextButton);
-                }
-                else if (this.hoveredElement === this.successNextButton) {
-                    if (this.highscoreContainer.style.display === "block") {
-                        if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
-                            this.setHoveredElement(this.scoreSubmitBtn);
-                        }
-                        else {
-                            this.setHoveredElement(this.highscorePlayerLine);
-                        }
-                    }
-                }
-                else if (this.hoveredElement === this.scoreSubmitBtn) {
-                    this.setHoveredElement(this.highscorePlayerLine);
-                }
-                else if (this.hoveredElement === this.highscorePlayerLine) {
-                    this.setHoveredElement(this.successNextButton);
-                }
-                this.disableAutoNext();
-            }
-            else if (this.gameoverPanel.style.display === "") {
-                if (this.hoveredElement === this.gameoverBackButton) {
-                    this.setHoveredElement(this.gameoverReplayButton);
-                }
-                else if (this.hoveredElement === this.gameoverReplayButton) {
-                    this.setHoveredElement(this.gameoverBackButton);
-                }
-                this.disableAutoNext();
-            }
-        };
-        this._inputDown = () => {
-            if (this.successPanel.style.display === "") {
-                if (this.hoveredElement === undefined) {
-                    this.setHoveredElement(this.successNextButton);
-                }
-                else if (this.hoveredElement === this.highscorePlayerLine) {
-                    if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
-                        this.setHoveredElement(this.scoreSubmitBtn);
-                    }
-                    else {
-                        this.setHoveredElement(this.successNextButton);
-                    }
-                }
-                else if (this.hoveredElement === this.scoreSubmitBtn) {
-                    this.setHoveredElement(this.successNextButton);
-                }
-                else if (this.hoveredElement === this.successNextButton) {
-                    if (this.highscoreContainer.style.display === "block") {
-                        this.setHoveredElement(this.highscorePlayerLine);
-                    }
-                }
-                this.disableAutoNext();
-            }
-            else if (this.gameoverPanel.style.display === "") {
-                if (this.hoveredElement === this.gameoverBackButton) {
-                    this.setHoveredElement(this.gameoverReplayButton);
-                }
-                else if (this.hoveredElement === this.gameoverReplayButton) {
-                    this.setHoveredElement(this.gameoverBackButton);
-                }
-                this.disableAutoNext();
-            }
-        };
-        this._inputLeft = () => {
-            if (this.gameoverPanel.style.display === "") {
-                if (this.hoveredElement === this.gameoverBackButton) {
-                    this.setHoveredElement(this.gameoverReplayButton);
-                }
-                else if (this.hoveredElement === this.gameoverReplayButton) {
-                    this.setHoveredElement(this.gameoverBackButton);
-                }
-                this.disableAutoNext();
-            }
-        };
-        this._inputRight = () => {
-            if (this.gameoverPanel.style.display === "") {
-                if (this.hoveredElement === this.gameoverBackButton) {
-                    this.setHoveredElement(this.gameoverReplayButton);
-                }
-                else if (this.hoveredElement === this.gameoverReplayButton) {
-                    this.setHoveredElement(this.gameoverBackButton);
-                }
-                this.disableAutoNext();
-            }
-        };
-        this._inputEnter = () => {
-            if (this.successPanel.style.display === "" || this.gameoverPanel.style.display === "") {
-                if (this.hoveredElement instanceof HTMLButtonElement) {
-                    if (this.hoveredElement.parentElement instanceof HTMLAnchorElement) {
-                        location.hash = this.hoveredElement.parentElement.href.split("/").pop();
-                    }
-                    else if (this.hoveredElement.onpointerup) {
-                        this.hoveredElement.onpointerup(undefined);
-                    }
-                }
-                else if (this.hoveredElement === this.highscorePlayerLine) {
-                    document.querySelector("#score-player-input").focus();
-                }
-                this.disableAutoNext();
-            }
-        };
-        this._inputBack = () => {
-            if (this.successPanel.style.display === "") {
-            }
-            else if (this.gameoverPanel.style.display === "") {
-            }
-        };
-        this._inputDropControl = () => {
-            this.setHoveredElement(undefined);
-        };
         this.ingameTimer = document.querySelector("#play-timer");
         this.failMessage = document.querySelector("#success-score-fail-message");
         this.successNextLabel = document.querySelector("#success-next-label");
@@ -10991,26 +11248,6 @@ class PuzzleUI {
         });
         this.game.router.playUI.onshow = () => { this._registerToInputManager(); };
         this.game.router.playUI.onhide = () => { this._unregisterFromInputManager(); };
-    }
-    disableAutoNext() {
-        this.autoNext = false;
-        let autoNextBar = document.querySelector("#success-next-auto-bar");
-        autoNextBar.style.display = "none";
-    }
-    get hoveredElement() {
-        return this._hoveredElement;
-    }
-    setHoveredElement(e) {
-        if (this.hoveredElement) {
-            this.hoveredElement.classList.remove("hovered");
-        }
-        this._hoveredElement = e;
-        if (this.hoveredElement) {
-            this.hoveredElement.classList.add("hovered");
-        }
-    }
-    get game() {
-        return this.puzzle.game;
     }
     win(firstTimeCompleted, previousCompletion) {
         let stamp = this.successPanel.querySelector(".stamp");
@@ -11216,6 +11453,119 @@ class PuzzleUI {
         this.game.uiInputManager.onBackCallbacks.remove(this._inputBack);
         this.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
+    _inputUp = () => {
+        if (this.successPanel.style.display === "") {
+            if (this.hoveredElement === undefined) {
+                this.setHoveredElement(this.successNextButton);
+            }
+            else if (this.hoveredElement === this.successNextButton) {
+                if (this.highscoreContainer.style.display === "block") {
+                    if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
+                        this.setHoveredElement(this.scoreSubmitBtn);
+                    }
+                    else {
+                        this.setHoveredElement(this.highscorePlayerLine);
+                    }
+                }
+            }
+            else if (this.hoveredElement === this.scoreSubmitBtn) {
+                this.setHoveredElement(this.highscorePlayerLine);
+            }
+            else if (this.hoveredElement === this.highscorePlayerLine) {
+                this.setHoveredElement(this.successNextButton);
+            }
+            this.disableAutoNext();
+        }
+        else if (this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
+            this.disableAutoNext();
+        }
+    };
+    _inputDown = () => {
+        if (this.successPanel.style.display === "") {
+            if (this.hoveredElement === undefined) {
+                this.setHoveredElement(this.successNextButton);
+            }
+            else if (this.hoveredElement === this.highscorePlayerLine) {
+                if (this.scoreSubmitBtn.style.display === "inline-block" && !this.scoreSubmitBtn.classList.contains("locked")) {
+                    this.setHoveredElement(this.scoreSubmitBtn);
+                }
+                else {
+                    this.setHoveredElement(this.successNextButton);
+                }
+            }
+            else if (this.hoveredElement === this.scoreSubmitBtn) {
+                this.setHoveredElement(this.successNextButton);
+            }
+            else if (this.hoveredElement === this.successNextButton) {
+                if (this.highscoreContainer.style.display === "block") {
+                    this.setHoveredElement(this.highscorePlayerLine);
+                }
+            }
+            this.disableAutoNext();
+        }
+        else if (this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
+            this.disableAutoNext();
+        }
+    };
+    _inputLeft = () => {
+        if (this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
+            this.disableAutoNext();
+        }
+    };
+    _inputRight = () => {
+        if (this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement === this.gameoverBackButton) {
+                this.setHoveredElement(this.gameoverReplayButton);
+            }
+            else if (this.hoveredElement === this.gameoverReplayButton) {
+                this.setHoveredElement(this.gameoverBackButton);
+            }
+            this.disableAutoNext();
+        }
+    };
+    _inputEnter = () => {
+        if (this.successPanel.style.display === "" || this.gameoverPanel.style.display === "") {
+            if (this.hoveredElement instanceof HTMLButtonElement) {
+                if (this.hoveredElement.parentElement instanceof HTMLAnchorElement) {
+                    location.hash = this.hoveredElement.parentElement.href.split("/").pop();
+                }
+                else if (this.hoveredElement.onpointerup) {
+                    this.hoveredElement.onpointerup(undefined);
+                }
+            }
+            else if (this.hoveredElement === this.highscorePlayerLine) {
+                document.querySelector("#score-player-input").focus();
+            }
+            this.disableAutoNext();
+        }
+    };
+    _inputBack = () => {
+        if (this.successPanel.style.display === "") {
+        }
+        else if (this.gameoverPanel.style.display === "") {
+        }
+    };
+    _inputDropControl = () => {
+        this.setHoveredElement(undefined);
+    };
 }
 function SineFlashVisibility(target, duration, min = 0, max = 1) {
     return new Promise(resolve => {

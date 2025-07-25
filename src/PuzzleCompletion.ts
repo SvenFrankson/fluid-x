@@ -118,7 +118,7 @@ class PuzzleCompletion {
 
     constructor(public game: Game) {
         if (HasLocalStorage) {
-            let dataString = window.localStorage.getItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
+            let dataString = StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
             if (dataString) {
                 this.completedPuzzles = JSON.parse(dataString);
             }
@@ -185,7 +185,7 @@ class PuzzleCompletion {
             this._updateCommunityPuzzleCompletion();
     
             if (HasLocalStorage) {
-                window.localStorage.setItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
+                StorageSetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
             }
         }
     }

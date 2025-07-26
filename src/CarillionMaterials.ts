@@ -4,7 +4,7 @@ class CarillionMaterials {
     public collectedTileMaterial: BABYLON.StandardMaterial;
     public tileColorShinyMaterials: BABYLON.StandardMaterial[];
     public tileNumberMaterials: BABYLON.StandardMaterial[];
-    public colorMaterials: BABYLON.Material[];
+    public colorMaterials: BABYLON.StandardMaterial[];
     public trueWhiteMaterial: BABYLON.StandardMaterial;
     public fullAutolitWhiteMaterial: BABYLON.StandardMaterial;
     public whiteMaterial: BABYLON.StandardMaterial;

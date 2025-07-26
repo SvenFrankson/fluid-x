@@ -204,7 +204,6 @@ abstract class Tile extends BABYLON.Mesh {
             tail.material = this.game.materials.tileStarTailMaterial;
             tailPoints = [];
         }
-        
 
         this.game.puzzle.wooshSound.play();
         let t0 = performance.now();

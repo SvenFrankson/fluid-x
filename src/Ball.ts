@@ -92,16 +92,31 @@ class Ball extends BABYLON.Mesh {
     public downPressed: number = 0;
     public animateSpeed = Mummu.AnimationFactory.EmptyNumberCallback;
 
-    public setColor(color: TileColor) {
+    public setColor(color: TileColor, delay: number = 0) {
         this.color = color;
-        if (this.ballTop) {
-            this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+        if (delay === 0) {
+            if (this.ballTop) {
+                this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+            }
+            if (this.leftTop) {
+                this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+            }
+            if (this.rightTop) {
+                this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+            }
         }
-        if (this.leftTop) {
-            this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
-        }
-        if (this.rightTop) {
-            this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+        else {
+            setTimeout(() => {
+                if (this.ballTop) {
+                this.ballTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+                }
+                if (this.leftTop) {
+                    this.leftTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+                }
+                if (this.rightTop) {
+                    this.rightTop.material = this.game.materials.tileColorShinyMaterials[this.color];
+                }
+            }, delay);
         }
     }
 
@@ -960,7 +975,19 @@ class Ball extends BABYLON.Mesh {
                                         if (this.ballState === BallState.Move) {
                                             if (tile instanceof SwitchTile) {
                                                 tile.bump();
-                                                this.setColor(tile.color);
+                                                if (tile.color != this.color) {
+                                                    tile.shoot(this, 0.5).then(() => {
+                                                        let explosionFire = new Explosion(this.game);
+                                                        explosionFire.origin.copyFrom(this.absolutePosition).addInPlaceFromFloats(0, 0.2, 0);
+                                                        explosionFire.setRadius(0.4);
+                                                        explosionFire.color = this.game.materials.colorMaterials[this.color].diffuseColor;
+                                                        explosionFire.lifespan = 0.5;
+                                                        explosionFire.tZero = 0.45;
+                                                        explosionFire.boom();
+                                                        this.puzzle.wiishSound.play();
+                                                    })
+                                                    this.setColor(tile.color, 500);
+                                                }
                                             }
                                             else if (tile instanceof ButtonTile) {
                                                 tile.clicClack();
@@ -1229,12 +1256,11 @@ class Ball extends BABYLON.Mesh {
         this.woodChocSound.play();
     }
 
-    public sparkle(): void {
+    public sparkle(color: BABYLON.Color3 = BABYLON.Color3.FromHexString("#ffffff")): void {
         let explosionFire = new Explosion(this.game);
         explosionFire.origin.copyFrom(this.absolutePosition);
         explosionFire.setRadius(0.4);
-        explosionFire.color = BABYLON.Color3.FromHexString("#e0c872");
-        explosionFire.color = BABYLON.Color3.FromHexString("#ffffff");
+        explosionFire.color = color;
         explosionFire.lifespan = 1;
         explosionFire.tZero = 1.1;
         explosionFire.boom();

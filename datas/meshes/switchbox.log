@@ -14,14 +14,13 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
 	processing begun of mesh:  1-switchbox-frame
 		WARNING: No materials have been assigned: 
-		num positions      :  438
-		num normals        :  438
+		num positions      :  128
+		num normals        :  128
 		num tangents       :  0
-		num uvs            :  876
+		num uvs            :  256
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  512
-		WARNING: # of 0 area faces found:  24
+		num triangles      :  192
 	processing begun of mesh:  2-switchbox-top
 		WARNING: No materials have been assigned: 
 		num positions      :  33
@@ -33,13 +32,14 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 		num triangles      :  32
 	processing begun of mesh:  0-switchbox-box
 		processing begun of material:  Material
-		num positions      :  24
-		num normals        :  24
+		num positions      :  334
+		num normals        :  334
 		num tangents       :  0
-		num uvs            :  48
+		num uvs            :  668
 		num uvs2           :  0
 		num colors         :  0
-		num triangles      :  24
+		num triangles      :  344
+		WARNING: # of 0 area faces found:  24
 	processing begun of mesh:  3-switchtile-bottom
 		processing begun of material:  Material
 		registered as also a user of material:  Material
@@ -57,4 +57,4 @@ Exporter version: 6.4.5, Blender version: 2.90.1
 	writing mesh:  3-switchtile-bottom
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.038 secs
+elapsed time:  0 min, 0.0371 secs

@@ -192,6 +192,7 @@ class Puzzle {
     public clicSound: MySound;
     public cricSound: MySound;
     public cracSound: MySound;
+    public tingSound: MySound;
     public wiishSound: MySound;
     public wooshSound: MySound;
     public longCrackSound: MySound;
@@ -307,7 +308,8 @@ class Puzzle {
         this.clicSound = this.game.soundManager.createSound("clic", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.15 }, 3);
         this.cricSound = this.game.soundManager.createSound("cric", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.92 }, 3);
         this.cracSound = this.game.soundManager.createSound("crac", "./datas/sounds/clic.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.25, playbackRate: 0.84 }, 3);
-        this.wiishSound = this.game.soundManager.createSound("wiish", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 1 }, 3);
+        this.tingSound = this.game.soundManager.createSound("ting", "./datas/sounds/A (18).mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.2, playbackRate: 1 }, 2);
+        this.wiishSound = this.game.soundManager.createSound("wiish", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.15, playbackRate: 1 }, 3);
         this.wooshSound = this.game.soundManager.createSound("woosh", "./datas/sounds/wind.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.1, playbackRate: 0.8 }, 3);
         this.longCrackSound = this.game.soundManager.createSound("long-crack", "./datas/sounds/long_crack_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 1 }, 3);
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);

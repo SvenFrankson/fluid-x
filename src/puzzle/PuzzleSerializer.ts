@@ -76,6 +76,9 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
                 else if (tile instanceof WallTile) {
                     lines[j][i] = ["a"];
                 }
+                else if (tile instanceof Nobori) {
+                    lines[j][i] = ["b"];
+                }
                 else if (tile instanceof WaterTile) {
                     lines[j][i] = ["q"];
                 }        

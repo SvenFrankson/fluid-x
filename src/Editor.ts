@@ -13,7 +13,8 @@ enum EditorBrush {
     Ramp,
     Bridge,
     Creep,
-    Tree
+    Tree,
+    Nobori
 }
 
 class Editor {
@@ -79,6 +80,7 @@ class Editor {
     public bridgeButton: HTMLButtonElement;
     public creepButton: HTMLButtonElement;
     public treeButton: HTMLButtonElement;
+    public noboriButton: HTMLButtonElement;
     public deleteButton: HTMLButtonElement;
 
     public selectableButtons: HTMLButtonElement[] = [];
@@ -390,6 +392,7 @@ class Editor {
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
         this.creepButton = document.getElementById("creep-btn") as HTMLButtonElement;
         this.treeButton = document.getElementById("tree-btn") as HTMLButtonElement;
+        this.noboriButton = document.getElementById("nobori-btn") as HTMLButtonElement;
         this.deleteButton = document.getElementById("delete-btn") as HTMLButtonElement;
 
         this.selectableButtons = [
@@ -418,7 +421,8 @@ class Editor {
             this.ramp4Button,
             this.bridgeButton,
             this.creepButton,
-            this.treeButton
+            this.treeButton,
+            this.noboriButton
         ];
 
         let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, value?: number, cursorSize?: { w?: number, h?: number, d?: number }) => {
@@ -471,6 +475,7 @@ class Editor {
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
         makeBrushButton(this.treeButton, EditorBrush.Tree);
+        makeBrushButton(this.noboriButton, EditorBrush.Nobori);
 
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
 
@@ -1038,6 +1043,17 @@ class Editor {
                                     j: this.cursorJ,
                                     color: this.brushColor,
                                     noShadow: true
+                                }
+                            )
+                        }
+                        else if (this.brush === EditorBrush.Nobori) {
+                            tile = new Nobori(
+                                this.game,
+                                {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
+                                    color: this.brushColor
                                 }
                             )
                         }

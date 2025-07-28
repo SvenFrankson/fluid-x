@@ -667,6 +667,14 @@ class Puzzle {
                         h: 0
                     });
                 }
+                else if (c === "b") {
+                    let nobori = new Nobori(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {
                         color: TileColor.North,
@@ -1066,7 +1074,8 @@ class Puzzle {
                     tile instanceof ButtonTile ||
                     tile instanceof DoorTile ||
                     tile instanceof HoleTile && tile.covered ||
-                    tile instanceof WaterTile
+                    tile instanceof WaterTile ||
+                    tile instanceof Nobori
                 ) {
                     tile.size = 0;
                     tile.bump(1);

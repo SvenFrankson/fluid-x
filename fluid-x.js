@@ -891,6 +891,8 @@ class Ball extends BABYLON.Mesh {
                             }
                             else if (tile instanceof DoorTile && tile.closed === false) {
                             }
+                            else if (tile instanceof Nobori) {
+                            }
                             else {
                                 if (tile.tileState === TileState.Active || tile.tileState === TileState.Moving) {
                                     if (tile.collide(this, impact)) {
@@ -3091,6 +3093,7 @@ var EditorBrush;
     EditorBrush[EditorBrush["Bridge"] = 12] = "Bridge";
     EditorBrush[EditorBrush["Creep"] = 13] = "Creep";
     EditorBrush[EditorBrush["Tree"] = 14] = "Tree";
+    EditorBrush[EditorBrush["Nobori"] = 15] = "Nobori";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -3290,6 +3293,14 @@ class Editor {
                                     j: this.cursorJ,
                                     color: this.brushColor,
                                     noShadow: true
+                                });
+                            }
+                            else if (this.brush === EditorBrush.Nobori) {
+                                tile = new Nobori(this.game, {
+                                    i: this.cursorI,
+                                    j: this.cursorJ,
+                                    h: this.cursorH,
+                                    color: this.brushColor
                                 });
                             }
                             if (tile) {
@@ -3556,6 +3567,7 @@ class Editor {
         this.bridgeButton = document.getElementById("bridge-btn");
         this.creepButton = document.getElementById("creep-btn");
         this.treeButton = document.getElementById("tree-btn");
+        this.noboriButton = document.getElementById("nobori-btn");
         this.deleteButton = document.getElementById("delete-btn");
         this.selectableButtons = [
             this.switchTileNorthButton,
@@ -3583,7 +3595,8 @@ class Editor {
             this.ramp4Button,
             this.bridgeButton,
             this.creepButton,
-            this.treeButton
+            this.treeButton,
+            this.noboriButton
         ];
         let makeBrushButton = (button, brush, value, cursorSize) => {
             if (!cursorSize) {
@@ -3630,6 +3643,7 @@ class Editor {
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
         makeBrushButton(this.treeButton, EditorBrush.Tree);
+        makeBrushButton(this.noboriButton, EditorBrush.Nobori);
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
         this.haikuIInput = document.getElementById("haiku-i");
         this.haikuIInput.onValueChange = (v) => {
@@ -8245,6 +8259,47 @@ class CherryTree extends Tile {
         datas[1].applyToMesh(this.flower);
     }
 }
+class Nobori extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.mast = new BABYLON.Mesh("nobori-mast");
+        this.mast.parent = this;
+        this.mast.position.x = -0.5;
+        this.mast.position.z = 0.5;
+        this.mast.material = this.game.materials.brownMaterial;
+        this.mast.renderOutline = true;
+        this.mast.outlineColor = BABYLON.Color3.Black();
+        this.mast.outlineWidth = 0.02;
+        this.flag = new BABYLON.Mesh("nobori-flag");
+        this.flag.parent = this.mast;
+        this.flag.position.x = 0.35;
+        this.flag.position.y = 3;
+        this.flag.material = this.game.materials.redMaterial;
+        this.flag.renderOutline = true;
+        this.flag.outlineColor = BABYLON.Color3.Black();
+        this.flag.outlineWidth = 0.02;
+    }
+    async instantiate() {
+        await super.instantiate();
+        if (this.props.noShadow != true) {
+            let m = 0.06;
+            let shadowData = Mummu.Create9SliceVertexData({
+                width: 0.9 + 2 * m,
+                height: 0.1 + 2 * m,
+                margin: m
+            });
+            Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+            this.shadow.parent = this.mast;
+            this.shadow.position.x = this.flag.position.x - 0.015;
+            this.shadow.position.y = 0.01;
+            this.shadow.position.z = -0.015;
+            shadowData.applyToMesh(this.shadow);
+        }
+        let datas = await this.game.vertexDataLoader.get("./datas/meshes/nobori.babylon");
+        datas[0].applyToMesh(this.mast);
+        datas[1].applyToMesh(this.flag);
+    }
+}
 /// <reference path="./Tile.ts"/>
 class WaterTile extends Tile {
     constructor(game, props) {
@@ -9644,6 +9699,14 @@ class Puzzle {
                         h: 0
                     });
                 }
+                else if (c === "b") {
+                    let nobori = new Nobori(this.game, {
+                        color: TileColor.North,
+                        i: i,
+                        j: j,
+                        h: 0
+                    });
+                }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {
                         color: TileColor.North,
@@ -10023,7 +10086,8 @@ class Puzzle {
                     tile instanceof ButtonTile ||
                     tile instanceof DoorTile ||
                     tile instanceof HoleTile && tile.covered ||
-                    tile instanceof WaterTile) {
+                    tile instanceof WaterTile ||
+                    tile instanceof Nobori) {
                     tile.size = 0;
                     tile.bump(1);
                     await this.NextFrame();
@@ -10876,6 +10940,9 @@ function SaveAsText(puzzle, withHaiku) {
                 }
                 else if (tile instanceof WallTile) {
                     lines[j][i] = ["a"];
+                }
+                else if (tile instanceof Nobori) {
+                    lines[j][i] = ["b"];
                 }
                 else if (tile instanceof WaterTile) {
                     lines[j][i] = ["q"];

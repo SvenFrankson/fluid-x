@@ -936,6 +936,9 @@ class Ball extends BABYLON.Mesh {
                             else if (tile instanceof DoorTile && tile.closed === false) {
 
                             }
+                            else if (tile instanceof Nobori) {
+
+                            }
                             else {
                                 if (tile.tileState === TileState.Active || tile.tileState === TileState.Moving) {
                                     if (tile.collide(this, impact)) {

@@ -890,6 +890,10 @@ class Editor {
                         tile.covered = true;
                         tile.instantiate();
                     }
+                    else if (tile instanceof Nobori && !tile.rightSide) {
+                        tile.rightSide = true;
+                        tile.instantiate();
+                    }
                     else if (tile) {
                         tile.dispose();
                         this.puzzle.rebuildFloor();

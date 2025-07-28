@@ -1,15 +1,21 @@
 class Nobori extends Tile {
 
+    public rightSide: boolean = false;
     public mast: BABYLON.Mesh;
     public flag: BABYLON.Mesh;
 
-    constructor(game: Game, props: TileProps) {
+    constructor(game: Game, props: NoboriProps) {
         super(game, props);
+
+        if (props && props.rightSide) {
+            this.rightSide = props.rightSide;
+        }
 
         this.mast = new BABYLON.Mesh("nobori-mast");
         this.mast.parent = this;
-        this.mast.position.x = - 0.5;
+        this.mast.position.x = this.rightSide ? 0.5 : - 0.5;
         this.mast.position.z = 0.5;
+        this.mast.rotation.y = this.rightSide ? Math.PI : 0;
         this.mast.material = this.game.materials.brownMaterial;
 
         this.mast.renderOutline = true;
@@ -46,8 +52,9 @@ class Nobori extends Tile {
         }
 
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/nobori.babylon");
+        this.mast.position.x = this.rightSide ? 0.5 : - 0.5;
+        this.mast.rotation.y = this.rightSide ? Math.PI : 0;
         datas[0].applyToMesh(this.mast);
-
         datas[1].applyToMesh(this.flag);
     }
 }

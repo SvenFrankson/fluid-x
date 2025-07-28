@@ -668,14 +668,16 @@ class Puzzle {
                     });
                 }
                 else if (c === "b") {
-                    let c = parseInt(line[ii + 1]);
+                    let rightSide = line[ii + 1] === "r";
+                    let c = parseInt(line[ii + 2]);
                     let nobori = new Nobori(this.game, {
                         color: c,
                         i: i,
                         j: j,
-                        h: 0
+                        h: 0,
+                        rightSide: rightSide
                     });
-                    ii++;
+                    ii += 2;
                 }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {

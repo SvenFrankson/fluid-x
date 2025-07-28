@@ -3188,6 +3188,10 @@ class Editor {
                             tile.covered = true;
                             tile.instantiate();
                         }
+                        else if (tile instanceof Nobori && !tile.rightSide) {
+                            tile.rightSide = true;
+                            tile.instantiate();
+                        }
                         else if (tile) {
                             tile.dispose();
                             this.puzzle.rebuildFloor();
@@ -6771,10 +6775,15 @@ class MultiplayerPage {
 class Nobori extends Tile {
     constructor(game, props) {
         super(game, props);
+        this.rightSide = false;
+        if (props && props.rightSide) {
+            this.rightSide = props.rightSide;
+        }
         this.mast = new BABYLON.Mesh("nobori-mast");
         this.mast.parent = this;
-        this.mast.position.x = -0.5;
+        this.mast.position.x = this.rightSide ? 0.5 : -0.5;
         this.mast.position.z = 0.5;
+        this.mast.rotation.y = this.rightSide ? Math.PI : 0;
         this.mast.material = this.game.materials.brownMaterial;
         this.mast.renderOutline = true;
         this.mast.outlineColor = BABYLON.Color3.Black();
@@ -6805,6 +6814,8 @@ class Nobori extends Tile {
             shadowData.applyToMesh(this.shadow);
         }
         let datas = await this.game.vertexDataLoader.get("./datas/meshes/nobori.babylon");
+        this.mast.position.x = this.rightSide ? 0.5 : -0.5;
+        this.mast.rotation.y = this.rightSide ? Math.PI : 0;
         datas[0].applyToMesh(this.mast);
         datas[1].applyToMesh(this.flag);
     }
@@ -9734,14 +9745,16 @@ class Puzzle {
                     });
                 }
                 else if (c === "b") {
-                    let c = parseInt(line[ii + 1]);
+                    let rightSide = line[ii + 1] === "r";
+                    let c = parseInt(line[ii + 2]);
                     let nobori = new Nobori(this.game, {
                         color: c,
                         i: i,
                         j: j,
-                        h: 0
+                        h: 0,
+                        rightSide: rightSide
                     });
-                    ii++;
+                    ii += 2;
                 }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {
@@ -10978,7 +10991,7 @@ function SaveAsText(puzzle, withHaiku) {
                     lines[j][i] = ["a"];
                 }
                 else if (tile instanceof Nobori) {
-                    lines[j][i] = ["b" + tile.color.toFixed(0)];
+                    lines[j][i] = ["b" + (tile.rightSide ? "r" : "l") + tile.color.toFixed(0)];
                 }
                 else if (tile instanceof WaterTile) {
                     lines[j][i] = ["q"];

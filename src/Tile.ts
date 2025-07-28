@@ -7,6 +7,10 @@ interface TileProps {
     noShadow?: boolean;
 }
 
+interface NoboriProps extends TileProps {
+    rightSide?: boolean;  
+}
+
 enum TileState {
     Active,
     Dying,

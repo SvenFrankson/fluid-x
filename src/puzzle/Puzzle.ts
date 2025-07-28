@@ -668,12 +668,14 @@ class Puzzle {
                     });
                 }
                 else if (c === "b") {
+                    let c = parseInt(line[ii + 1]);
                     let nobori = new Nobori(this.game, {
-                        color: TileColor.North,
+                        color: c,
                         i: i,
                         j: j,
                         h: 0
                     });
+                    ii++;
                 }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {

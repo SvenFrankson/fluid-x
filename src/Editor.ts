@@ -80,7 +80,10 @@ class Editor {
     public bridgeButton: HTMLButtonElement;
     public creepButton: HTMLButtonElement;
     public treeButton: HTMLButtonElement;
-    public noboriButton: HTMLButtonElement;
+    public noboriNButton: HTMLButtonElement;
+    public noboriEButton: HTMLButtonElement;
+    public noboriSButton: HTMLButtonElement;
+    public noboriWButton: HTMLButtonElement;
     public deleteButton: HTMLButtonElement;
 
     public selectableButtons: HTMLButtonElement[] = [];
@@ -392,7 +395,10 @@ class Editor {
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
         this.creepButton = document.getElementById("creep-btn") as HTMLButtonElement;
         this.treeButton = document.getElementById("tree-btn") as HTMLButtonElement;
-        this.noboriButton = document.getElementById("nobori-btn") as HTMLButtonElement;
+        this.noboriNButton = document.getElementById("nobori-n-btn") as HTMLButtonElement;
+        this.noboriEButton = document.getElementById("nobori-e-btn") as HTMLButtonElement;
+        this.noboriSButton = document.getElementById("nobori-s-btn") as HTMLButtonElement;
+        this.noboriWButton = document.getElementById("nobori-w-btn") as HTMLButtonElement;
         this.deleteButton = document.getElementById("delete-btn") as HTMLButtonElement;
 
         this.selectableButtons = [
@@ -422,7 +428,10 @@ class Editor {
             this.bridgeButton,
             this.creepButton,
             this.treeButton,
-            this.noboriButton
+            this.noboriNButton,
+            this.noboriEButton,
+            this.noboriSButton,
+            this.noboriWButton
         ];
 
         let makeBrushButton = (button: HTMLButtonElement, brush: EditorBrush, value?: number, cursorSize?: { w?: number, h?: number, d?: number }) => {
@@ -475,7 +484,10 @@ class Editor {
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
         makeBrushButton(this.treeButton, EditorBrush.Tree);
-        makeBrushButton(this.noboriButton, EditorBrush.Nobori);
+        makeBrushButton(this.noboriNButton, EditorBrush.Nobori, TileColor.North);
+        makeBrushButton(this.noboriEButton, EditorBrush.Nobori, TileColor.East);
+        makeBrushButton(this.noboriSButton, EditorBrush.Nobori, TileColor.South);
+        makeBrushButton(this.noboriWButton, EditorBrush.Nobori, TileColor.West);
 
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
 

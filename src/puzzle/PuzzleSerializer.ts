@@ -77,7 +77,7 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
                     lines[j][i] = ["a"];
                 }
                 else if (tile instanceof Nobori) {
-                    lines[j][i] = ["b"];
+                    lines[j][i] = ["b" + tile.color.toFixed(0)];
                 }
                 else if (tile instanceof WaterTile) {
                     lines[j][i] = ["q"];

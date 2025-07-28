@@ -2334,6 +2334,16 @@ class CarillionMaterials {
         this.tileColorMaterials[TileColor.South] = southMaterial;
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
+        let noboriRedMaterial = new BABYLON.StandardMaterial("nobori-red-material");
+        noboriRedMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/nobori-red-north.png");
+        noboriRedMaterial.specularColor.copyFromFloats(0, 0, 0);
+        noboriRedMaterial.emissiveColor.copyFromFloats(0.2, 0.2, 0.2);
+        noboriRedMaterial.freeze();
+        this.noboriMaterials = [];
+        this.noboriMaterials[TileColor.North] = noboriRedMaterial;
+        this.noboriMaterials[TileColor.South] = southMaterial;
+        this.noboriMaterials[TileColor.East] = eastMaterial;
+        this.noboriMaterials[TileColor.West] = westMaterial;
         /*
         let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
         let northTexture = new Image(256, 256);
@@ -3567,7 +3577,10 @@ class Editor {
         this.bridgeButton = document.getElementById("bridge-btn");
         this.creepButton = document.getElementById("creep-btn");
         this.treeButton = document.getElementById("tree-btn");
-        this.noboriButton = document.getElementById("nobori-btn");
+        this.noboriNButton = document.getElementById("nobori-n-btn");
+        this.noboriEButton = document.getElementById("nobori-e-btn");
+        this.noboriSButton = document.getElementById("nobori-s-btn");
+        this.noboriWButton = document.getElementById("nobori-w-btn");
         this.deleteButton = document.getElementById("delete-btn");
         this.selectableButtons = [
             this.switchTileNorthButton,
@@ -3596,7 +3609,10 @@ class Editor {
             this.bridgeButton,
             this.creepButton,
             this.treeButton,
-            this.noboriButton
+            this.noboriNButton,
+            this.noboriEButton,
+            this.noboriSButton,
+            this.noboriWButton
         ];
         let makeBrushButton = (button, brush, value, cursorSize) => {
             if (!cursorSize) {
@@ -3643,7 +3659,10 @@ class Editor {
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
         makeBrushButton(this.treeButton, EditorBrush.Tree);
-        makeBrushButton(this.noboriButton, EditorBrush.Nobori);
+        makeBrushButton(this.noboriNButton, EditorBrush.Nobori, TileColor.North);
+        makeBrushButton(this.noboriEButton, EditorBrush.Nobori, TileColor.East);
+        makeBrushButton(this.noboriSButton, EditorBrush.Nobori, TileColor.South);
+        makeBrushButton(this.noboriWButton, EditorBrush.Nobori, TileColor.West);
         makeBrushButton(this.deleteButton, EditorBrush.Delete);
         this.haikuIInput = document.getElementById("haiku-i");
         this.haikuIInput.onValueChange = (v) => {
@@ -6734,6 +6753,47 @@ class MultiplayerPage {
         this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
     }
 }
+class Nobori extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.mast = new BABYLON.Mesh("nobori-mast");
+        this.mast.parent = this;
+        this.mast.position.x = -0.5;
+        this.mast.position.z = 0.5;
+        this.mast.material = this.game.materials.brownMaterial;
+        this.mast.renderOutline = true;
+        this.mast.outlineColor = BABYLON.Color3.Black();
+        this.mast.outlineWidth = 0.02;
+        this.flag = new BABYLON.Mesh("nobori-flag");
+        this.flag.parent = this.mast;
+        this.flag.position.x = 0.35;
+        this.flag.position.y = 3;
+        this.flag.material = this.game.materials.noboriMaterials[this.color];
+        this.flag.renderOutline = true;
+        this.flag.outlineColor = BABYLON.Color3.Black();
+        this.flag.outlineWidth = 0.02;
+    }
+    async instantiate() {
+        await super.instantiate();
+        if (this.props.noShadow != true) {
+            let m = 0.06;
+            let shadowData = Mummu.Create9SliceVertexData({
+                width: 0.9 + 2 * m,
+                height: 0.1 + 2 * m,
+                margin: m
+            });
+            Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
+            this.shadow.parent = this.mast;
+            this.shadow.position.x = this.flag.position.x - 0.015;
+            this.shadow.position.y = 0.01;
+            this.shadow.position.z = -0.015;
+            shadowData.applyToMesh(this.shadow);
+        }
+        let datas = await this.game.vertexDataLoader.get("./datas/meshes/nobori.babylon");
+        datas[0].applyToMesh(this.mast);
+        datas[1].applyToMesh(this.flag);
+    }
+}
 class NumValueInput extends HTMLElement {
     constructor() {
         super(...arguments);
@@ -8259,47 +8319,6 @@ class CherryTree extends Tile {
         datas[1].applyToMesh(this.flower);
     }
 }
-class Nobori extends Tile {
-    constructor(game, props) {
-        super(game, props);
-        this.mast = new BABYLON.Mesh("nobori-mast");
-        this.mast.parent = this;
-        this.mast.position.x = -0.5;
-        this.mast.position.z = 0.5;
-        this.mast.material = this.game.materials.brownMaterial;
-        this.mast.renderOutline = true;
-        this.mast.outlineColor = BABYLON.Color3.Black();
-        this.mast.outlineWidth = 0.02;
-        this.flag = new BABYLON.Mesh("nobori-flag");
-        this.flag.parent = this.mast;
-        this.flag.position.x = 0.35;
-        this.flag.position.y = 3;
-        this.flag.material = this.game.materials.redMaterial;
-        this.flag.renderOutline = true;
-        this.flag.outlineColor = BABYLON.Color3.Black();
-        this.flag.outlineWidth = 0.02;
-    }
-    async instantiate() {
-        await super.instantiate();
-        if (this.props.noShadow != true) {
-            let m = 0.06;
-            let shadowData = Mummu.Create9SliceVertexData({
-                width: 0.9 + 2 * m,
-                height: 0.1 + 2 * m,
-                margin: m
-            });
-            Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
-            this.shadow.parent = this.mast;
-            this.shadow.position.x = this.flag.position.x - 0.015;
-            this.shadow.position.y = 0.01;
-            this.shadow.position.z = -0.015;
-            shadowData.applyToMesh(this.shadow);
-        }
-        let datas = await this.game.vertexDataLoader.get("./datas/meshes/nobori.babylon");
-        datas[0].applyToMesh(this.mast);
-        datas[1].applyToMesh(this.flag);
-    }
-}
 /// <reference path="./Tile.ts"/>
 class WaterTile extends Tile {
     constructor(game, props) {
@@ -9700,12 +9719,14 @@ class Puzzle {
                     });
                 }
                 else if (c === "b") {
+                    let c = parseInt(line[ii + 1]);
                     let nobori = new Nobori(this.game, {
-                        color: TileColor.North,
+                        color: c,
                         i: i,
                         j: j,
                         h: 0
                     });
+                    ii++;
                 }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {
@@ -10942,7 +10963,7 @@ function SaveAsText(puzzle, withHaiku) {
                     lines[j][i] = ["a"];
                 }
                 else if (tile instanceof Nobori) {
-                    lines[j][i] = ["b"];
+                    lines[j][i] = ["b" + tile.color.toFixed(0)];
                 }
                 else if (tile instanceof WaterTile) {
                     lines[j][i] = ["q"];

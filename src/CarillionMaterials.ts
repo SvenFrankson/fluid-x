@@ -5,6 +5,7 @@ class CarillionMaterials {
     public tileColorShinyMaterials: BABYLON.StandardMaterial[];
     public tileNumberMaterials: BABYLON.StandardMaterial[];
     public colorMaterials: BABYLON.StandardMaterial[];
+    public noboriMaterials: BABYLON.StandardMaterial[];
     public trueWhiteMaterial: BABYLON.StandardMaterial;
     public fullAutolitWhiteMaterial: BABYLON.StandardMaterial;
     public whiteMaterial: BABYLON.StandardMaterial;
@@ -219,6 +220,18 @@ class CarillionMaterials {
         this.tileColorMaterials[TileColor.East] = eastMaterial;
         this.tileColorMaterials[TileColor.West] = westMaterial;
 
+        let noboriRedMaterial = new BABYLON.StandardMaterial("nobori-red-material");
+        noboriRedMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/nobori-red-north.png");
+        noboriRedMaterial.specularColor.copyFromFloats(0, 0, 0);
+        noboriRedMaterial.emissiveColor.copyFromFloats(0.2, 0.2, 0.2);
+        noboriRedMaterial.freeze();
+
+        this.noboriMaterials = [];
+        this.noboriMaterials[TileColor.North] = noboriRedMaterial;
+        this.noboriMaterials[TileColor.South] = southMaterial;
+        this.noboriMaterials[TileColor.East] = eastMaterial;
+        this.noboriMaterials[TileColor.West] = westMaterial;
+        
         /*
         let collectedTileTexture = new BABYLON.DynamicTexture("collected-tile-texture", { width: 512, height: 512 });
         let northTexture = new Image(256, 256);

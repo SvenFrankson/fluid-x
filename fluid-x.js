@@ -1409,10 +1409,6 @@ class Tile extends BABYLON.Mesh {
         await this.animateSize(1.1, 0.1, Nabu.Easing.easeOutSine);
         await this.animateSize(0.4, 0.3, Nabu.Easing.easeInSine);
     }
-    startFlash() {
-    }
-    stopFlash() {
-    }
     dispose() {
         let index = this.game.puzzle.tiles.indexOf(this);
         if (index != -1) {
@@ -4037,68 +4033,6 @@ class HaikuMaker {
         }
         return undefined;
     }
-    static MakeHaiku(puzzle) {
-        return;
-        if (puzzle.data.id === 74 && puzzle.data.state === 2) {
-            let tile = puzzle.tiles.filter((tile) => {
-                return tile instanceof BlockTile;
-            });
-            tile = tile.sort((t1, t2) => {
-                return (t1.i + t1.j) - (t2.i + t2.j);
-            });
-            if (tile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", tile[0]);
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-            for (let i = 1; i < tile.length; i++) {
-                if (tile[i]) {
-                    let tileHaiku = new HaikuTile(puzzle.game, "", tile[i]);
-                    puzzle.tileHaikus.push(tileHaiku);
-                }
-            }
-        }
-        if (puzzle.data.id === 161 && puzzle.data.state === 2) {
-            let buttonTile = puzzle.tiles.filter((tile) => {
-                return tile instanceof ButtonTile;
-            });
-            if (buttonTile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", buttonTile[0]);
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-            let doorTiles = puzzle.tiles.filter((tile) => {
-                return tile instanceof DoorTile;
-            });
-            doorTiles = doorTiles.sort((t1, t2) => {
-                return (t1.i + t1.j) - (t2.i + t2.j);
-            });
-            if (doorTiles[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", doorTiles[0], 1);
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-        }
-        if (puzzle.data.id === 197 && puzzle.data.state === 2) {
-            let switchTiles = puzzle.tiles.filter((tile) => {
-                return tile instanceof SwitchTile;
-            });
-            if (switchTiles[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[0]);
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-            if (switchTiles[1]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", switchTiles[1]);
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-        }
-        if (puzzle.data.id === 151 && puzzle.data.state === 8) {
-            let switchTile = puzzle.tiles.filter((tile) => {
-                return tile instanceof SwitchTile && tile.color === 3;
-            });
-            if (switchTile[0]) {
-                let tileHaiku = new HaikuTile(puzzle.game, "", switchTile[0]);
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-        }
-    }
     static HaikuTileUpdateStep(puzzle) {
         if (puzzle.data.id === 74 ||
             puzzle.data.id === 197 ||
@@ -4190,8 +4124,8 @@ class HaikuMaker {
                     if (puzzle.tileHaikus[0]) {
                         let existingTile = puzzle.tileHaikus[0];
                         setTimeout(() => {
-                            existingTile.hide(0.5).then(() => { existingTile.dispose(); });
-                        }, 200);
+                            existingTile.hide(0.2).then(() => { existingTile.dispose(); });
+                        }, 10);
                     }
                     let haikuTile = new HaikuTile(puzzle.game, "", targetTile);
                     haikuTile.show(0.2);
@@ -4202,8 +4136,8 @@ class HaikuMaker {
                 if (puzzle.tileHaikus[0]) {
                     let existingTile = puzzle.tileHaikus[0];
                     setTimeout(() => {
-                        existingTile.hide(0.5).then(() => { existingTile.dispose(); });
-                    }, 200);
+                        existingTile.hide(0.2).then(() => { existingTile.dispose(); });
+                    }, 10);
                 }
             }
         }
@@ -6914,6 +6848,7 @@ class Nobori extends Tile {
     constructor(game, props) {
         super(game, props);
         this.rightSide = false;
+        this._timer = 0;
         this.isDecor = true;
         if (props && props.rightSide) {
             this.rightSide = props.rightSide;
@@ -6935,6 +6870,7 @@ class Nobori extends Tile {
         this.flag.renderOutline = true;
         this.flag.outlineColor = BABYLON.Color3.Black();
         this.flag.outlineWidth = 0.02;
+        this.game.puzzle.noboris.push(this);
     }
     async instantiate() {
         await super.instantiate();
@@ -6957,6 +6893,35 @@ class Nobori extends Tile {
         this.mast.rotation.y = this.rightSide ? Math.PI : 0;
         datas[0].applyToMesh(this.mast);
         datas[1].applyToMesh(this.flag);
+        this._baseFlagData = Mummu.CloneVertexData(datas[1]);
+    }
+    dispose() {
+        let index = this.game.puzzle.noboris.indexOf(this);
+        if (index != -1) {
+            this.game.puzzle.noboris.splice(index, 1);
+        }
+        super.dispose();
+    }
+    update(dt) {
+        this._timer += dt;
+        let data = Mummu.CloneVertexData(this._baseFlagData);
+        let positions = data.positions;
+        for (let n = 0; n < positions.length / 3; n++) {
+            let x = positions[3 * n + 0];
+            let y = positions[3 * n + 1];
+            let z = positions[3 * n + 2];
+            let dX = (1 + Math.sin(y + this._timer) * Math.abs(y)) / 2 * 0.05;
+            x += dX;
+            positions[3 * n + 0] = x;
+            let dZ = Math.sin(6 * x + this._timer) * Math.abs(y) / 2 * 0.05;
+            z += dZ;
+            dZ = Math.sin(2 * y + this._timer) * Math.abs(y) / 2 * 0.1;
+            z += dZ;
+            positions[3 * n + 2] = z;
+        }
+        data.positions = positions;
+        BABYLON.VertexData.ComputeNormals(data.positions, data.indices, data.normals);
+        data.applyToMesh(this.flag);
     }
 }
 class NumValueInput extends HTMLElement {
@@ -9330,8 +9295,11 @@ class Puzzle {
         this.playTimer = 0;
         this.fishingPolesCount = 0;
         this.creeps = [];
+        this.wind = new BABYLON.Vector3(1, 0, 1);
+        this.targetWind = new BABYLON.Vector3(1, 0, 1);
         this.tiles = [];
         this.blockTiles = [];
+        this.noboris = [];
         this.griddedTiles = [];
         this.griddedBorders = [];
         this.buildings = [];
@@ -9398,6 +9366,12 @@ class Puzzle {
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
         this.slashSound = this.game.soundManager.createSound("slash", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
         this.snapBassSound = this.game.soundManager.createSound("snap-bass", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
+    }
+    windTilesGet(i, j) {
+        return this.wind;
+        i = Nabu.MinMax(i, 0, this.w - 1);
+        j = Nabu.MinMax(j, 0, this.h - 1);
+        return this.windTiles[i][j];
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {
@@ -9729,7 +9703,9 @@ class Puzzle {
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
         }
+        this.windTiles = [];
         this.blockTiles = [];
+        this.noboris = [];
         this.griddedTiles = [];
         this.data = data;
         DEV_UPDATE_STATE_UI();
@@ -9809,6 +9785,10 @@ class Puzzle {
             this.w = parseInt(ballLine[0]);
             this.h = parseInt(ballLine[1]);
         }
+        else if (ballLine.length === 6 || ballLine.length === 9) {
+            this.w = parseInt(ballLine[0]);
+            this.h = parseInt(ballLine[1]);
+        }
         else {
             this.h = lines.length;
             this.w = lines[0].length;
@@ -9820,11 +9800,14 @@ class Puzzle {
             this.floorMaterialIndex = 0;
         }
         if (!replaying) {
+            this.windTiles = [];
             this.buildingBlocks = [];
             for (let i = 0; i < this.w; i++) {
                 this.buildingBlocks[i] = [];
+                this.windTiles[i] = [];
                 for (let j = 0; j < this.h; j++) {
                     this.buildingBlocks[i][j] = 0;
+                    this.windTiles[i][j] = new BABYLON.Vector3(1, 0, 1);
                 }
             }
             if (buildingBlocksLine != "") {
@@ -10307,7 +10290,6 @@ class Puzzle {
             this.playerHaikus[0].show();
             this.playerHaikus[1].show();
         }
-        HaikuMaker.MakeHaiku(this);
         if (!replaying) {
             await this.NextFrame();
         }
@@ -10739,6 +10721,14 @@ class Puzzle {
             for (let i = 0; i < this.creeps.length; i++) {
                 this.creeps[i].update(dt);
             }
+            for (let i = 0; i < this.noboris.length; i++) {
+                this.noboris[i].update(dt);
+            }
+            let f = Nabu.Easing.smooth3Sec(1 / dt);
+            if (Math.random() < 0.001) {
+                this.targetWind.copyFromFloats(Math.random() * 5, 0, Math.random() * 5);
+            }
+            BABYLON.Vector3.LerpToRef(this.wind, this.targetWind, 1 - f, this.wind);
             if (this.puzzleState === PuzzleState.Playing) {
                 let noBlockTile = true;
                 for (let i = 0; i < this.blockTiles.length; i++) {
@@ -10779,7 +10769,7 @@ class Puzzle {
                 tileHaiku.update(dt);
             }
             if (tileHaiku.shown && tileHaiku.tile.isDisposed()) {
-                tileHaiku.hide(0.5);
+                tileHaiku.hide(0.2);
             }
         }
         HaikuMaker.HaikuTileUpdateStep(this);
@@ -10886,6 +10876,10 @@ class PuzzleMiniatureMaker {
                 w = parseInt(ballLine[0]);
                 h = parseInt(ballLine[1]);
             }
+            else if (ballLine.length === 6 || ballLine.length === 9) {
+                w = parseInt(ballLine[0]);
+                h = parseInt(ballLine[1]);
+            }
             else {
                 h = lines.length;
                 w = lines[0].length;
@@ -10897,7 +10891,6 @@ class PuzzleMiniatureMaker {
         if (max < 7) {
             f = 2;
         }
-        f = 6;
         let b = 6 * f;
         let m = 1 * f;
         canvas.width = b * w;
@@ -10932,9 +10925,10 @@ class PuzzleMiniatureMaker {
                 let i = 0;
                 for (let ii = 0; ii < line.length; ii++) {
                     let c = line[ii];
-                    let x = i * b;
-                    let y = (h - 1 - j) * b;
-                    let s = b;
+                    if (c === "b") {
+                        ii += 3;
+                        c = line[ii];
+                    }
                     if (c === "B") {
                         let x = (i) * b;
                         let y = (h - 1 - j - 1) * b;
@@ -10973,6 +10967,10 @@ class PuzzleMiniatureMaker {
                 let i = 0;
                 for (let ii = 0; ii < line.length; ii++) {
                     let c = line[ii];
+                    if (c === "b") {
+                        ii += 3;
+                        c = line[ii];
+                    }
                     let x = i * b + m;
                     let y = (h - 1 - j) * b + m;
                     let s = b - 2 * m;
@@ -11053,6 +11051,12 @@ class PuzzleMiniatureMaker {
                         else {
                             ii++;
                         }
+                    }
+                    if (c === "c") {
+                        context.fillStyle = "#ff0000";
+                        context.fillRect(x, y, s, s);
+                        context.fillStyle = "#ffffff";
+                        context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     i++;
                 }

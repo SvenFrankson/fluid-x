@@ -40,99 +40,6 @@ class HaikuMaker {
         return undefined;
     }
 
-    public static MakeHaiku(puzzle: Puzzle): void {
-        return;
-        if (puzzle.data.id === 74 && puzzle.data.state === 2) {
-            let tile = puzzle.tiles.filter((tile) => {
-                return tile instanceof BlockTile;
-            })
-            tile = tile.sort((t1, t2) => {
-                return (t1.i + t1.j) - (t2.i + t2.j);
-            })
-            if (tile[0]) {
-                let tileHaiku = new HaikuTile(
-                    puzzle.game,
-                    "",
-                    tile[0]
-                );
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-            for (let i = 1; i < tile.length; i++) {
-                if (tile[i]) {
-                    let tileHaiku = new HaikuTile(
-                        puzzle.game,
-                        "",
-                        tile[i]
-                    );
-                    puzzle.tileHaikus.push(tileHaiku);
-                }
-            }
-        }
-        if (puzzle.data.id === 161 && puzzle.data.state === 2) {
-            let buttonTile = puzzle.tiles.filter((tile) => {
-                return tile instanceof ButtonTile;
-            })
-            if (buttonTile[0]) {
-                let tileHaiku = new HaikuTile(
-                    puzzle.game,
-                    "",
-                    buttonTile[0]
-                );
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-
-            let doorTiles = puzzle.tiles.filter((tile) => {
-                return tile instanceof DoorTile;
-            })
-            doorTiles = doorTiles.sort((t1, t2) => {
-                return (t1.i + t1.j) - (t2.i + t2.j);
-            })
-            if (doorTiles[0]) {
-                let tileHaiku = new HaikuTile(
-                    puzzle.game,
-                    "",
-                    doorTiles[0],
-                    1
-                );
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-        }
-        if (puzzle.data.id === 197 && puzzle.data.state === 2) {
-            let switchTiles = puzzle.tiles.filter((tile) => {
-                return tile instanceof SwitchTile;
-            })
-            if (switchTiles[0]) {
-                let tileHaiku = new HaikuTile(
-                    puzzle.game,
-                    "",
-                    switchTiles[0]
-                );
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-            if (switchTiles[1]) {
-                let tileHaiku = new HaikuTile(
-                    puzzle.game,
-                    "",
-                    switchTiles[1]
-                );
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-        }
-        if (puzzle.data.id === 151 && puzzle.data.state === 8) {
-            let switchTile = puzzle.tiles.filter((tile) => {
-                return tile instanceof SwitchTile && tile.color === 3;
-            })
-            if (switchTile[0]) {
-                let tileHaiku = new HaikuTile(
-                    puzzle.game,
-                    "",
-                    switchTile[0]
-                );
-                puzzle.tileHaikus.push(tileHaiku);
-            }
-        }
-    }
-
     public static HaikuTileUpdateStep(puzzle: Puzzle): void {
         if (
             puzzle.data.id === 74 ||
@@ -235,8 +142,8 @@ class HaikuMaker {
                     if (puzzle.tileHaikus[0]) {
                         let existingTile = puzzle.tileHaikus[0];
                         setTimeout(() => {
-                            existingTile.hide(0.5).then(() => { existingTile.dispose(); });
-                        }, 200);
+                            existingTile.hide(0.2).then(() => { existingTile.dispose(); });
+                        }, 10);
                     }
                     let haikuTile = new HaikuTile(puzzle.game, "", targetTile);
                     haikuTile.show(0.2);
@@ -247,8 +154,8 @@ class HaikuMaker {
                 if (puzzle.tileHaikus[0]) {
                     let existingTile = puzzle.tileHaikus[0];
                     setTimeout(() => {
-                        existingTile.hide(0.5).then(() => { existingTile.dispose(); });
-                    }, 200);
+                        existingTile.hide(0.2).then(() => { existingTile.dispose(); });
+                    }, 10);
                 }
             }
         }

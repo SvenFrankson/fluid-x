@@ -134,102 +134,122 @@ class HaikuMaker {
     }
 
     public static HaikuTileUpdateStep(puzzle: Puzzle): void {
-        let targetTile: Tile;
-        if (puzzle.puzzleState === PuzzleState.Playing) {
-            let ball = puzzle.balls[0];
-            let currentColor = puzzle.balls[0].color;
+        if (
+            puzzle.data.id === 74 ||
+            puzzle.data.id === 197 ||
+            puzzle.data.id === 185 ||
+            puzzle.data.id === 158 ||
+            puzzle.data.id === 161 ||
+            puzzle.data.id === 175
+        ) {
+            let targetTile: Tile;
+            if (puzzle.puzzleState === PuzzleState.Playing) {
+                let ball = puzzle.balls[0];
+                let currentColor = puzzle.balls[0].color;
 
-            let blockTilesByColor: BlockTile[][] = [];
-            for (let c = 0; c < 4; c++) {
-                let matchingTiles = puzzle.tiles.filter(t => {
-                    return (t instanceof BlockTile) && t.color === c;
-                }) as BlockTile[];
-                matchingTiles.sort((t1, t2) => {
-                    let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
-                    let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
-                    return d1 - d2;
-                });
+                let blockTilesByColor: BlockTile[][] = [];
+                for (let c = 0; c < 4; c++) {
+                    let matchingTiles = puzzle.tiles.filter(t => {
+                        return (t instanceof BlockTile) && t.color === c;
+                    }) as BlockTile[];
+                    matchingTiles.sort((t1, t2) => {
+                        let bZ = ball.moveDir.z;
+                        let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
+                        let d1dZ = t1.position.z - ball.position.z;
+                        if (d1dZ * bZ < 0) {
+                            d1 += 1000;
+                        }
 
-                blockTilesByColor[c] = matchingTiles;
-            }
+                        let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
+                        let d2dZ = t2.position.z - ball.position.z;
+                        if (d2dZ * bZ < 0) {
+                            d2 += 1000;
+                        }
 
-            // Case "Need to open a door"
-            if (!targetTile) {
-                let buttonValue = -1;
-                for (let v = 0; v < 3 && buttonValue === -1; v++) {
-                    let doors = puzzle.tiles.filter(t => {
-                        return (t instanceof DoorTile) && t.value === v;
-                    }) as DoorTile[];
-                    if (doors.length > 0) {
-                        if (doors.map(d => { return d.closed }).reduce((d1, d2) => { return d1 && d2 })) {
-                            buttonValue = v;
+                        return d1 - d2;
+                    });
+
+                    blockTilesByColor[c] = matchingTiles;
+                }
+
+                // Case "Need to open a door"
+                if (!targetTile) {
+                    let buttonValue = 0;
+                    for (let v = 1; v <= 3 && buttonValue === 0; v++) {
+                        let doors = puzzle.tiles.filter(t => {
+                            return (t instanceof DoorTile) && t.value === v;
+                        }) as DoorTile[];
+                        if (doors.length > 0) {
+                            if (doors.map(d => { return d.closed }).reduce((d1, d2) => { return d1 && d2 })) {
+                                buttonValue = v;
+                            }
+                        }
+                    }
+
+                    if (buttonValue > 0) {
+                        let buttonTiles = puzzle.tiles.filter(t => {
+                            return (t instanceof ButtonTile) && t.value === buttonValue;
+                        }) as ButtonTile[];
+                        buttonTiles.sort((t1, t2) => {
+                            let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
+                            let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
+                            return d1 - d2;
+                        });
+                        if (buttonTiles[0]) {
+                            targetTile = buttonTiles[0];
                         }
                     }
                 }
-
-                if (buttonValue >= 0) {
-                    let buttonTiles = puzzle.tiles.filter(t => {
-                        return (t instanceof ButtonTile) && t.value === buttonValue;
-                    }) as ButtonTile[];
-                    buttonTiles.sort((t1, t2) => {
-                        let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
-                        let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
-                        return d1 - d2;
-                    });
-                    if (buttonTiles[0]) {
-                        targetTile = buttonTiles[0];
+                
+                // Case "Highlight Tile of current Color"
+                if (!targetTile) {
+                    if (blockTilesByColor[currentColor][0]) {
+                        targetTile = blockTilesByColor[currentColor][0];
                     }
                 }
-            }
-            
-            // Case "Highlight Tile of current Color"
-            if (!targetTile) {
-                if (blockTilesByColor[currentColor][0]) {
-                    targetTile = blockTilesByColor[currentColor][0];
-                }
-            }
-            
-            // Case "Need to switch"
-            if (!targetTile) {
-                for (let c = 0; c < 4; c++) {
-                    if (c != currentColor) {
-                        if (blockTilesByColor[c].length > 0) {
-                            let switchTiles = puzzle.tiles.filter(t => {
-                                return (t instanceof SwitchTile) && t.color === c;
-                            });
-                            switchTiles.sort((t1, t2) => {
-                                let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
-                                let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
-                                return d1 - d2;
-                            });
-                            if (switchTiles[0]) {
-                                targetTile = switchTiles[0];
+                
+                // Case "Need to switch"
+                if (!targetTile) {
+                    for (let c = 0; c < 4; c++) {
+                        if (c != currentColor) {
+                            if (blockTilesByColor[c].length > 0) {
+                                let switchTiles = puzzle.tiles.filter(t => {
+                                    return (t instanceof SwitchTile) && t.color === c;
+                                });
+                                switchTiles.sort((t1, t2) => {
+                                    let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
+                                    let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
+                                    return d1 - d2;
+                                });
+                                if (switchTiles[0]) {
+                                    targetTile = switchTiles[0];
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        if (targetTile) {
-            if (!puzzle.tileHaikus[0] || puzzle.tileHaikus[0].tile != targetTile) {
+            if (targetTile) {
+                if (!puzzle.tileHaikus[0] || puzzle.tileHaikus[0].tile != targetTile) {
+                    if (puzzle.tileHaikus[0]) {
+                        let existingTile = puzzle.tileHaikus[0];
+                        setTimeout(() => {
+                            existingTile.hide(0.5).then(() => { existingTile.dispose(); });
+                        }, 200);
+                    }
+                    let haikuTile = new HaikuTile(puzzle.game, "", targetTile);
+                    haikuTile.show(0.2);
+                    puzzle.tileHaikus[0] = haikuTile;
+                }
+            }
+            else {
                 if (puzzle.tileHaikus[0]) {
                     let existingTile = puzzle.tileHaikus[0];
                     setTimeout(() => {
                         existingTile.hide(0.5).then(() => { existingTile.dispose(); });
-                    }, 500);
+                    }, 200);
                 }
-                let haikuTile = new HaikuTile(puzzle.game, "", targetTile);
-                haikuTile.show(0.5);
-                puzzle.tileHaikus[0] = haikuTile;
-            }
-        }
-        else {
-            if (puzzle.tileHaikus[0]) {
-                let existingTile = puzzle.tileHaikus[0];
-                setTimeout(() => {
-                    existingTile.hide(0.5).then(() => { existingTile.dispose(); });
-                }, 500);
             }
         }
     }
@@ -417,7 +437,7 @@ class HaikuTile extends BABYLON.Mesh {
         context.clearRect(0, 0, 1000, 1000);
 
         context.strokeStyle = "#e3cfb4ff";
-        context.lineWidth = 12;
+        context.lineWidth = 8;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1 - Math.PI * 0.25;
             let a2 = (i + 1) * Math.PI * 0.5 - Math.PI * 0.1 - Math.PI * 0.25;
@@ -454,14 +474,23 @@ class HaikuTile extends BABYLON.Mesh {
 
     public async hide(duration: number = 1): Promise<void> {
         this.shown = false;
+        this.tile.outlineColor.copyFromFloats(0, 0, 0);
         return this.animateVisibility(0, duration, Nabu.Easing.easeInOutSine);
     }
 
     private _timer: number = 0;
     public update(dt: number): void {
         this._timer += dt;
-        let s = 1 + Math.sin(2 * this._timer) * 0.1;
+        let s = 1 + Math.sin(4 * this._timer) * 0.06;
         this.scaling.copyFromFloats(s, s, s);
+        if (this.shown) {
+            let c = (1 - Math.sin(4 * this._timer)) * 0.5;
+            c = c * c * c;
+            this.tile.outlineColor.copyFromFloats(c, c, c);
+        }
+        else {
+            this.tile.outlineColor.copyFromFloats(0, 0, 0);
+        }
     }
 }
 

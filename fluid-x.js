@@ -4034,6 +4034,7 @@ class HaikuMaker {
         return undefined;
     }
     static MakeHaiku(puzzle) {
+        return;
         if (puzzle.data.id === 74 && puzzle.data.state === 2) {
             let tile = puzzle.tiles.filter((tile) => {
                 return tile instanceof BlockTile;
@@ -4091,6 +4092,99 @@ class HaikuMaker {
             if (switchTile[0]) {
                 let tileHaiku = new HaikuTile(puzzle.game, "", switchTile[0]);
                 puzzle.tileHaikus.push(tileHaiku);
+            }
+        }
+    }
+    static HaikuTileUpdateStep(puzzle) {
+        let targetTile;
+        if (puzzle.puzzleState === PuzzleState.Playing) {
+            let ball = puzzle.balls[0];
+            let currentColor = puzzle.balls[0].color;
+            let blockTilesByColor = [];
+            for (let c = 0; c < 4; c++) {
+                let matchingTiles = puzzle.tiles.filter(t => {
+                    return (t instanceof BlockTile) && t.color === c;
+                });
+                matchingTiles.sort((t1, t2) => {
+                    let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
+                    let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
+                    return d1 - d2;
+                });
+                blockTilesByColor[c] = matchingTiles;
+            }
+            // Case "Need to open a door"
+            if (!targetTile) {
+                let buttonValue = -1;
+                for (let v = 0; v < 3 && buttonValue === -1; v++) {
+                    let doors = puzzle.tiles.filter(t => {
+                        return (t instanceof DoorTile) && t.value === v;
+                    });
+                    if (doors.length > 0) {
+                        if (doors.map(d => { return d.closed; }).reduce((d1, d2) => { return d1 && d2; })) {
+                            buttonValue = v;
+                        }
+                    }
+                }
+                if (buttonValue >= 0) {
+                    let buttonTiles = puzzle.tiles.filter(t => {
+                        return (t instanceof ButtonTile) && t.value === buttonValue;
+                    });
+                    buttonTiles.sort((t1, t2) => {
+                        let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
+                        let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
+                        return d1 - d2;
+                    });
+                    if (buttonTiles[0]) {
+                        targetTile = buttonTiles[0];
+                    }
+                }
+            }
+            // Case "Highlight Tile of current Color"
+            if (!targetTile) {
+                if (blockTilesByColor[currentColor][0]) {
+                    targetTile = blockTilesByColor[currentColor][0];
+                }
+            }
+            // Case "Need to switch"
+            if (!targetTile) {
+                for (let c = 0; c < 4; c++) {
+                    if (c != currentColor) {
+                        if (blockTilesByColor[c].length > 0) {
+                            let switchTiles = puzzle.tiles.filter(t => {
+                                return (t instanceof SwitchTile) && t.color === c;
+                            });
+                            switchTiles.sort((t1, t2) => {
+                                let d1 = BABYLON.Vector3.DistanceSquared(t1.position, ball.position);
+                                let d2 = BABYLON.Vector3.DistanceSquared(t2.position, ball.position);
+                                return d1 - d2;
+                            });
+                            if (switchTiles[0]) {
+                                targetTile = switchTiles[0];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (targetTile) {
+            if (!puzzle.tileHaikus[0] || puzzle.tileHaikus[0].tile != targetTile) {
+                if (puzzle.tileHaikus[0]) {
+                    let existingTile = puzzle.tileHaikus[0];
+                    setTimeout(() => {
+                        existingTile.hide(0.5).then(() => { existingTile.dispose(); });
+                    }, 500);
+                }
+                let haikuTile = new HaikuTile(puzzle.game, "", targetTile);
+                haikuTile.show(0.5);
+                puzzle.tileHaikus[0] = haikuTile;
+            }
+        }
+        else {
+            if (puzzle.tileHaikus[0]) {
+                let existingTile = puzzle.tileHaikus[0];
+                setTimeout(() => {
+                    existingTile.hide(0.5).then(() => { existingTile.dispose(); });
+                }, 500);
             }
         }
     }
@@ -4226,6 +4320,7 @@ class HaikuTile extends BABYLON.Mesh {
         this.align = align;
         this.animateVisibility = Mummu.AnimationFactory.EmptyNumberCallback;
         this.shown = false;
+        this._timer = 0;
         BABYLON.CreateGroundVertexData({ width: 5, height: 5 }).applyToMesh(this);
         this.position.copyFrom(this.tile.position);
         this.position.y += 0.01;
@@ -4239,7 +4334,7 @@ class HaikuTile extends BABYLON.Mesh {
         let context = this.dynamicTexture.getContext();
         context.clearRect(0, 0, 1000, 1000);
         context.strokeStyle = "#e3cfb4ff";
-        context.lineWidth = 8;
+        context.lineWidth = 12;
         for (let i = 0; i < 4; i++) {
             let a1 = i * Math.PI * 0.5 + Math.PI * 0.1 - Math.PI * 0.25;
             let a2 = (i + 1) * Math.PI * 0.5 - Math.PI * 0.1 - Math.PI * 0.25;
@@ -4265,13 +4360,18 @@ class HaikuTile extends BABYLON.Mesh {
         this.visibility = 0;
         this.animateVisibility = Mummu.AnimationFactory.CreateNumber(this, this, "visibility");
     }
-    show() {
+    async show(duration = 2) {
         this.shown = true;
-        this.animateVisibility(1, 2, Nabu.Easing.easeInOutSine);
+        return this.animateVisibility(1, duration, Nabu.Easing.easeInOutSine);
     }
-    hide() {
+    async hide(duration = 1) {
         this.shown = false;
-        this.animateVisibility(0, 1, Nabu.Easing.easeInOutSine);
+        return this.animateVisibility(0, duration, Nabu.Easing.easeInOutSine);
+    }
+    update(dt) {
+        this._timer += dt;
+        let s = 1 + Math.sin(2 * this._timer) * 0.1;
+        this.scaling.copyFromFloats(s, s, s);
     }
 }
 class HaikuDebug extends BABYLON.Mesh {
@@ -7555,9 +7655,11 @@ class SwitchTile extends Tile {
 class ButtonTile extends Tile {
     constructor(game, props) {
         super(game, props);
+        this.value = 0;
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
+        this.value = this.props.value;
         this.material = this.game.materials.brownMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -7601,6 +7703,7 @@ class ButtonTile extends Tile {
 class DoorTile extends Tile {
     constructor(game, props) {
         super(game, props);
+        this.value = 0;
         this.closed = false;
         this.animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
         this.animateTopRotY = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -7608,6 +7711,7 @@ class DoorTile extends Tile {
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
+        this.value = this.props.value;
         this.material = this.game.materials.grayMaterial;
         this.renderOutline = true;
         this.outlineColor = BABYLON.Color3.Black();
@@ -10642,10 +10746,14 @@ class Puzzle {
         }
         for (let i = 0; i < this.tileHaikus.length; i++) {
             let tileHaiku = this.tileHaikus[i];
+            if (tileHaiku) {
+                tileHaiku.update(dt);
+            }
             if (tileHaiku.shown && tileHaiku.tile.isDisposed()) {
-                tileHaiku.hide();
+                tileHaiku.hide(0.5);
             }
         }
+        HaikuMaker.HaikuTileUpdateStep(this);
         this._globalTime += dt;
         this._timer += dt;
         if (this.showFPS) {

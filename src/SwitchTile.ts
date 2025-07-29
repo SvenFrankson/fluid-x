@@ -115,6 +115,7 @@ class SwitchTile extends Tile {
 
 class ButtonTile extends Tile {
 
+    public value: number = 0;
     public tileTop: BABYLON.Mesh;
     public tileBottom: BABYLON.Mesh;
     public tileFrame: BABYLON.Mesh;
@@ -125,6 +126,7 @@ class ButtonTile extends Tile {
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
+        this.value = this.props.value;
 
         this.material = this.game.materials.brownMaterial;
 
@@ -179,6 +181,7 @@ class ButtonTile extends Tile {
 
 class DoorTile extends Tile {
 
+    public value: number = 0;
     public closed: boolean = false;
     public tileTop: BABYLON.Mesh;
     public tileTopFrame: BABYLON.Mesh;
@@ -194,6 +197,7 @@ class DoorTile extends Tile {
         if (isNaN(this.props.value)) {
             this.props.value = 0;
         }
+        this.value = this.props.value;
 
         this.material = this.game.materials.grayMaterial;
 

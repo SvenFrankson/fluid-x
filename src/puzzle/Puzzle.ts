@@ -1623,10 +1623,14 @@ class Puzzle {
         }
         for (let i = 0; i < this.tileHaikus.length; i++) {
             let tileHaiku = this.tileHaikus[i];
+            if (tileHaiku) {
+                tileHaiku.update(dt);
+            }
             if (tileHaiku.shown && tileHaiku.tile.isDisposed()) {
-                tileHaiku.hide();
+                tileHaiku.hide(0.5);
             }
         }
+        HaikuMaker.HaikuTileUpdateStep(this);
 
         this._globalTime += dt;
         this._timer += dt;

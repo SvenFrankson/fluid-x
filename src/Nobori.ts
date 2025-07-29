@@ -75,30 +75,31 @@ class Nobori extends Tile {
 
     public update(dt: number): void {
         this._timer += dt;
+        if (this._baseFlagData) {
+            let data = Mummu.CloneVertexData(this._baseFlagData);
+            let positions = data.positions;
 
-        let data = Mummu.CloneVertexData(this._baseFlagData);
-        let positions = data.positions;
+            for (let n = 0; n < positions.length / 3; n++) {
+                let x = positions[3 * n + 0];
+                let y = positions[3 * n + 1];
+                let z = positions[3 * n + 2];
 
-        for (let n = 0; n < positions.length / 3; n++) {
-            let x = positions[3 * n + 0];
-            let y = positions[3 * n + 1];
-            let z = positions[3 * n + 2];
+                let dX = (1 + Math.sin(y + this._timer) * Math.abs(y)) / 2 * 0.05;
+                x += dX;
+                positions[3 * n + 0] = x;
 
-            let dX = (1 + Math.sin(y + this._timer) * Math.abs(y)) / 2 * 0.05;
-            x += dX;
-            positions[3 * n + 0] = x;
+                let dZ = Math.sin(6 * x + this._timer) * Math.abs(y) / 2 * 0.05;
+                z += dZ;
+                dZ = Math.sin(2 * y + this._timer) * Math.abs(y) / 2 * 0.1;
+                z += dZ;
 
-            let dZ = Math.sin(6 * x + this._timer) * Math.abs(y) / 2 * 0.05;
-            z += dZ;
-            dZ = Math.sin(2 * y + this._timer) * Math.abs(y) / 2 * 0.1;
-            z += dZ;
+                positions[3 * n + 2] = z;
+            }
+            data.positions = positions;
 
-            positions[3 * n + 2] = z;
+            BABYLON.VertexData.ComputeNormals(data.positions, data.indices, data.normals);
+
+            data.applyToMesh(this.flag);
         }
-        data.positions = positions;
-
-        BABYLON.VertexData.ComputeNormals(data.positions, data.indices, data.normals);
-
-        data.applyToMesh(this.flag);
     }
 }

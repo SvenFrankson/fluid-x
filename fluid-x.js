@@ -6337,6 +6337,9 @@ class Game {
                     */
                 }
             }
+            if (this.puzzle) {
+                this.puzzle.updateAesthetic(Math.min(rawDT, 0.03));
+            }
             this.materials.waterMaterial.diffuseTexture.vOffset += 0.5 * rawDT;
             if (this.materials.waterMaterial.diffuseTexture.vOffset > 1) {
                 this.materials.waterMaterial.diffuseTexture.vOffset -= 1;
@@ -6904,24 +6907,26 @@ class Nobori extends Tile {
     }
     update(dt) {
         this._timer += dt;
-        let data = Mummu.CloneVertexData(this._baseFlagData);
-        let positions = data.positions;
-        for (let n = 0; n < positions.length / 3; n++) {
-            let x = positions[3 * n + 0];
-            let y = positions[3 * n + 1];
-            let z = positions[3 * n + 2];
-            let dX = (1 + Math.sin(y + this._timer) * Math.abs(y)) / 2 * 0.05;
-            x += dX;
-            positions[3 * n + 0] = x;
-            let dZ = Math.sin(6 * x + this._timer) * Math.abs(y) / 2 * 0.05;
-            z += dZ;
-            dZ = Math.sin(2 * y + this._timer) * Math.abs(y) / 2 * 0.1;
-            z += dZ;
-            positions[3 * n + 2] = z;
+        if (this._baseFlagData) {
+            let data = Mummu.CloneVertexData(this._baseFlagData);
+            let positions = data.positions;
+            for (let n = 0; n < positions.length / 3; n++) {
+                let x = positions[3 * n + 0];
+                let y = positions[3 * n + 1];
+                let z = positions[3 * n + 2];
+                let dX = (1 + Math.sin(y + this._timer) * Math.abs(y)) / 2 * 0.05;
+                x += dX;
+                positions[3 * n + 0] = x;
+                let dZ = Math.sin(6 * x + this._timer) * Math.abs(y) / 2 * 0.05;
+                z += dZ;
+                dZ = Math.sin(2 * y + this._timer) * Math.abs(y) / 2 * 0.1;
+                z += dZ;
+                positions[3 * n + 2] = z;
+            }
+            data.positions = positions;
+            BABYLON.VertexData.ComputeNormals(data.positions, data.indices, data.normals);
+            data.applyToMesh(this.flag);
         }
-        data.positions = positions;
-        BABYLON.VertexData.ComputeNormals(data.positions, data.indices, data.normals);
-        data.applyToMesh(this.flag);
     }
 }
 class NumValueInput extends HTMLElement {
@@ -9295,8 +9300,6 @@ class Puzzle {
         this.playTimer = 0;
         this.fishingPolesCount = 0;
         this.creeps = [];
-        this.wind = new BABYLON.Vector3(1, 0, 1);
-        this.targetWind = new BABYLON.Vector3(1, 0, 1);
         this.tiles = [];
         this.blockTiles = [];
         this.noboris = [];
@@ -9366,12 +9369,6 @@ class Puzzle {
         this.fallImpactSound = this.game.soundManager.createSound("fall-impact", "./datas/sounds/fall-impact.wav", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 }, 3);
         this.slashSound = this.game.soundManager.createSound("slash", "./datas/sounds/slash.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.4 });
         this.snapBassSound = this.game.soundManager.createSound("snap-bass", "./datas/sounds/snap_bass.mp3", undefined, undefined, { autoplay: false, loop: false, volume: 0.6 }, 3);
-    }
-    windTilesGet(i, j) {
-        return this.wind;
-        i = Nabu.MinMax(i, 0, this.w - 1);
-        j = Nabu.MinMax(j, 0, this.h - 1);
-        return this.windTiles[i][j];
     }
     _getOrCreateGriddedStack(i, j) {
         if (!this.griddedTiles[i]) {
@@ -9703,7 +9700,6 @@ class Puzzle {
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
         }
-        this.windTiles = [];
         this.blockTiles = [];
         this.noboris = [];
         this.griddedTiles = [];
@@ -9800,14 +9796,11 @@ class Puzzle {
             this.floorMaterialIndex = 0;
         }
         if (!replaying) {
-            this.windTiles = [];
             this.buildingBlocks = [];
             for (let i = 0; i < this.w; i++) {
                 this.buildingBlocks[i] = [];
-                this.windTiles[i] = [];
                 for (let j = 0; j < this.h; j++) {
                     this.buildingBlocks[i][j] = 0;
-                    this.windTiles[i][j] = new BABYLON.Vector3(1, 0, 1);
                 }
             }
             if (buildingBlocksLine != "") {
@@ -10721,14 +10714,6 @@ class Puzzle {
             for (let i = 0; i < this.creeps.length; i++) {
                 this.creeps[i].update(dt);
             }
-            for (let i = 0; i < this.noboris.length; i++) {
-                this.noboris[i].update(dt);
-            }
-            let f = Nabu.Easing.smooth3Sec(1 / dt);
-            if (Math.random() < 0.001) {
-                this.targetWind.copyFromFloats(Math.random() * 5, 0, Math.random() * 5);
-            }
-            BABYLON.Vector3.LerpToRef(this.wind, this.targetWind, 1 - f, this.wind);
             if (this.puzzleState === PuzzleState.Playing) {
                 let noBlockTile = true;
                 for (let i = 0; i < this.blockTiles.length; i++) {
@@ -10795,6 +10780,11 @@ class Puzzle {
                 context.fillText("fps (min)", 200, 177);
                 this.fpsTexture.update();
             }
+        }
+    }
+    updateAesthetic(dt) {
+        for (let i = 0; i < this.noboris.length; i++) {
+            this.noboris[i].update(dt);
         }
     }
 }

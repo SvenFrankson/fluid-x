@@ -1224,6 +1224,9 @@ class Game {
                     */
                 }
             }
+            if (this.puzzle) {
+                this.puzzle.updateAesthetic(Math.min(rawDT, 0.03));
+            }
             
             (this.materials.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset += 0.5 * rawDT;
             if ((this.materials.waterMaterial.diffuseTexture as BABYLON.Texture).vOffset > 1) {

@@ -7,7 +7,7 @@ class HaikuMaker {
         if (puzzle.data.id === 74) {
             return GetTranslatedTitle(puzzle.data) + "\n\n" + I18Nizer.GetText("lesson-1-haiku", locale);
         }
-        if (puzzle.data.id === 157) {
+        if (puzzle.data.id === 197) {
             return I18Nizer.GetText("lesson-2-haiku", locale).replaceAll("\n", " ");
         }
         if (puzzle.data.id === 158) {
@@ -96,7 +96,7 @@ class HaikuMaker {
                 puzzle.tileHaikus.push(tileHaiku);
             }
         }
-        if (puzzle.data.id === 157 && puzzle.data.state === 2) {
+        if (puzzle.data.id === 197 && puzzle.data.state === 2) {
             let switchTiles = puzzle.tiles.filter((tile) => {
                 return tile instanceof SwitchTile;
             })

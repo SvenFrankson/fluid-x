@@ -881,8 +881,14 @@ class Editor {
             if (pick.hit) {
                 if (ev.button === 2 || this.brush === EditorBrush.Delete) {
                     let tile = this.puzzle.tiles.find(tile => {
-                        return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                        return tile.isDecor && tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
+                    if (!tile) {
+                        tile = this.puzzle.tiles.find(tile => {
+                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                        });
+                    }
+
                     if (tile instanceof DoorTile && !tile.closed) {
                         tile.close(0);
                     }
@@ -922,166 +928,171 @@ class Editor {
                 }
                 else if (ev.button === 0) {
                     let tile = this.puzzle.tiles.find(tile => {
-                        return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                        return tile.isDecor && tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                     });
                     if (!tile) {
-                        if (this.brush === EditorBrush.Tile) {
-                            tile = new BlockTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Switch) {
-                            tile = new SwitchTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Button) {
-                            tile = new ButtonTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor,
-                                    value: this.brushColor
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Door) {
-                            tile = new DoorTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor,
-                                    value: this.brushColor
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Push) {
-                            tile = new PushTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Hole) {
-                            tile = new HoleTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Wall) {
-                            tile = new WallTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Water) {
-                            tile = new WaterTile(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Box) {
-                            this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
-                            this.puzzle.editorRegenerateBuildings();
-                        }
-                        else if (this.brush === EditorBrush.Ramp) {
-                            let box = new Ramp(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    size: this.brushColor
-                                }
-                            );
-                            this.puzzle.editorRegenerateBuildings();
-                        }
-                        else if (this.brush === EditorBrush.Bridge) {
-                            let box = new Bridge(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ
-                                }
-                            );
-                            this.puzzle.editorRegenerateBuildings();
-                        }
-                        else if (this.brush === EditorBrush.Creep) {
-                            let creep = new Creep(
-                                this.puzzle,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH
-                                }
-                            );
-                            creep.instantiate();
-                        }
-                        else if (this.brush === EditorBrush.Tree) {
-                            tile = new CherryTree(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                }
-                            )
-                        }
-                        else if (this.brush === EditorBrush.Nobori) {
-                            tile = new Nobori(
-                                this.game,
-                                {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                }
-                            )
-                        }
-                        if (tile) {
-                            if (tile instanceof WaterTile) {
-                                this.puzzle.editorRegenerateWaterTiles();
+                        tile = this.puzzle.tiles.find(tile => {
+                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                        });
+                    }
+
+                    if (this.brush === EditorBrush.Tile && (!tile || tile.isDecor)) {
+                        tile = new BlockTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
                             }
-                            else {
-                                tile.instantiate();
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Switch && (!tile || tile.isDecor)) {
+                        tile = new SwitchTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
                             }
-                            this.puzzle.rebuildFloor();
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Button && (!tile || tile.isDecor)) {
+                        tile = new ButtonTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor,
+                                value: this.brushColor
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Door && (!tile || tile.isDecor)) {
+                        tile = new DoorTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor,
+                                value: this.brushColor
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Push && (!tile || tile.isDecor)) {
+                        tile = new PushTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Hole && (!tile || tile.isDecor)) {
+                        tile = new HoleTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Wall && (!tile || tile.isDecor)) {
+                        tile = new WallTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Water && (!tile || tile.isDecor)) {
+                        tile = new WaterTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Box && (!tile || tile.isDecor)) {
+                        this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
+                        this.puzzle.editorRegenerateBuildings();
+                    }
+                    else if (this.brush === EditorBrush.Ramp && (!tile || tile.isDecor)) {
+                        let box = new Ramp(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                size: this.brushColor
+                            }
+                        );
+                        this.puzzle.editorRegenerateBuildings();
+                    }
+                    else if (this.brush === EditorBrush.Bridge && (!tile || tile.isDecor)) {
+                        let box = new Bridge(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ
+                            }
+                        );
+                        this.puzzle.editorRegenerateBuildings();
+                    }
+                    else if (this.brush === EditorBrush.Creep && (!tile || tile.isDecor)) {
+                        let creep = new Creep(
+                            this.puzzle,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH
+                            }
+                        );
+                        creep.instantiate();
+                    }
+                    else if (this.brush === EditorBrush.Tree && (!tile || tile.isDecor)) {
+                        tile = new CherryTree(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            }
+                        )
+                    }
+                    else if (this.brush === EditorBrush.Nobori && (!tile || !tile.isDecor)) {
+                        tile = new Nobori(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            }
+                        )
+                    }
+
+                    if (tile) {
+                        if (tile instanceof WaterTile) {
+                            this.puzzle.editorRegenerateWaterTiles();
                         }
+                        else {
+                            tile.instantiate();
+                        }
+                        this.puzzle.rebuildFloor();
                     }
                 }
             }     

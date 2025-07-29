@@ -1343,6 +1343,7 @@ class Tile extends BABYLON.Mesh {
         super("tile");
         this.game = game;
         this.props = props;
+        this.isDecor = false;
         this.tileState = TileState.Active;
         this.animateSize = Mummu.AnimationFactory.EmptyNumberCallback;
         this.color = props.color;
@@ -3179,8 +3180,13 @@ class Editor {
                 if (pick.hit) {
                     if (ev.button === 2 || this.brush === EditorBrush.Delete) {
                         let tile = this.puzzle.tiles.find(tile => {
-                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                            return tile.isDecor && tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
+                        if (!tile) {
+                            tile = this.puzzle.tiles.find(tile => {
+                                return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                            });
+                        }
                         if (tile instanceof DoorTile && !tile.closed) {
                             tile.close(0);
                         }
@@ -3220,127 +3226,130 @@ class Editor {
                     }
                     else if (ev.button === 0) {
                         let tile = this.puzzle.tiles.find(tile => {
-                            return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                            return tile.isDecor && tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
                         });
                         if (!tile) {
-                            if (this.brush === EditorBrush.Tile) {
-                                tile = new BlockTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
+                            tile = this.puzzle.tiles.find(tile => {
+                                return tile.i === this.cursorI && tile.j === this.cursorJ && Math.abs(tile.position.y - this.cursorH) < 0.3;
+                            });
+                        }
+                        if (this.brush === EditorBrush.Tile && (!tile || tile.isDecor)) {
+                            tile = new BlockTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Switch && (!tile || tile.isDecor)) {
+                            tile = new SwitchTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Button && (!tile || tile.isDecor)) {
+                            tile = new ButtonTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor,
+                                value: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Door && (!tile || tile.isDecor)) {
+                            tile = new DoorTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor,
+                                value: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Push && (!tile || tile.isDecor)) {
+                            tile = new PushTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Hole && (!tile || tile.isDecor)) {
+                            tile = new HoleTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Wall && (!tile || tile.isDecor)) {
+                            tile = new WallTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Water && (!tile || tile.isDecor)) {
+                            tile = new WaterTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Box && (!tile || tile.isDecor)) {
+                            this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Ramp && (!tile || tile.isDecor)) {
+                            let box = new Ramp(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                size: this.brushColor
+                            });
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Bridge && (!tile || tile.isDecor)) {
+                            let box = new Bridge(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ
+                            });
+                            this.puzzle.editorRegenerateBuildings();
+                        }
+                        else if (this.brush === EditorBrush.Creep && (!tile || tile.isDecor)) {
+                            let creep = new Creep(this.puzzle, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH
+                            });
+                            creep.instantiate();
+                        }
+                        else if (this.brush === EditorBrush.Tree && (!tile || tile.isDecor)) {
+                            tile = new CherryTree(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                color: this.brushColor,
+                                noShadow: true
+                            });
+                        }
+                        else if (this.brush === EditorBrush.Nobori && (!tile || !tile.isDecor)) {
+                            tile = new Nobori(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH,
+                                color: this.brushColor
+                            });
+                        }
+                        if (tile) {
+                            if (tile instanceof WaterTile) {
+                                this.puzzle.editorRegenerateWaterTiles();
                             }
-                            else if (this.brush === EditorBrush.Switch) {
-                                tile = new SwitchTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
+                            else {
+                                tile.instantiate();
                             }
-                            else if (this.brush === EditorBrush.Button) {
-                                tile = new ButtonTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor,
-                                    value: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Door) {
-                                tile = new DoorTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor,
-                                    value: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Push) {
-                                tile = new PushTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Hole) {
-                                tile = new HoleTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Wall) {
-                                tile = new WallTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Water) {
-                                tile = new WaterTile(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Box) {
-                                this.puzzle.buildingBlockSet(1, this.cursorI, this.cursorJ);
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else if (this.brush === EditorBrush.Ramp) {
-                                let box = new Ramp(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    size: this.brushColor
-                                });
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else if (this.brush === EditorBrush.Bridge) {
-                                let box = new Bridge(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ
-                                });
-                                this.puzzle.editorRegenerateBuildings();
-                            }
-                            else if (this.brush === EditorBrush.Creep) {
-                                let creep = new Creep(this.puzzle, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH
-                                });
-                                creep.instantiate();
-                            }
-                            else if (this.brush === EditorBrush.Tree) {
-                                tile = new CherryTree(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    color: this.brushColor,
-                                    noShadow: true
-                                });
-                            }
-                            else if (this.brush === EditorBrush.Nobori) {
-                                tile = new Nobori(this.game, {
-                                    i: this.cursorI,
-                                    j: this.cursorJ,
-                                    h: this.cursorH,
-                                    color: this.brushColor
-                                });
-                            }
-                            if (tile) {
-                                if (tile instanceof WaterTile) {
-                                    this.puzzle.editorRegenerateWaterTiles();
-                                }
-                                else {
-                                    tile.instantiate();
-                                }
-                                this.puzzle.rebuildFloor();
-                            }
+                            this.puzzle.rebuildFloor();
                         }
                     }
                 }
@@ -6776,6 +6785,7 @@ class Nobori extends Tile {
     constructor(game, props) {
         super(game, props);
         this.rightSide = false;
+        this.isDecor = true;
         if (props && props.rightSide) {
             this.rightSide = props.rightSide;
         }
@@ -9755,6 +9765,7 @@ class Puzzle {
                         rightSide: rightSide
                     });
                     ii += 2;
+                    i--;
                 }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {
@@ -10921,80 +10932,94 @@ function SaveAsText(puzzle, withHaiku) {
             lines[j][i] = ["o"];
         }
     }
+    // Serialize non-decor Tiles.
     puzzle.tiles.forEach(tile => {
-        let i = tile.i;
-        let j = tile.j;
-        if (j >= 0 && j < lines.length) {
-            if (i >= 0 && i < lines[j].length) {
-                if (tile instanceof BlockTile) {
-                    if (tile.color === TileColor.North) {
-                        lines[j][i] = ["n"];
+        if (!tile.isDecor) {
+            let i = tile.i;
+            let j = tile.j;
+            if (j >= 0 && j < lines.length) {
+                if (i >= 0 && i < lines[j].length) {
+                    if (tile instanceof BlockTile) {
+                        if (tile.color === TileColor.North) {
+                            lines[j][i] = ["n"];
+                        }
+                        else if (tile.color === TileColor.East) {
+                            lines[j][i] = ["e"];
+                        }
+                        else if (tile.color === TileColor.South) {
+                            lines[j][i] = ["s"];
+                        }
+                        else if (tile.color === TileColor.West) {
+                            lines[j][i] = ["w"];
+                        }
                     }
-                    else if (tile.color === TileColor.East) {
-                        lines[j][i] = ["e"];
+                    else if (tile instanceof SwitchTile) {
+                        if (tile.color === TileColor.North) {
+                            lines[j][i] = ["N"];
+                        }
+                        else if (tile.color === TileColor.East) {
+                            lines[j][i] = ["E"];
+                        }
+                        else if (tile.color === TileColor.South) {
+                            lines[j][i] = ["S"];
+                        }
+                        else if (tile.color === TileColor.West) {
+                            lines[j][i] = ["W"];
+                        }
                     }
-                    else if (tile.color === TileColor.South) {
-                        lines[j][i] = ["s"];
+                    else if (tile instanceof ButtonTile) {
+                        if (tile.props.value === 1) {
+                            lines[j][i] = ["I"];
+                        }
+                        else if (tile.props.value === 2) {
+                            lines[j][i] = ["D"];
+                        }
+                        else if (tile.props.value === 3) {
+                            lines[j][i] = ["T"];
+                        }
                     }
-                    else if (tile.color === TileColor.West) {
-                        lines[j][i] = ["w"];
+                    else if (tile instanceof DoorTile) {
+                        if (tile.props.value === 1) {
+                            lines[j][i] = tile.closed ? ["j"] : ["i"];
+                        }
+                        else if (tile.props.value === 2) {
+                            lines[j][i] = tile.closed ? ["f"] : ["d"];
+                        }
+                        else if (tile.props.value === 3) {
+                            lines[j][i] = tile.closed ? ["u"] : ["t"];
+                        }
+                    }
+                    else if (tile instanceof PushTile) {
+                        lines[j][i] = ["p"];
+                    }
+                    else if (tile instanceof HoleTile) {
+                        if (tile.covered) {
+                            lines[j][i] = ["Q"];
+                        }
+                        else {
+                            lines[j][i] = ["O"];
+                        }
+                    }
+                    else if (tile instanceof WallTile) {
+                        lines[j][i] = ["a"];
+                    }
+                    else if (tile instanceof WaterTile) {
+                        lines[j][i] = ["q"];
                     }
                 }
-                else if (tile instanceof SwitchTile) {
-                    if (tile.color === TileColor.North) {
-                        lines[j][i] = ["N"];
+            }
+        }
+    });
+    // Serialize decor Tiles.
+    puzzle.tiles.forEach(tile => {
+        if (tile.isDecor) {
+            let i = tile.i;
+            let j = tile.j;
+            if (j >= 0 && j < lines.length) {
+                if (i >= 0 && i < lines[j].length) {
+                    if (tile instanceof Nobori) {
+                        lines[j][i] = ["b", (tile.rightSide ? "r" : "l"), tile.color.toFixed(0), ...lines[j][i]];
                     }
-                    else if (tile.color === TileColor.East) {
-                        lines[j][i] = ["E"];
-                    }
-                    else if (tile.color === TileColor.South) {
-                        lines[j][i] = ["S"];
-                    }
-                    else if (tile.color === TileColor.West) {
-                        lines[j][i] = ["W"];
-                    }
-                }
-                else if (tile instanceof ButtonTile) {
-                    if (tile.props.value === 1) {
-                        lines[j][i] = ["I"];
-                    }
-                    else if (tile.props.value === 2) {
-                        lines[j][i] = ["D"];
-                    }
-                    else if (tile.props.value === 3) {
-                        lines[j][i] = ["T"];
-                    }
-                }
-                else if (tile instanceof DoorTile) {
-                    if (tile.props.value === 1) {
-                        lines[j][i] = tile.closed ? ["j"] : ["i"];
-                    }
-                    else if (tile.props.value === 2) {
-                        lines[j][i] = tile.closed ? ["f"] : ["d"];
-                    }
-                    else if (tile.props.value === 3) {
-                        lines[j][i] = tile.closed ? ["u"] : ["t"];
-                    }
-                }
-                else if (tile instanceof PushTile) {
-                    lines[j][i] = ["p"];
-                }
-                else if (tile instanceof HoleTile) {
-                    if (tile.covered) {
-                        lines[j][i] = ["Q"];
-                    }
-                    else {
-                        lines[j][i] = ["O"];
-                    }
-                }
-                else if (tile instanceof WallTile) {
-                    lines[j][i] = ["a"];
-                }
-                else if (tile instanceof Nobori) {
-                    lines[j][i] = ["b" + (tile.rightSide ? "r" : "l") + tile.color.toFixed(0)];
-                }
-                else if (tile instanceof WaterTile) {
-                    lines[j][i] = ["q"];
                 }
             }
         }
@@ -11003,7 +11028,7 @@ function SaveAsText(puzzle, withHaiku) {
         let i = building.i;
         let j = building.j;
         if (building instanceof Ramp) {
-            lines[j][i] = ["R" + building.w.toFixed(0)];
+            lines[j][i] = ["R", building.w.toFixed(0)];
         }
         if (building instanceof Bridge) {
             lines[j][i] = ["U"];

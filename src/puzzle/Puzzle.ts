@@ -678,6 +678,7 @@ class Puzzle {
                         rightSide: rightSide
                     });
                     ii += 2;
+                    i--;
                 }
                 else if (c === "q") {
                     let water = new WaterTile(this.game, {

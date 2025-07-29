@@ -19,6 +19,7 @@ enum TileState {
 
 abstract class Tile extends BABYLON.Mesh {
 
+    public isDecor: boolean = false;
     public tileState: TileState = TileState.Active;
     public shadow: BABYLON.Mesh;
 

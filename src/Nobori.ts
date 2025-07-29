@@ -6,6 +6,7 @@ class Nobori extends Tile {
 
     constructor(game: Game, props: NoboriProps) {
         super(game, props);
+        this.isDecor = true;
 
         if (props && props.rightSide) {
             this.rightSide = props.rightSide;

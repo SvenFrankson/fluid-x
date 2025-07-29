@@ -39,15 +39,6 @@ class Puzzle {
     public invisiFloorTM: BABYLON.Mesh;
     public holeWall: BABYLON.Mesh;
     public creeps: Creep[] = [];
-    public wind: BABYLON.Vector3 = new BABYLON.Vector3(1, 0, 1);
-    public targetWind: BABYLON.Vector3 = new BABYLON.Vector3(1, 0, 1);
-    public windTiles: BABYLON.Vector3[][];
-    public windTilesGet(i: number, j: number): BABYLON.Vector3 {
-        return this.wind;
-        i = Nabu.MinMax(i, 0, this.w - 1);
-        j = Nabu.MinMax(j, 0, this.h - 1);
-        return this.windTiles[i][j];
-    }
     public tiles: Tile[] = [];
     public blockTiles: BlockTile[] = [];
     public noboris: Nobori[] = [];
@@ -503,7 +494,6 @@ class Puzzle {
         while (this.playerHaikus.length > 0) {
             this.playerHaikus.pop().dispose();
         }
-        this.windTiles = [];
         this.blockTiles = [];
         this.noboris = [];
         this.griddedTiles = [];
@@ -614,14 +604,11 @@ class Puzzle {
         }
 
         if (!replaying) {
-            this.windTiles = [];
             this.buildingBlocks = [];
             for (let i = 0; i < this.w; i++) {
                 this.buildingBlocks[i] = [];
-                this.windTiles[i] = [];
                 for (let j = 0; j < this.h; j++) {
                     this.buildingBlocks[i][j] = 0;
-                    this.windTiles[i][j] = new BABYLON.Vector3(1, 0, 1);
                 }
             }
     
@@ -1604,14 +1591,6 @@ class Puzzle {
             for (let i = 0; i < this.creeps.length; i++) {
                 this.creeps[i].update(dt);
             }
-            for (let i = 0; i < this.noboris.length; i++) {
-                this.noboris[i].update(dt);
-            }
-            let f = Nabu.Easing.smooth3Sec(1 / dt);
-            if (Math.random() < 0.001) {
-                this.targetWind.copyFromFloats(Math.random() * 5, 0, Math.random() * 5);
-            }
-            BABYLON.Vector3.LerpToRef(this.wind, this.targetWind, 1 - f, this.wind);
 
             if (this.puzzleState === PuzzleState.Playing) {
                 let noBlockTile = true;
@@ -1684,6 +1663,12 @@ class Puzzle {
         
                 this.fpsTexture.update();
             }
+        }
+    }
+    
+    public updateAesthetic(dt: number): void {
+        for (let i = 0; i < this.noboris.length; i++) {
+            this.noboris[i].update(dt);
         }
     }
 }

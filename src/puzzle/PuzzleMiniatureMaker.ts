@@ -17,6 +17,10 @@ class PuzzleMiniatureMaker {
                 w = parseInt(ballLine[0]);
                 h = parseInt(ballLine[1]);
             }
+            else if (ballLine.length === 6 || ballLine.length === 9) {
+                w = parseInt(ballLine[0]);
+                h = parseInt(ballLine[1]);
+            }
             else {
                 h = lines.length;
                 w = lines[0].length;
@@ -29,7 +33,6 @@ class PuzzleMiniatureMaker {
         if (max < 7) {
             f = 2;
         }
-        f = 6;
         let b = 6 * f;
         let m = 1 * f;
 
@@ -70,9 +73,11 @@ class PuzzleMiniatureMaker {
                 let i = 0;
                 for (let ii = 0; ii < line.length; ii++) {
                     let c = line[ii];
-                    let x = i * b;
-                    let y = (h - 1 - j) * b;
-                    let s = b;
+                    if (c === "b") {
+                        ii += 3;
+                        c = line[ii];
+                    }
+                    
                     if (c === "B") {
                         let x = (i) * b;
                         let y = (h - 1 - j - 1) * b;
@@ -111,6 +116,11 @@ class PuzzleMiniatureMaker {
                 let i = 0;
                 for (let ii = 0; ii < line.length; ii++) {
                     let c = line[ii];
+                    if (c === "b") {
+                        ii += 3;
+                        c = line[ii];
+                    }
+
                     let x = i * b + m;
                     let y = (h - 1 - j) * b + m;
                     let s = b - 2 * m;
@@ -191,6 +201,12 @@ class PuzzleMiniatureMaker {
                         else {
                             ii++;
                         }
+                    }
+                    if (c === "c") {
+                        context.fillStyle = "#ff0000";
+                        context.fillRect(x, y, s, s);
+                        context.fillStyle = "#ffffff";
+                        context.fillRect(x + m, y + m, s - 2 * m, s - 2 * m);
                     }
                     i++;
                 }

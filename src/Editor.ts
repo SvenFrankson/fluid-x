@@ -760,7 +760,7 @@ class Editor {
             if (this.puzzle.data.id) {
                 (this.puzzleIdInput as HTMLInputElement).value = this.puzzle.data.id.toFixed(0);
             }
-            this.titleInput.value = this.puzzle.data.title;
+            this.titleInput.value = this.puzzle.data.title.split(" (")[0];
             this.authorInput.value = this.puzzle.data.author;
         }
         else {

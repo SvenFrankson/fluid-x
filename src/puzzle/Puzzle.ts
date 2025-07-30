@@ -1667,8 +1667,10 @@ class Puzzle {
     }
     
     public updateAesthetic(dt: number): void {
-        for (let i = 0; i < this.noboris.length; i++) {
-            this.noboris[i].update(dt);
+        if (this.game.performanceWatcher.worst > 24) {
+            for (let i = 0; i < this.noboris.length; i++) {
+                this.noboris[i].update(dt);
+            }
         }
     }
 }

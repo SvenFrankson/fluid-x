@@ -140,8 +140,8 @@ abstract class Tile extends BABYLON.Mesh {
         return false;
     }
 
-    public getWinPath(dest: BABYLON.Vector3): BABYLON.Vector3 [] {
-
+    public getSwooshPath(dest: BABYLON.Vector3, maxSpireCount: number = 8): BABYLON.Vector3 [] {
+        maxSpireCount = Math.max(maxSpireCount, 2);
         let origin = this.position.clone();
         let dir = dest.subtract(origin).normalize();
         let c = (t: number) => {
@@ -150,7 +150,7 @@ abstract class Tile extends BABYLON.Mesh {
             return p;
         }
         let a0 = 2 * Math.PI * Math.random();
-        let spireCount = (Math.floor(Math.random() * 6) + 2);
+        let spireCount = (Math.floor(Math.random() * (maxSpireCount - 2)) + 2);
         let a = (t: number) => {
             return a0 + t * spireCount * Math.PI;
         }
@@ -177,7 +177,7 @@ abstract class Tile extends BABYLON.Mesh {
         let dy = 0.4;
         let dest = this.game.puzzle.fetchWinSlotPos(this.color);
         dest.y += dy;
-        let path = this.getWinPath(dest);
+        let path = this.getSwooshPath(dest);
 
         let star = BABYLON.MeshBuilder.CreateBox("star", { size: 0.4 });
         this.game.puzzle.stars.push(star);

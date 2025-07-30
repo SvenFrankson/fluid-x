@@ -996,11 +996,19 @@ class Ball extends BABYLON.Mesh {
                                                 tile.clicClack();
                                                 this.puzzle.tiles.forEach(door => {
                                                     if (door instanceof DoorTile && door.props.value === tile.props.value) {
-                                                        if (door.closed) {
-                                                            door.open();
-                                                        }
-                                                        else {
-                                                            door.close();
+                                                        if (tile instanceof ButtonTile) {
+                                                            let duration: number = 0.8;
+                                                            tile.shootUnlock(door, 1);
+                                                            setTimeout(() => {
+                                                                if (door instanceof DoorTile) {
+                                                                    if (door.closed) {
+                                                                        door.open();
+                                                                    }
+                                                                    else {
+                                                                        door.close();
+                                                                    }
+                                                                }
+                                                            }, duration * 0.6 * 1000);
                                                         }
                                                     }
                                                 })

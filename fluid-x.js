@@ -950,11 +950,19 @@ class Ball extends BABYLON.Mesh {
                                                 tile.clicClack();
                                                 this.puzzle.tiles.forEach(door => {
                                                     if (door instanceof DoorTile && door.props.value === tile.props.value) {
-                                                        if (door.closed) {
-                                                            door.open();
-                                                        }
-                                                        else {
-                                                            door.close();
+                                                        if (tile instanceof ButtonTile) {
+                                                            let duration = 0.8;
+                                                            tile.shootUnlock(door, 1);
+                                                            setTimeout(() => {
+                                                                if (door instanceof DoorTile) {
+                                                                    if (door.closed) {
+                                                                        door.open();
+                                                                    }
+                                                                    else {
+                                                                        door.close();
+                                                                    }
+                                                                }
+                                                            }, duration * 0.6 * 1000);
                                                         }
                                                     }
                                                 });
@@ -1444,7 +1452,8 @@ class Tile extends BABYLON.Mesh {
         }
         return false;
     }
-    getWinPath(dest) {
+    getSwooshPath(dest, maxSpireCount = 8) {
+        maxSpireCount = Math.max(maxSpireCount, 2);
         let origin = this.position.clone();
         let dir = dest.subtract(origin).normalize();
         let c = (t) => {
@@ -1453,7 +1462,7 @@ class Tile extends BABYLON.Mesh {
             return p;
         };
         let a0 = 2 * Math.PI * Math.random();
-        let spireCount = (Math.floor(Math.random() * 6) + 2);
+        let spireCount = (Math.floor(Math.random() * (maxSpireCount - 2)) + 2);
         let a = (t) => {
             return a0 + t * spireCount * Math.PI;
         };
@@ -1476,7 +1485,7 @@ class Tile extends BABYLON.Mesh {
         let dy = 0.4;
         let dest = this.game.puzzle.fetchWinSlotPos(this.color);
         dest.y += dy;
-        let path = this.getWinPath(dest);
+        let path = this.getSwooshPath(dest);
         let star = BABYLON.MeshBuilder.CreateBox("star", { size: 0.4 });
         this.game.puzzle.stars.push(star);
         let tileData = CreateBoxFrameVertexData({
@@ -2183,6 +2192,138 @@ class Bridge extends Build {
         Mummu.RotateVertexDataInPlace(shadowData, BABYLON.Quaternion.FromEulerAngles(Math.PI * 0.5, 0, 0));
         Mummu.TranslateVertexDataInPlace(shadowData, new BABYLON.Vector3(1.5 * 1.1, 0, 0.5 * 1.1));
         shadowData.applyToMesh(this.shadow);
+    }
+}
+class ButtonTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.value = 0;
+        if (isNaN(this.props.value)) {
+            this.props.value = 0;
+        }
+        this.value = this.props.value;
+        this.material = this.game.materials.brownMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+        this.tileFrame = new BABYLON.Mesh("tile-frame");
+        this.tileFrame.position.y = 0.25;
+        this.tileFrame.rotation.y = Math.PI * 0.25;
+        this.tileFrame.parent = this;
+        this.tileFrame.material = this.game.materials.blackMaterial;
+        this.tileFrame.renderOutline = true;
+        this.tileFrame.outlineColor = BABYLON.Color3.Black();
+        this.tileFrame.outlineWidth = 0.02;
+        this.tileTop = new BABYLON.Mesh("tile-top");
+        this.tileTop.parent = this.tileFrame;
+        this.tileTop.material = this.game.materials.tileNumberMaterials[this.props.value - 1];
+        this.tileBottom = new BABYLON.Mesh("tile-bottom");
+        this.tileBottom.parent = this;
+        this.tileBottom.material = this.game.materials.grayMaterial;
+    }
+    async instantiate() {
+        //await RandomWait();
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/buttonbox.babylon");
+        tileData[0].applyToMesh(this);
+        tileData[1].applyToMesh(this.tileFrame);
+        tileData[2].applyToMesh(this.tileTop);
+        tileData[3].applyToMesh(this.tileBottom);
+    }
+    async clicClack() {
+        this.bump();
+        let animateWait = Mummu.AnimationFactory.CreateWait(this);
+        let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
+        await animateRotation(-Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
+        this.game.puzzle.cricSound.play();
+        await animateWait(0.1);
+        await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
+        this.game.puzzle.cracSound.play();
+    }
+    async shootUnlock(targetDoor, duration = 0.6) {
+        let dy = 0.5;
+        let dest = targetDoor.position.clone();
+        dest.y += dy;
+        let path = this.getSwooshPath(dest, 0);
+        let star = new BABYLON.Mesh("star");
+        this.game.puzzle.stars.push(star);
+        star.position.copyFrom(this.position);
+        let tail;
+        let tailPoints;
+        if (this.game.performanceWatcher.worst > 24) {
+            tail = new BABYLON.Mesh("tail");
+            tail.visibility = 1;
+            tail.material = this.game.materials.tileStarTailMaterial;
+            tailPoints = [];
+        }
+        this.game.puzzle.wooshSound.play();
+        let t0 = performance.now();
+        return new Promise(resolve => {
+            let step = () => {
+                if (star.isDisposed()) {
+                    if (tail) {
+                        tail.dispose();
+                        return;
+                    }
+                }
+                let f = (performance.now() - t0) / 1000 / duration;
+                if (f < 1) {
+                    f = Nabu.Easing.easeOutSine(f);
+                    Mummu.EvaluatePathToRef(f, path, star.position);
+                    if (tail) {
+                        let n = Math.floor(f * path.length);
+                        if (f < 0.5) {
+                            if (0 < n - 3 - 1) {
+                                tailPoints = path.slice(0, n - 3);
+                            }
+                            else {
+                                tailPoints = [];
+                            }
+                        }
+                        else {
+                            let start = Math.floor((-4 + 5 * f) * path.length);
+                            start = Math.max(start, 0);
+                            if (start < n - 3 - 1) {
+                                tailPoints = path.slice(start, n - 3);
+                            }
+                            else {
+                                tailPoints = [];
+                            }
+                        }
+                        if (tailPoints.length > 2) {
+                            let data = CreateTrailVertexData({
+                                path: [...tailPoints],
+                                up: BABYLON.Axis.Y,
+                                radiusFunc: (f) => {
+                                    return 0.03 * f + 0.01;
+                                },
+                                color: new BABYLON.Color4(1, 1, 1, 1)
+                            });
+                            data.applyToMesh(tail);
+                            tail.isVisible = true;
+                        }
+                        else {
+                            tail.isVisible = false;
+                        }
+                    }
+                    requestAnimationFrame(step);
+                }
+                else {
+                    let index = this.game.puzzle.stars.indexOf(star);
+                    if (index != -1) {
+                        this.game.puzzle.stars.splice(index, 1);
+                    }
+                    if (tail) {
+                        tail.dispose();
+                    }
+                    if (star) {
+                        star.dispose();
+                    }
+                    resolve();
+                }
+            };
+            step();
+        });
     }
 }
 class CarillionMaterials {
@@ -7067,17 +7208,14 @@ class PerformanceWatcher {
             if (this.resizeCD <= 0 && this.targetDevicePixelRationess != this.devicePixelRationess) {
                 this.setDevicePixelRationess(this.targetDevicePixelRationess);
             }
-            /*
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
-
             if (this.worst < 24) {
                 this.isWorstTooLow = true;
             }
             else if (this.worst > 26) {
                 this.isWorstTooLow = false;
             }
-            */
         }
     }
     showDebug() {
@@ -7598,7 +7736,7 @@ class SwitchTile extends Tile {
         projectile.position.copyFrom(this.position);
         let tail;
         let tailPoints;
-        if (this.game.performanceWatcher.worst > 24 || true) {
+        if (this.game.performanceWatcher.worst > 24) {
             tail = new BABYLON.Mesh("tail");
             tail.visibility = 1;
             tail.material = this.game.materials.tileStarTailMaterial;
@@ -7649,54 +7787,6 @@ class SwitchTile extends Tile {
             };
             step();
         });
-    }
-}
-class ButtonTile extends Tile {
-    constructor(game, props) {
-        super(game, props);
-        this.value = 0;
-        if (isNaN(this.props.value)) {
-            this.props.value = 0;
-        }
-        this.value = this.props.value;
-        this.material = this.game.materials.brownMaterial;
-        this.renderOutline = true;
-        this.outlineColor = BABYLON.Color3.Black();
-        this.outlineWidth = 0.02;
-        this.tileFrame = new BABYLON.Mesh("tile-frame");
-        this.tileFrame.position.y = 0.25;
-        this.tileFrame.rotation.y = Math.PI * 0.25;
-        this.tileFrame.parent = this;
-        this.tileFrame.material = this.game.materials.blackMaterial;
-        this.tileFrame.renderOutline = true;
-        this.tileFrame.outlineColor = BABYLON.Color3.Black();
-        this.tileFrame.outlineWidth = 0.02;
-        this.tileTop = new BABYLON.Mesh("tile-top");
-        this.tileTop.parent = this.tileFrame;
-        this.tileTop.material = this.game.materials.tileNumberMaterials[this.props.value - 1];
-        this.tileBottom = new BABYLON.Mesh("tile-bottom");
-        this.tileBottom.parent = this;
-        this.tileBottom.material = this.game.materials.grayMaterial;
-    }
-    async instantiate() {
-        //await RandomWait();
-        await super.instantiate();
-        let tileData = await this.game.vertexDataLoader.get("./datas/meshes/buttonbox.babylon");
-        tileData[0].applyToMesh(this);
-        tileData[1].applyToMesh(this.tileFrame);
-        tileData[2].applyToMesh(this.tileTop);
-        tileData[3].applyToMesh(this.tileBottom);
-    }
-    async clicClack() {
-        //await RandomWait();
-        this.bump();
-        let animateWait = Mummu.AnimationFactory.CreateWait(this);
-        let animateRotation = Mummu.AnimationFactory.CreateNumber(this.tileFrame, this.tileFrame.rotation, "x");
-        await animateRotation(-Math.PI * 0.75, 0.25, Nabu.Easing.easeInSine);
-        this.game.puzzle.cricSound.play();
-        await animateWait(0.1);
-        await animateRotation(0, 0.35, Nabu.Easing.easeInSine);
-        this.game.puzzle.cracSound.play();
     }
 }
 class DoorTile extends Tile {
@@ -10783,8 +10873,10 @@ class Puzzle {
         }
     }
     updateAesthetic(dt) {
-        for (let i = 0; i < this.noboris.length; i++) {
-            this.noboris[i].update(dt);
+        if (this.game.performanceWatcher.worst > 24) {
+            for (let i = 0; i < this.noboris.length; i++) {
+                this.noboris[i].update(dt);
+            }
         }
     }
 }

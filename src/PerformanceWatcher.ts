@@ -53,7 +53,6 @@ class PerformanceWatcher {
                 this.setDevicePixelRationess(this.targetDevicePixelRationess);
             }
 
-            /*
             this.worst = Math.min(fps, this.worst);
             this.worst = 0.995 * this.worst + 0.005 * this.average;
 
@@ -63,7 +62,6 @@ class PerformanceWatcher {
             else if (this.worst > 26) {
                 this.isWorstTooLow = false;
             }
-            */
         }
     }
 

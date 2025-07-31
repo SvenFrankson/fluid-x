@@ -19,7 +19,7 @@ i18nData["home-expert-mode"] = {
 }
 i18nData["home-community-mode"] = {
     "en": "community puzzles",
-    "fr": "puzzles maison"
+    "fr": "puzzles custom"
 }
 
 // Intro Screen

@@ -15,8 +15,8 @@
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
    sodipodi:docname="puck-side-arrow-4.svg"
    inkscape:export-filename="C:\Users\svent\Documents\sven-frankson\fluid-x\datas\textures\puck-side-arrow.png"
-   inkscape:export-xdpi="65"
-   inkscape:export-ydpi="65">
+   inkscape:export-xdpi="260.09601"
+   inkscape:export-ydpi="260.09601">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -26,9 +26,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.6820922"
-     inkscape:cx="252.8861"
-     inkscape:cy="210.45699"
+     inkscape:zoom="1.8410461"
+     inkscape:cx="410.5102"
+     inkscape:cy="300.0156"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -57,11 +57,11 @@
      id="layer1">
     <g
        id="g1577"
-       transform="matrix(0.83230005,0,0,0.83230005,8.3849974,8.3849969)"
-       style="stroke-width:1.20149;fill:#2f251d;fill-opacity:1">
+       transform="matrix(1.6460065,0,0,1.6460065,-55.787084,-32.300338)"
+       style="fill:#2f251d;fill-opacity:1;stroke:#ffffff;stroke-width:1.82259305;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round">
       <path
          id="path838-3"
-         style="fill:#2f251d;fill-opacity:1;stroke:none;stroke-width:1.20149;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
+         style="fill:#2f251d;fill-opacity:1;stroke:#ffffff;stroke-width:1.82259305;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:34.0158;stroke-opacity:1;paint-order:stroke fill markers"
          inkscape:transform-center-x="-4.3481047"
          d="m 84.506984,55.853953 c 1.19488,-1.172932 2.19825,-2.288436 2.90421,-3.274734 0.73159,-1.022099 1.15239,-1.908022 1.15239,-2.579172 0,-0.671171 -0.42075,-1.557544 -1.15239,-2.579687 -5.2e-4,-7.94e-4 -10e-4,-0.0013 -0.002,-0.0021 -0.70598,-0.985911 -1.70894,-2.100396 -2.90318,-3.272668 l -3.21014,-2.905763 c -1.15714,-0.9754 -2.39054,-1.951469 -3.65404,-2.896468 0.63815,1.513288 1.15095,3.076412 1.53324,4.673626 0.54753,2.287323 0.82417,4.631095 0.82424,6.983037 -8e-5,4.003939 -0.80165,7.967353 -2.35748,11.656651 1.2635,-0.944996 2.49689,-1.921062 3.65404,-2.896462 z"
          sodipodi:nodetypes="csssccccccccc" />

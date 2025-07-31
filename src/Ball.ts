@@ -576,19 +576,19 @@ class Ball extends BABYLON.Mesh {
 
         let vX = 0;
         if (this.leftPressed > 0) {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftPressed) * 0.2;
+            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.05, this.leftPressed) * 0.2;
             vX -= this.leftPressed;
         }
         else {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
+            this.leftArrowSize = this.leftArrowSize * 0.8 + 0.05 * 0.2;
         }
 
         if (this.rightPressed > 0) {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightPressed) * 0.2;
+            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.05, this.rightPressed) * 0.2;
             vX += this.rightPressed;
         }
         else {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
+            this.rightArrowSize = this.rightArrowSize * 0.8 + 0.05 * 0.2;
         }
 
         vX = Nabu.MinMax(vX, -1, 1);

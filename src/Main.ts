@@ -5,8 +5,8 @@
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 
 var MAJOR_VERSION: number = 2;
-var MINOR_VERSION: number = 0;
-var PATCH_VERSION: number = 3;
+var MINOR_VERSION: number = 1;
+var PATCH_VERSION: number = 1;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 
@@ -62,7 +62,7 @@ function SDKGameplayStop(): void {
 }
 
 var PlayerHasInteracted = false;
-var IsTouchScreen = 1;
+var IsTouchScreen = -1;
 var IsMobile = - 1;
 var HasLocalStorage = false;
 
@@ -105,6 +105,7 @@ async function WaitPlayerInteraction(): Promise<void> {
 
 function firstPlayerInteraction(): void {
     Game.Instance.onResize();
+    Game.Instance.soundManager.soundOn();
 
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
@@ -149,6 +150,10 @@ let onFirstPlayerInteractionClick = (ev: MouseEvent) => {
     ev.stopPropagation();
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
 
+    if (IsTouchScreen === -1) {
+        IsTouchScreen = 0;
+        document.body.classList.remove("touchscreen");
+    }
     if (!PlayerHasInteracted) {
         firstPlayerInteraction();
     }
@@ -165,8 +170,10 @@ let onFirstPlayerInteractionKeyboard = (ev: KeyboardEvent) => {
     ev.stopPropagation();
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
     
-    IsTouchScreen = 0;
-    document.body.classList.remove("touchscreen");
+    if (IsTouchScreen === -1) {
+        IsTouchScreen = 0;
+        document.body.classList.remove("touchscreen");
+    }
 
     if (!PlayerHasInteracted) {
         firstPlayerInteraction();
@@ -1399,6 +1406,7 @@ var DEV_MODE_ACTIVATED: boolean = false;
 var var1: string = "";
 function DEV_ACTIVATE(): void {
     DEV_MODE_ACTIVATED = true;
+    (document.querySelector("#home-editor-btn") as HTMLButtonElement).style.display = "";
     var1 = (document.querySelector("#dev-pass-input") as HTMLInputElement).value;
     (document.querySelector("#dev-page .dev-active") as HTMLDivElement).style.display = "block";
     (document.querySelector("#dev-back-btn") as HTMLButtonElement).style.display = "block";

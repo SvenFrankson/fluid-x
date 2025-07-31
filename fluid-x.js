@@ -557,18 +557,18 @@ class Ball extends BABYLON.Mesh {
         this.dumdumFactor = this.dumdumFactor * f + this.dumdumFactorTarget * (1 - f);
         let vX = 0;
         if (this.leftPressed > 0) {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.5, this.leftPressed) * 0.2;
+            this.leftArrowSize = this.leftArrowSize * 0.8 + Math.max(0.05, this.leftPressed) * 0.2;
             vX -= this.leftPressed;
         }
         else {
-            this.leftArrowSize = this.leftArrowSize * 0.8 + 0.5 * 0.2;
+            this.leftArrowSize = this.leftArrowSize * 0.8 + 0.05 * 0.2;
         }
         if (this.rightPressed > 0) {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.5, this.rightPressed) * 0.2;
+            this.rightArrowSize = this.rightArrowSize * 0.8 + Math.max(0.05, this.rightPressed) * 0.2;
             vX += this.rightPressed;
         }
         else {
-            this.rightArrowSize = this.rightArrowSize * 0.8 + 0.5 * 0.2;
+            this.rightArrowSize = this.rightArrowSize * 0.8 + 0.05 * 0.2;
         }
         vX = Nabu.MinMax(vX, -1, 1);
         if (this.ballState != BallState.Ready && this.ballState != BallState.Flybacking && this.ballState != BallState.Wining) {
@@ -5424,8 +5424,8 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 var MAJOR_VERSION = 2;
-var MINOR_VERSION = 0;
-var PATCH_VERSION = 3;
+var MINOR_VERSION = 1;
+var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5478,7 +5478,7 @@ function SDKGameplayStop() {
     }
 }
 var PlayerHasInteracted = false;
-var IsTouchScreen = 1;
+var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
 function StorageGetItem(key) {
@@ -5516,6 +5516,7 @@ async function WaitPlayerInteraction() {
 }
 function firstPlayerInteraction() {
     Game.Instance.onResize();
+    Game.Instance.soundManager.soundOn();
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
         if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
@@ -5554,6 +5555,10 @@ let onFirstPlayerInteractionClick = (ev) => {
     console.log("onFirstPlayerInteractionClic");
     ev.stopPropagation();
     document.body.removeEventListener("click", onFirstPlayerInteractionClick);
+    if (IsTouchScreen === -1) {
+        IsTouchScreen = 0;
+        document.body.classList.remove("touchscreen");
+    }
     if (!PlayerHasInteracted) {
         firstPlayerInteraction();
     }
@@ -5568,8 +5573,10 @@ let onFirstPlayerInteractionKeyboard = (ev) => {
     console.log("onFirstPlayerInteractionKeyboard");
     ev.stopPropagation();
     document.body.removeEventListener("keydown", onFirstPlayerInteractionKeyboard);
-    IsTouchScreen = 0;
-    document.body.classList.remove("touchscreen");
+    if (IsTouchScreen === -1) {
+        IsTouchScreen = 0;
+        document.body.classList.remove("touchscreen");
+    }
     if (!PlayerHasInteracted) {
         firstPlayerInteraction();
     }
@@ -6618,6 +6625,7 @@ var DEV_MODE_ACTIVATED = false;
 var var1 = "";
 function DEV_ACTIVATE() {
     DEV_MODE_ACTIVATED = true;
+    document.querySelector("#home-editor-btn").style.display = "";
     var1 = document.querySelector("#dev-pass-input").value;
     document.querySelector("#dev-page .dev-active").style.display = "block";
     document.querySelector("#dev-back-btn").style.display = "block";
@@ -9637,7 +9645,7 @@ class Puzzle {
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         document.querySelector("#puzzle-skip-intro").style.display = "";
         document.querySelector("#puzzle-ready").style.display = "none";
-        if (!this.editorOrEditorPreview && this.data.state === PuzzleDataState.STORY && this.data.numLevel === 1) {
+        if (!(USE_POKI_SDK || USE_CG_SDK) && !this.editorOrEditorPreview && this.data.state === PuzzleDataState.STORY && this.data.numLevel === 1) {
             this.game.router.tutoPage.show(1);
         }
         else {
@@ -12089,7 +12097,7 @@ i18nData["home-expert-mode"] = {
 };
 i18nData["home-community-mode"] = {
     "en": "community puzzles",
-    "fr": "puzzles maison"
+    "fr": "puzzles custom"
 };
 // Intro Screen
 i18nData["intro-to-play-keyboard"] = {

@@ -331,7 +331,7 @@ class Puzzle {
         document.querySelector("#puzzle-author").innerHTML = "created by " + this.data.author;
         (document.querySelector("#puzzle-skip-intro") as HTMLDivElement).style.display = "";
         (document.querySelector("#puzzle-ready") as HTMLDivElement).style.display = "none";
-        if (!this.editorOrEditorPreview && this.data.state === PuzzleDataState.STORY && this.data.numLevel === 1) {
+        if (!(USE_POKI_SDK || USE_CG_SDK) && !this.editorOrEditorPreview && this.data.state === PuzzleDataState.STORY && this.data.numLevel === 1) {
             this.game.router.tutoPage.show(1);
         }
         else {

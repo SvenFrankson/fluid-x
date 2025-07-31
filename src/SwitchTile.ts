@@ -67,8 +67,8 @@ class SwitchTile extends Tile {
             let t0 = performance.now();
             let step = () => {
                 let f = (performance.now() - t0) / 1000 / duration;
+                let s = 0.4 + 0.6 * (1 - f);
                 f = Math.sqrt(f);
-                let s = 0.4 + 0.6 * f;
 
                 if (tail) {
                     tailPoints.push(projectile.position.add(new BABYLON.Vector3(0, 0.2 * s, 0)));

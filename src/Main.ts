@@ -532,6 +532,14 @@ class Game {
 
         this.router.start();
 
+        document.querySelectorAll(".fullscreen-btn").forEach(e => {
+            if (e instanceof HTMLButtonElement) {
+                e.onclick = () => {
+                    document.body.requestFullscreen();
+                }
+            }
+        });
+
         document.querySelectorAll(".p1-name-input").forEach(e => {
             if (e instanceof HTMLInputElement) {
                 e.onchange = () => {

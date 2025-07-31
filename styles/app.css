@@ -172,7 +172,6 @@ a:active {
     }
 }
 
-
 #home-menu completion-bar {
     left: 15px;
     bottom: -11px;
@@ -225,6 +224,19 @@ h3 {
     color: #2b2821;
 }
 
+button.common-fullscreen-btn {
+    display: block;
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    bottom: 10px;
+    right: 10px;
+}
+
+:fullscreen button.common-fullscreen-btn {
+    display: none;
+}
+
 .panel {
     position: fixed;
     display: block;
@@ -269,6 +281,7 @@ button {
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    touch-action: none;
 }
 
 button.lockable {
@@ -441,6 +454,8 @@ body:not(.touchscreen) button:hover, .hovered {
     font-weight: 900;
     padding: 3px;
     margin: 5px;
+    
+    touch-action: pan-y;
 }
 
 .square-btn {
@@ -889,28 +904,12 @@ body:not(.vertical) #reset-btn {
     width: 90px;
 }
 
-#sound-btn {
-    display: block;
-    position: fixed;
-    width: 40px;
-    top: 95px;
-    right: 5px;
-    background-image: url("../datas/icons/sound.png");
-    background-size: 90%;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-#sound-btn.mute {
-    background-image: url("../datas/icons/sound-off.png");
-}
-
 #zoom-out-btn {
     display: block;
     position: fixed;
     width: 40px;
-    top: 95px;
-    right: 95px;
+    top: 105px;
+    right: 50px;
     background-image: url("../datas/icons/zoom-out.png");
     background-size: 90%;
     background-position: center;
@@ -921,24 +920,61 @@ body:not(.vertical) #reset-btn {
     display: block;
     position: fixed;
     width: 40px;
-    top: 95px;
-    right: 50px;
+    top: 105px;
+    right: 5px;
     background-image: url("../datas/icons/zoom-in.png");
     background-size: 90%;
     background-position: center;
     background-repeat: no-repeat;
 }
 
-body:not(.vertical) #sound-btn {
-    top: 50px;
+#sound-btn {
+    display: block;
+    position: fixed;
+    width: 40px;
+    top: 150px;
+    right: 50px;
+    background-image: url("../datas/icons/sound.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#sound-btn.mute {
+    background-image: url("../datas/icons/sound-off.png");
+}
+
+#fullscreen-btn {
+    display: block;
+    position: fixed;
+    width: 40px;
+    top: 150px;
+    right: 5px;
+}
+
+.fullscreen-btn {
+    background-image: url("../datas/icons/fullscreen.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 body:not(.vertical) #zoom-out-btn {
-    top: 50px;
+    top: 60px;
+    right: 140px
 }
 
 body:not(.vertical) #zoom-in-btn {
-    top: 50px;
+    top: 60px;
+    right: 95px
+}
+
+body:not(.vertical) #sound-btn {
+    top: 60px;
+}
+
+body:not(.vertical) #fullscreen-btn {
+    top: 60px;
 }
 
 #editor-btn {
@@ -979,7 +1015,7 @@ body:not(.vertical) #zoom-in-btn {
 }
 
 body.vertical #play-timer {
-    top: 98px;
+    top: 30px;
     left: 30px;
 }
 

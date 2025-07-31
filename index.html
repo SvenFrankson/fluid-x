@@ -3,7 +3,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
 		<title>Carillion</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui, shrink-to-fit=no viewport-fit=cover">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui, shrink-to-fit=no viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 		<meta property="og:title" content="Carillion"/>
 		<script src="index.js"></script>
 		<style>
@@ -142,6 +142,7 @@
 	<body class="vertical touchscreen">
 		<canvas id="render-canvas"></canvas>
 		<a href="#dev"><button id="dev-back-btn" class="medium-btn bluegrey" style="display: none;"><stroke-text>DEV</stroke-text></button></a>
+		<
 		<default-page id="home-menu" file="home-menu.xhtml" style="display: none; opacity: 0;"></default-page>
 		<default-page id="base-puzzles-page" class="page levels" file="level-page.xhtml" style="display: none; opacity: 0;"></default-page>
 		<default-page id="expert-puzzles-page" class="page levels" file="level-page.xhtml" style="display: none; opacity: 0;"></default-page>
@@ -156,7 +157,7 @@
 		<default-page id="dev-page" class="panel" file="dev-page.xhtml" style="display: none; opacity: 0;"></default-page>
 		<default-page id="tuto-page" class="panel" file="tuto-page.xhtml" style="display: none; opacity: 0;"></default-page>
 		<default-page id="eula-page" class="panel" file="eula-page.xhtml" style="display: none; opacity: 0;"></default-page>
-		<div id="click-anywhere-screen">
+		<div id="click-anywhere-screen" style="touch-action: none;">
 			<div id="click-anywhere-screen-container">
 				<div id="click-anywhere-screen-top">
 					<h1>CARILLION</h1>

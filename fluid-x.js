@@ -1,3 +1,23 @@
+class Analytics {
+    constructor(game) {
+        this.game = game;
+    }
+    async sendEvent(eventType) {
+        let body = {
+            puzzle_id: this.game.puzzle.data.id,
+            event_type: eventType
+        };
+        const response = await fetch(SHARE_SERVICE_PATH + "analytics", {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        });
+        console.log(await response.text());
+    }
+}
 var BallState;
 (function (BallState) {
     BallState[BallState["Ready"] = 0] = "Ready";
@@ -5499,7 +5519,7 @@ function StorageSetItem(key, value) {
 }
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -5516,9 +5536,9 @@ async function WaitPlayerInteraction() {
 }
 function firstPlayerInteraction() {
     Game.Instance.onResize();
-    Game.Instance.soundManager.soundOn();
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
+        Game.Instance.soundManager.soundOn();
         if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
             if (location.hash != "#level-1") {
                 location.hash = "#level-1";
@@ -5715,6 +5735,7 @@ class Game {
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
         this.performanceWatcher = new PerformanceWatcher(this);
+        this.analytics = new Analytics(this);
     }
     getScene() {
         return this.scene;
@@ -5885,6 +5906,12 @@ class Game {
                     console.log(location.hash);
                 }
             }
+        }
+        if (!(USE_POKI_SDK || USE_CG_SDK)) {
+            document.querySelector("#home-editor-btn").style.display = "";
+        }
+        if (window.top != window.self) {
+            document.body.classList.add("in-iframe");
         }
         this.router.start();
         document.querySelectorAll(".fullscreen-btn").forEach(e => {
@@ -6154,34 +6181,36 @@ class Game {
         }
         this.dayOfXMasCal = new Date().getDate();
         this.dayOfXMasCal = Nabu.MinMax(this.dayOfXMasCal, 1, 24);
-        let iFallback = 0;
-        for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
-            let puzzleData = {
-                id: xMasPuzzles.puzzles[iFallback].id,
-                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
-                author: "TiaratumGames",
-                content: xMasPuzzles.puzzles[iFallback].content,
-                difficulty: 2
-            };
-            xMasPuzzles.puzzles[i] = puzzleData;
-            iFallback = (iFallback + 1) % xMasPuzzles.puzzles.length;
-        }
-        let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
-        for (let i = i0; i < 24; i++) {
-            let puzzleData = {
-                id: null,
-                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
-                author: "TiaratumGames",
-                content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                difficulty: 2
-            };
-            if (i % 3 === 0) {
-                puzzleData.content = puzzleData.content.replaceAll("s", "n");
+        if (xMasPuzzles.puzzles.length > 0) {
+            let iFallback = 0;
+            for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
+                let puzzleData = {
+                    id: xMasPuzzles.puzzles[iFallback].id,
+                    title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                    author: "TiaratumGames",
+                    content: xMasPuzzles.puzzles[iFallback].content,
+                    difficulty: 2
+                };
+                xMasPuzzles.puzzles[i] = puzzleData;
+                iFallback = (iFallback + 1) % xMasPuzzles.puzzles.length;
             }
-            else if (i % 3 === 2) {
-                puzzleData.content = puzzleData.content.replaceAll("s", "w");
+            let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
+            for (let i = i0; i < 24; i++) {
+                let puzzleData = {
+                    id: null,
+                    title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                    author: "TiaratumGames",
+                    content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                    difficulty: 2
+                };
+                if (i % 3 === 0) {
+                    puzzleData.content = puzzleData.content.replaceAll("s", "n");
+                }
+                else if (i % 3 === 2) {
+                    puzzleData.content = puzzleData.content.replaceAll("s", "w");
+                }
+                xMasPuzzles.puzzles[i] = puzzleData;
             }
-            xMasPuzzles.puzzles[i] = puzzleData;
         }
         this.loadedXMasPuzzles = xMasPuzzles;
         for (let i = 0; i < this.loadedXMasPuzzles.puzzles.length; i++) {
@@ -9695,6 +9724,7 @@ class Puzzle {
             this.puzzleUI.winSound.play();
         }, 1000);
         this._winloseTimout = setTimeout(() => {
+            this.game.analytics.sendEvent(1);
             this.puzzleUI.win(firstTimeCompleted, previousCompletion);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
@@ -9713,6 +9743,7 @@ class Puzzle {
             this.puzzleUI.hideTouchInput();
             this.puzzleState = PuzzleState.Done;
             this.puzzleUI.lose();
+            this.game.analytics.sendEvent(2);
         }, 1000);
     }
     async submitHighscore() {
@@ -10803,6 +10834,7 @@ class Puzzle {
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
         this.game.setPlayTimer(this.playTimer);
+        this.game.analytics.sendEvent(0);
     }
     addBallCollision(v) {
         if (Math.abs(this._globalTime - this._ballCollisionTimeStamp) > 0.1) {

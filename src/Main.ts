@@ -86,7 +86,7 @@ function StorageSetItem(key: string, value: string): void {
 
 var SHARE_SERVICE_PATH: string = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 
 async function WaitPlayerInteraction(): Promise<void> {
@@ -105,10 +105,10 @@ async function WaitPlayerInteraction(): Promise<void> {
 
 function firstPlayerInteraction(): void {
     Game.Instance.onResize();
-    Game.Instance.soundManager.soundOn();
 
     setTimeout(() => {
         document.getElementById("click-anywhere-screen").style.display = "none";
+        Game.Instance.soundManager.soundOn();
         if (Game.Instance.puzzleCompletion.completedPuzzles.length === 0) {
             if (location.hash != "#level-1") {
                 location.hash = "#level-1";
@@ -267,6 +267,7 @@ class Game {
     public uiInputManager: UserInterfaceInputManager;
     public screenRatio: number = 1;
     public performanceWatcher: PerformanceWatcher;
+    public analytics: Analytics;
 
     public camera: BABYLON.ArcRotateCamera;
     public menuCamAlpha: number = - Math.PI * 0.75;
@@ -352,6 +353,7 @@ class Game {
         this.soundManager = new SoundManager();
         this.uiInputManager = new UserInterfaceInputManager(this);
         this.performanceWatcher = new PerformanceWatcher(this);
+        this.analytics = new Analytics(this);
 	}
 
     public async createScene(): Promise<void> {
@@ -528,6 +530,14 @@ class Game {
                     console.log(location.hash);
                 }
             }
+        }
+
+        if (!(USE_POKI_SDK || USE_CG_SDK)) {
+            (document.querySelector("#home-editor-btn") as HTMLButtonElement).style.display = "";
+        }
+
+        if (window.top!=window.self) {
+            document.body.classList.add("in-iframe");
         }
 
         this.router.start();
@@ -840,34 +850,36 @@ class Game {
         this.dayOfXMasCal = new Date().getDate();
         this.dayOfXMasCal = Nabu.MinMax(this.dayOfXMasCal, 1, 24);
         
-        let iFallback = 0;
-        for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
-            let puzzleData: IPuzzleData = {
-                id: xMasPuzzles.puzzles[iFallback].id,
-                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
-                author: "TiaratumGames",
-                content: xMasPuzzles.puzzles[iFallback].content,
-                difficulty: 2
+        if (xMasPuzzles.puzzles.length > 0) {
+            let iFallback = 0;
+            for (let i = xMasPuzzles.puzzles.length; i < this.dayOfXMasCal; i++) {
+                let puzzleData: IPuzzleData = {
+                    id: xMasPuzzles.puzzles[iFallback].id,
+                    title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                    author: "TiaratumGames",
+                    content: xMasPuzzles.puzzles[iFallback].content,
+                    difficulty: 2
+                }
+                xMasPuzzles.puzzles[i] = puzzleData;
+                iFallback = (iFallback + 1) % xMasPuzzles.puzzles.length;
             }
-            xMasPuzzles.puzzles[i] = puzzleData;
-            iFallback = (iFallback + 1) % xMasPuzzles.puzzles.length;
-        }
-        let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
-        for (let i = i0; i < 24; i++) {
-            let puzzleData: IPuzzleData = {
-                id: null,
-                title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
-                author: "TiaratumGames",
-                content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                difficulty: 2
+            let i0 = Math.min(this.dayOfXMasCal, xMasPuzzles.puzzles.length);
+            for (let i = i0; i < 24; i++) {
+                let puzzleData: IPuzzleData = {
+                    id: null,
+                    title: "December " + (i + 1).toFixed(0) + ".\nSurprise !",
+                    author: "TiaratumGames",
+                    content: "11u14u5u9u2xoooooooooooxooosssssoooxoosssssssooxossooooossoxossooooossoxoosooooossoxoooooosssooxooooossooooxooooossooooxooooosoooooxoooooooooooxoooosssooooxoooosssooooxoooooooooooxBB0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                    difficulty: 2
+                }
+                if (i % 3 === 0) {
+                    puzzleData.content = puzzleData.content.replaceAll("s", "n");
+                }
+                else if (i % 3 === 2) {
+                    puzzleData.content = puzzleData.content.replaceAll("s", "w");
+                }
+                xMasPuzzles.puzzles[i] = puzzleData;
             }
-            if (i % 3 === 0) {
-                puzzleData.content = puzzleData.content.replaceAll("s", "n");
-            }
-            else if (i % 3 === 2) {
-                puzzleData.content = puzzleData.content.replaceAll("s", "w");
-            }
-            xMasPuzzles.puzzles[i] = puzzleData;
         }
 
         this.loadedXMasPuzzles = xMasPuzzles;

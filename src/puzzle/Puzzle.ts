@@ -378,6 +378,7 @@ class Puzzle {
             this.puzzleUI.winSound.play();
         }, 1000);
         this._winloseTimout = setTimeout(() => {
+            this.game.analytics.sendEvent(1);
             this.puzzleUI.win(firstTimeCompleted, previousCompletion);
             if (!this.editorOrEditorPreview && !OFFLINE_MODE && (this.data.score === null || score < this.data.score)) {
                 this.puzzleUI.setHighscoreState(1);
@@ -397,6 +398,7 @@ class Puzzle {
             this.puzzleUI.hideTouchInput();
             this.puzzleState = PuzzleState.Done;
             this.puzzleUI.lose();
+            this.game.analytics.sendEvent(2);
         }, 1000);
     }
 
@@ -1570,6 +1572,7 @@ class Puzzle {
         this.game.fadeOutIntro(0.5);
         this.playTimer = 0;
         this.game.setPlayTimer(this.playTimer);
+        this.game.analytics.sendEvent(0);
     }
 
     private _ballCollisionTimeStamp: number = 0;

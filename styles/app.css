@@ -237,6 +237,10 @@ button.common-fullscreen-btn {
     display: none;
 }
 
+body.in-iframe button.common-fullscreen-btn {
+    display: none;
+}
+
 .panel {
     position: fixed;
     display: block;

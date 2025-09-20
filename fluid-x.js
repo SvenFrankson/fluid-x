@@ -5,7 +5,8 @@ class Analytics {
     async sendEvent(eventType) {
         let body = {
             puzzle_id: this.game.puzzle.data.id,
-            event_type: eventType
+            event_type: eventType,
+            top_host: TOP_HOST
         };
         const response = await fetch(SHARE_SERVICE_PATH + "analytics", {
             method: "POST",
@@ -38,7 +39,7 @@ class Ball extends BABYLON.Mesh {
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
         this.canBoost = true;
         this._boost = false;
-        this.nominalSpeed = 2.3;
+        this.nominalSpeed = 4;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
@@ -5444,7 +5445,7 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 var MAJOR_VERSION = 2;
-var MINOR_VERSION = 1;
+var MINOR_VERSION = 2;
 var PATCH_VERSION = 1;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
@@ -5459,6 +5460,7 @@ var ADVENT_CAL;
 var PokiSDK;
 var CrazySDK;
 var LOCALE = "en";
+var TOP_HOST;
 var SDKPlaying = false;
 function SDKGameplayStart() {
     if (!SDKPlaying) {
@@ -5912,6 +5914,15 @@ class Game {
         }
         if (window.top != window.self) {
             document.body.classList.add("in-iframe");
+            if (window.location.search) {
+                TOP_HOST = window.location.search.replace("?", "");
+            }
+            else {
+                TOP_HOST = "UNKWN";
+            }
+        }
+        else {
+            TOP_HOST = "TIARATUM";
         }
         this.router.start();
         document.querySelectorAll(".fullscreen-btn").forEach(e => {
@@ -7317,7 +7328,6 @@ class PushTile extends Tile {
         this.animateRotX = Mummu.AnimationFactory.EmptyNumberCallback;
         this.animateRotZ = Mummu.AnimationFactory.EmptyNumberCallback;
         this.animateWait = Mummu.AnimationFactory.EmptyVoidCallback;
-        this._pushCallback = () => { };
         this.color = props.color;
         this.animatePosition = Mummu.AnimationFactory.CreateVector3(this, this, "position");
         this.animateRotX = Mummu.AnimationFactory.CreateNumber(this, this.rotation, "x");
@@ -7351,12 +7361,7 @@ class PushTile extends Tile {
     }
     async push(dir) {
         //await RandomWait();
-        if (this.tileState === TileState.Moving) {
-            this._pushCallback = () => {
-                this.push(dir);
-            };
-        }
-        else if (this.tileState === TileState.Active) {
+        if (this.tileState === TileState.Active || this.tileState === TileState.Moving) {
             dir = dir.clone();
             if (Math.abs(dir.x) > Math.abs(dir.z)) {
                 dir.x = Math.sign(dir.x);
@@ -7462,9 +7467,6 @@ class PushTile extends Tile {
                                 targetRotX = Mummu.AngleFromToAround(BABYLON.Axis.Y, n, BABYLON.Axis.X);
                             }
                             this.tileState = TileState.Moving;
-                            setTimeout(() => {
-                                this._pushCallback = undefined;
-                            }, 500);
                             this.pushSound.play();
                             this.animateRotX(targetRotX, 1);
                             await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
@@ -7474,9 +7476,6 @@ class PushTile extends Tile {
                             let hIJm = this.game.puzzle.hMapGet(this.i, this.j - 1);
                             if (hIJ > hIJm) {
                                 this.push(new BABYLON.Vector3(0, 0, -1));
-                            }
-                            else if (this._pushCallback) {
-                                this._pushCallback();
                             }
                         }
                     }

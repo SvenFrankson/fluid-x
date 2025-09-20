@@ -7,7 +7,8 @@ class Analytics {
     public async sendEvent(eventType: number): Promise<void> {
         let body = {
             puzzle_id: this.game.puzzle.data.id,
-            event_type: eventType
+            event_type: eventType,
+            top_host: TOP_HOST
         }
         const response = await fetch(SHARE_SERVICE_PATH + "analytics", {
             method: "POST",

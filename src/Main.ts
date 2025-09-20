@@ -5,7 +5,7 @@
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 
 var MAJOR_VERSION: number = 2;
-var MINOR_VERSION: number = 1;
+var MINOR_VERSION: number = 2;
 var PATCH_VERSION: number = 1;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
@@ -13,14 +13,15 @@ var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 +
 var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
-var USE_POKI_SDK;
-var USE_CG_SDK;
-var OFFLINE_MODE;
-var NO_VERTEX_DATA_LOADER;
-var ADVENT_CAL;
+var USE_POKI_SDK: boolean;
+var USE_CG_SDK: boolean;
+var OFFLINE_MODE: boolean;
+var NO_VERTEX_DATA_LOADER: boolean;
+var ADVENT_CAL: boolean;
 var PokiSDK: any;
 var CrazySDK: any;
 var LOCALE = "en";
+var TOP_HOST: string;
 
 var SDKPlaying: boolean = false;
 function SDKGameplayStart(): void {
@@ -538,6 +539,15 @@ class Game {
 
         if (window.top!=window.self) {
             document.body.classList.add("in-iframe");
+            if (window.location.search) {
+                TOP_HOST = window.location.search.replace("?", "");
+            }
+            else {
+                TOP_HOST = "UNKWN";
+            }
+        }
+        else {
+            TOP_HOST = "TIARATUM";
         }
 
         this.router.start();

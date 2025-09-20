@@ -54,16 +54,9 @@ class PushTile extends Tile {
         BABYLON.CreateGroundVertexData({ width: 0.9, height: 0.9 }).applyToMesh(this.tileTop);
     }
 
-    private _pushCallback = () => {};
-
     public async push(dir: BABYLON.Vector3): Promise<void> {
         //await RandomWait();
-        if (this.tileState === TileState.Moving) {
-            this._pushCallback = () => {
-                this.push(dir);
-            }
-        }
-        else if (this.tileState === TileState.Active) {
+        if (this.tileState === TileState.Active || this.tileState === TileState.Moving) {
             dir = dir.clone();
             if (Math.abs(dir.x) > Math.abs(dir.z)) {
                 dir.x = Math.sign(dir.x);
@@ -181,9 +174,6 @@ class PushTile extends Tile {
                             }
             
                             this.tileState = TileState.Moving;
-                            setTimeout(() => {
-                                this._pushCallback = undefined;
-                            }, 500);
                             this.pushSound.play();
                             this.animateRotX(targetRotX, 1);
                             await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
@@ -194,9 +184,6 @@ class PushTile extends Tile {
                             let hIJm = this.game.puzzle.hMapGet(this.i, this.j - 1);
                             if (hIJ > hIJm) {
                                 this.push(new BABYLON.Vector3(0, 0, -1));
-                            }
-                            else if (this._pushCallback) {
-                                this._pushCallback();
                             }
                         }
                     }

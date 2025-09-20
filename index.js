@@ -3,6 +3,7 @@ var USE_CG_SDK = false;
 var OFFLINE_MODE = false;
 var NO_VERTEX_DATA_LOADER = true;
 var ADVENT_CAL = false;
+var TOP_HOST = "uknwn";
 
 if (USE_POKI_SDK) {
     USE_CG_SDK = false;

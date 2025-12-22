@@ -146,8 +146,8 @@ i18nData["lesson-gap"] = {
     "fr": "Leçon - Passage",
 }
 i18nData["challenge-bridge"] = {
-    "en": "Challenge 1 - Bridge",
-    "fr": "Challenge 1 - Pont",
+    "en": "Challenge 1 - Room",
+    "fr": "Challenge 1 - Chambre",
 }
 i18nData["challenge-gates"] = {
     "en": "Challenge 2 - Gates",

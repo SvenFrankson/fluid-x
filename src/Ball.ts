@@ -69,7 +69,7 @@ class Ball extends BABYLON.Mesh {
             }
         }
     }
-    public nominalSpeed: number = 4;
+    public nominalSpeed: number = 3;
     public vZ: number = 1;
     public radius: number = 0.25;
     public bounceXDelay: number = 0.93;

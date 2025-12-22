@@ -3,12 +3,18 @@ class Analytics {
         this.game = game;
     }
     async sendEvent(eventType) {
+        if (OFFLINE_MODE) {
+            return;
+        }
+        if (USE_POKI_SDK) {
+            return;
+        }
         let body = {
             puzzle_id: this.game.puzzle.data.id,
             event_type: eventType,
             top_host: TOP_HOST
         };
-        const response = await fetch(SHARE_SERVICE_PATH + "analytics", {
+        await fetch(SHARE_SERVICE_PATH + "analytics", {
             method: "POST",
             mode: "cors",
             headers: {
@@ -16,7 +22,6 @@ class Analytics {
             },
             body: JSON.stringify(body),
         });
-        console.log(await response.text());
     }
 }
 var BallState;
@@ -39,7 +44,7 @@ class Ball extends BABYLON.Mesh {
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
         this.canBoost = true;
         this._boost = false;
-        this.nominalSpeed = 4;
+        this.nominalSpeed = 3;
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
@@ -5445,8 +5450,8 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/babylon.d.ts"/>
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 var MAJOR_VERSION = 2;
-var MINOR_VERSION = 2;
-var PATCH_VERSION = 1;
+var MINOR_VERSION = 3;
+var PATCH_VERSION = 0;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var observed_progress_speed_percent_second;
@@ -5521,7 +5526,7 @@ function StorageSetItem(key, value) {
 }
 var SHARE_SERVICE_PATH = "https://carillion.tiaratum.com/index.php/";
 if (location.host.startsWith("127.0.0.1")) {
-    SHARE_SERVICE_PATH = "http://localhost/index.php/";
+    //SHARE_SERVICE_PATH = "http://localhost/index.php/";
 }
 async function WaitPlayerInteraction() {
     return new Promise(resolve => {
@@ -12258,8 +12263,8 @@ i18nData["lesson-gap"] = {
     "fr": "Leçon - Passage",
 };
 i18nData["challenge-bridge"] = {
-    "en": "Challenge 1 - Bridge",
-    "fr": "Challenge 1 - Pont",
+    "en": "Challenge 1 - Room",
+    "fr": "Challenge 1 - Chambre",
 };
 i18nData["challenge-gates"] = {
     "en": "Challenge 2 - Gates",

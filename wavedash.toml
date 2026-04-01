@@ -1,0 +1,6 @@
+game_id = "j97dcyezfrwx6f6tggmfkbg45n841ghb"
+upload_dir = "../carillion-build_common_online"
+
+[custom]
+version = "1.0.0"
+entrypoint = "wavedash.js"

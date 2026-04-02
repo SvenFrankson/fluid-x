@@ -12,7 +12,13 @@ else {
         $build_name = $build_name + "_crazygames";
     }
     else {
-        $build_name = $build_name + "_common";
+        $isWaveDashVersion = Select-String -Path "./index.js" -Pattern "USE_WAVEDASH_SDK = true" -Quiet
+        if ($isWaveDashVersion) {
+            $build_name = $build_name + "_wavedash";
+        }
+        else {
+            $build_name = $build_name + "_common";
+        }
     }
 }
 

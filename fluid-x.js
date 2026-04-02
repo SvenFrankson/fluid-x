@@ -5459,6 +5459,7 @@ var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
 var USE_POKI_SDK;
 var USE_CG_SDK;
+var USE_WAVEDASH_SDK;
 var OFFLINE_MODE;
 var NO_VERTEX_DATA_LOADER;
 var ADVENT_CAL;
@@ -5928,6 +5929,11 @@ class Game {
         }
         else {
             TOP_HOST = "TIARATUM";
+        }
+        if (USE_WAVEDASH_SDK) {
+            console.log("WAVEDASH");
+            document.body.classList.add("wavedash");
+            TOP_HOST = "WAVEDASH";
         }
         this.router.start();
         document.querySelectorAll(".fullscreen-btn").forEach(e => {

@@ -233,11 +233,15 @@ button.common-fullscreen-btn {
     right: 10px;
 }
 
-:fullscreen button.common-fullscreen-btn {
+:fullscreen button.fullscreen-btn {
     display: none;
 }
 
-body.in-iframe button.common-fullscreen-btn {
+body.in-iframe button.fullscreen-btn {
+    display: none;
+}
+
+body.wavedash button.fullscreen-btn {
     display: none;
 }
 
@@ -949,7 +953,6 @@ body:not(.vertical) #reset-btn {
 }
 
 #fullscreen-btn {
-    display: block;
     position: fixed;
     width: 40px;
     top: 150px;
@@ -957,6 +960,7 @@ body:not(.vertical) #reset-btn {
 }
 
 .fullscreen-btn {
+    display: block;
     background-image: url("../datas/icons/fullscreen.png");
     background-size: 90%;
     background-position: center;

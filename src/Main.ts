@@ -15,6 +15,7 @@ var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
 var USE_POKI_SDK: boolean;
 var USE_CG_SDK: boolean;
+var USE_WAVEDASH_SDK: boolean;
 var OFFLINE_MODE: boolean;
 var NO_VERTEX_DATA_LOADER: boolean;
 var ADVENT_CAL: boolean;
@@ -537,7 +538,7 @@ class Game {
             (document.querySelector("#home-editor-btn") as HTMLButtonElement).style.display = "";
         }
 
-        if (window.top!=window.self) {
+        if (window.top != window.self) {
             document.body.classList.add("in-iframe");
             if (window.location.search) {
                 TOP_HOST = window.location.search.replace("?", "");
@@ -548,6 +549,12 @@ class Game {
         }
         else {
             TOP_HOST = "TIARATUM";
+        }
+
+        if (USE_WAVEDASH_SDK) {
+            console.log("WAVEDASH");
+            document.body.classList.add("wavedash");
+            TOP_HOST = "WAVEDASH";
         }
 
         this.router.start();

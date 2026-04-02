@@ -1,5 +1,6 @@
 (async function () {
   // Create your game canvas
+
   document.getElementById('wavedash-target').innerHTML = `
     <canvas id="render-canvas"></canvas>
     <a href="#dev"><button id="dev-back-btn" class="medium-btn bluegrey" style="display: none;"><stroke-text>DEV</stroke-text></button></a>
@@ -46,10 +47,11 @@
   `
 
   await window.WavedashJS.loadScript("./index.js");
-  doLoad();
+  await doLoad((step) => {
+    WavedashJS.updateLoadProgressZeroToOne(step);
+  });
 
   // Report loading progress (0 to 1)
-  WavedashJS.updateLoadProgressZeroToOne(0.5);
 
   // Notify that loading is complete
   WavedashJS.loadComplete();

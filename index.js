@@ -1,11 +1,17 @@
 var USE_POKI_SDK = false;
 var USE_CG_SDK = false;
+var USE_WAVEDASH_SDK = true;
 var OFFLINE_MODE = false;
 var NO_VERTEX_DATA_LOADER = false;
 var ADVENT_CAL = false;
 var TOP_HOST = "uknwn";
 
 if (USE_POKI_SDK) {
+    USE_CG_SDK = false;
+    USE_WAVEDASH_SDK = false;
+}
+if (USE_WAVEDASH_SDK) {
+    USE_POKI_SDK = false;
     USE_CG_SDK = false;
 }
 
@@ -99,13 +105,16 @@ async function mainMachineInstantiated() {
 
 var steps = []
 
-function setProgressIndex(i, label) {
+function setProgressIndex(i, label, onSetProgressIndexCallback) {
     let t = performance.now();
     let t_since_start = (t - THE_ORIGIN_OF_TIME_ms);
     console.log("step " + i + " (" + label + ") reached at " + t_since_start.toFixed(3) + " ms.");
     real_progress = steps[i];
     next_progress = steps[i + 1];
     observed_progress_speed_percent_second = real_progress / (t_since_start / 1000);
+    if (onSetProgressIndexCallback) {
+        onSetProgressIndexCallback(steps[i]);
+    }
 }
 
 function loadStep() {
@@ -147,8 +156,8 @@ function loadStep() {
     }
 }
 
-async function doLoad() {
-    let stepsCount = 9;
+async function doLoad(onSetProgressIndexCallback) {
+    let stepsCount = 10;
     if (USE_POKI_SDK) {
         stepsCount++;
     }
@@ -162,43 +171,46 @@ async function doLoad() {
     for (let i = 0; i <= stepsCount; i++) {
         steps[i] = i / stepsCount;
     }
-    setProgressIndex(0);
+    setProgressIndex(0, undefined, onSetProgressIndexCallback);
     loadStep();
     
     await loadCSS("./styles/fonts.css");
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
+
+    await loadCSS("./styles/loading.css");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
 
     await loadCSS("./styles/app.css");
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
 
     if (USE_POKI_SDK) {
         await loadScript("https://game-cdn.poki.com/scripts/v2/poki-sdk.js");
-        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
     }
     if (USE_CG_SDK) {
         await loadScript("https://sdk.crazygames.com/crazygames-sdk-v3.js");
-        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
     }
 
     await loadScript("./lib/babylon.js");
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
 
     if (!NO_VERTEX_DATA_LOADER) {
         await loadScript("./lib/babylonjs.loaders.js");
-        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++);
+        setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, undefined, onSetProgressIndexCallback);
     }
 
     await loadScript("./lib/nabu/nabu.js");
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "nabu.js loaded");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "nabu.js loaded", onSetProgressIndexCallback);
 
     await loadScript("./lib/mummu/mummu.js");
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "mummu.js loaded");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "mummu.js loaded", onSetProgressIndexCallback);
 
     await loadScript("./fluid-x.js");
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "fluid-x.js loaded");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP++, "fluid-x.js loaded", onSetProgressIndexCallback);
 
     await gameLoaded();
-    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP, "all done");
+    setProgressIndex(GLOBAL_GAME_LOAD_CURRENT_STEP, "all done", onSetProgressIndexCallback);
 
     console.log("Load complete. GLOBAL_GAME_LOAD_CURRENT_STEP is " + GLOBAL_GAME_LOAD_CURRENT_STEP.toFixed(0));
 }

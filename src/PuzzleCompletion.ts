@@ -33,11 +33,13 @@ class PuzzleCompletion {
     public expertPuzzleCompletion: number = 0;
     public xmasPuzzleCompletion: number = 0;
     public communityPuzzleCompletion: number = 0;
+    public premiumPuzzleCompletion: number = 0;
 
     public storyPuzzles: PuzzleCompletionElement[] = [];
     public expertPuzzles: PuzzleCompletionElement[] = [];
     public xmasPuzzles: PuzzleCompletionElement[] = [];
     public communityPuzzles: PuzzleCompletionElement[] = [];
+    public premiumPuzzles: PuzzleCompletionElement[] = [];
 
     public recentUnlocks: Nabu.UniqueList<number>;
 
@@ -57,6 +59,10 @@ class PuzzleCompletion {
         let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
         if (communityElement) {
             return communityElement;
+        }
+        let premiumElement = this.premiumPuzzles.find(e => { return e.puzzleId === id; });
+        if (premiumElement) {
+            return premiumElement;
         }
     }
 
@@ -116,6 +122,18 @@ class PuzzleCompletion {
         this.communityPuzzleCompletion = totalStarsCount / max;
     }
 
+    private _updatePremiumPuzzleCompletion(): void {
+        let max = this.premiumPuzzles.length * 4;
+        if (max < 1) {
+            return;
+        }
+        let totalStarsCount = 0;
+        this.premiumPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        this.premiumPuzzleCompletion = totalStarsCount / max;
+    }
+
     constructor(public game: Game) {
         if (HasLocalStorage) {
             let dataString = StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
@@ -156,10 +174,18 @@ class PuzzleCompletion {
             );
         });
 
+        this.game.loadedPremiumPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.premiumPuzzles.push(
+                new PuzzleCompletionElement(puzzle.id, score, puzzle.score)
+            );
+        });
+
         this._updateStoryPuzzleCompletion();
         this._updateExpertPuzzleCompletion();
         this._updateXmasPuzzleCompletion();
         this._updateCommunityPuzzleCompletion();
+        this._updatePremiumPuzzleCompletion();
     }
 
     public completePuzzle(id: number, score: number): void {
@@ -183,6 +209,7 @@ class PuzzleCompletion {
             this._updateExpertPuzzleCompletion();
             this._updateXmasPuzzleCompletion();
             this._updateCommunityPuzzleCompletion();
+            this._updatePremiumPuzzleCompletion();
     
             if (HasLocalStorage) {
                 StorageSetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));

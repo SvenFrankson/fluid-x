@@ -6,6 +6,7 @@ class CarillonRouter extends Nabu.Router {
     public communityPuzzlesPage: CommunityPuzzlesPage;
     public devPuzzlesPage: DevPuzzlesPage;
     public multiplayerPuzzlesPage: MultiplayerPuzzlesPage;
+    public premiumPuzzlesPage: PremiumPuzzlesPage;
     public playUI: Nabu.DefaultPage;
     public editorUI: Nabu.DefaultPage;
     public creditsPage: Nabu.DefaultPage;
@@ -37,6 +38,7 @@ class CarillonRouter extends Nabu.Router {
         this.communityPuzzlesPage = new CommunityPuzzlesPage("#community-puzzles-page", this);
         this.devPuzzlesPage = new DevPuzzlesPage("#dev-puzzles-page", this);
         this.multiplayerPuzzlesPage = new MultiplayerPuzzlesPage("#multiplayer-puzzles-page", this);
+        this.premiumPuzzlesPage = new PremiumPuzzlesPage("#premium-puzzles-page", this);
         this.creditsPage = document.querySelector("#credits-page") as Nabu.DefaultPage;
         this.multiplayerPage = new MultiplayerPage("#multiplayer-page", this);
         this.playUI = document.querySelector("#play-ui") as Nabu.DefaultPage;
@@ -209,6 +211,13 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.multiplayerPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.multiplayerPuzzlesPage.redraw();
+            })
+        }
+        else if (page.startsWith("#premium-puzzles")) {
+            SDKGameplayStop();
+            this.show(this.premiumPuzzlesPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.premiumPuzzlesPage.redraw();
             })
         }
         else if (page.startsWith("#multiplayer")) {

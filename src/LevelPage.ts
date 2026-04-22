@@ -586,6 +586,41 @@ class ExpertPuzzlesPage extends LevelPage {
     }
 }
 
+class PremiumPuzzlesPage extends LevelPage {
+    
+    constructor(queryString: string, router: CarillonRouter) {
+        super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Premium Mode";
+        this.className = "PremiumLevelPage";
+    }
+
+    public onPageRedrawn(): void {
+        if (this.router.game.puzzleCompletion) {
+            (this.nabuPage.querySelector(".puzzle-level-completion completion-bar") as CompletionBar).setAttribute("value", this.router.game.puzzleCompletion.premiumPuzzleCompletion.toFixed(2));
+        }
+    }
+
+    protected async getPuzzlesData(page: number, levelsPerPage: number): Promise<IPuzzleTileData[]> {
+        let puzzleData: IPuzzleTileData[] = [];
+        let data = this.router.game.loadedPremiumPuzzles;
+
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onpointerup: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "puzzle-" + data.puzzles[n].id;
+                    }
+                }
+            }
+        }
+
+        return puzzleData;
+    }
+}
+
 class CommunityPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {

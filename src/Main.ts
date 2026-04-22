@@ -302,6 +302,7 @@ class Game {
 
     public loadedStoryPuzzles: IPuzzlesData;
     public loadedExpertPuzzles: IPuzzlesData;
+    public loadedPremiumPuzzles: IPuzzlesData;
     public loadedXMasPuzzles: IPuzzlesData;
     public dayOfXMasCal: number = 1;
     public loadedCommunityPuzzles: IPuzzlesData;
@@ -972,6 +973,40 @@ class Game {
 
         this.loadedMultiplayerPuzzles = multiplayerPuzzles;
 
+        let premiumPuzzles: IPuzzlesData;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_premium_levels.json", {
+                method: "GET"
+            });
+            premiumPuzzles = await response.json() as IPuzzlesData;
+            CLEAN_IPuzzlesData(premiumPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/9", {
+                    method: "GET",
+                    mode: "cors",
+                    signal: (AbortSignal as any).timeout(5000)
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                premiumPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(premiumPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_premium_levels.json", {
+                    method: "GET"
+                });
+                premiumPuzzles = await response.json() as IPuzzlesData;
+                CLEAN_IPuzzlesData(premiumPuzzles);
+            }
+        }
+
+        this.loadedPremiumPuzzles = premiumPuzzles;
+
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/story_expert_table.json", {
                 method: "GET"
@@ -1437,7 +1472,8 @@ var DEV_MODES_NAMES = [
     "TRASH",
     "PRBLM",
     "INFO",
-    "XMAS"
+    "XMAS",
+    "PREMIUM"
 ];
 var DEV_MODE_ACTIVATED: boolean = false;
 var var1: string = "";
@@ -1486,7 +1522,7 @@ function DEV_ACTIVATE(): void {
     document.body.appendChild(info);
 
     let devStateBtns: HTMLButtonElement[] = [];
-    for (let i = 0; i <= 8; i++) {
+    for (let i = 0; i <= 9; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn") as HTMLButtonElement;
         devStateBtns.push(btn);
     }

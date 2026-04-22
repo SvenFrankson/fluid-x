@@ -17,6 +17,10 @@ i18nData["home-expert-mode"] = {
     "en": "expert mode",
     "fr": "mode expert"
 }
+i18nData["home-premium-mode"] = {
+    "en": "premium puzzles",
+    "fr": "puzzles premium"
+}
 i18nData["home-community-mode"] = {
     "en": "community puzzles",
     "fr": "puzzles custom"

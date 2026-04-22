@@ -2672,6 +2672,7 @@ class CarillonRouter extends Nabu.Router {
         this.communityPuzzlesPage = new CommunityPuzzlesPage("#community-puzzles-page", this);
         this.devPuzzlesPage = new DevPuzzlesPage("#dev-puzzles-page", this);
         this.multiplayerPuzzlesPage = new MultiplayerPuzzlesPage("#multiplayer-puzzles-page", this);
+        this.premiumPuzzlesPage = new PremiumPuzzlesPage("#premium-puzzles-page", this);
         this.creditsPage = document.querySelector("#credits-page");
         this.multiplayerPage = new MultiplayerPage("#multiplayer-page", this);
         this.playUI = document.querySelector("#play-ui");
@@ -2838,6 +2839,13 @@ class CarillonRouter extends Nabu.Router {
             this.show(this.multiplayerPuzzlesPage.nabuPage, false, showTime);
             requestAnimationFrame(() => {
                 this.multiplayerPuzzlesPage.redraw();
+            });
+        }
+        else if (page.startsWith("#premium-puzzles")) {
+            SDKGameplayStop();
+            this.show(this.premiumPuzzlesPage.nabuPage, false, showTime);
+            requestAnimationFrame(() => {
+                this.premiumPuzzlesPage.redraw();
             });
         }
         else if (page.startsWith("#multiplayer")) {
@@ -5330,6 +5338,35 @@ class ExpertPuzzlesPage extends LevelPage {
         return puzzleData;
     }
 }
+class PremiumPuzzlesPage extends LevelPage {
+    constructor(queryString, router) {
+        super(queryString, router);
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Premium Mode";
+        this.className = "PremiumLevelPage";
+    }
+    onPageRedrawn() {
+        if (this.router.game.puzzleCompletion) {
+            this.nabuPage.querySelector(".puzzle-level-completion completion-bar").setAttribute("value", this.router.game.puzzleCompletion.premiumPuzzleCompletion.toFixed(2));
+        }
+    }
+    async getPuzzlesData(page, levelsPerPage) {
+        let puzzleData = [];
+        let data = this.router.game.loadedPremiumPuzzles;
+        for (let i = 0; i < levelsPerPage && i < data.puzzles.length; i++) {
+            let n = i + page * levelsPerPage;
+            if (data.puzzles[n]) {
+                puzzleData[i] = {
+                    data: data.puzzles[n],
+                    onpointerup: () => {
+                        this.router.game.puzzle.resetFromData(data.puzzles[n]);
+                        location.hash = "puzzle-" + data.puzzles[n].id;
+                    }
+                };
+            }
+        }
+        return puzzleData;
+    }
+}
 class CommunityPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
@@ -6317,6 +6354,38 @@ class Game {
             }
         }
         this.loadedMultiplayerPuzzles = multiplayerPuzzles;
+        let premiumPuzzles;
+        if (OFFLINE_MODE) {
+            const response = await fetch("./datas/levels/tiaratum_premium_levels.json", {
+                method: "GET"
+            });
+            premiumPuzzles = await response.json();
+            CLEAN_IPuzzlesData(premiumPuzzles);
+        }
+        else {
+            try {
+                const response = await fetch(SHARE_SERVICE_PATH + "get_puzzles/0/200/9", {
+                    method: "GET",
+                    mode: "cors",
+                    signal: AbortSignal.timeout(5000)
+                });
+                if (!response.ok) {
+                    throw new Error("Response status: " + response.status);
+                }
+                premiumPuzzles = await response.json();
+                CLEAN_IPuzzlesData(premiumPuzzles);
+            }
+            catch (e) {
+                console.error(e);
+                OFFLINE_MODE = true;
+                const response = await fetch("./datas/levels/tiaratum_premium_levels.json", {
+                    method: "GET"
+                });
+                premiumPuzzles = await response.json();
+                CLEAN_IPuzzlesData(premiumPuzzles);
+            }
+        }
+        this.loadedPremiumPuzzles = premiumPuzzles;
         if (OFFLINE_MODE) {
             const response = await fetch("./datas/levels/story_expert_table.json", {
                 method: "GET"
@@ -6692,7 +6761,8 @@ var DEV_MODES_NAMES = [
     "TRASH",
     "PRBLM",
     "INFO",
-    "XMAS"
+    "XMAS",
+    "PREMIUM"
 ];
 var DEV_MODE_ACTIVATED = false;
 var var1 = "";
@@ -6736,7 +6806,7 @@ function DEV_ACTIVATE() {
     info.style.pointerEvents = "none";
     document.body.appendChild(info);
     let devStateBtns = [];
-    for (let i = 0; i <= 8; i++) {
+    for (let i = 0; i <= 9; i++) {
         let btn = document.getElementById("dev-state-" + i.toFixed(0) + "-btn");
         devStateBtns.push(btn);
     }
@@ -7584,10 +7654,12 @@ class PuzzleCompletion {
         this.expertPuzzleCompletion = 0;
         this.xmasPuzzleCompletion = 0;
         this.communityPuzzleCompletion = 0;
+        this.premiumPuzzleCompletion = 0;
         this.storyPuzzles = [];
         this.expertPuzzles = [];
         this.xmasPuzzles = [];
         this.communityPuzzles = [];
+        this.premiumPuzzles = [];
         if (HasLocalStorage) {
             let dataString = StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
             if (dataString) {
@@ -7612,6 +7684,10 @@ class PuzzleCompletion {
         let communityElement = this.communityPuzzles.find(e => { return e.puzzleId === id; });
         if (communityElement) {
             return communityElement;
+        }
+        let premiumElement = this.premiumPuzzles.find(e => { return e.puzzleId === id; });
+        if (premiumElement) {
+            return premiumElement;
         }
     }
     getStarCount(id) {
@@ -7665,6 +7741,17 @@ class PuzzleCompletion {
         });
         this.communityPuzzleCompletion = totalStarsCount / max;
     }
+    _updatePremiumPuzzleCompletion() {
+        let max = this.premiumPuzzles.length * 4;
+        if (max < 1) {
+            return;
+        }
+        let totalStarsCount = 0;
+        this.premiumPuzzles.forEach(e => {
+            totalStarsCount += e.getStarsCount();
+        });
+        this.premiumPuzzleCompletion = totalStarsCount / max;
+    }
     async initialize() {
         //await RandomWait();
         this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
@@ -7683,10 +7770,15 @@ class PuzzleCompletion {
             let score = this.getPersonalBestScore(puzzle.id);
             this.xmasPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
         });
+        this.game.loadedPremiumPuzzles.puzzles.forEach(puzzle => {
+            let score = this.getPersonalBestScore(puzzle.id);
+            this.premiumPuzzles.push(new PuzzleCompletionElement(puzzle.id, score, puzzle.score));
+        });
         this._updateStoryPuzzleCompletion();
         this._updateExpertPuzzleCompletion();
         this._updateXmasPuzzleCompletion();
         this._updateCommunityPuzzleCompletion();
+        this._updatePremiumPuzzleCompletion();
     }
     completePuzzle(id, score) {
         if (id != null && isFinite(id)) {
@@ -7707,6 +7799,7 @@ class PuzzleCompletion {
             this._updateExpertPuzzleCompletion();
             this._updateXmasPuzzleCompletion();
             this._updateCommunityPuzzleCompletion();
+            this._updatePremiumPuzzleCompletion();
             if (HasLocalStorage) {
                 StorageSetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0), JSON.stringify(this.completedPuzzles));
             }
@@ -11009,6 +11102,7 @@ var PuzzleDataState;
     PuzzleDataState[PuzzleDataState["PRBLM"] = 6] = "PRBLM";
     PuzzleDataState[PuzzleDataState["INFO"] = 7] = "INFO";
     PuzzleDataState[PuzzleDataState["XMAS"] = 8] = "XMAS";
+    PuzzleDataState[PuzzleDataState["PREMIUM"] = 9] = "PREMIUM";
 })(PuzzleDataState || (PuzzleDataState = {}));
 function CLEAN_IPuzzleData(data) {
     if (data.id != null && typeof (data.id) === "string") {
@@ -12213,6 +12307,10 @@ i18nData["home-story-mode"] = {
 i18nData["home-expert-mode"] = {
     "en": "expert mode",
     "fr": "mode expert"
+};
+i18nData["home-premium-mode"] = {
+    "en": "premium puzzles",
+    "fr": "puzzles premium"
 };
 i18nData["home-community-mode"] = {
     "en": "community puzzles",

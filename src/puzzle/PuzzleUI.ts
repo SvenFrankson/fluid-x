@@ -255,7 +255,7 @@ class PuzzleUI {
                 newIcon.classList.add("square-btn-miniature");
                 squareBtn.appendChild(newIcon);
 
-                if (data.premium === 1) {
+                if (CONTENT_VERSION === ContentVersion.Free && data.premium === 1) {
                     let premiumTag = document.createElement("div");
                     premiumTag.classList.add("premium-tag");
                     premiumTag.innerHTML = "PREMIUM PUZZLE";

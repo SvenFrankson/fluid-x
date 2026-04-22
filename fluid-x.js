@@ -2752,7 +2752,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
-            if (this.game.puzzle.data.premium === 1) {
+            if (CONTENT_VERSION === ContentVersion.Free && this.game.puzzle.data.premium === 1) {
                 this.paywallPage.show(undefined, showTime);
             }
         }
@@ -2802,7 +2802,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
-            if (this.game.puzzle.data.premium === 1) {
+            if (CONTENT_VERSION === ContentVersion.Free && this.game.puzzle.data.premium === 1) {
                 this.paywallPage.show(undefined, showTime);
             }
         }
@@ -5046,7 +5046,7 @@ class LevelPage {
             else {
                 authorText.setContent(puzzleTileDatas[n].data.author);
             }
-            if (puzzleTileDatas[n].data.premium === 1) {
+            if (CONTENT_VERSION === ContentVersion.Free && puzzleTileDatas[n].data.premium === 1) {
                 let premiumTag = document.createElement("div");
                 premiumTag.classList.add("premium-tag");
                 premiumTag.innerHTML = "PREMIUM PUZZLE";
@@ -5509,6 +5509,13 @@ var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_V
 var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
+var ContentVersion;
+(function (ContentVersion) {
+    ContentVersion[ContentVersion["Free"] = 0] = "Free";
+    ContentVersion[ContentVersion["Classic"] = 1] = "Classic";
+    ContentVersion[ContentVersion["Premium"] = 2] = "Premium";
+})(ContentVersion || (ContentVersion = {}));
+var CONTENT_VERSION;
 var USE_POKI_SDK;
 var USE_CG_SDK;
 var USE_WAVEDASH_SDK;
@@ -6747,9 +6754,10 @@ async function RandomWait() {
 async function DEV_GENERATE_ALL_LEVEL_FILES() {
     Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
     Nabu.download("tiaratum_expert_levels.json", JSON.stringify(Game.Instance.loadedExpertPuzzles));
-    Nabu.download("tiaratum_xmas_levels.json", JSON.stringify(Game.Instance.loadedXMasPuzzles));
+    Nabu.download("tiaratum_premium_levels.json", JSON.stringify(Game.Instance.loadedPremiumPuzzles));
+    //Nabu.download("tiaratum_xmas_levels.json", JSON.stringify(Game.Instance.loadedXMasPuzzles));
     Nabu.download("tiaratum_community_levels.json", JSON.stringify(Game.Instance.loadedCommunityPuzzles));
-    Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
+    //Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
     Nabu.download("story_expert_table.json", JSON.stringify(Game.Instance.storyExpertTable));
 }
 var DEV_MODES_NAMES = [
@@ -11830,7 +11838,7 @@ class PuzzleUI {
                 let newIcon = PuzzleMiniatureMaker.Generate(data.content);
                 newIcon.classList.add("square-btn-miniature");
                 squareBtn.appendChild(newIcon);
-                if (data.premium === 1) {
+                if (CONTENT_VERSION === ContentVersion.Free && data.premium === 1) {
                     let premiumTag = document.createElement("div");
                     premiumTag.classList.add("premium-tag");
                     premiumTag.innerHTML = "PREMIUM PUZZLE";

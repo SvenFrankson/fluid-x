@@ -1,3 +1,4 @@
+var CONTENT_VERSION = 2;
 var USE_POKI_SDK = false;
 var USE_CG_SDK = false;
 var USE_WAVEDASH_SDK = false;

@@ -124,7 +124,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
-            if (this.game.puzzle.data.premium === 1) {
+            if (CONTENT_VERSION === ContentVersion.Free && this.game.puzzle.data.premium === 1) {
                 this.paywallPage.show(undefined, showTime);
             }
         }
@@ -174,7 +174,7 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
-            if (this.game.puzzle.data.premium === 1) {
+            if (CONTENT_VERSION === ContentVersion.Free && this.game.puzzle.data.premium === 1) {
                 this.paywallPage.show(undefined, showTime);
             }
         }

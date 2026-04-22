@@ -144,7 +144,7 @@ abstract class LevelPage {
                 authorText.setContent(puzzleTileDatas[n].data.author);
             }
 
-            if (puzzleTileDatas[n].data.premium === 1) {
+            if (CONTENT_VERSION === ContentVersion.Free && puzzleTileDatas[n].data.premium === 1) {
                 let premiumTag = document.createElement("div");
                 premiumTag.classList.add("premium-tag");
                 premiumTag.innerHTML = "PREMIUM PUZZLE";

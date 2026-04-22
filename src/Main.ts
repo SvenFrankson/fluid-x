@@ -13,6 +13,8 @@ var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 +
 var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
+enum ContentVersion { Free = 0, Classic = 1, Premium = 2 }
+var CONTENT_VERSION: ContentVersion;
 var USE_POKI_SDK: boolean;
 var USE_CG_SDK: boolean;
 var USE_WAVEDASH_SDK: boolean;
@@ -1457,9 +1459,10 @@ async function RandomWait(): Promise<void> {
 async function DEV_GENERATE_ALL_LEVEL_FILES(): Promise<void> {
     Nabu.download("tiaratum_story_levels.json", JSON.stringify(Game.Instance.loadedStoryPuzzles));
     Nabu.download("tiaratum_expert_levels.json", JSON.stringify(Game.Instance.loadedExpertPuzzles));
-    Nabu.download("tiaratum_xmas_levels.json", JSON.stringify(Game.Instance.loadedXMasPuzzles));
+    Nabu.download("tiaratum_premium_levels.json", JSON.stringify(Game.Instance.loadedPremiumPuzzles));
+    //Nabu.download("tiaratum_xmas_levels.json", JSON.stringify(Game.Instance.loadedXMasPuzzles));
     Nabu.download("tiaratum_community_levels.json", JSON.stringify(Game.Instance.loadedCommunityPuzzles));
-    Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
+    //Nabu.download("tiaratum_multiplayer_levels.json", JSON.stringify(Game.Instance.loadedMultiplayerPuzzles));
     Nabu.download("story_expert_table.json", JSON.stringify(Game.Instance.storyExpertTable));
 }
 

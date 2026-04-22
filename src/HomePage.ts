@@ -8,6 +8,22 @@ class HomePage {
         this.nabuPage = document.querySelector(queryString);
         this.buttons = [...this.nabuPage.querySelectorAll("button")];
         this.rowCount = this.buttons.length;
+
+        let contentVersionElement = this.nabuPage.querySelector("h1 span.content-version");
+        if (contentVersionElement instanceof HTMLSpanElement) {
+            if (CONTENT_VERSION === ContentVersion.Free) {
+                contentVersionElement.textContent = "FREE";
+                contentVersionElement.style.backgroundColor = "var(--color-green)";
+            }
+            if (CONTENT_VERSION === ContentVersion.Classic) {
+                contentVersionElement.textContent = "CLASSIC";
+                contentVersionElement.style.backgroundColor = "var(--color-blue)";
+            }
+            if (CONTENT_VERSION === ContentVersion.Premium) {
+                contentVersionElement.textContent = "PREMIUM";
+                contentVersionElement.style.backgroundColor = "var(--color-red)";
+            }
+        }
         this._registerToInputManager();
     }
 

@@ -195,6 +195,23 @@ h1 {
     margin: 0;
 }
 
+h1 span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+h1 span.content-version {
+    font-size: 20px;
+    padding-bottom: 0px;
+    padding: 6px 10px 6px 10px;
+    background-color: var(--color-red);
+    background-image: url("../datas/textures/rainbow_pattern.png");
+    background-size: 40px;
+    border: 2px solid #624c3cff;
+    border-radius: 3px;
+    box-shadow: 2px 2px 2px #2b2821ff;
+}
+
 #title-version {
     position: absolute;
     font-size: 16px;
@@ -204,6 +221,7 @@ h1 {
     font-weight: 500;
     color: white;
     padding: 0px 8px 2px 8px;
+    display: none;
 }
 
 h2 {

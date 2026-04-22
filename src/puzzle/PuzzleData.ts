@@ -24,6 +24,7 @@ interface IPuzzleData {
     story_order?: number;
     difficulty?: number;
     expert_puzzle_id?: number;
+    premium?: number;
 }
 
 function CLEAN_IPuzzleData(data: any): any {
@@ -41,6 +42,9 @@ function CLEAN_IPuzzleData(data: any): any {
     }
     if (data.difficulty != null && typeof(data.difficulty) === "string") {
         data.difficulty = parseInt(data.difficulty);
+    }
+    if (data.premium != null && typeof(data.premium) === "string") {
+        data.premium = parseInt(data.premium);
     }
     if (data.expert_puzzle_id != null && typeof(data.expert_puzzle_id) === "string") {
         data.expert_puzzle_id = parseInt(data.expert_puzzle_id);

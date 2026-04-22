@@ -250,9 +250,17 @@ class PuzzleUI {
                 if (existingImg) {
                     squareBtn.removeChild(existingImg);
                 }
+
                 let newIcon = PuzzleMiniatureMaker.Generate(data.content);
                 newIcon.classList.add("square-btn-miniature");
                 squareBtn.appendChild(newIcon);
+
+                if (data.premium === 1) {
+                    let premiumTag = document.createElement("div");
+                    premiumTag.classList.add("premium-tag");
+                    premiumTag.innerHTML = "PREMIUM PUZZLE";
+                    squareBtn.appendChild(premiumTag);
+                }
     
                 this.unlockContainer.style.display = "";
             }

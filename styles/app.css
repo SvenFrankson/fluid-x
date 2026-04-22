@@ -878,6 +878,23 @@ body.vertical .square-btn-container {
     background-image: url("../datas/icons/play.svg");
 }
 
+.square-btn-panel .premium-tag {
+    display: block;
+    position: absolute;
+    text-align: center;
+    font-size: 16px;
+    bottom: 30px;
+    right: 0px;
+    z-index: 2;
+    padding: 4px 5px 4px 5px;
+    color: white;
+    background-color: var(--color-red);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border: 2px solid #624c3cff;
+    border-right: none;
+}
+
 input[type="text"] {
     width: 220px;
     font-size: 20px;
@@ -1451,4 +1468,45 @@ body:not(.touchscreen) .line.hovered {
 
 #thumbnail-green {
     top: calc(15% + 30px);
+}
+
+#paywall-page {
+    text-align: center;
+    width: calc(min(calc(100vw - 40px), 350px));
+    left: calc((100vw - calc(min(calc(100vw - 40px), 350px)) - 28px) * 0.5);
+    top: calc((100svh - 500px) * 0.5);
+    z-index: 2;
+}
+
+#paywall-page p {
+    color: white;
+    text-align: justify;
+    font-family: Roboto;
+    font-weight: 300;
+    font-size: 16px;
+    background-color: #00000080;
+    padding: 3px;
+    margin-left: -10px;
+    padding-left: 10px;
+    margin-right: -10px;
+    padding-right: 10px;
+}
+
+#paywall-page p.info {
+    font-size: 15px;
+    font-weight: 500;
+    font-style: italic;
+    color: black;
+    background-color: transparent;
+    margin-bottom: 0px;
+}
+
+#paywall-screen-lock {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100svh;
+    background-color: #00000000;
+    z-index: -1;
 }

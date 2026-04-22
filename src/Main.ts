@@ -1616,6 +1616,32 @@ function DEV_ACTIVATE(): void {
             });
         }
     }
+
+    let devPremium = (document.querySelector("#dev-premium")) as HTMLDivElement;
+    devPremium.style.display = "block";
+    let devPremiumInput = devPremium.querySelector("#dev-premium-input") as HTMLInputElement;
+    devPremiumInput.onchange = () => {
+        Game.Instance.puzzle.data.premium = parseInt(devPremiumInput.value);
+    }
+    let devPremiumSend = devPremium.querySelector("#dev-premium-send") as HTMLButtonElement;
+    devPremiumSend.onpointerup = async () => {
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                puzzle_premium: Game.Instance.puzzle.data.premium
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_premium", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+        }
+    }
 }
 
 function DEV_UPDATE_STATE_UI(): void {
@@ -1639,6 +1665,9 @@ function DEV_UPDATE_STATE_UI(): void {
 
     let devXpertPuzzleInput = document.querySelector("#dev-xpert-puzzle-input") as HTMLInputElement;
     devXpertPuzzleInput.value = isFinite(Game.Instance.puzzle.data.expert_puzzle_id) ? Game.Instance.puzzle.data.expert_puzzle_id.toFixed(0) : "0";
+
+    let devPremiumInput = document.querySelector("#dev-premium-input") as HTMLInputElement;
+    devPremiumInput.value = isFinite(Game.Instance.puzzle.data.premium) ? Game.Instance.puzzle.data.premium.toFixed(0) : "0";
 
     let devPuzzleId = document.querySelector("#dev-puzzle-id");
     if (devPuzzleId) {

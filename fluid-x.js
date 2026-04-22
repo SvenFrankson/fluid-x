@@ -2679,6 +2679,7 @@ class CarillonRouter extends Nabu.Router {
         this.devPage = document.querySelector("#dev-page");
         this.tutoPage = new TutoPage("#tuto-page", this);
         this.eulaPage = document.querySelector("#eula-page");
+        this.paywallPage = new PaywallPage("#paywall-page", this);
         this.playBackButton = document.querySelector("#play-ui .back-btn");
         this.timerText = document.querySelector("#play-timer");
         this.puzzleIntro = document.querySelector("#puzzle-intro");
@@ -2736,6 +2737,7 @@ class CarillonRouter extends Nabu.Router {
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;
                 if (data.puzzles[numLevel - 1]) {
+                    console.log(data.puzzles[numLevel - 1]);
                     this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
                 }
                 else {
@@ -2749,6 +2751,9 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
+            if (this.game.puzzle.data.premium === 1) {
+                this.paywallPage.show(undefined, showTime);
+            }
         }
         else if (page.startsWith("#puzzle-")) {
             let puzzleId = parseInt(page.replace("#puzzle-", ""));
@@ -2759,6 +2764,7 @@ class CarillonRouter extends Nabu.Router {
                     location.hash = "#home";
                     return;
                 }
+                console.log(data);
                 this.game.puzzle.resetFromData(data);
             }
             if (this.game.puzzle.data.state === 8) {
@@ -2795,6 +2801,9 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
+            if (this.game.puzzle.data.premium === 1) {
+                this.paywallPage.show(undefined, showTime);
+            }
         }
         else if (page.startsWith("#levels")) {
             SDKGameplayStop();
@@ -5029,6 +5038,12 @@ class LevelPage {
             else {
                 authorText.setContent(puzzleTileDatas[n].data.author);
             }
+            if (puzzleTileDatas[n].data.premium === 1) {
+                let premiumTag = document.createElement("div");
+                premiumTag.classList.add("premium-tag");
+                premiumTag.innerHTML = "PREMIUM PUZZLE";
+                squareButton.appendChild(premiumTag);
+            }
             if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
                 let completedStamp = document.createElement("div");
                 let starCount = this.router.game.puzzleCompletion.getStarCount(puzzleTileDatas[n].data.id);
@@ -6847,6 +6862,31 @@ function DEV_ACTIVATE() {
             });
         }
     };
+    let devPremium = (document.querySelector("#dev-premium"));
+    devPremium.style.display = "block";
+    let devPremiumInput = devPremium.querySelector("#dev-premium-input");
+    devPremiumInput.onchange = () => {
+        Game.Instance.puzzle.data.premium = parseInt(devPremiumInput.value);
+    };
+    let devPremiumSend = devPremium.querySelector("#dev-premium-send");
+    devPremiumSend.onpointerup = async () => {
+        let id = parseInt(location.hash.replace("#puzzle-", ""));
+        if (isFinite(id)) {
+            let data = {
+                id: id,
+                puzzle_premium: Game.Instance.puzzle.data.premium
+            };
+            let dataString = JSON.stringify(data);
+            const response = await fetch(SHARE_SERVICE_PATH + "set_puzzle_premium", {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Authorization": 'Basic ' + btoa("carillon:" + var1)
+                },
+                body: dataString,
+            });
+        }
+    };
 }
 function DEV_UPDATE_STATE_UI() {
     let devStateBtns = [];
@@ -6866,6 +6906,8 @@ function DEV_UPDATE_STATE_UI() {
     difficultyInput.setValue(isFinite(Game.Instance.puzzle.data.difficulty) ? Game.Instance.puzzle.data.difficulty : 0);
     let devXpertPuzzleInput = document.querySelector("#dev-xpert-puzzle-input");
     devXpertPuzzleInput.value = isFinite(Game.Instance.puzzle.data.expert_puzzle_id) ? Game.Instance.puzzle.data.expert_puzzle_id.toFixed(0) : "0";
+    let devPremiumInput = document.querySelector("#dev-premium-input");
+    devPremiumInput.value = isFinite(Game.Instance.puzzle.data.premium) ? Game.Instance.puzzle.data.premium.toFixed(0) : "0";
     let devPuzzleId = document.querySelector("#dev-puzzle-id");
     if (devPuzzleId) {
         if (Game.Instance.puzzle.data.id != null) {
@@ -7227,6 +7269,24 @@ class NumValueInput extends HTMLElement {
     }
 }
 customElements.define("num-value-input", NumValueInput);
+class PaywallPage {
+    constructor(selector, router) {
+        this.router = router;
+        this.nabuPage = document.querySelector(selector);
+        this.continueButton = this.nabuPage.querySelector("#paywall-continue");
+    }
+    show(onContinue, duration) {
+        this.nabuPage.show(duration);
+        if (onContinue) {
+            this.continueButton.onclick = onContinue;
+        }
+        else {
+            this.continueButton.onclick = () => {
+                this.nabuPage.hide(0.2);
+            };
+        }
+    }
+}
 class PerformanceWatcher {
     constructor(game) {
         this.game = game;
@@ -9428,7 +9488,8 @@ class Puzzle {
             id: null,
             title: "No Title",
             author: "No Author",
-            content: ""
+            content: "",
+            premium: 0
         };
         this.winSlotRows = 1;
         this.winSlots = [];
@@ -10965,6 +11026,9 @@ function CLEAN_IPuzzleData(data) {
     if (data.difficulty != null && typeof (data.difficulty) === "string") {
         data.difficulty = parseInt(data.difficulty);
     }
+    if (data.premium != null && typeof (data.premium) === "string") {
+        data.premium = parseInt(data.premium);
+    }
     if (data.expert_puzzle_id != null && typeof (data.expert_puzzle_id) === "string") {
         data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
     }
@@ -11672,6 +11736,12 @@ class PuzzleUI {
                 let newIcon = PuzzleMiniatureMaker.Generate(data.content);
                 newIcon.classList.add("square-btn-miniature");
                 squareBtn.appendChild(newIcon);
+                if (data.premium === 1) {
+                    let premiumTag = document.createElement("div");
+                    premiumTag.classList.add("premium-tag");
+                    premiumTag.innerHTML = "PREMIUM PUZZLE";
+                    squareBtn.appendChild(premiumTag);
+                }
                 this.unlockContainer.style.display = "";
             }
             else {

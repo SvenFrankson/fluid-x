@@ -13,7 +13,8 @@ class Puzzle {
         id: null,
         title: "No Title",
         author: "No Author",
-        content: ""
+        content: "",
+        premium: 0
     };
 
     public winSlotRows = 1;

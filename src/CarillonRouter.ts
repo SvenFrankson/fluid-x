@@ -13,6 +13,7 @@ class CarillonRouter extends Nabu.Router {
     public devPage: Nabu.DefaultPage;
     public tutoPage: TutoPage;
     public eulaPage: Nabu.DefaultPage;
+    public paywallPage: PaywallPage;
 
     public timerText: HTMLDivElement;
     public puzzleIntro: HTMLDivElement;
@@ -43,6 +44,7 @@ class CarillonRouter extends Nabu.Router {
         this.devPage = document.querySelector("#dev-page") as Nabu.DefaultPage;
         this.tutoPage = new TutoPage("#tuto-page", this);
         this.eulaPage = document.querySelector("#eula-page") as Nabu.DefaultPage;
+        this.paywallPage = new PaywallPage("#paywall-page", this);
         
         this.playBackButton = document.querySelector("#play-ui .back-btn") as HTMLButtonElement;
         this.timerText = document.querySelector("#play-timer");
@@ -106,6 +108,7 @@ class CarillonRouter extends Nabu.Router {
             if (this.game.puzzle.data.numLevel != numLevel) {
                 let data = this.game.loadedStoryPuzzles;
                 if (data.puzzles[numLevel - 1]) {
+                    console.log(data.puzzles[numLevel - 1]);
                     this.game.puzzle.resetFromData(data.puzzles[numLevel - 1]);
                 }
                 else {
@@ -119,6 +122,9 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
+            if (this.game.puzzle.data.premium === 1) {
+                this.paywallPage.show(undefined, showTime);
+            }
         }
         else if (page.startsWith("#puzzle-")) {
             let puzzleId = parseInt(page.replace("#puzzle-", ""));
@@ -129,6 +135,7 @@ class CarillonRouter extends Nabu.Router {
                     location.hash = "#home";
                     return;
                 }
+                console.log(data);
                 this.game.puzzle.resetFromData(data);
             }
             if (this.game.puzzle.data.state === 8) {
@@ -165,6 +172,9 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             (document.querySelector("#editor-btn") as HTMLButtonElement).style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
+            if (this.game.puzzle.data.premium === 1) {
+                this.paywallPage.show(undefined, showTime);
+            }
         }
         else if (page.startsWith("#levels")) {
             SDKGameplayStop();

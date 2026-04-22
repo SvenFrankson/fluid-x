@@ -144,6 +144,13 @@ abstract class LevelPage {
                 authorText.setContent(puzzleTileDatas[n].data.author);
             }
 
+            if (puzzleTileDatas[n].data.premium === 1) {
+                let premiumTag = document.createElement("div");
+                premiumTag.classList.add("premium-tag");
+                premiumTag.innerHTML = "PREMIUM PUZZLE";
+                squareButton.appendChild(premiumTag);
+            }
+
             if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
                 let completedStamp = document.createElement("div");
                 let starCount = this.router.game.puzzleCompletion.getStarCount(puzzleTileDatas[n].data.id);

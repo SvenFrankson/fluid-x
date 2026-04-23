@@ -25,6 +25,7 @@ var PokiSDK: any;
 var CrazySDK: any;
 var LOCALE = "en";
 var TOP_HOST: string;
+var Wavedash: any = window.Wavedash;
 
 var SDKPlaying: boolean = false;
 function SDKGameplayStart(): void {
@@ -311,6 +312,7 @@ class Game {
     public loadedMultiplayerPuzzles: IPuzzlesData;
 
     public puzzleCompletion: PuzzleCompletion;
+    public achievements: Achievements;
     public router: CarillonRouter;
     public editor: Editor;
     private _mode: GameMode = GameMode.Menu;
@@ -362,6 +364,8 @@ class Game {
 	}
 
     public async createScene(): Promise<void> {
+        ScreenLoger.Log("Creating scene...");
+        
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
 
@@ -394,7 +398,7 @@ class Game {
         this.animSpotlightIntensity = Mummu.AnimationFactory.CreateNumber(this.spotlight, this.spotlight, "intensity");
 
         let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
-        skyBoxHolder.rotation.x = Math.PI * 0.3;
+        skyBoxHolder.rotation.x = Math.PI * 0.5;
 
         this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
         this.skybox.parent = skyBoxHolder;
@@ -491,6 +495,8 @@ class Game {
 
         this.puzzleCompletion = new PuzzleCompletion(this);
         await this.puzzleCompletion.initialize();
+
+        this.achievements = new Achievements(this);
 
         this.editor = new Editor(this);
 
@@ -688,6 +694,7 @@ class Game {
             }, devSecret < 6 ? 1000 : 6000);
         }
 
+        /*
         let ambient = this.soundManager.createSound(
             "ambient",
             "./datas/sounds/zen-ambient.mp3",
@@ -700,6 +707,7 @@ class Game {
                 loop: true
             }
         );
+        */
 
         let puzzleId: number;
         if (location.search != "") {

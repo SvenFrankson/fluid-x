@@ -1015,6 +1015,7 @@ class Ball extends BABYLON.Mesh {
                                             }
                                             else if (tile instanceof BlockTile) {
                                                 if (tile.color === this.color) {
+                                                    this.game.achievements.addCollectedTiles(1);
                                                     tile.tileState = TileState.Dying;
                                                     tile.shrink().then(() => {
                                                         tile.shootStar();

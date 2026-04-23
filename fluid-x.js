@@ -1,3 +1,26 @@
+class Achievements {
+    constructor(game) {
+        this.game = game;
+        this.collectedTiles = 0;
+        this.unlockedDoors = 0;
+        this.creepDeaths = 0;
+        this.fallDeaths = 0;
+        this.completedLevels = 0;
+        this.freewallContinues = 0;
+        if (USE_WAVEDASH_SDK) {
+            this.collectedTiles = Wavedash.getStat("COLLECTED_TILES") || 0;
+            ScreenLoger.Log("Collected tiles: " + this.collectedTiles);
+        }
+    }
+    addCollectedTiles(count = 1) {
+        this.collectedTiles += count;
+        ScreenLoger.Log("Collected tiles: " + this.collectedTiles);
+        if (USE_WAVEDASH_SDK) {
+            Wavedash.setStat("COLLECTED_TILES", this.collectedTiles, true);
+            ScreenLoger.Log("WaveDash collected Tiles " + Wavedash.getStat("COLLECTED_TILES"));
+        }
+    }
+}
 class Analytics {
     constructor(game) {
         this.game = game;
@@ -7,6 +30,9 @@ class Analytics {
             return;
         }
         if (USE_POKI_SDK) {
+            return;
+        }
+        if (USE_WAVEDASH_SDK) {
             return;
         }
         let body = {
@@ -995,6 +1021,7 @@ class Ball extends BABYLON.Mesh {
                                             }
                                             else if (tile instanceof BlockTile) {
                                                 if (tile.color === this.color) {
+                                                    this.game.achievements.addCollectedTiles(1);
                                                     tile.tileState = TileState.Dying;
                                                     tile.shrink().then(() => {
                                                         tile.shootStar();
@@ -5545,6 +5572,7 @@ var PokiSDK;
 var CrazySDK;
 var LOCALE = "en";
 var TOP_HOST;
+var Wavedash = window.Wavedash;
 var SDKPlaying = false;
 function SDKGameplayStart() {
     if (!SDKPlaying) {
@@ -5850,6 +5878,7 @@ class Game {
         this._bodyPatternIndex = v;
     }
     async createScene() {
+        ScreenLoger.Log("Creating scene...");
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color4.FromHexString("#00000000");
         this.vertexDataLoader = new Mummu.VertexDataLoader(this.scene);
@@ -5876,7 +5905,7 @@ class Game {
         this.animLightIntensity = Mummu.AnimationFactory.CreateNumber(this.light, this.light, "intensity");
         this.animSpotlightIntensity = Mummu.AnimationFactory.CreateNumber(this.spotlight, this.spotlight, "intensity");
         let skyBoxHolder = new BABYLON.Mesh("skybox-holder");
-        skyBoxHolder.rotation.x = Math.PI * 0.3;
+        skyBoxHolder.rotation.x = Math.PI * 0.5;
         this.skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1500 }, this.scene);
         this.skybox.parent = skyBoxHolder;
         let skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
@@ -5953,6 +5982,7 @@ class Game {
         this.puzzle.instantiate();
         this.puzzleCompletion = new PuzzleCompletion(this);
         await this.puzzleCompletion.initialize();
+        this.achievements = new Achievements(this);
         this.editor = new Editor(this);
         /*
         let bridge = new Bridge(this, {
@@ -6123,12 +6153,20 @@ class Game {
                 devSecret = 0;
             }, devSecret < 6 ? 1000 : 6000);
         };
-        let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
-            ambient.setVolume(0.15);
-        }, {
-            autoplay: true,
-            loop: true
-        });
+        /*
+        let ambient = this.soundManager.createSound(
+            "ambient",
+            "./datas/sounds/zen-ambient.mp3",
+            this.scene,
+            () => {
+                ambient.setVolume(0.15)
+            },
+            {
+                autoplay: true,
+                loop: true
+            }
+        );
+        */
         let puzzleId;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
@@ -7845,6 +7883,30 @@ class PuzzleCompletion {
             return comp.score;
         }
         return Infinity;
+    }
+}
+class ScreenLoger {
+    static get container() {
+        if (!ScreenLoger._container) {
+            ScreenLoger._container = document.createElement("div");
+            ScreenLoger._container.id = "screen-loger-container";
+            if (USE_WAVEDASH_SDK) {
+                Game.Instance.canvas.parentElement.appendChild(ScreenLoger._container);
+            }
+            else {
+                document.body.appendChild(ScreenLoger._container);
+            }
+        }
+        return ScreenLoger._container;
+    }
+    static Log(s) {
+        let line = document.createElement("div");
+        line.classList.add("screen-loger-line");
+        line.innerText = s;
+        ScreenLoger.container.appendChild(line);
+        if (ScreenLoger.container.childElementCount > 15) {
+            ScreenLoger.container.removeChild(ScreenLoger.container.firstChild);
+        }
     }
 }
 class MySound {

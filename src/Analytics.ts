@@ -11,6 +11,9 @@ class Analytics {
         if (USE_POKI_SDK) {
             return;
         }
+        if (USE_WAVEDASH_SDK) {
+            return;
+        }
         let body = {
             puzzle_id: this.game.puzzle.data.id,
             event_type: eventType,

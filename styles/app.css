@@ -26,6 +26,21 @@ body {
     transition: background-color 1s;
 }
 
+#screen-loger-container {
+  display: block;
+  position: fixed;
+  left: 100px;
+  top: 10px;
+  z-index: 1;
+  color: lime;
+  pointer-events: none;
+}
+
+.screen-loger-line {
+  font-family: monospace;
+  pointer-events: none;
+}
+
 .cube-pattern {
     background-image: url("../datas/textures/cube_pattern.png");
 }

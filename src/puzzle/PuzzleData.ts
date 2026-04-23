@@ -38,15 +38,18 @@ function CLEAN_IPuzzleData(data: any): any {
     if (data.state != null && typeof(data.state) === "string") {
         data.state = parseInt(data.state);
     }
+    data.state = data.state === null ? 0 : data.state;
     if (data.story_order != null && typeof(data.story_order) === "string") {
         data.story_order = parseInt(data.story_order);
     }
+    data.story_order = data.story_order === null ? 0 : data.story_order;
     if (data.difficulty != null && typeof(data.difficulty) === "string") {
         data.difficulty = parseInt(data.difficulty);
     }
     if (data.premium != null && typeof(data.premium) === "string") {
         data.premium = parseInt(data.premium);
     }
+    data.premium = data.premium === null ? 0 : data.premium;
     if (data.expert_puzzle_id != null && typeof(data.expert_puzzle_id) === "string") {
         data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
     }

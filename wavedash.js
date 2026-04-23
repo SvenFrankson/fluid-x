@@ -45,14 +45,16 @@
         <div id="thumbnail-title" class="lightblue"><stroke-text>CARILLION</stroke-text></div>
     </div>
   `
+const Wavedash = await window.Wavedash;
 
-  await window.WavedashJS.loadScript("./index.js");
+  await Wavedash.loadScript("./index.js");
   await doLoad((step) => {
-    WavedashJS.updateLoadProgressZeroToOne(step);
+    Wavedash.updateLoadProgressZeroToOne(step);
   });
 
   // Report loading progress (0 to 1)
 
   // Notify that loading is complete
-  WavedashJS.loadComplete();
+  Wavedash.loadComplete();
+  Wavedash.init();
 })();

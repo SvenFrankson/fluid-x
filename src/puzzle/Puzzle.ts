@@ -502,7 +502,9 @@ class Puzzle {
         this.griddedTiles = [];
 
         this.data = data;
-        DEV_UPDATE_STATE_UI();
+        if (DEV_MODE_ACTIVATED) {
+            DEV_UPDATE_STATE_UI();
+        }
 
         if (isFinite(data.id)) {
             if (data.difficulty === 1) {

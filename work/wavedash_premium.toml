@@ -3,4 +3,4 @@ upload_dir = "../carillion-build_wavedash_online"
 
 [custom]
 version = "1.0.0"
-entrypoint = "index.html"
+entrypoint = "wavedash.js"

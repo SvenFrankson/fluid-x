@@ -1,7 +1,7 @@
-var CONTENT_VERSION = 0;
+var CONTENT_VERSION = 2;
 var USE_POKI_SDK = false;
 var USE_CG_SDK = false;
-var USE_WAVEDASH_SDK = false;
+var USE_WAVEDASH_SDK = true;
 var OFFLINE_MODE = false;
 var NO_VERTEX_DATA_LOADER = false;
 var ADVENT_CAL = false;
@@ -158,6 +158,12 @@ function loadStep() {
 }
 
 async function doLoad(onSetProgressIndexCallback) {
+    if (USE_WAVEDASH_SDK) {
+        const Wavedash = await window.Wavedash;
+        Wavedash.updateLoadProgressZeroToOne(1);
+        Wavedash.init({ debug: true });
+    }
+
     let stepsCount = 10;
     if (USE_POKI_SDK) {
         stepsCount++;

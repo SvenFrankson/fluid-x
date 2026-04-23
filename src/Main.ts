@@ -1059,6 +1059,10 @@ class Game {
         if (puzzle) {
             return puzzle;
         }
+        puzzle = this.loadedPremiumPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
         puzzle = this.loadedMultiplayerPuzzles.puzzles.find(e => { return e.id === id; });
         if (puzzle) {
             return puzzle;

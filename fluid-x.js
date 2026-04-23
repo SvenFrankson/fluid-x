@@ -4769,18 +4769,22 @@ class HomePage {
         this.buttons = [...this.nabuPage.querySelectorAll("button")];
         this.rowCount = this.buttons.length;
         let contentVersionElement = this.nabuPage.querySelector("h1 span.content-version");
+        let premiumPuzzlesButton = this.nabuPage.querySelector("#home-premium-btn .premium-tag");
         if (contentVersionElement instanceof HTMLSpanElement) {
             if (CONTENT_VERSION === ContentVersion.Free) {
                 contentVersionElement.textContent = "FREE";
                 contentVersionElement.style.backgroundColor = "var(--color-green)";
+                premiumPuzzlesButton.style.display = "block";
             }
             if (CONTENT_VERSION === ContentVersion.Classic) {
                 contentVersionElement.textContent = "CLASSIC";
                 contentVersionElement.style.backgroundColor = "var(--color-blue)";
+                premiumPuzzlesButton.style.display = "none";
             }
             if (CONTENT_VERSION === ContentVersion.Premium) {
                 contentVersionElement.textContent = "PREMIUM";
                 contentVersionElement.style.backgroundColor = "var(--color-red)";
+                premiumPuzzlesButton.style.display = "none";
             }
         }
         this._registerToInputManager();
@@ -6454,6 +6458,10 @@ class Game {
             return puzzle;
         }
         puzzle = this.loadedExpertPuzzles.puzzles.find(e => { return e.id === id; });
+        if (puzzle) {
+            return puzzle;
+        }
+        puzzle = this.loadedPremiumPuzzles.puzzles.find(e => { return e.id === id; });
         if (puzzle) {
             return puzzle;
         }
@@ -10027,7 +10035,9 @@ class Puzzle {
         this.noboris = [];
         this.griddedTiles = [];
         this.data = data;
-        DEV_UPDATE_STATE_UI();
+        if (DEV_MODE_ACTIVATED) {
+            DEV_UPDATE_STATE_UI();
+        }
         if (isFinite(data.id)) {
             if (data.difficulty === 1) {
                 this.game.bodyColorIndex = 10;
@@ -11137,15 +11147,18 @@ function CLEAN_IPuzzleData(data) {
     if (data.state != null && typeof (data.state) === "string") {
         data.state = parseInt(data.state);
     }
+    data.state = data.state === null ? 0 : data.state;
     if (data.story_order != null && typeof (data.story_order) === "string") {
         data.story_order = parseInt(data.story_order);
     }
+    data.story_order = data.story_order === null ? 0 : data.story_order;
     if (data.difficulty != null && typeof (data.difficulty) === "string") {
         data.difficulty = parseInt(data.difficulty);
     }
     if (data.premium != null && typeof (data.premium) === "string") {
         data.premium = parseInt(data.premium);
     }
+    data.premium = data.premium === null ? 0 : data.premium;
     if (data.expert_puzzle_id != null && typeof (data.expert_puzzle_id) === "string") {
         data.expert_puzzle_id = parseInt(data.expert_puzzle_id);
     }

@@ -896,7 +896,7 @@ body.vertical .square-btn-container {
     background-image: url("../datas/icons/play.svg");
 }
 
-.square-btn-panel .premium-tag {
+.premium-tag {
     display: block;
     position: absolute;
     text-align: center;

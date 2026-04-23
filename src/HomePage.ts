@@ -10,18 +10,25 @@ class HomePage {
         this.rowCount = this.buttons.length;
 
         let contentVersionElement = this.nabuPage.querySelector("h1 span.content-version");
+        let premiumPuzzlesButton = this.nabuPage.querySelector("#home-premium-btn .premium-tag") as HTMLDivElement;
         if (contentVersionElement instanceof HTMLSpanElement) {
             if (CONTENT_VERSION === ContentVersion.Free) {
                 contentVersionElement.textContent = "FREE";
                 contentVersionElement.style.backgroundColor = "var(--color-green)";
+
+                premiumPuzzlesButton.style.display = "block";
             }
             if (CONTENT_VERSION === ContentVersion.Classic) {
                 contentVersionElement.textContent = "CLASSIC";
                 contentVersionElement.style.backgroundColor = "var(--color-blue)";
+                
+                premiumPuzzlesButton.style.display = "none";
             }
             if (CONTENT_VERSION === ContentVersion.Premium) {
                 contentVersionElement.textContent = "PREMIUM";
                 contentVersionElement.style.backgroundColor = "var(--color-red)";
+                
+                premiumPuzzlesButton.style.display = "none";
             }
         }
         this._registerToInputManager();

@@ -9,12 +9,14 @@ class PaywallPage {
     }
 
     public show(onContinue?: () => void, duration?: number): void {
+        this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = true);
         this.nabuPage.show(duration);
         if (onContinue) {
             this.continueButton.onclick = onContinue;
         }
         else {
             this.continueButton.onclick = () => {
+                this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = false);
                 this.router.game.achievements.addDismissedPaywalls(1);
                 this.nabuPage.hide(0.2);
             };

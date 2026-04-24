@@ -1094,7 +1094,6 @@ class Ball extends BABYLON.Mesh {
                                                 }
                                             }
                                             else if (tile instanceof ButtonTile) {
-                                                this.game.achievements.addUnlockedDoors(1);
                                                 tile.clicClack();
                                                 this.puzzle.tiles.forEach(door => {
                                                     if (door instanceof DoorTile && door.props.value === tile.props.value) {
@@ -1104,6 +1103,9 @@ class Ball extends BABYLON.Mesh {
                                                             setTimeout(() => {
                                                                 if (door instanceof DoorTile) {
                                                                     if (door.closed) {
+                                                                        if (!door.hasOpenedOnce) {
+                                                                            this.game.achievements.addUnlockedDoors(1);
+                                                                        }
                                                                         door.open();
                                                                     }
                                                                     else {
@@ -7521,12 +7523,14 @@ class PaywallPage {
         this.continueButton = this.nabuPage.querySelector("#paywall-continue");
     }
     show(onContinue, duration) {
+        this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = true);
         this.nabuPage.show(duration);
         if (onContinue) {
             this.continueButton.onclick = onContinue;
         }
         else {
             this.continueButton.onclick = () => {
+                this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = false);
                 this.router.game.achievements.addDismissedPaywalls(1);
                 this.nabuPage.hide(0.2);
             };
@@ -8202,6 +8206,7 @@ class DoorTile extends Tile {
         super(game, props);
         this.value = 0;
         this.closed = false;
+        this.hasOpenedOnce = false;
         this.animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
         this.animateTopRotY = Mummu.AnimationFactory.EmptyNumberCallback;
         this.animateBoxPosY = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -8252,6 +8257,7 @@ class DoorTile extends Tile {
     }
     async open(duration = 0.5) {
         //await RandomWait();
+        this.hasOpenedOnce = true;
         this.animateTopPosY(0, duration, Nabu.Easing.easeOutCubic);
         this.animateTopRotY(0, duration, Nabu.Easing.easeOutCubic);
         await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeOutCubic);
@@ -10076,6 +10082,9 @@ class Puzzle {
         }
         else if (this.data.state === PuzzleDataState.XMAS) {
             previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
+        }
+        else if (this.data.state === PuzzleDataState.PREMIUM) {
+            previousCompletion = this.game.puzzleCompletion.premiumPuzzleCompletion;
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score, this.data.difficulty);

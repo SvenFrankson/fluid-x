@@ -367,7 +367,7 @@ class Puzzle {
             previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
-        this.game.puzzleCompletion.completePuzzle(this.data.id, score);
+        this.game.puzzleCompletion.completePuzzle(this.data.id, score, this.data.difficulty);
         (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score);
 
         clearTimeout(this._winloseTimout);

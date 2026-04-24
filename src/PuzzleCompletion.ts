@@ -188,8 +188,9 @@ class PuzzleCompletion {
         this._updatePremiumPuzzleCompletion();
     }
 
-    public completePuzzle(id: number, score: number): void {
+    public completePuzzle(id: number, score: number, difficulty: number): void {
         if (id != null && isFinite(id)) {
+            this.game.achievements.addComplete(difficulty);
             let comp = this.completedPuzzles.find(comp => { return comp.id === id });
             if (!comp) {
                 comp = { id: id, score: score };

@@ -1,15 +1,37 @@
 class Achievements {
     constructor(game) {
         this.game = game;
-        this.collectedTiles = 0;
-        this.unlockedDoors = 0;
-        this.creepDeaths = 0;
-        this.fallDeaths = 0;
-        this.completedLevels = 0;
-        this.freewallContinues = 0;
+        this.collectedTiles = 0; // COLLECTED_TILES
+        this.unlockedDoors = 0; // UNLOCKED_DOORS
+        this.creepDeaths = 0; // CREEPER_DEATHS
+        this.fallDeaths = 0; // FALL_DEATHS
+        this.dismissedPaywalls = 0; // DISMISSED_PAYWALLS
+        this.totalCompleted = 0; // TOTAL_COMPLETED
+        this.easyCompleted = 0; // EASY_COMPLETED
+        this.mediumCompleted = 0; // MEDIUM_COMPLETED
+        this.hardCompleted = 0; // HARD_COMPLETED
+        this.expertCompleted = 0; // EXPERT_COMPLETED
         if (USE_WAVEDASH_SDK) {
             this.collectedTiles = Wavedash.getStat("COLLECTED_TILES") || 0;
             ScreenLoger.Log("Collected tiles: " + this.collectedTiles);
+            this.unlockedDoors = Wavedash.getStat("UNLOCKED_DOORS") || 0;
+            ScreenLoger.Log("Unlocked doors: " + this.unlockedDoors);
+            this.creepDeaths = Wavedash.getStat("CREEPER_DEATHS") || 0;
+            ScreenLoger.Log("Creep deaths: " + this.creepDeaths);
+            this.fallDeaths = Wavedash.getStat("FALL_DEATHS") || 0;
+            ScreenLoger.Log("Fall deaths: " + this.fallDeaths);
+            this.dismissedPaywalls = Wavedash.getStat("DISMISSED_PAYWALLS") || 0;
+            ScreenLoger.Log("Dismissed paywalls: " + this.dismissedPaywalls);
+            this.totalCompleted = Wavedash.getStat("TOTAL_COMPLETED") || 0;
+            ScreenLoger.Log("Total completed: " + this.totalCompleted);
+            this.easyCompleted = Wavedash.getStat("EASY_COMPLETED") || 0;
+            ScreenLoger.Log("Easy completed: " + this.easyCompleted);
+            this.mediumCompleted = Wavedash.getStat("MEDIUM_COMPLETED") || 0;
+            ScreenLoger.Log("Medium completed: " + this.mediumCompleted);
+            this.hardCompleted = Wavedash.getStat("HARD_COMPLETED") || 0;
+            ScreenLoger.Log("Hard completed: " + this.hardCompleted);
+            this.expertCompleted = Wavedash.getStat("EXPERT_COMPLETED") || 0;
+            ScreenLoger.Log("Expert completed: " + this.expertCompleted);
         }
     }
     addCollectedTiles(count = 1) {
@@ -18,6 +40,78 @@ class Achievements {
         if (USE_WAVEDASH_SDK) {
             Wavedash.setStat("COLLECTED_TILES", this.collectedTiles, true);
             ScreenLoger.Log("WaveDash collected Tiles " + Wavedash.getStat("COLLECTED_TILES"));
+        }
+    }
+    addUnlockedDoors(count = 1) {
+        this.unlockedDoors += count;
+        ScreenLoger.Log("Unlocked doors: " + this.unlockedDoors);
+        if (USE_WAVEDASH_SDK) {
+            Wavedash.setStat("UNLOCKED_DOORS", this.unlockedDoors, true);
+            ScreenLoger.Log("WaveDash unlocked Doors " + Wavedash.getStat("UNLOCKED_DOORS"));
+        }
+    }
+    addCreepDeaths(count = 1) {
+        this.creepDeaths += count;
+        ScreenLoger.Log("Creep deaths: " + this.creepDeaths);
+        if (USE_WAVEDASH_SDK) {
+            Wavedash.setStat("CREEPER_DEATHS", this.creepDeaths, true);
+            ScreenLoger.Log("WaveDash creep deaths " + Wavedash.getStat("CREEPER_DEATHS"));
+        }
+    }
+    addFallDeaths(count = 1) {
+        this.fallDeaths += count;
+        ScreenLoger.Log("Fall deaths: " + this.fallDeaths);
+        if (USE_WAVEDASH_SDK) {
+            Wavedash.setStat("FALL_DEATHS", this.fallDeaths, true);
+            ScreenLoger.Log("WaveDash fall deaths " + Wavedash.getStat("FALL_DEATHS"));
+        }
+    }
+    addDismissedPaywalls(count = 1) {
+        this.dismissedPaywalls += count;
+        ScreenLoger.Log("Dismissed paywalls: " + this.dismissedPaywalls);
+        if (USE_WAVEDASH_SDK) {
+            Wavedash.setStat("DISMISSED_PAYWALLS", this.dismissedPaywalls, true);
+            ScreenLoger.Log("WaveDash dismissed paywalls " + Wavedash.getStat("DISMISSED_PAYWALLS"));
+        }
+    }
+    addComplete(difficulty) {
+        this.totalCompleted += 1;
+        ScreenLoger.Log("Total completed: " + this.totalCompleted);
+        if (USE_WAVEDASH_SDK) {
+            Wavedash.setStat("TOTAL_COMPLETED", this.totalCompleted, true);
+            ScreenLoger.Log("WaveDash total completed " + Wavedash.getStat("TOTAL_COMPLETED"));
+        }
+        if (difficulty === 1) {
+            this.easyCompleted += 1;
+            ScreenLoger.Log("Easy completed: " + this.easyCompleted);
+            if (USE_WAVEDASH_SDK) {
+                Wavedash.setStat("EASY_COMPLETED", this.easyCompleted, true);
+                ScreenLoger.Log("WaveDash easy completed " + Wavedash.getStat("EASY_COMPLETED"));
+            }
+        }
+        if (difficulty === 0 || difficulty === 2) {
+            this.mediumCompleted += 1;
+            ScreenLoger.Log("Medium completed: " + this.mediumCompleted);
+            if (USE_WAVEDASH_SDK) {
+                Wavedash.setStat("MEDIUM_COMPLETED", this.mediumCompleted, true);
+                ScreenLoger.Log("WaveDash medium completed " + Wavedash.getStat("MEDIUM_COMPLETED"));
+            }
+        }
+        if (difficulty === 3) {
+            this.hardCompleted += 1;
+            ScreenLoger.Log("Hard completed: " + this.hardCompleted);
+            if (USE_WAVEDASH_SDK) {
+                Wavedash.setStat("HARD_COMPLETED", this.hardCompleted, true);
+                ScreenLoger.Log("WaveDash hard completed " + Wavedash.getStat("HARD_COMPLETED"));
+            }
+        }
+        if (difficulty === 4) {
+            this.expertCompleted += 1;
+            ScreenLoger.Log("Expert completed: " + this.expertCompleted);
+            if (USE_WAVEDASH_SDK) {
+                Wavedash.setStat("EXPERT_COMPLETED", this.expertCompleted, true);
+                ScreenLoger.Log("WaveDash expert completed " + Wavedash.getStat("EXPERT_COMPLETED"));
+            }
         }
     }
 }
@@ -860,6 +954,7 @@ class Ball extends BABYLON.Mesh {
                     let creep = this.puzzle.creeps[i];
                     let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
                     if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
+                        this.game.achievements.addCreepDeaths(1);
                         creep.stopMove = true;
                         creep.bump();
                         let dir = this.absolutePosition.subtract(creep.absolutePosition);
@@ -999,6 +1094,7 @@ class Ball extends BABYLON.Mesh {
                                                 }
                                             }
                                             else if (tile instanceof ButtonTile) {
+                                                this.game.achievements.addUnlockedDoors(1);
                                                 tile.clicClack();
                                                 this.puzzle.tiles.forEach(door => {
                                                     if (door instanceof DoorTile && door.props.value === tile.props.value) {
@@ -1073,6 +1169,7 @@ class Ball extends BABYLON.Mesh {
             }
             this.fallTimer += dt;
             if (this.fallTimer > 1) {
+                this.game.achievements.addFallDeaths(1);
                 if (this.fallImpactSound) {
                     this.fallImpactSound.play();
                 }
@@ -7421,6 +7518,7 @@ class PaywallPage {
         }
         else {
             this.continueButton.onclick = () => {
+                this.router.game.achievements.addDismissedPaywalls(1);
                 this.nabuPage.hide(0.2);
             };
         }
@@ -7849,8 +7947,9 @@ class PuzzleCompletion {
         this._updateCommunityPuzzleCompletion();
         this._updatePremiumPuzzleCompletion();
     }
-    completePuzzle(id, score) {
+    completePuzzle(id, score, difficulty) {
         if (id != null && isFinite(id)) {
+            this.game.achievements.addComplete(difficulty);
             let comp = this.completedPuzzles.find(comp => { return comp.id === id; });
             if (!comp) {
                 comp = { id: id, score: score };
@@ -9970,7 +10069,7 @@ class Puzzle {
             previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
-        this.game.puzzleCompletion.completePuzzle(this.data.id, score);
+        this.game.puzzleCompletion.completePuzzle(this.data.id, score, this.data.difficulty);
         this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
         clearTimeout(this._winloseTimout);
         setTimeout(() => {

@@ -1,0 +1,352 @@
+{
+    "achievements": [
+        {
+            "identifier": "EASY_1",
+            "display_name": "Apprentice I",
+            "description": "You completed your first Easy Puzzle !",
+            "stat_requirement": {
+                "stat": "EASY_COMPLETED",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "EASY_2",
+            "display_name": "Apprentice II",
+            "description": "You completed 5 Easy Puzzles !",
+            "stat_requirement": {
+                "stat": "EASY_COMPLETED",
+                "threshold": 5
+            }
+        },
+        {
+            "identifier": "MEDIUM_1",
+            "display_name": "Intermediate I",
+            "description": "You completed your first Medium Puzzle !",
+            "stat_requirement": {
+                "stat": "MEDIUM_COMPLETED",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "MEDIUM_2",
+            "display_name": "Intermediate II",
+            "description": "You completed 5 Medium Puzzles !",
+            "stat_requirement": {
+                "stat": "MEDIUM_COMPLETED",
+                "threshold": 5
+            }
+        },
+        {
+            "identifier": "HARD_1",
+            "display_name": "Professional I",
+            "description": "You completed your first Hard Puzzle !",
+            "stat_requirement": {
+                "stat": "HARD_COMPLETED",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "HARD_2",
+            "display_name": "Professional II",
+            "description": "You completed 5 Hard Puzzles !",
+            "stat_requirement": {
+                "stat": "HARD_COMPLETED",
+                "threshold": 5
+            }
+        },
+        {
+            "identifier": "EXPERT_1",
+            "display_name": "Master I",
+            "description": "You completed your first Expert Puzzle !",
+            "stat_requirement": {
+                "stat": "EXPERT_COMPLETED",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "EXPERT_2",
+            "display_name": "Master II",
+            "description": "You completed 5 Expert Puzzles !",
+            "stat_requirement": {
+                "stat": "EXPERT_COMPLETED",
+                "threshold": 5
+            }
+        },
+        {
+            "identifier": "TILES_1",
+            "display_name": "Collector I",
+            "description": "You collected your first Tile !",
+            "stat_requirement": {
+                "stat": "COLLECTED_TILES",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "TILES_2",
+            "display_name": "Collector II",
+            "description": "You collected 10 Tiles !",
+            "stat_requirement": {
+                "stat": "COLLECTED_TILES",
+                "threshold": 10
+            }
+        },
+        {
+            "identifier": "TILES_3",
+            "display_name": "Collector III",
+            "description": "You collected 100 Tiles !",
+            "stat_requirement": {
+                "stat": "COLLECTED_TILES",
+                "threshold": 100
+            }
+        },
+        {
+            "identifier": "TILES_4",
+            "display_name": "Collector IV",
+            "description": "You collected 1000 Tiles !",
+            "stat_requirement": {
+                "stat": "COLLECTED_TILES",
+                "threshold": 1000
+            }
+        },
+        {
+            "identifier": "TILES_5",
+            "display_name": "Collector V",
+            "description": "You collected 10000 Tiles !",
+            "stat_requirement": {
+                "stat": "COLLECTED_TILES",
+                "threshold": 10000
+            }
+        },
+        {
+            "identifier": "DOORS_1",
+            "display_name": "Lockpicker I",
+            "description": "You unlocked your first Door !",
+            "stat_requirement": {
+                "stat": "UNLOCKED_DOORS",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "DOORS_2",
+            "display_name": "Lockpicker II",
+            "description": "You unlocked 5 Doors !",
+            "stat_requirement": {
+                "stat": "UNLOCKED_DOORS",
+                "threshold": 5
+            }
+        },
+        {
+            "identifier": "DOORS_3",
+            "display_name": "Lockpicker III",
+            "description": "You unlocked 25 Doors !",
+            "stat_requirement": {
+                "stat": "UNLOCKED_DOORS",
+                "threshold": 25
+            }
+        },
+        {
+            "identifier": "DOORS_4",
+            "display_name": "Lockpicker IV",
+            "description": "You unlocked 125 Doors !",
+            "stat_requirement": {
+                "stat": "UNLOCKED_DOORS",
+                "threshold": 125
+            }
+        },
+        {
+            "identifier": "DOORS_5",
+            "display_name": "Lockpicker V",
+            "description": "You unlocked 625 Doors !",
+            "stat_requirement": {
+                "stat": "UNLOCKED_DOORS",
+                "threshold": 625
+            }
+        },
+        {
+            "identifier": "CREEP_1",
+            "display_name": "Brave I",
+            "description": "You lost to your first Creeper !",
+            "stat_requirement": {
+                "stat": "CREEPER_DEATHS",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "CREEP_2",
+            "display_name": "Brave II",
+            "description": "You lost to 3 Creepers ! Hold on !",
+            "stat_requirement": {
+                "stat": "CREEPER_DEATHS",
+                "threshold": 3
+            }
+        },
+        {
+            "identifier": "CREEP_3",
+            "display_name": "Brave III",
+            "description": "You lost to 9 Creepers ! How brave !",
+            "stat_requirement": {
+                "stat": "CREEPER_DEATHS",
+                "threshold": 9
+            }
+        },
+        {
+            "identifier": "CREEP_4",
+            "display_name": "Brave IV",
+            "description": "You lost to 27 Creepers ! Incredible !",
+            "stat_requirement": {
+                "stat": "CREEPER_DEATHS",
+                "threshold": 27
+            }
+        },
+        {
+            "identifier": "CREEP_5",
+            "display_name": "Brave V",
+            "description": "You lost to 81 Creepers ! Are you sure you want to keep going ?",
+            "stat_requirement": {
+                "stat": "CREEPER_DEATHS",
+                "threshold": 81
+            }
+        },
+        {
+            "identifier": "FALL_1",
+            "display_name": "Acrobat I",
+            "description": "You lost to your first Fall !",
+            "stat_requirement": {
+                "stat": "FALL_DEATHS",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "FALL_2",
+            "display_name": "Acrobat II",
+            "description": "You lost to 3 Falls ! Be careful !",
+            "stat_requirement": {
+                "stat": "FALL_DEATHS",
+                "threshold": 3
+            }
+        },
+        {
+            "identifier": "FALL_3",
+            "display_name": "Acrobat III",
+            "description": "You lost to 9 Falls ! Watch out !",
+            "stat_requirement": {
+                "stat": "FALL_DEATHS",
+                "threshold": 9
+            }
+        },
+        {
+            "identifier": "FALL_4",
+            "display_name": "Acrobat IV",
+            "description": "You lost to 27 Falls ! Incredible !",
+            "stat_requirement": {
+                "stat": "FALL_DEATHS",
+                "threshold": 27
+            }
+        },
+        {
+            "identifier": "FALL_5",
+            "display_name": "Acrobat V",
+            "description": "You lost to 81 Falls ! Are you sure you want to keep going ?",
+            "stat_requirement": {
+                "stat": "FALL_DEATHS",
+                "threshold": 81
+            }
+        },
+        {
+            "identifier": "DISMISS_1",
+            "display_name": "Paywall I",
+            "description": "You wouldn't steal a car !",
+            "stat_requirement": {
+                "stat": "DISMISSED_PAYWALLS",
+                "threshold": 1
+            }
+        },
+        {
+            "identifier": "DISMISS_2",
+            "display_name": "Paywall II",
+            "description": "You wouldn't steal a handbag !",
+            "stat_requirement": {
+                "stat": "DISMISSED_PAYWALLS",
+                "threshold": 3
+            }
+        },
+        {
+            "identifier": "DISMISS_3",
+            "display_name": "Paywall III",
+            "description": "You wouldn't steal a television !",
+            "stat_requirement": {
+                "stat": "DISMISSED_PAYWALLS",
+                "threshold": 6
+            }
+        },
+        {
+            "identifier": "DISMISS_4",
+            "display_name": "Paywall IV",
+            "description": "You wouldn't steal a dvd !",
+            "stat_requirement": {
+                "stat": "DISMISSED_PAYWALLS",
+                "threshold": 9
+            }
+        },
+        {
+            "identifier": "DISMISS_5",
+            "display_name": "Paywall V",
+            "description": "You wouldn't download a car !",
+            "stat_requirement": {
+                "stat": "DISMISSED_PAYWALLS",
+                "threshold": 12
+            }
+        }
+    ],
+    "stats": [
+        {
+            "identifier": "COLLECTED_TILES",
+            "display_name": "Collected Tiles"
+        },
+
+        {
+            "identifier": "CREEPER_DEATHS",
+            "display_name": "Creeper Deaths"
+        },
+
+        {
+            "identifier": "DISMISSED_PAYWALLS",
+            "display_name": "Dismissed Paywalls"
+        },
+
+        {
+            "identifier": "EASY_COMPLETED",
+            "display_name": "Easy Completes"
+        },
+
+        {
+            "identifier": "EXPERT_COMPLETES",
+            "display_name": "Expert Completes"
+        },
+
+        {
+            "identifier": "FALL_DEATHS",
+            "display_name": "Fall Deaths"
+        },
+
+        {
+            "identifier": "HARD_COMPLETES",
+            "display_name": "Hard Completes"
+        },
+
+        {
+            "identifier": "MEDIUM_COMPLETES",
+            "display_name": "Medium Completes"
+        },
+
+        {
+            "identifier": "TOTAL_COMPLETES",
+            "display_name": "Total Completes"
+        },
+
+        {
+            "identifier": "UNLOCKED_DOORS",
+            "display_name": "Unlocked Doors"
+        }
+    ]
+}

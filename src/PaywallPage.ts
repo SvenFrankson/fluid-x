@@ -15,6 +15,7 @@ class PaywallPage {
         }
         else {
             this.continueButton.onclick = () => {
+                this.router.game.achievements.addDismissedPaywalls(1);
                 this.nabuPage.hide(0.2);
             };
         }

@@ -849,6 +849,7 @@ class Ball extends BABYLON.Mesh {
                     let creep = this.puzzle.creeps[i];
                     let sqrDist = BABYLON.Vector3.DistanceSquared(this.absolutePosition, creep.absolutePosition);
                     if (sqrDist < (this.radius + creep.radius) * (this.radius + creep.radius)) {
+                        this.game.achievements.addCreepDeaths(1);
                         creep.stopMove = true;
                         creep.bump();
                         let dir = this.absolutePosition.subtract(creep.absolutePosition);
@@ -993,6 +994,7 @@ class Ball extends BABYLON.Mesh {
                                                 }
                                             }
                                             else if (tile instanceof ButtonTile) {
+                                                this.game.achievements.addUnlockedDoors(1);
                                                 tile.clicClack();
                                                 this.puzzle.tiles.forEach(door => {
                                                     if (door instanceof DoorTile && door.props.value === tile.props.value) {
@@ -1073,6 +1075,7 @@ class Ball extends BABYLON.Mesh {
             this.fallTimer += dt;
 
             if (this.fallTimer > 1) {
+                this.game.achievements.addFallDeaths(1);
                 if (this.fallImpactSound) {
                     this.fallImpactSound.play();
                 }

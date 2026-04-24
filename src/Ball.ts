@@ -994,7 +994,6 @@ class Ball extends BABYLON.Mesh {
                                                 }
                                             }
                                             else if (tile instanceof ButtonTile) {
-                                                this.game.achievements.addUnlockedDoors(1);
                                                 tile.clicClack();
                                                 this.puzzle.tiles.forEach(door => {
                                                     if (door instanceof DoorTile && door.props.value === tile.props.value) {
@@ -1004,6 +1003,9 @@ class Ball extends BABYLON.Mesh {
                                                             setTimeout(() => {
                                                                 if (door instanceof DoorTile) {
                                                                     if (door.closed) {
+                                                                        if (!door.hasOpenedOnce) {
+                                                                            this.game.achievements.addUnlockedDoors(1);
+                                                                        }
                                                                         door.open();
                                                                     }
                                                                     else {

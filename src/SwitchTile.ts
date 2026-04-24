@@ -120,6 +120,7 @@ class DoorTile extends Tile {
     public tileTop: BABYLON.Mesh;
     public tileTopFrame: BABYLON.Mesh;
     public tileBox: BABYLON.Mesh;
+    public hasOpenedOnce: boolean = false;
 
     public animateTopPosY = Mummu.AnimationFactory.EmptyNumberCallback;
     public animateTopRotY = Mummu.AnimationFactory.EmptyNumberCallback;
@@ -187,6 +188,7 @@ class DoorTile extends Tile {
 
     public async open(duration: number = 0.5): Promise<void> {
         //await RandomWait();
+        this.hasOpenedOnce = true;
         this.animateTopPosY(0, duration, Nabu.Easing.easeOutCubic);
         this.animateTopRotY(0, duration, Nabu.Easing.easeOutCubic);
         await this.animateBoxPosY(-0.26, duration, Nabu.Easing.easeOutCubic);

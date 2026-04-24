@@ -366,6 +366,9 @@ class Puzzle {
         else if (this.data.state === PuzzleDataState.XMAS) {
             previousCompletion = this.game.puzzleCompletion.xmasPuzzleCompletion;
         }
+        else if (this.data.state === PuzzleDataState.PREMIUM) {
+            previousCompletion = this.game.puzzleCompletion.premiumPuzzleCompletion;
+        }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score, this.data.difficulty);
         (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score);

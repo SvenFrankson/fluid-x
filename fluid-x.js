@@ -2913,6 +2913,13 @@ class CarillonRouter extends Nabu.Router {
                 };
                 this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#expert-puzzles";
             }
+            else if (this.game.puzzle.data.state === 9) {
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                    this.game.puzzle.puzzleUI.autoNext = false;
+                    location.hash = "#premium-puzzles";
+                };
+                this.game.puzzle.puzzleUI.gameoverBackButton.parentElement.href = "#premium-puzzles";
+            }
             else {
                 this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
                     this.game.puzzle.puzzleUI.autoNext = false;

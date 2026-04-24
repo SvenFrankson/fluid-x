@@ -142,9 +142,9 @@ class CarillonRouter extends Nabu.Router {
             }
             if (this.game.puzzle.data.state === 8) {
                 this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
-                this.game.puzzle.puzzleUI.autoNext = false
-                location.hash = "#xmas-puzzles"
-            };
+                    this.game.puzzle.puzzleUI.autoNext = false
+                    location.hash = "#xmas-puzzles"
+                };
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#xmas-puzzles";
             }
             else if (this.game.puzzle.data.state === 4) {
@@ -160,6 +160,13 @@ class CarillonRouter extends Nabu.Router {
                 location.hash = "#expert-puzzles"
             };
                 (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#expert-puzzles";
+            }
+            else if (this.game.puzzle.data.state === 9) {
+                this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {
+                this.game.puzzle.puzzleUI.autoNext = false
+                location.hash = "#premium-puzzles"
+            };
+                (this.game.puzzle.puzzleUI.gameoverBackButton.parentElement as HTMLAnchorElement).href = "#premium-puzzles";
             }
             else {
                 this.game.puzzle.puzzleUI.successNextButton.onpointerup = () => {

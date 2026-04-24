@@ -5655,8 +5655,8 @@ class MultiplayerPuzzlesPage extends LevelPage {
 /// <reference path="../lib/mummu/mummu.d.ts"/>
 /// <reference path="../lib/babylon.d.ts"/>
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
-var MAJOR_VERSION = 2;
-var MINOR_VERSION = 3;
+var MAJOR_VERSION = 3;
+var MINOR_VERSION = 0;
 var PATCH_VERSION = 0;
 var VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
@@ -6261,20 +6261,12 @@ class Game {
                 devSecret = 0;
             }, devSecret < 6 ? 1000 : 6000);
         };
-        /*
-        let ambient = this.soundManager.createSound(
-            "ambient",
-            "./datas/sounds/zen-ambient.mp3",
-            this.scene,
-            () => {
-                ambient.setVolume(0.15)
-            },
-            {
-                autoplay: true,
-                loop: true
-            }
-        );
-        */
+        let ambient = this.soundManager.createSound("ambient", "./datas/sounds/zen-ambient.mp3", this.scene, () => {
+            ambient.setVolume(0.15);
+        }, {
+            autoplay: true,
+            loop: true
+        });
         let puzzleId;
         if (location.search != "") {
             let puzzleIdStr = location.search.replace("?puzzle=", "");
@@ -8012,12 +8004,14 @@ class ScreenLoger {
         return ScreenLoger._container;
     }
     static Log(s) {
-        let line = document.createElement("div");
-        line.classList.add("screen-loger-line");
-        line.innerText = s;
-        ScreenLoger.container.appendChild(line);
-        if (ScreenLoger.container.childElementCount > 15) {
-            ScreenLoger.container.removeChild(ScreenLoger.container.firstChild);
+        if (Game.Instance.DEBUG_MODE) {
+            let line = document.createElement("div");
+            line.classList.add("screen-loger-line");
+            line.innerText = s;
+            ScreenLoger.container.appendChild(line);
+            if (ScreenLoger.container.childElementCount > 15) {
+                ScreenLoger.container.removeChild(ScreenLoger.container.firstChild);
+            }
         }
     }
 }

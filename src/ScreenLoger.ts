@@ -16,12 +16,14 @@ class ScreenLoger {
     }
 
     public static Log(s: string): void {
-        let line = document.createElement("div");
-        line.classList.add("screen-loger-line");
-        line.innerText = s;
-        ScreenLoger.container.appendChild(line);
-        if (ScreenLoger.container.childElementCount > 15) {
-            ScreenLoger.container.removeChild(ScreenLoger.container.firstChild);
+        if (Game.Instance.DEBUG_MODE) {
+            let line = document.createElement("div");
+            line.classList.add("screen-loger-line");
+            line.innerText = s;
+            ScreenLoger.container.appendChild(line);
+            if (ScreenLoger.container.childElementCount > 15) {
+                ScreenLoger.container.removeChild(ScreenLoger.container.firstChild);
+            }
         }
     }
 }

@@ -4,8 +4,8 @@
 
 //mklink /D C:\Users\tgames\OneDrive\Documents\GitHub\fluid-x\lib\nabu\ C:\Users\tgames\OneDrive\Documents\GitHub\nabu
 
-var MAJOR_VERSION: number = 2;
-var MINOR_VERSION: number = 3;
+var MAJOR_VERSION: number = 3;
+var MINOR_VERSION: number = 0;
 var PATCH_VERSION: number = 0;
 var VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
 var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_VERSION;
@@ -694,7 +694,6 @@ class Game {
             }, devSecret < 6 ? 1000 : 6000);
         }
 
-        /*
         let ambient = this.soundManager.createSound(
             "ambient",
             "./datas/sounds/zen-ambient.mp3",
@@ -707,7 +706,6 @@ class Game {
                 loop: true
             }
         );
-        */
 
         let puzzleId: number;
         if (location.search != "") {

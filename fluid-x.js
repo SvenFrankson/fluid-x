@@ -4939,6 +4939,8 @@ class HomePage {
             document.querySelector("#home-expert-btn completion-bar").setAttribute("value", expertCompletion.toFixed(2));
             let communityCompletion = this.router.game.puzzleCompletion.communityPuzzleCompletion;
             document.querySelector("#home-community-btn completion-bar").setAttribute("value", communityCompletion.toFixed(2));
+            let premiumCompletion = this.router.game.puzzleCompletion.premiumPuzzleCompletion;
+            document.querySelector("#home-premium-btn completion-bar").setAttribute("value", premiumCompletion.toFixed(2));
         }
     }
     get hoveredButtonIndex() {
@@ -5491,7 +5493,7 @@ class ExpertPuzzlesPage extends LevelPage {
 class PremiumPuzzlesPage extends LevelPage {
     constructor(queryString, router) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Premium Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Premium Puzzles";
         this.className = "PremiumLevelPage";
     }
     onPageRedrawn() {
@@ -11938,6 +11940,10 @@ class PuzzleUI {
         else if (this.puzzle.data.state === PuzzleDataState.XMAS) {
             completion = this.game.puzzleCompletion.xmasPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Christmas";
+        }
+        else if (this.puzzle.data.state === PuzzleDataState.PREMIUM) {
+            completion = this.game.puzzleCompletion.premiumPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Puzzles";
         }
         if (previousCompletion != completion) {
             this.completionBar.setValue(previousCompletion);

@@ -150,6 +150,10 @@ class PuzzleUI {
             completion = this.game.puzzleCompletion.xmasPuzzleCompletion;
             this.completionBarLabel.innerHTML = "Christmas";
         }
+        else if (this.puzzle.data.state === PuzzleDataState.PREMIUM) {
+            completion = this.game.puzzleCompletion.premiumPuzzleCompletion;
+            this.completionBarLabel.innerHTML = "Puzzles";
+        }
         if (previousCompletion != completion) {
             this.completionBar.setValue(previousCompletion);
             this.completionBar.animateValueTo(completion, 3);

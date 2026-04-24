@@ -56,6 +56,8 @@ class HomePage {
             (document.querySelector("#home-expert-btn completion-bar") as CompletionBar).setAttribute("value", expertCompletion.toFixed(2));
             let communityCompletion = this.router.game.puzzleCompletion.communityPuzzleCompletion;
             (document.querySelector("#home-community-btn completion-bar") as CompletionBar).setAttribute("value", communityCompletion.toFixed(2));
+            let premiumCompletion = this.router.game.puzzleCompletion.premiumPuzzleCompletion;
+            (document.querySelector("#home-premium-btn completion-bar") as CompletionBar).setAttribute("value", premiumCompletion.toFixed(2));
         }
     }
 

@@ -590,7 +590,7 @@ class PremiumPuzzlesPage extends LevelPage {
     
     constructor(queryString: string, router: CarillonRouter) {
         super(queryString, router);
-        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Premium Mode";
+        this.nabuPage.querySelector(".puzzle-level-title stroke-text").innerHTML = "Premium Puzzles";
         this.className = "PremiumLevelPage";
     }
 

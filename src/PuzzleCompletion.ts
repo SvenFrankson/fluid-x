@@ -15,6 +15,7 @@ class PuzzleCompletionElement {
         if (this.highscore === null) {
             return 4;
         }
+        return 4;
         let ratio = this.highscore / this.score;
         let starsCount = 1;
         let s1 = ratio > 0.3 ? 1 : 0;

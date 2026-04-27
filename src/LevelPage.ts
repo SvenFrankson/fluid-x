@@ -136,12 +136,47 @@ abstract class LevelPage {
             let authorText = document.createElement("stroke-text") as StrokeText;
             authorField.appendChild(authorText);
             squareButton.appendChild(authorField);
-            if (puzzleTileDatas[n].data.score != null) {
-                let val = "# 1 " + puzzleTileDatas[n].data.player + " " + Game.ScoreToString(puzzleTileDatas[n].data.score);
-                authorText.setContent(val);
+
+            if (USE_WAVEDASH_SDK) {
+                if (isFinite(puzzleTileDatas[n].data.id) && puzzleTileDatas[n].data.id != null) {
+                    let ex = async () => {
+                        const leaderboard = await Wavedash.getLeaderboard(GetLeaderboardName(puzzleTileDatas[n].data));
+                        const leaderboardId = leaderboard.success ? leaderboard.data.id : null;
+
+                        if (leaderboardId != null) {
+                            let valBest = "";
+                            const responseBest = await Wavedash.listLeaderboardEntries(
+                                leaderboardId, 0, 1, false
+                            );
+                            if (responseBest.success) {
+                                let score = responseBest.data[0].score;
+                                valBest = "#1: " + responseBest.data[0].username.substring(0, 8) + " " + Game.ScoreToString(score / 10);
+                            }
+                            authorText.innerHTML = valBest;
+
+                            const responseMine = await Wavedash.getMyLeaderboardEntries(leaderboardId);
+                            if (responseMine.success) {
+                                let rank = responseMine.data[0].globalRank;
+                                if (rank != 1) {
+                                    let score = responseMine.data[0].score;
+                                    valBest += "<br/>#" + rank + ": " + responseMine.data[0].username.substring(0, 8) + " " + Game.ScoreToString(score / 10);
+                                }
+                            }
+
+                            authorText.innerHTML = valBest;
+                        }
+                    }
+                    ex();
+                }
             }
             else {
-                authorText.setContent(puzzleTileDatas[n].data.author);
+                if (puzzleTileDatas[n].data.score != null) {
+                    let val = "#1: " + puzzleTileDatas[n].data.player + " " + Game.ScoreToString(puzzleTileDatas[n].data.score);
+                    authorText.setContent(val);
+                }
+                else {
+                    authorText.setContent(puzzleTileDatas[n].data.author);
+                }
             }
 
             if (CONTENT_VERSION === ContentVersion.Free && puzzleTileDatas[n].data.premium === 1) {

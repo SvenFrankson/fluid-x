@@ -281,7 +281,7 @@ class PuzzleUI {
         this.highscoreTwoPlayersLine.style.display = twoPlayerCase ? "block" : "none";
 
         this.failMessage.style.display = "none";
-        if (state === 0) {
+        if (state === 0 || USE_WAVEDASH_SDK) {
             // Not enough for Highscore
             this.highscoreContainer.style.display = "none";
         }

@@ -11,6 +11,8 @@ enum PuzzleDataState {
     PREMIUM
 }
 
+var PuzzleDifficultyNames = ["Unknown", "Easy", "Medium", "Hard", "Expert"];
+
 interface IPuzzleData {
     id: number;
     title: string;
@@ -60,6 +62,27 @@ function CLEAN_IPuzzleData(data: any): any {
             data.haiku = pslit[1].replaceAll("\\n", "\n");
         }
     }
+}
+
+function GetLeaderboardName(data: IPuzzleData): string {
+    
+    let leaderboardId = data.title.toLowerCase().replaceAll(" ", "-").replaceAll(/[^a-z0-9\-]/g, "");
+
+    if (data.state === PuzzleDataState.STORY) {
+        leaderboardId = "story_" + leaderboardId;
+    }
+    else if (data.state === PuzzleDataState.XPERT) {
+        leaderboardId = "expert_" + leaderboardId;
+    }
+    else if (data.state === PuzzleDataState.PREMIUM) {
+        leaderboardId = "puzzle_" + leaderboardId;
+    }
+    else if (data.state === PuzzleDataState.OKAY) {
+        leaderboardId = "community_" + leaderboardId;
+    }
+
+    return leaderboardId;
+
 }
 
 interface IPuzzlesData {

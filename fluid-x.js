@@ -5193,12 +5193,41 @@ class LevelPage {
             let authorText = document.createElement("stroke-text");
             authorField.appendChild(authorText);
             squareButton.appendChild(authorField);
-            if (puzzleTileDatas[n].data.score != null) {
-                let val = "# 1 " + puzzleTileDatas[n].data.player + " " + Game.ScoreToString(puzzleTileDatas[n].data.score);
-                authorText.setContent(val);
+            if (USE_WAVEDASH_SDK) {
+                if (isFinite(puzzleTileDatas[n].data.id) && puzzleTileDatas[n].data.id != null) {
+                    let ex = async () => {
+                        const leaderboard = await Wavedash.getLeaderboard(GetLeaderboardName(puzzleTileDatas[n].data));
+                        const leaderboardId = leaderboard.success ? leaderboard.data.id : null;
+                        if (leaderboardId != null) {
+                            let valBest = "";
+                            const responseBest = await Wavedash.listLeaderboardEntries(leaderboardId, 0, 1, false);
+                            if (responseBest.success) {
+                                let score = responseBest.data[0].score;
+                                valBest = "#1: " + responseBest.data[0].username.substring(0, 8) + " " + Game.ScoreToString(score / 10);
+                            }
+                            authorText.innerHTML = valBest;
+                            const responseMine = await Wavedash.getMyLeaderboardEntries(leaderboardId);
+                            if (responseMine.success) {
+                                let rank = responseMine.data[0].globalRank;
+                                if (rank != 1) {
+                                    let score = responseMine.data[0].score;
+                                    valBest += "<br/>#" + rank + ": " + responseMine.data[0].username.substring(0, 8) + " " + Game.ScoreToString(score / 10);
+                                }
+                            }
+                            authorText.innerHTML = valBest;
+                        }
+                    };
+                    ex();
+                }
             }
             else {
-                authorText.setContent(puzzleTileDatas[n].data.author);
+                if (puzzleTileDatas[n].data.score != null) {
+                    let val = "#1: " + puzzleTileDatas[n].data.player + " " + Game.ScoreToString(puzzleTileDatas[n].data.score);
+                    authorText.setContent(val);
+                }
+                else {
+                    authorText.setContent(puzzleTileDatas[n].data.author);
+                }
             }
             if (CONTENT_VERSION === ContentVersion.Free && puzzleTileDatas[n].data.premium === 1) {
                 let premiumTag = document.createElement("div");
@@ -7833,6 +7862,7 @@ class PuzzleCompletionElement {
         if (this.highscore === null) {
             return 4;
         }
+        return 4;
         let ratio = this.highscore / this.score;
         let starsCount = 1;
         let s1 = ratio > 0.3 ? 1 : 0;
@@ -10083,10 +10113,16 @@ class Puzzle {
         SDKGameplayStart();
         this.puzzleUI.showTouchInput();
     }
-    win() {
+    async win() {
         SDKGameplayStop();
         this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
+        if (USE_WAVEDASH_SDK) {
+            score = Math.floor(this.playTimer * 1000);
+            const leaderboard = await Wavedash.getOrCreateLeaderboard(GetLeaderboardName(this.data), 0, 2);
+            const leaderboardId = leaderboard.success ? leaderboard.data.id : null;
+            const response = await Wavedash.uploadLeaderboardScore(leaderboardId, score, true);
+        }
         let previousCompletion = 0;
         if (this.data.state === PuzzleDataState.OKAY) {
             previousCompletion = this.game.puzzleCompletion.communityPuzzleCompletion;
@@ -10105,7 +10141,7 @@ class Puzzle {
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score, this.data.difficulty);
-        this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score);
+        this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score / 10);
         clearTimeout(this._winloseTimout);
         setTimeout(() => {
             this.puzzleUI.hideTouchInput();
@@ -11333,6 +11369,7 @@ var PuzzleDataState;
     PuzzleDataState[PuzzleDataState["XMAS"] = 8] = "XMAS";
     PuzzleDataState[PuzzleDataState["PREMIUM"] = 9] = "PREMIUM";
 })(PuzzleDataState || (PuzzleDataState = {}));
+var PuzzleDifficultyNames = ["Unknown", "Easy", "Medium", "Hard", "Expert"];
 function CLEAN_IPuzzleData(data) {
     if (data.id != null && typeof (data.id) === "string") {
         data.id = parseInt(data.id);
@@ -11365,6 +11402,22 @@ function CLEAN_IPuzzleData(data) {
             data.haiku = pslit[1].replaceAll("\\n", "\n");
         }
     }
+}
+function GetLeaderboardName(data) {
+    let leaderboardId = data.title.toLowerCase().replaceAll(" ", "-").replaceAll(/[^a-z0-9\-]/g, "");
+    if (data.state === PuzzleDataState.STORY) {
+        leaderboardId = "story_" + leaderboardId;
+    }
+    else if (data.state === PuzzleDataState.XPERT) {
+        leaderboardId = "expert_" + leaderboardId;
+    }
+    else if (data.state === PuzzleDataState.PREMIUM) {
+        leaderboardId = "puzzle_" + leaderboardId;
+    }
+    else if (data.state === PuzzleDataState.OKAY) {
+        leaderboardId = "community_" + leaderboardId;
+    }
+    return leaderboardId;
 }
 function CLEAN_IPuzzlesData(data) {
     for (let i = 0; i < data.puzzles.length; i++) {
@@ -12085,7 +12138,7 @@ class PuzzleUI {
         this.highscorePlayerLine.style.display = twoPlayerCase ? "none" : "block";
         this.highscoreTwoPlayersLine.style.display = twoPlayerCase ? "block" : "none";
         this.failMessage.style.display = "none";
-        if (state === 0) {
+        if (state === 0 || USE_WAVEDASH_SDK) {
             // Not enough for Highscore
             this.highscoreContainer.style.display = "none";
         }

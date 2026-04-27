@@ -14,7 +14,19 @@ else {
     else {
         $isWaveDashVersion = Select-String -Path "./index.js" -Pattern "USE_WAVEDASH_SDK = true" -Quiet
         if ($isWaveDashVersion) {
-            $build_name = $build_name + "_wavedash";
+            $isFreeWaveDashVersion = Select-String -Path "./index.js" -Pattern "CONTENT_VERSION = 0" -Quiet
+            if ($isFreeWaveDashVersion) {
+                $build_name = $build_name + "_wavedash_free";
+            }
+            else {
+                $isPremiumWaveDashVersion = Select-String -Path "./index.js" -Pattern "CONTENT_VERSION = 2" -Quiet
+                if ($isPremiumWaveDashVersion) {
+                    $build_name = $build_name + "_wavedash_premium";
+                }
+                else {
+                    $build_name = $build_name + "_wavedash_paid";
+                }
+            }
         }
         else {
             $build_name = $build_name + "_common";

@@ -348,10 +348,19 @@ class Puzzle {
         this.puzzleUI.showTouchInput();
     }
 
-    public win(): void {
+    public async win(): Promise<void> {
         SDKGameplayStop();
         this.puzzleState = PuzzleState.Wining;
         let score = Math.floor(this.playTimer * 100);
+        if (USE_WAVEDASH_SDK) {
+            score = Math.floor(this.playTimer * 1000);
+            const leaderboard = await Wavedash.getOrCreateLeaderboard(GetLeaderboardName(this.data), 0, 2);
+            const leaderboardId = leaderboard.success ? leaderboard.data.id : null;
+
+            const response = await Wavedash.uploadLeaderboardScore(
+                leaderboardId, score, true
+            );
+        }
         
         let previousCompletion = 0;
         if (this.data.state === PuzzleDataState.OKAY) {
@@ -371,7 +380,7 @@ class Puzzle {
         }
         let firstTimeCompleted = !this.game.puzzleCompletion.isPuzzleCompleted(this.data.id);
         this.game.puzzleCompletion.completePuzzle(this.data.id, score, this.data.difficulty);
-        (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score);
+        (this.puzzleUI.successPanel.querySelector("#success-timer") as StrokeText).innerHTML = Game.ScoreToString(score / 10);
 
         clearTimeout(this._winloseTimout);
         setTimeout(() => {

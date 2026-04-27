@@ -1,6 +1,6 @@
 game_id = "j97c6fzqpbxmax5vsj01c9xrx585djkd"
-upload_dir = "../carillion-build_wavedash_online"
+upload_dir = "../carillion-build_wavedash_premium_online"
 
 [custom]
-version = "3.0.0"
+version = "3.0.1"
 entrypoint = "index.html"

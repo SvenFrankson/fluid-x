@@ -135,16 +135,16 @@ class PuzzleCompletion {
     }
 
     constructor(public game: Game) {
-        if (HasLocalStorage) {
-            let dataString = StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
-            if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
-            }
-        }
         this.recentUnlocks = new Nabu.UniqueList<number>();
     }
 
     public async initialize(): Promise<void> {
+        if (HasLocalStorage) {
+            let dataString = await StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
+            if (dataString) {
+                this.completedPuzzles = JSON.parse(dataString);
+            }
+        }
         //await RandomWait();
         this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
             let score = this.getPersonalBestScore(puzzle.id);

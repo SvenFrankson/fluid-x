@@ -5723,17 +5723,32 @@ var PlayerHasInteracted = false;
 var IsTouchScreen = -1;
 var IsMobile = -1;
 var HasLocalStorage = false;
-function StorageGetItem(key) {
+var WavedashStorage = null;
+async function StorageGetItem(key) {
     if (USE_CG_SDK) {
         return CrazySDK.data.getItem(key);
+    }
+    else if (USE_WAVEDASH_SDK) {
+        if (WavedashStorage != null) {
+            return WavedashStorage[key];
+        }
     }
     else {
         return localStorage.getItem(key);
     }
 }
-function StorageSetItem(key, value) {
+async function StorageSetItem(key, value) {
     if (USE_CG_SDK) {
         CrazySDK.data.setItem(key, value);
+    }
+    else if (USE_WAVEDASH_SDK) {
+        if (WavedashStorage === null) {
+            WavedashStorage = {};
+        }
+        WavedashStorage[key] = value;
+        const data = new TextEncoder().encode(JSON.stringify(WavedashStorage));
+        await Wavedash.writeLocalFile("storage.json", data);
+        await Wavedash.uploadRemoteFile("storage.json");
     }
     else {
         localStorage.setItem(key, value);
@@ -6032,6 +6047,14 @@ class Game {
         this.camera.wheelPrecision *= 10;
         this.camera.pinchPrecision *= 10;
         this.updatePlayCameraRadius();
+        if (USE_WAVEDASH_SDK) {
+            const dl = await Wavedash.downloadRemoteFile("storage.json");
+            if (dl.success) {
+                const bytes = await Wavedash.readLocalFile("storage.json");
+                const data = JSON.parse(new TextDecoder().decode(bytes));
+                WavedashStorage = data;
+            }
+        }
         this.router = new CarillonRouter(this);
         this.router.initialize();
         await this.router.postInitialize();
@@ -7832,12 +7855,6 @@ class PuzzleCompletion {
         this.xmasPuzzles = [];
         this.communityPuzzles = [];
         this.premiumPuzzles = [];
-        if (HasLocalStorage) {
-            let dataString = StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
-            if (dataString) {
-                this.completedPuzzles = JSON.parse(dataString);
-            }
-        }
         this.recentUnlocks = new Nabu.UniqueList();
     }
     getPuzzleCompletionElementById(id) {
@@ -7925,6 +7942,12 @@ class PuzzleCompletion {
         this.premiumPuzzleCompletion = totalStarsCount / max;
     }
     async initialize() {
+        if (HasLocalStorage) {
+            let dataString = await StorageGetItem("completed-puzzles-v" + MAJOR_VERSION.toFixed(0));
+            if (dataString) {
+                this.completedPuzzles = JSON.parse(dataString);
+            }
+        }
         //await RandomWait();
         this.game.loadedStoryPuzzles.puzzles.forEach(puzzle => {
             let score = this.getPersonalBestScore(puzzle.id);

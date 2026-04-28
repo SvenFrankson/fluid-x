@@ -141,7 +141,7 @@ a:active {
 
 #home-menu {
     position: fixed;
-    top: calc((100svh - 620px) * 0.5);
+    top: calc((100svh - 530px) * 0.5);
     left: calc((100vw - min(100vw, 700px)) * 0.5);
     width: min(100vw, 700px);
     pointer-events: none;
@@ -149,11 +149,11 @@ a:active {
 }
 
 @media (max-height: 700px) {
-    #home-menu {
+    body:not(.vertical) #home-menu {
         top: calc((100svh - 390px) * 0.5);
     }
 
-    #home-menu .button-group {
+    body:not(.vertical) #home-menu .button-group {
         display: inline-block;
         margin-left: 5px;
         margin-right: 5px;
@@ -163,11 +163,11 @@ a:active {
 }
 
 @media (max-height: 540px) {
-    #home-menu {
+    body:not(.vertical) #home-menu {
         top: calc((100svh - 310px) * 0.5);
     }
 
-    #home-menu h1 {
+    body:not(.vertical) #home-menu h1 {
         position: absolute;
         top: 3%;
         right: 55%;

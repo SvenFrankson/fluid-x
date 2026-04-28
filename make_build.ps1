@@ -88,6 +88,7 @@ if ($noVertexDataLoader) {
 Remove-Item -Path ("../" + $build_name + "/.gitignore")
 Remove-Item -Path ("../" + $build_name + "/make_build.ps1")
 Remove-Item -Path ("../" + $build_name + "/tsconfig.json")
+Remove-Item -Path ("../" + $build_name + "/wavedash.toml")
 
 (Get-Content ("../" + $build_name + "/index.js")).Replace('./lib/babylon.max.js', './lib/babylon.js') | Set-Content ("../" + $build_name + "/index.js")
 (Get-Content ("../" + $build_name + "/fluid-x.js")).Replace('this.DEBUG_MODE = true', 'this.DEBUG_MODE = false') | Set-Content ("../" + $build_name + "/fluid-x.js")

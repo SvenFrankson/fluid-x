@@ -1185,6 +1185,36 @@ body.vertical #play-timer {
     }
 }
 
+#success-highscore-container .line.score-line {
+    margin: 0;
+    color: black;
+}
+#success-highscore-container .rank {
+    display: inline-block;
+    vertical-align: middle;
+    width: 35px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: left;
+}
+
+#success-highscore-container .player {
+    display: inline-block;
+    vertical-align: middle;
+    width: 120px;
+    font-size: 16px;
+    text-align: left;
+}
+
+#success-highscore-container .score {
+    display: inline-block;
+    vertical-align: middle;
+    width: 80px;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: right;
+}
+
 #score-player-input {
     width: 150px;
 }

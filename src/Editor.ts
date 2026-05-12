@@ -13,6 +13,7 @@ enum EditorBrush {
     Ramp,
     Bridge,
     Creep,
+    Ice,
     Tree,
     Nobori
 }
@@ -79,6 +80,7 @@ class Editor {
     public ramp4Button: HTMLButtonElement;
     public bridgeButton: HTMLButtonElement;
     public creepButton: HTMLButtonElement;
+    public iceButton: HTMLButtonElement;
     public treeButton: HTMLButtonElement;
     public noboriNButton: HTMLButtonElement;
     public noboriEButton: HTMLButtonElement;
@@ -394,6 +396,7 @@ class Editor {
         this.ramp4Button = document.getElementById("ramp-4-btn") as HTMLButtonElement;
         this.bridgeButton = document.getElementById("bridge-btn") as HTMLButtonElement;
         this.creepButton = document.getElementById("creep-btn") as HTMLButtonElement;
+        this.iceButton = document.getElementById("ice-btn") as HTMLButtonElement;
         this.treeButton = document.getElementById("tree-btn") as HTMLButtonElement;
         this.noboriNButton = document.getElementById("nobori-n-btn") as HTMLButtonElement;
         this.noboriEButton = document.getElementById("nobori-e-btn") as HTMLButtonElement;
@@ -427,6 +430,7 @@ class Editor {
             this.ramp4Button,
             this.bridgeButton,
             this.creepButton,
+            this.iceButton,
             this.treeButton,
             this.noboriNButton,
             this.noboriEButton,
@@ -483,6 +487,7 @@ class Editor {
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
+        makeBrushButton(this.iceButton, EditorBrush.Ice);
         makeBrushButton(this.treeButton, EditorBrush.Tree);
         makeBrushButton(this.noboriNButton, EditorBrush.Nobori, TileColor.North);
         makeBrushButton(this.noboriEButton, EditorBrush.Nobori, TileColor.East);
@@ -1061,6 +1066,17 @@ class Editor {
                             }
                         );
                         creep.instantiate();
+                    }
+                    else if (this.brush === EditorBrush.Ice && (!tile || tile.isDecor)) {
+                        let ice = new IceTile(
+                            this.game,
+                            {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH
+                            }
+                        );
+                        ice.instantiate();
                     }
                     else if (this.brush === EditorBrush.Tree && (!tile || tile.isDecor)) {
                         tile = new CherryTree(

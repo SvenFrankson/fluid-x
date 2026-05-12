@@ -19,6 +19,7 @@ class CarillionMaterials {
     public greenMaterial: BABYLON.StandardMaterial;
 
     public waterMaterial: BABYLON.StandardMaterial;
+    public iceMaterial: BABYLON.StandardMaterial;
     public boostMaterial: BABYLON.StandardMaterial;
     public floorMaterials: BABYLON.StandardMaterial[];
     public floorMaterial: BABYLON.StandardMaterial;
@@ -70,6 +71,13 @@ class CarillionMaterials {
         this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
+            
+        this.iceMaterial = new BABYLON.StandardMaterial("ice-material");
+        this.iceMaterial.specularColor.copyFromFloats(1, 1, 1).scaleInPlace(0.1);
+        this.iceMaterial.diffuseColor.copyFromFloats(0.5, 0.9, 1);
+        this.iceMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.iceMaterial.emissiveColor.copyFromFloats(1, 1, 1).scaleInPlace(0.0);
+        this.iceMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/ice.png");
         
         this.boostMaterial = new BABYLON.StandardMaterial("boost-material");
         this.boostMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");

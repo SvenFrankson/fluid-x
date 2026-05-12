@@ -13,6 +13,10 @@ class PuzzleUI {
     public highscoreContainer: HTMLDivElement;
     public highscorePlayerLine: HTMLDivElement;
     public highscoreTwoPlayersLine: HTMLDivElement;
+    public highscoreLine1: HTMLDivElement;
+    public highscoreLine2: HTMLDivElement
+    public highscoreLine3: HTMLDivElement;
+    public highscoreLineMe: HTMLDivElement;
 
     public scoreSubmitBtn: HTMLButtonElement;
     public scorePendingBtn: HTMLButtonElement;
@@ -64,6 +68,10 @@ class PuzzleUI {
             this.disableAutoNext();
         });
         this.highscoreTwoPlayersLine = document.querySelector("#score-2-players-input").parentElement as HTMLDivElement;
+        this.highscoreLine1 = document.querySelector("#highscore-line-1");
+        this.highscoreLine2 = document.querySelector("#highscore-line-2");
+        this.highscoreLine3 = document.querySelector("#highscore-line-3");
+        this.highscoreLineMe = document.querySelector("#highscore-line-me");
         this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
@@ -281,7 +289,23 @@ class PuzzleUI {
         this.highscoreTwoPlayersLine.style.display = twoPlayerCase ? "block" : "none";
 
         this.failMessage.style.display = "none";
-        if (state === 0 || USE_WAVEDASH_SDK) {
+        this.highscoreLine1.style.display = "none";
+        this.highscoreLine2.style.display = "none";
+        this.highscoreLine3.style.display = "none";
+        this.highscoreLineMe.style.display = "none";
+        if (USE_WAVEDASH_SDK || true) {
+            this.highscorePlayerLine.style.display = "none";
+            this.scoreSubmitBtn.style.display = "none";
+            this.scorePendingBtn.style.display = "none";
+            this.scoreDoneBtn.style.display = "none";
+
+            this.highscoreContainer.style.display = "block";
+            this.highscoreLine1.style.display = "block";
+            this.highscoreLine2.style.display = "block";
+            this.highscoreLine3.style.display = "block";
+            this.highscoreLineMe.style.display = "block";
+        }
+        else if (state === 0) {
             // Not enough for Highscore
             this.highscoreContainer.style.display = "none";
         }

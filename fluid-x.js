@@ -160,6 +160,8 @@ class Ball extends BABYLON.Mesh {
         this.puzzle = puzzle;
         this.ballIndex = ballIndex;
         this.ballState = BallState.Ready;
+        this._frozen = false;
+        this.frozenXValue = 0;
         this.fallTimer = 0;
         this.trailColor = new BABYLON.Color4(0, 0, 0, 0);
         this.canBoost = true;
@@ -168,7 +170,7 @@ class Ball extends BABYLON.Mesh {
         this.vZ = 1;
         this.radius = 0.25;
         this.bounceXDelay = 0.93;
-        this.bounceXDelayWall = 0.7;
+        this.bounceXDelayWall = 0.93;
         this.xForceAccelDelay = 0.8 * this.bounceXDelay;
         this._loseTimout = 0;
         this.isControlLocked = false;
@@ -529,6 +531,18 @@ class Ball extends BABYLON.Mesh {
     set rightArrowSize(v) {
         this.rightArrow.scaling.copyFromFloats(v, v, v);
     }
+    get frozen() {
+        return this._frozen;
+    }
+    set frozen(v) {
+        this._frozen = v;
+        if (this._frozen) {
+            this.material = this.game.materials.iceMaterial;
+        }
+        else {
+            this.material = this.game.materials.brownMaterial;
+        }
+    }
     get boost() {
         return this._boost;
     }
@@ -817,9 +831,13 @@ class Ball extends BABYLON.Mesh {
                 this.rightBox.position.z = this.rightBox.position.z * f + 0.2 * (1 - f);
                 this.rightBox.rotation.y = this.rightBox.rotation.y * f + 0.8 * (1 - f);
             }
-            if (this.bounceXTimer > 0) {
+            else if (this.bounceXTimer > 0) {
                 vX = this.bounceXValue;
                 this.bounceXTimer -= dt * this.boostedSpeed;
+                this.xForce = 1;
+            }
+            else if (this.frozen) {
+                vX = this.frozenXValue;
                 this.xForce = 1;
             }
             else {
@@ -861,6 +879,7 @@ class Ball extends BABYLON.Mesh {
                     let impact = this.position.clone();
                     impact.z = this.puzzle.zMax;
                     this.woodChocSound2.play();
+                    this.frozen = false;
                 }
             }
             else if (this.position.z - this.radius < this.puzzle.zMin) {
@@ -870,6 +889,7 @@ class Ball extends BABYLON.Mesh {
                     let impact = this.position.clone();
                     impact.z = this.puzzle.zMin;
                     this.woodChocSound2.play();
+                    this.frozen = false;
                 }
             }
             if (this.position.x + this.radius > this.puzzle.xMax) {
@@ -879,6 +899,7 @@ class Ball extends BABYLON.Mesh {
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMax;
                 this.woodChocSound2.play();
+                this.frozen = false;
             }
             else if (this.position.x - this.radius < this.puzzle.xMin) {
                 this.position.x = this.puzzle.xMin + this.radius;
@@ -887,6 +908,7 @@ class Ball extends BABYLON.Mesh {
                 let impact = this.position.clone();
                 impact.x = this.puzzle.xMin;
                 this.woodChocSound2.play();
+                this.frozen = false;
             }
             let impact = BABYLON.Vector3.Zero();
             for (let ii = -1; ii <= 1; ii++) {
@@ -917,6 +939,7 @@ class Ball extends BABYLON.Mesh {
                                     }
                                 }
                                 this.woodChocSound2.play();
+                                this.frozen = false;
                                 break;
                             }
                         }
@@ -1043,16 +1066,20 @@ class Ball extends BABYLON.Mesh {
                             else {
                                 if (tile.tileState === TileState.Active || tile.tileState === TileState.Moving) {
                                     if (tile.collide(this, impact)) {
+                                        this.frozen = tile instanceof IceTile;
+                                        this.frozenXValue = this.frozen ? vX : 0;
                                         let dir = this.position.subtract(impact);
                                         if (Math.abs(dir.x) > Math.abs(dir.z)) {
                                             if (dir.x > 0) {
                                                 this.position.x = impact.x + this.radius;
                                                 this.bounceXValue = 1;
+                                                this.frozenXValue = this.frozen ? 1 : 0;
                                                 this.bounceXTimer = (tile instanceof WallTile || tile instanceof DoorTile) ? this.bounceXDelayWall : this.bounceXDelay;
                                             }
                                             else {
                                                 this.position.x = impact.x - this.radius;
                                                 this.bounceXValue = -1;
+                                                this.frozenXValue = this.frozen ? -1 : 0;
                                                 this.bounceXTimer = (tile instanceof WallTile || tile instanceof DoorTile) ? this.bounceXDelayWall : this.bounceXDelay;
                                             }
                                             if (tile instanceof WallTile || tile instanceof DoorTile) {
@@ -1254,6 +1281,7 @@ class Ball extends BABYLON.Mesh {
         clearTimeout(this._loseTimout);
         this.parent = undefined;
         this.boost = false;
+        this.frozen = false;
         this.rotationQuaternion = BABYLON.Quaternion.Identity();
         this.trailPoints = [];
         this.trailPointColors = [];
@@ -2501,6 +2529,12 @@ class CarillionMaterials {
         this.waterMaterial.specularColor.copyFromFloats(0, 0, 0);
         this.waterMaterial.diffuseColor.copyFromFloats(1, 1, 1);
         this.waterMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/water.png");
+        this.iceMaterial = new BABYLON.StandardMaterial("ice-material");
+        this.iceMaterial.specularColor.copyFromFloats(1, 1, 1).scaleInPlace(0.1);
+        this.iceMaterial.diffuseColor.copyFromFloats(0.5, 0.9, 1);
+        this.iceMaterial.diffuseColor.copyFromFloats(1, 1, 1);
+        this.iceMaterial.emissiveColor.copyFromFloats(1, 1, 1).scaleInPlace(0.0);
+        this.iceMaterial.diffuseTexture = new BABYLON.Texture("./datas/textures/ice.png");
         this.boostMaterial = new BABYLON.StandardMaterial("boost-material");
         this.boostMaterial.diffuseColor = BABYLON.Color3.FromHexString("#624c3c");
         this.boostMaterial.specularColor.copyFromFloats(0, 0, 0);
@@ -3435,8 +3469,9 @@ var EditorBrush;
     EditorBrush[EditorBrush["Ramp"] = 11] = "Ramp";
     EditorBrush[EditorBrush["Bridge"] = 12] = "Bridge";
     EditorBrush[EditorBrush["Creep"] = 13] = "Creep";
-    EditorBrush[EditorBrush["Tree"] = 14] = "Tree";
-    EditorBrush[EditorBrush["Nobori"] = 15] = "Nobori";
+    EditorBrush[EditorBrush["Ice"] = 14] = "Ice";
+    EditorBrush[EditorBrush["Tree"] = 15] = "Tree";
+    EditorBrush[EditorBrush["Nobori"] = 16] = "Nobori";
 })(EditorBrush || (EditorBrush = {}));
 class Editor {
     constructor(game) {
@@ -3642,6 +3677,14 @@ class Editor {
                                 h: this.cursorH
                             });
                             creep.instantiate();
+                        }
+                        else if (this.brush === EditorBrush.Ice && (!tile || tile.isDecor)) {
+                            let ice = new IceTile(this.game, {
+                                i: this.cursorI,
+                                j: this.cursorJ,
+                                h: this.cursorH
+                            });
+                            ice.instantiate();
                         }
                         else if (this.brush === EditorBrush.Tree && (!tile || tile.isDecor)) {
                             tile = new CherryTree(this.game, {
@@ -3921,6 +3964,7 @@ class Editor {
         this.ramp4Button = document.getElementById("ramp-4-btn");
         this.bridgeButton = document.getElementById("bridge-btn");
         this.creepButton = document.getElementById("creep-btn");
+        this.iceButton = document.getElementById("ice-btn");
         this.treeButton = document.getElementById("tree-btn");
         this.noboriNButton = document.getElementById("nobori-n-btn");
         this.noboriEButton = document.getElementById("nobori-e-btn");
@@ -3953,6 +3997,7 @@ class Editor {
             this.ramp4Button,
             this.bridgeButton,
             this.creepButton,
+            this.iceButton,
             this.treeButton,
             this.noboriNButton,
             this.noboriEButton,
@@ -4003,6 +4048,7 @@ class Editor {
         makeBrushButton(this.ramp4Button, EditorBrush.Ramp, 4, { w: 4, h: 1, d: 3 });
         makeBrushButton(this.bridgeButton, EditorBrush.Bridge, undefined, { w: 4, h: 1, d: 2 });
         makeBrushButton(this.creepButton, EditorBrush.Creep);
+        makeBrushButton(this.iceButton, EditorBrush.Ice);
         makeBrushButton(this.treeButton, EditorBrush.Tree);
         makeBrushButton(this.noboriNButton, EditorBrush.Nobori, TileColor.North);
         makeBrushButton(this.noboriEButton, EditorBrush.Nobori, TileColor.East);
@@ -4977,6 +5023,82 @@ class HomePage {
         this.router.game.uiInputManager.onDownCallbacks.remove(this._inputDown);
         this.router.game.uiInputManager.onEnterCallbacks.remove(this._inputEnter);
         this.router.game.uiInputManager.onDropControlCallbacks.remove(this._inputDropControl);
+    }
+}
+class IceTile extends Tile {
+    constructor(game, props) {
+        super(game, props);
+        this.material = this.game.materials.iceMaterial;
+        this.renderOutline = true;
+        this.outlineColor = BABYLON.Color3.Black();
+        this.outlineWidth = 0.02;
+    }
+    async instantiate() {
+        //await RandomWait();
+        await super.instantiate();
+        let tileData = await this.game.vertexDataLoader.getAtIndex("./datas/meshes/icecube.babylon", 0);
+        //tileData[0].applyToMesh(this);
+        tileData.applyToMesh(this);
+    }
+    async shoot(ball, duration = 0.4) {
+        let projectile = this.clone();
+        projectile.parent = undefined;
+        let cap = this.clone();
+        cap.parent = projectile;
+        projectile.position.copyFrom(this.position);
+        let tail;
+        let tailPoints;
+        if (this.game.performanceWatcher.worst > 24) {
+            tail = new BABYLON.Mesh("tail");
+            tail.visibility = 1;
+            tail.material = this.game.materials.tileStarTailMaterial;
+            tailPoints = [];
+        }
+        return new Promise(resolve => {
+            let t0 = performance.now();
+            let step = () => {
+                let f = (performance.now() - t0) / 1000 / duration;
+                let s = 0.4 + 0.6 * (1 - f);
+                f = Math.sqrt(f);
+                if (tail) {
+                    tailPoints.push(projectile.position.add(new BABYLON.Vector3(0, 0.2 * s, 0)));
+                    while (tailPoints.length > 40) {
+                        tailPoints.splice(0, 1);
+                    }
+                    if (tailPoints.length > 2) {
+                        let color = this.game.materials.colorMaterials[this.color].diffuseColor.toColor4(1);
+                        let data = CreateTrailVertexData({
+                            path: [...tailPoints],
+                            up: BABYLON.Axis.Y,
+                            radiusFunc: (f) => {
+                                return 0.03 * f + 0.01;
+                            },
+                            color: color
+                        });
+                        data.applyToMesh(tail);
+                        tail.isVisible = true;
+                    }
+                    else {
+                        tail.isVisible = false;
+                    }
+                }
+                if (f < 1) {
+                    BABYLON.Vector3.LerpToRef(this.position, ball.position, f, projectile.position);
+                    projectile.position.y += 2 * (1 - (2 * f - 1) * (2 * f - 1));
+                    projectile.rotation.y = f * 2 * Math.PI;
+                    projectile.scaling.copyFromFloats(s, s, s);
+                    requestAnimationFrame(step);
+                }
+                else {
+                    projectile.dispose();
+                    if (tail) {
+                        tail.dispose();
+                    }
+                    resolve();
+                }
+            };
+            step();
+        });
     }
 }
 class LevelPage {
@@ -10542,7 +10664,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "i") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 1,
                         i: i,
@@ -10552,7 +10674,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "j") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 1,
                         i: i,
@@ -10560,10 +10682,10 @@ class Puzzle {
                         h: 0,
                         noShadow: true
                     });
-                    button.close(0);
+                    door.close(0);
                 }
                 else if (c === "d") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 2,
                         i: i,
@@ -10573,7 +10695,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "f") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 2,
                         i: i,
@@ -10581,10 +10703,10 @@ class Puzzle {
                         h: 0,
                         noShadow: true
                     });
-                    button.close(0);
+                    door.close(0);
                 }
                 else if (c === "t") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 3,
                         i: i,
@@ -10594,7 +10716,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "u") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 3,
                         i: i,
@@ -10602,7 +10724,17 @@ class Puzzle {
                         h: 0,
                         noShadow: true
                     });
-                    button.close(0);
+                    door.close(0);
+                }
+                else if (c === "g") {
+                    let ice = new IceTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
                 }
                 else if (c === "c") {
                     let creep = new Creep(this, {
@@ -11729,6 +11861,9 @@ function SaveAsText(puzzle, withHaiku) {
                     else if (tile instanceof WaterTile) {
                         lines[j][i] = ["q"];
                     }
+                    else if (tile instanceof IceTile) {
+                        lines[j][i] = ["g"];
+                    }
                 }
             }
         }
@@ -11933,6 +12068,10 @@ class PuzzleUI {
             this.disableAutoNext();
         });
         this.highscoreTwoPlayersLine = document.querySelector("#score-2-players-input").parentElement;
+        this.highscoreLine1 = document.querySelector("#highscore-line-1");
+        this.highscoreLine2 = document.querySelector("#highscore-line-2");
+        this.highscoreLine3 = document.querySelector("#highscore-line-3");
+        this.highscoreLineMe = document.querySelector("#highscore-line-me");
         this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
@@ -12138,7 +12277,22 @@ class PuzzleUI {
         this.highscorePlayerLine.style.display = twoPlayerCase ? "none" : "block";
         this.highscoreTwoPlayersLine.style.display = twoPlayerCase ? "block" : "none";
         this.failMessage.style.display = "none";
-        if (state === 0 || USE_WAVEDASH_SDK) {
+        this.highscoreLine1.style.display = "none";
+        this.highscoreLine2.style.display = "none";
+        this.highscoreLine3.style.display = "none";
+        this.highscoreLineMe.style.display = "none";
+        if (USE_WAVEDASH_SDK || true) {
+            this.highscorePlayerLine.style.display = "none";
+            this.scoreSubmitBtn.style.display = "none";
+            this.scorePendingBtn.style.display = "none";
+            this.scoreDoneBtn.style.display = "none";
+            this.highscoreContainer.style.display = "block";
+            this.highscoreLine1.style.display = "block";
+            this.highscoreLine2.style.display = "block";
+            this.highscoreLine3.style.display = "block";
+            this.highscoreLineMe.style.display = "block";
+        }
+        else if (state === 0) {
             // Not enough for Highscore
             this.highscoreContainer.style.display = "none";
         }

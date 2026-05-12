@@ -80,6 +80,9 @@ function SaveAsText(puzzle: Puzzle, withHaiku?: boolean): string {
                     }
                     else if (tile instanceof WaterTile) {
                         lines[j][i] = ["q"];
+                    }   
+                    else if (tile instanceof IceTile) {
+                        lines[j][i] = ["g"];
                     }        
                 }
             }

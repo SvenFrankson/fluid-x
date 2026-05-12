@@ -804,7 +804,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "i") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 1,
                         i: i,
@@ -814,7 +814,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "j") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 1,
                         i: i,
@@ -822,10 +822,10 @@ class Puzzle {
                         h: 0,
                         noShadow: true
                     });
-                    button.close(0);
+                    door.close(0);
                 }
                 else if (c === "d") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 2,
                         i: i,
@@ -835,7 +835,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "f") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 2,
                         i: i,
@@ -843,10 +843,10 @@ class Puzzle {
                         h: 0,
                         noShadow: true
                     });
-                    button.close(0);
+                    door.close(0);
                 }
                 else if (c === "t") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 3,
                         i: i,
@@ -856,7 +856,7 @@ class Puzzle {
                     });
                 }
                 else if (c === "u") {
-                    let button = new DoorTile(this.game, {
+                    let door = new DoorTile(this.game, {
                         color: TileColor.North,
                         value: 3,
                         i: i,
@@ -864,7 +864,17 @@ class Puzzle {
                         h: 0,
                         noShadow: true
                     });
-                    button.close(0);
+                    door.close(0);
+                }
+                else if (c === "g") {
+                    let ice = new IceTile(this.game, {
+                        color: TileColor.North,
+                        value: 3,
+                        i: i,
+                        j: j,
+                        h: 0,
+                        noShadow: true
+                    });
                 }
                 else if (c === "c") {
                     let creep = new Creep(this, {

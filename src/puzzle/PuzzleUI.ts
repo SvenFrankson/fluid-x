@@ -17,6 +17,7 @@ class PuzzleUI {
     public highscoreLine2: HTMLDivElement
     public highscoreLine3: HTMLDivElement;
     public highscoreLineMe: HTMLDivElement;
+    public highscoreLines: HTMLDivElement[];
 
     public scoreSubmitBtn: HTMLButtonElement;
     public scorePendingBtn: HTMLButtonElement;
@@ -72,6 +73,7 @@ class PuzzleUI {
         this.highscoreLine2 = document.querySelector("#highscore-line-2");
         this.highscoreLine3 = document.querySelector("#highscore-line-3");
         this.highscoreLineMe = document.querySelector("#highscore-line-me");
+        this.highscoreLines = [this.highscoreLine1, this.highscoreLine2, this.highscoreLine3, this.highscoreLineMe];
         this.scoreSubmitBtn = document.querySelector("#success-score-submit-btn");
         this.scorePendingBtn = document.querySelector("#success-score-pending-btn");
         this.scoreDoneBtn = document.querySelector("#success-score-done-btn");
@@ -300,10 +302,40 @@ class PuzzleUI {
             this.scoreDoneBtn.style.display = "none";
 
             this.highscoreContainer.style.display = "block";
-            this.highscoreLine1.style.display = "block";
-            this.highscoreLine2.style.display = "block";
-            this.highscoreLine3.style.display = "block";
-            this.highscoreLineMe.style.display = "block";
+            this.highscoreLine1.style.display = "none";
+            this.highscoreLine2.style.display = "none";
+            this.highscoreLine3.style.display = "none";
+            this.highscoreLineMe.style.display = "none";
+
+            Wavedash.getLeaderboard(GetLeaderboardName(this.puzzle.data)).then(async leaderboard => {
+                const leaderboardId = leaderboard.success ? leaderboard.data.id : null;
+                console.log("leaderboardId", leaderboardId);
+                if (leaderboardId != null) {
+                    const responseBest = await Wavedash.listLeaderboardEntries(
+                        leaderboardId, 0, 3, false
+                    );
+                    console.log("Wavedash leaderboard response:", responseBest);
+                    for (let i = 0; i < 3; i++) {
+                        let scoreData = responseBest.data[i];
+                        if (scoreData) {
+                            this.highscoreLines[i].querySelector(".player").innerHTML = scoreData.username;
+                            this.highscoreLines[i].querySelector(".score").innerHTML = Game.ScoreToString(scoreData.score / 10);
+                            this.highscoreLines[i].style.display = "block";
+                        }
+                    }
+                    const responseMine = await Wavedash.getMyLeaderboardEntries(leaderboardId);
+                    if (responseMine.success) {
+                        let rank = responseMine.data[0].globalRank;
+                        if (rank > 3) {
+                            let scoreData = responseMine.data[0];
+                            this.highscoreLineMe.querySelector(".rank").innerHTML = "#" + rank;
+                            this.highscoreLineMe.querySelector(".player").innerHTML = scoreData.username;
+                            this.highscoreLineMe.querySelector(".score").innerHTML = Game.ScoreToString(scoreData.score / 10);
+                            this.highscoreLineMe.style.display = "block";
+                        }
+                    }
+                }
+            });
         }
         else if (state === 0) {
             // Not enough for Highscore

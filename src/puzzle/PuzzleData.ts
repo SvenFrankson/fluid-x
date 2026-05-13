@@ -70,19 +70,23 @@ function GetLeaderboardName(data: IPuzzleData): string {
 
     if (data.state === PuzzleDataState.STORY) {
         leaderboardId = "story_" + leaderboardId;
+        leaderboardId = leaderboardId.replaceAll(/story_\d+-/g, "story_");
     }
     else if (data.state === PuzzleDataState.XPERT) {
         leaderboardId = "expert_" + leaderboardId;
+        leaderboardId = leaderboardId.replaceAll(/expert_\d+-/g, "expert_");
     }
     else if (data.state === PuzzleDataState.PREMIUM) {
         leaderboardId = "puzzle_" + leaderboardId;
+        leaderboardId = leaderboardId.replaceAll(/puzzle_\d+-/g, "puzzle_");
     }
     else if (data.state === PuzzleDataState.OKAY) {
         leaderboardId = "community_" + leaderboardId;
+        leaderboardId = leaderboardId.replaceAll(/community_\d+-/g, "community_");
     }
+    
 
     return leaderboardId;
-
 }
 
 interface IPuzzlesData {

@@ -22,7 +22,7 @@ class HomePage {
                 const isPremium = await IsPremiumEntitled();
                 if (isPremium) {
                     contentVersionElement.textContent = "PREMIUM";
-                    contentVersionElement.style.backgroundColor = "var(--color-red)";
+                    contentVersionElement.style.backgroundColor = "var(--color-premium)";
                 }
                 else {
                     contentVersionElement.textContent = "FREE";

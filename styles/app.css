@@ -18,6 +18,7 @@ body {
     --color-orange: #d4804d;    
     --color-yellow: #e0c872;    
     --color-green: #3e6958;
+    --color-premium: #cd9d30;
     background-size: 50px;
     background-position: center;
     width: 100vw;
@@ -219,7 +220,7 @@ h1 span.content-version {
     font-size: 20px;
     padding-bottom: 0px;
     padding: 6px 10px 6px 10px;
-    background-color: var(--color-red);
+    background-color: var(--color-premium);
     background-image: url("../datas/textures/rainbow_pattern.png");
     background-size: 40px;
     border: 2px solid #624c3cff;
@@ -441,6 +442,14 @@ body:not(.touchscreen) .yellow:hover, .yellow.hovered {
 
 body:not(.touchscreen) .green:hover, .green.hovered {
     background-color: color-mix(in srgb, #3e6958 85%, white 15%);
+}
+
+.premium {
+    background-color: var(--color-premium);
+}
+
+body:not(.touchscreen) .premium:hover, .premium.hovered {
+    background-color: color-mix(in srgb, var(--color-premium) 85%, white 15%);
 }
 
 button.selected {
@@ -920,8 +929,8 @@ body.vertical .square-btn-container {
     right: 0px;
     z-index: 2;
     padding: 2px 5px;
-    color: white;
-    background-color: var(--color-red);
+    color: #1b1811;
+    background-color: var(--color-premium);
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
     border: 2px solid #624c3cff;

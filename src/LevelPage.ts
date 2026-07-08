@@ -148,14 +148,14 @@ abstract class LevelPage {
                             const responseBest = await Wavedash.listLeaderboardEntries(
                                 leaderboardId, 0, 1, false
                             );
-                            if (responseBest.success) {
+                            if (responseBest.success && responseBest.data[0]) {
                                 let score = responseBest.data[0].score;
                                 valBest = "#1: " + responseBest.data[0].username.substring(0, 8) + " " + Game.ScoreToString(score / 10);
                             }
                             authorText.innerHTML = valBest;
 
                             const responseMine = await Wavedash.getMyLeaderboardEntries(leaderboardId);
-                            if (responseMine.success) {
+                            if (responseMine.success && responseMine.data[0]) {
                                 let rank = responseMine.data[0].globalRank;
                                 if (rank != 1) {
                                     let score = responseMine.data[0].score;
@@ -179,10 +179,10 @@ abstract class LevelPage {
                 }
             }
 
-            if (CONTENT_VERSION === ContentVersion.Free && puzzleTileDatas[n].data.premium === 1) {
+            if (USE_WAVEDASH_SDK && puzzleTileDatas[n].data.premium === 1) {
                 let premiumTag = document.createElement("div");
                 premiumTag.classList.add("premium-tag");
-                premiumTag.innerHTML = "PREMIUM PUZZLE";
+                premiumTag.innerHTML = "PREMIUM";
                 squareButton.appendChild(premiumTag);
             }
 

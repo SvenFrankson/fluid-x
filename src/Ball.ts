@@ -435,6 +435,11 @@ class Ball extends BABYLON.Mesh {
                         this.boost = false;
                     }
                 }
+                if (ev.code === "KeyR") {
+                    this.puzzle.reset(true).then(() => {
+                        this.puzzle.skipIntro();
+                    });
+                }
             })
         }
         

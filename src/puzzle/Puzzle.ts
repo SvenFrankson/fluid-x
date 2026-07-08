@@ -384,11 +384,15 @@ class Puzzle {
 
         clearTimeout(this._winloseTimout);
         setTimeout(() => {
-            this.puzzleUI.hideTouchInput();
-            this.balls[0].winAnimation()
+            if (this.puzzleState === PuzzleState.Wining) {
+                this.puzzleUI.hideTouchInput();
+                this.balls[0].winAnimation()
+            }
         }, 500);
         setTimeout(() => {
-            this.puzzleUI.winSound.play();
+            if (this.puzzleState === PuzzleState.Wining) {
+                this.puzzleUI.winSound.play();
+            }
         }, 1000);
         this._winloseTimout = setTimeout(() => {
             this.game.analytics.sendEvent(1);

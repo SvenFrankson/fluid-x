@@ -269,10 +269,10 @@ class PuzzleUI {
                 newIcon.classList.add("square-btn-miniature");
                 squareBtn.appendChild(newIcon);
 
-                if (CONTENT_VERSION === ContentVersion.Free && data.premium === 1) {
+                if (USE_WAVEDASH_SDK && data.premium === 1) {
                     let premiumTag = document.createElement("div");
                     premiumTag.classList.add("premium-tag");
-                    premiumTag.innerHTML = "PREMIUM PUZZLE";
+                    premiumTag.innerHTML = "PREMIUM";
                     squareBtn.appendChild(premiumTag);
                 }
     

@@ -516,6 +516,11 @@ class Ball extends BABYLON.Mesh {
                         this.boost = false;
                     }
                 }
+                if (ev.code === "KeyR") {
+                    this.puzzle.reset(true).then(() => {
+                        this.puzzle.skipIntro();
+                    });
+                }
             });
         }
     }
@@ -2912,8 +2917,8 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
-            if (CONTENT_VERSION === ContentVersion.Free && this.game.puzzle.data.premium === 1) {
-                this.paywallPage.show(undefined, showTime);
+            if (USE_WAVEDASH_SDK && this.game.puzzle.data.premium === 1) {
+                this.paywallPage.showIfNotPremium(showTime);
             }
         }
         else if (page.startsWith("#puzzle-")) {
@@ -2969,8 +2974,8 @@ class CarillonRouter extends Nabu.Router {
             this.game.puzzle.editorOrEditorPreview = false;
             document.querySelector("#editor-btn").style.display = DEV_MODE_ACTIVATED ? "" : "none";
             this.game.globalTimer = 0;
-            if (CONTENT_VERSION === ContentVersion.Free && this.game.puzzle.data.premium === 1) {
-                this.paywallPage.show(undefined, showTime);
+            if (USE_WAVEDASH_SDK && this.game.puzzle.data.premium === 1) {
+                this.paywallPage.showIfNotPremium(showTime);
             }
         }
         else if (page.startsWith("#levels")) {
@@ -4947,26 +4952,31 @@ class HomePage {
         this.nabuPage = document.querySelector(queryString);
         this.buttons = [...this.nabuPage.querySelectorAll("button")];
         this.rowCount = this.buttons.length;
+        this.updateContentVersionDisplay();
+        this._registerToInputManager();
+    }
+    async updateContentVersionDisplay() {
         let contentVersionElement = this.nabuPage.querySelector("h1 span.content-version");
-        let premiumPuzzlesButton = this.nabuPage.querySelector("#home-premium-btn .premium-tag");
+        let premiumPuzzlesButtonTag = this.nabuPage.querySelector("#home-premium-btn .premium-tag");
         if (contentVersionElement instanceof HTMLSpanElement) {
-            if (CONTENT_VERSION === ContentVersion.Free) {
-                contentVersionElement.textContent = "FREE";
-                contentVersionElement.style.backgroundColor = "var(--color-green)";
-                premiumPuzzlesButton.style.display = "block";
+            if (USE_WAVEDASH_SDK) {
+                const isPremium = await IsPremiumEntitled();
+                if (isPremium) {
+                    contentVersionElement.textContent = "PREMIUM";
+                    contentVersionElement.style.backgroundColor = "var(--color-red)";
+                }
+                else {
+                    contentVersionElement.textContent = "FREE";
+                    contentVersionElement.style.backgroundColor = "var(--color-green)";
+                }
+                premiumPuzzlesButtonTag.style.display = "block";
             }
-            if (CONTENT_VERSION === ContentVersion.Classic) {
+            else {
                 contentVersionElement.textContent = "CLASSIC";
                 contentVersionElement.style.backgroundColor = "var(--color-blue)";
-                premiumPuzzlesButton.style.display = "none";
-            }
-            if (CONTENT_VERSION === ContentVersion.Premium) {
-                contentVersionElement.textContent = "PREMIUM";
-                contentVersionElement.style.backgroundColor = "var(--color-red)";
-                premiumPuzzlesButton.style.display = "none";
+                premiumPuzzlesButtonTag.style.display = "none";
             }
         }
-        this._registerToInputManager();
     }
     get shown() {
         return this.nabuPage.shown;
@@ -5323,13 +5333,13 @@ class LevelPage {
                         if (leaderboardId != null) {
                             let valBest = "";
                             const responseBest = await Wavedash.listLeaderboardEntries(leaderboardId, 0, 1, false);
-                            if (responseBest.success) {
+                            if (responseBest.success && responseBest.data[0]) {
                                 let score = responseBest.data[0].score;
                                 valBest = "#1: " + responseBest.data[0].username.substring(0, 8) + " " + Game.ScoreToString(score / 10);
                             }
                             authorText.innerHTML = valBest;
                             const responseMine = await Wavedash.getMyLeaderboardEntries(leaderboardId);
-                            if (responseMine.success) {
+                            if (responseMine.success && responseMine.data[0]) {
                                 let rank = responseMine.data[0].globalRank;
                                 if (rank != 1) {
                                     let score = responseMine.data[0].score;
@@ -5351,10 +5361,10 @@ class LevelPage {
                     authorText.setContent(puzzleTileDatas[n].data.author);
                 }
             }
-            if (CONTENT_VERSION === ContentVersion.Free && puzzleTileDatas[n].data.premium === 1) {
+            if (USE_WAVEDASH_SDK && puzzleTileDatas[n].data.premium === 1) {
                 let premiumTag = document.createElement("div");
                 premiumTag.classList.add("premium-tag");
-                premiumTag.innerHTML = "PREMIUM PUZZLE";
+                premiumTag.innerHTML = "PREMIUM";
                 squareButton.appendChild(premiumTag);
             }
             if (puzzleTileDatas[n].data.id != null && this.router.game.puzzleCompletion.isPuzzleCompleted(puzzleTileDatas[n].data.id)) {
@@ -5814,13 +5824,6 @@ var CONFIGURATION_VERSION = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 + PATCH_V
 var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
-var ContentVersion;
-(function (ContentVersion) {
-    ContentVersion[ContentVersion["Free"] = 0] = "Free";
-    ContentVersion[ContentVersion["Classic"] = 1] = "Classic";
-    ContentVersion[ContentVersion["Premium"] = 2] = "Premium";
-})(ContentVersion || (ContentVersion = {}));
-var CONTENT_VERSION;
 var USE_POKI_SDK;
 var USE_CG_SDK;
 var USE_WAVEDASH_SDK;
@@ -6001,6 +6004,10 @@ function StopPointerProgatation(ev) {
 function StopPointerProgatationAndMonkeys(ev) {
     console.log("StopPointerProgatationAndMonkeys");
     ev.stopPropagation();
+}
+async function IsPremiumEntitled() {
+    const result = await Wavedash.isEntitled("premium-version");
+    return result.data;
 }
 var TileColor;
 (function (TileColor) {
@@ -7686,20 +7693,61 @@ class PaywallPage {
     constructor(selector, router) {
         this.router = router;
         this.nabuPage = document.querySelector(selector);
+        this.screenLock = this.nabuPage.querySelector("#paywall-screen-lock");
+        this.buyPremiumButton = this.nabuPage.querySelector("#buy-premium-btn");
+        this.ignoreButton = this.nabuPage.querySelector("#paywall-ignore");
+        this.unpaidContainer = this.nabuPage.querySelector("#paywall-unpaid");
+        this.paidContainer = this.nabuPage.querySelector("#paywall-paid");
         this.continueButton = this.nabuPage.querySelector("#paywall-continue");
+        this.buyPremiumButton.onclick = async () => {
+            const result = await Wavedash.triggerPaywall("premium-version");
+            this.router.homeMenu.updateContentVersionDisplay();
+            if (result.success && result.data) {
+                this.updateContent();
+            }
+        };
+        this.continueButton.onclick = () => {
+            this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = false);
+            this.nabuPage.hide(0.2);
+        };
+        this.screenLock.onclick = async () => {
+            if (IsPremiumEntitled()) {
+                this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = false);
+                this.nabuPage.hide(0.2);
+            }
+        };
     }
     show(onContinue, duration) {
+        this.updateContent();
+        IsPremiumEntitled();
         this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = true);
         this.nabuPage.show(duration);
         if (onContinue) {
-            this.continueButton.onclick = onContinue;
+            this.ignoreButton.onclick = onContinue;
         }
         else {
-            this.continueButton.onclick = () => {
+            this.ignoreButton.onclick = () => {
                 this.router.game.puzzle.balls.forEach(ball => ball.isControlLocked = false);
                 this.router.game.achievements.addDismissedPaywalls(1);
                 this.nabuPage.hide(0.2);
             };
+        }
+    }
+    async showIfNotPremium(duration) {
+        const isPremium = await IsPremiumEntitled();
+        if (!isPremium) {
+            this.show(undefined, duration);
+        }
+    }
+    async updateContent() {
+        const isPremium = await IsPremiumEntitled();
+        if (isPremium) {
+            this.unpaidContainer.style.display = "none";
+            this.paidContainer.style.display = "block";
+        }
+        else {
+            this.unpaidContainer.style.display = "block";
+            this.paidContainer.style.display = "none";
         }
     }
 }
@@ -10266,11 +10314,15 @@ class Puzzle {
         this.puzzleUI.successPanel.querySelector("#success-timer").innerHTML = Game.ScoreToString(score / 10);
         clearTimeout(this._winloseTimout);
         setTimeout(() => {
-            this.puzzleUI.hideTouchInput();
-            this.balls[0].winAnimation();
+            if (this.puzzleState === PuzzleState.Wining) {
+                this.puzzleUI.hideTouchInput();
+                this.balls[0].winAnimation();
+            }
         }, 500);
         setTimeout(() => {
-            this.puzzleUI.winSound.play();
+            if (this.puzzleState === PuzzleState.Wining) {
+                this.puzzleUI.winSound.play();
+            }
         }, 1000);
         this._winloseTimout = setTimeout(() => {
             this.game.analytics.sendEvent(1);
@@ -12263,10 +12315,10 @@ class PuzzleUI {
                 let newIcon = PuzzleMiniatureMaker.Generate(data.content);
                 newIcon.classList.add("square-btn-miniature");
                 squareBtn.appendChild(newIcon);
-                if (CONTENT_VERSION === ContentVersion.Free && data.premium === 1) {
+                if (USE_WAVEDASH_SDK && data.premium === 1) {
                     let premiumTag = document.createElement("div");
                     premiumTag.classList.add("premium-tag");
-                    premiumTag.innerHTML = "PREMIUM PUZZLE";
+                    premiumTag.innerHTML = "PREMIUM";
                     squareBtn.appendChild(premiumTag);
                 }
                 this.unlockContainer.style.display = "";

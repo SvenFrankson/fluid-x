@@ -915,11 +915,11 @@ body.vertical .square-btn-container {
     display: block;
     position: absolute;
     text-align: center;
-    font-size: 16px;
-    bottom: 30px;
+    font-size: 14px;
+    top: 50px;
     right: 0px;
     z-index: 2;
-    padding: 4px 5px 4px 5px;
+    padding: 2px 5px;
     color: white;
     background-color: var(--color-red);
     border-top-left-radius: 5px;

@@ -13,8 +13,6 @@ var CONFIGURATION_VERSION: number = MAJOR_VERSION * 1000 + MINOR_VERSION * 100 +
 var observed_progress_speed_percent_second;
 var setProgressIndex;
 var GLOBAL_GAME_LOAD_CURRENT_STEP;
-enum ContentVersion { Free = 0, Classic = 1, Premium = 2 }
-var CONTENT_VERSION: ContentVersion;
 var USE_POKI_SDK: boolean;
 var USE_CG_SDK: boolean;
 var USE_WAVEDASH_SDK: boolean;
@@ -214,6 +212,11 @@ function StopPointerProgatation(ev: PointerEvent) {
 function StopPointerProgatationAndMonkeys(ev: PointerEvent) {
     console.log("StopPointerProgatationAndMonkeys");
     ev.stopPropagation();
+}
+
+async function IsPremiumEntitled(): Promise<boolean> {
+    const result = await Wavedash.isEntitled("premium-version");
+    return result.data;
 }
 
 enum TileColor {

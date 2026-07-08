@@ -9,29 +9,35 @@ class HomePage {
         this.buttons = [...this.nabuPage.querySelectorAll("button")];
         this.rowCount = this.buttons.length;
 
-        let contentVersionElement = this.nabuPage.querySelector("h1 span.content-version");
-        let premiumPuzzlesButton = this.nabuPage.querySelector("#home-premium-btn .premium-tag") as HTMLDivElement;
+        this.updateContentVersionDisplay();
+        
+        this._registerToInputManager();
+    }
+    
+    public async updateContentVersionDisplay(): Promise<void> {
+        let contentVersionElement = this.nabuPage.querySelector("h1 span.content-version") as HTMLSpanElement;
+        let premiumPuzzlesButtonTag = this.nabuPage.querySelector("#home-premium-btn .premium-tag") as HTMLDivElement;
         if (contentVersionElement instanceof HTMLSpanElement) {
-            if (CONTENT_VERSION === ContentVersion.Free) {
-                contentVersionElement.textContent = "FREE";
-                contentVersionElement.style.backgroundColor = "var(--color-green)";
+            if (USE_WAVEDASH_SDK) {
+                const isPremium = await IsPremiumEntitled();
+                if (isPremium) {
+                    contentVersionElement.textContent = "PREMIUM";
+                    contentVersionElement.style.backgroundColor = "var(--color-red)";
+                }
+                else {
+                    contentVersionElement.textContent = "FREE";
+                    contentVersionElement.style.backgroundColor = "var(--color-green)";
+                }
 
-                premiumPuzzlesButton.style.display = "block";
+                premiumPuzzlesButtonTag.style.display = "block";
             }
-            if (CONTENT_VERSION === ContentVersion.Classic) {
+            else {
                 contentVersionElement.textContent = "CLASSIC";
                 contentVersionElement.style.backgroundColor = "var(--color-blue)";
                 
-                premiumPuzzlesButton.style.display = "none";
-            }
-            if (CONTENT_VERSION === ContentVersion.Premium) {
-                contentVersionElement.textContent = "PREMIUM";
-                contentVersionElement.style.backgroundColor = "var(--color-red)";
-                
-                premiumPuzzlesButton.style.display = "none";
+                premiumPuzzlesButtonTag.style.display = "none";
             }
         }
-        this._registerToInputManager();
     }
 
     public get shown(): boolean {

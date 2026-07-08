@@ -656,7 +656,13 @@ class Editor {
                 });
                 let text = await response.text();
                 let id = parseInt(text);
-                let url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
+                let url = "";
+                if (USE_WAVEDASH_SDK) {
+                    url = "https://wavedash.com/games/carillion?wvdsh_puzzle=" + id.toFixed(0);
+                }
+                else {
+                    url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
+                }
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 (document.querySelector("#publish-generated-url-go").parentElement as HTMLAnchorElement).href = url;
                 (document.querySelector("#publish-generated-url-copy") as HTMLButtonElement).onpointerup = () => { navigator.clipboard.writeText(url); };

@@ -4208,7 +4208,13 @@ class Editor {
                 });
                 let text = await response.text();
                 let id = parseInt(text);
-                let url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
+                let url = "";
+                if (USE_WAVEDASH_SDK) {
+                    url = "https://wavedash.com/games/carillion?wvdsh_puzzle=" + id.toFixed(0);
+                }
+                else {
+                    url = "https://carillion.tiaratum.com/#puzzle-" + id.toFixed(0);
+                }
                 document.querySelector("#publish-generated-url").setAttribute("value", url);
                 document.querySelector("#publish-generated-url-go").parentElement.href = url;
                 document.querySelector("#publish-generated-url-copy").onpointerup = () => { navigator.clipboard.writeText(url); };
@@ -4963,7 +4969,7 @@ class HomePage {
                 const isPremium = await IsPremiumEntitled();
                 if (isPremium) {
                     contentVersionElement.textContent = "PREMIUM";
-                    contentVersionElement.style.backgroundColor = "var(--color-red)";
+                    contentVersionElement.style.backgroundColor = "var(--color-premium)";
                 }
                 else {
                     contentVersionElement.textContent = "FREE";
@@ -6449,11 +6455,26 @@ class Game {
             loop: true
         });
         let puzzleId;
-        if (location.search != "") {
-            let puzzleIdStr = location.search.replace("?puzzle=", "");
-            if (puzzleIdStr) {
-                puzzleId = parseInt(puzzleIdStr);
-                if (puzzleId) {
+        if (USE_WAVEDASH_SDK) {
+            const params = Wavedash.getLaunchParams();
+            console.log("params", params);
+            if (params.puzzle) {
+                let rerouteOnReady = setInterval(() => {
+                    if (location.hash === "#home") {
+                        clearInterval(rerouteOnReady);
+                        console.log("rerouting to puzzle", params.puzzle);
+                        location.hash = "#puzzle-" + params.puzzle;
+                    }
+                }, 100);
+            }
+        }
+        else {
+            if (location.search != "") {
+                let puzzleIdStr = location.search.replace("?puzzle=", "");
+                if (puzzleIdStr) {
+                    puzzleId = parseInt(puzzleIdStr);
+                    if (puzzleId) {
+                    }
                 }
             }
         }
@@ -7955,6 +7976,9 @@ class PushTile extends Tile {
                                 });
                             }
                             await this.animatePosition(newPos, 0.5, Nabu.Easing.easeOutSquare);
+                            if (this.isDisposed()) {
+                                return;
+                            }
                             if (dir.x === 1) {
                                 this.animateRotZ(-Math.PI, 0.4);
                             }
@@ -7968,8 +7992,14 @@ class PushTile extends Tile {
                                 this.animateRotX(-Math.PI, 0.4);
                             }
                             await this.animateWait(0.2);
+                            if (this.isDisposed()) {
+                                return;
+                            }
                             newPos.y -= 5.5;
                             await this.animatePosition(newPos, 0.5, Nabu.Easing.easeInSquare);
+                            if (this.isDisposed()) {
+                                return;
+                            }
                             if (this.game.performanceWatcher.worst > 24) {
                                 let explosionCloud = new Explosion(this.game);
                                 let p = this.position.clone();
@@ -8005,6 +8035,9 @@ class PushTile extends Tile {
                             this.pushSound.play();
                             this.animateRotX(targetRotX, 1);
                             await this.animatePosition(newPos, 1, Nabu.Easing.easeOutSquare);
+                            if (this.isDisposed()) {
+                                return;
+                            }
                             this.game.puzzle.updateGriddedStack(this);
                             this.tileState = TileState.Active;
                             let hIJ = this.game.puzzle.hMapGet(this.i, this.j);

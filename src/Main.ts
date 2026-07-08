@@ -736,12 +736,25 @@ class Game {
         );
 
         let puzzleId: number;
-        if (location.search != "") {
-            let puzzleIdStr = location.search.replace("?puzzle=", "");
-            if (puzzleIdStr) {
-                puzzleId = parseInt(puzzleIdStr);
-                if (puzzleId) {
-                    
+        if (USE_WAVEDASH_SDK) {
+            const params = Wavedash.getLaunchParams();
+            if (params.puzzle) {
+                let rerouteOnReady = setInterval(() => {
+                    if (location.hash === "#home") {
+                        clearInterval(rerouteOnReady);
+                        location.hash = "#puzzle-" + params.puzzle;
+                    }
+                }, 100);
+            }
+        }
+        else {
+            if (location.search != "") {
+                let puzzleIdStr = location.search.replace("?puzzle=", "");
+                if (puzzleIdStr) {
+                    puzzleId = parseInt(puzzleIdStr);
+                    if (puzzleId) {
+                        
+                    }
                 }
             }
         }
